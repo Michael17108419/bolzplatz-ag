@@ -1,6 +1,6 @@
 # Langzeitlauf: 50 Saisons
 
-Startwelt 2026/27, Entwicklung und Rücktritte an, Saisonseeds fest. Rechenzeit 295 s.
+Startwelt 2026/27, Entwicklung und Rücktritte an, Saisonseeds fest. Rechenzeit 223 s.
 
 ## Gesamt
 
@@ -63,6 +63,91 @@ Startwelt 2026/27, Entwicklung und Rücktritte an, Saisonseeds fest. Rechenzeit 
 | 31–40 | 2.48 | 0.24 | 26.6 | 23.0 | 49.6 | 44.0 | 3.8 | 0.80 | 2.01 | 0.73 | 0.32 | 0.70 | 0.16 | 0.17 | 14.2 |
 | 41–50 | 2.49 | 0.24 | 26.6 | 23.0 | 50.3 | 44.5 | 3.9 | 0.82 | 2.00 | 0.71 | 0.32 | 0.64 | 0.17 | 0.17 | 14.3 |
 | alle | 2.48 | 0.24 | 26.6 | 23.0 | 49.7 | 44.2 | 3.9 | 0.81 | 1.99 | 0.73 | 0.32 | 0.69 | 0.16 | 0.17 | 13.6 |
+
+## Torschützenkönige (nur Ligaspiele)
+
+### Liga-Ebene 1
+
+- Tore des Königs: im Schnitt 23.5, Median 23, min 16, max 36.
+- Position des Königs: ST 100 %.
+- Positionen der besten drei: ST 94 %, ZM 3 %, RA 1 %, LA 1 %.
+- Anteil an allen Ligatoren: ST 41 %, IV 12 %, ZM 11 %, LA 10 %, RA 9 %, LV 5 %, RV 5 %, ZDM 4 %, ZOM 4 %.
+
+### Liga-Ebene 2
+
+- Tore des Königs: im Schnitt 23.6, Median 23, min 16, max 37.
+- Position des Königs: ST 96 %, ZOM 2 %, LV 2 %.
+- Positionen der besten drei: ST 94 %, RA 3 %, ZOM 2 %, LV 1 %, LA 1 %.
+- Anteil an allen Ligatoren: ST 42 %, IV 12 %, ZM 11 %, RA 10 %, LA 9 %, RV 4 %, ZDM 4 %, ZOM 4 %, LV 4 %.
+
+### Liga-Ebene 3
+
+- Tore des Königs: im Schnitt 26.6, Median 27, min 19, max 37.
+- Position des Königs: ST 100 %.
+- Positionen der besten drei: ST 96 %, ZOM 3 %, LA 1 %.
+- Anteil an allen Ligatoren: ST 44 %, IV 12 %, ZM 11 %, LA 9 %, RA 9 %, ZOM 5 %, LV 4 %, RV 4 %, ZDM 4 %.
+
+### Liga-Ebene 4
+
+- Tore des Königs: im Schnitt 33.3, Median 34, min 24, max 43.
+- Position des Königs: ST 100 %.
+- Positionen der besten drei: ST 100 %.
+- Anteil an allen Ligatoren: ST 47 %, ZM 11 %, IV 10 %, RA 9 %, LA 9 %, ZOM 4 %, LV 4 %, RV 3 %, ZDM 3 %.
+
+### Liga 1: Könige je Saison
+
+| Saison | Position | Tore | Zweiter | Dritter | Pos. Zweiter |
+| --- | --- | --- | --- | --- | --- |
+| 2026/27 | ST | 21 | 20 | 19 | ST |
+| 2027/28 | ST | 24 | 24 | 21 | ST |
+| 2028/29 | ST | 30 | 26 | 21 | ST |
+| 2029/30 | ST | 24 | 24 | 22 | ST |
+| 2030/31 | ST | 25 | 22 | 21 | ST |
+| 2031/32 | ST | 20 | 19 | 17 | ST |
+| 2032/33 | ST | 26 | 24 | 22 | ST |
+| 2033/34 | ST | 26 | 19 | 19 | ST |
+| 2034/35 | ST | 20 | 18 | 18 | ST |
+| 2035/36 | ST | 23 | 21 | 20 | ST |
+| 2036/37 | ST | 27 | 21 | 20 | ST |
+| 2037/38 | ST | 26 | 22 | 15 | ST |
+| 2038/39 | ST | 24 | 21 | 20 | ST |
+| 2039/40 | ST | 25 | 19 | 18 | ST |
+| 2040/41 | ST | 26 | 22 | 22 | ST |
+| 2041/42 | ST | 27 | 23 | 22 | ST |
+| 2042/43 | ST | 22 | 21 | 18 | LA |
+| 2043/44 | ST | 24 | 21 | 14 | ZM |
+| 2044/45 | ST | 19 | 15 | 14 | ST |
+| 2045/46 | ST | 23 | 20 | 18 | ST |
+| 2046/47 | ST | 24 | 24 | 22 | ST |
+| 2047/48 | ST | 22 | 19 | 19 | LA |
+| 2048/49 | ST | 33 | 16 | 15 | ST |
+| 2049/50 | ST | 22 | 22 | 20 | ZM |
+| 2050/51 | ST | 23 | 20 | 18 | ST |
+| 2051/52 | ST | 18 | 17 | 16 | ZM |
+| 2052/53 | ST | 32 | 22 | 19 | ST |
+| 2053/54 | ST | 21 | 19 | 17 | ST |
+| 2054/55 | ST | 25 | 23 | 18 | ST |
+| 2055/56 | ST | 24 | 18 | 17 | ST |
+| 2056/57 | ST | 21 | 20 | 19 | ST |
+| 2057/58 | ST | 17 | 15 | 15 | ST |
+| 2058/59 | ST | 21 | 19 | 18 | ST |
+| 2059/60 | ST | 20 | 19 | 17 | ST |
+| 2060/61 | ST | 19 | 18 | 17 | ST |
+| 2061/62 | ST | 22 | 21 | 19 | ST |
+| 2062/63 | ST | 17 | 15 | 13 | ST |
+| 2063/64 | ST | 22 | 20 | 18 | ST |
+| 2064/65 | ST | 16 | 15 | 15 | ST |
+| 2065/66 | ST | 27 | 21 | 18 | ST |
+| 2066/67 | ST | 25 | 20 | 18 | ST |
+| 2067/68 | ST | 23 | 17 | 16 | ST |
+| 2068/69 | ST | 21 | 17 | 15 | ST |
+| 2069/70 | ST | 21 | 18 | 14 | ST |
+| 2070/71 | ST | 20 | 19 | 19 | ST |
+| 2071/72 | ST | 23 | 20 | 20 | ST |
+| 2072/73 | ST | 29 | 21 | 18 | ST |
+| 2073/74 | ST | 25 | 24 | 23 | ST |
+| 2074/75 | ST | 26 | 23 | 19 | ST |
+| 2075/76 | ST | 36 | 28 | 23 | ST |
 
 ## Pokal
 
