@@ -442,14 +442,20 @@ class SeasonRunner {
 
     final finalLosers = <ClubId>[];
     final semiLosers = <ClubId>[];
+    final quarterLosers = <ClubId>[];
     for (final region in Region.values) {
       final cup = pott[region]!;
       final out = cup.eliminated;
       finalLosers.add(out.last.first);
       semiLosers.addAll(out[out.length - 2]);
+      if (out.length >= 3) quarterLosers.addAll(out[out.length - 3]);
     }
     finalLosers.sort((a, b) => ppg(b).compareTo(ppg(a)));
     semiLosers.sort((a, b) {
+      final d = ppg(b).compareTo(ppg(a));
+      return d != 0 ? d : a.value.compareTo(b.value);
+    });
+    quarterLosers.sort((a, b) {
       final d = ppg(b).compareTo(ppg(a));
       return d != 0 ? d : a.value.compareTo(b.value);
     });
@@ -460,6 +466,7 @@ class SeasonRunner {
       for (final t in seconds) t.club,
       ...finalLosers,
       ...semiLosers,
+      ...quarterLosers,
     ]) {
       if (!qualifiers.contains(c)) qualifiers.add(c);
     }
