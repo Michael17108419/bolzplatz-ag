@@ -171,10 +171,7 @@ class _OfferTile extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        offer.club.name,
-                        style: theme.textTheme.titleMedium,
-                      ),
+                      Text(offer.club.name, style: theme.textTheme.titleMedium),
                       Text(
                         '${offer.club.place} · '
                         '${s.leagueName(offer.league.name)}',
@@ -229,9 +226,7 @@ class _OfferDetail extends ConsumerWidget {
             width: 110,
             child: Text(
               label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Tokens.orange,
-              ),
+              style: theme.textTheme.bodyMedium?.copyWith(color: Tokens.orange),
             ),
           ),
           Expanded(child: Text(value, style: theme.textTheme.bodyLarge)),

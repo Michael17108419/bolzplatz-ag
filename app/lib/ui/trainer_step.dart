@@ -177,9 +177,7 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                     ),
                     chips(
                       'beard',
-                      [
-                        for (var i = 0; i < o['beard']!; i++) s.beardName(i),
-                      ],
+                      [for (var i = 0; i < o['beard']!; i++) s.beardName(i)],
                       a.beard,
                       (i) => a.copyWith(beard: i),
                     ),
@@ -233,10 +231,7 @@ class _LookRow extends StatelessWidget {
             width: 150,
             child: Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
+              child: Text(label, style: Theme.of(context).textTheme.bodyLarge),
             ),
           ),
           Expanded(child: child),

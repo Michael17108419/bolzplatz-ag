@@ -176,29 +176,19 @@ class AppStringsDe implements AppStrings {
   };
   @override
   String backstoryStrengths(String id) => switch (id) {
-    'failed_pro' =>
-      'Respekt in der Kabine, Spielerkontakte. Wenig Geld, die Presse erinnert an Skandale.',
-    'outsider' =>
-      'Wirtschaftsgeschick, gute Verhandlungen. Wenig Ansehen bei Spielern, taktisch schwach.',
-    'scandal_coach' =>
-      'Hohes Taktikwissen, Medienbekanntheit. Präsidentenvertrauen niedrig, Presse feindlich.',
-    'club_fixture' =>
-      'Volles Präsidentenvertrauen, kennt Verein und Umfeld. Wenig Charisma, kaum Verhandlungsgeschick.',
-    'business_student' =>
-      'Verhandlungsgeschick, Zahlenverständnis. Wenig Ansehen, wenig Kontakte, taktisch unerfahren.',
-    'youth_coach' =>
-      'Sehr guter Talentblick. Niedriges Ansehen, schwaches Verhandlungsgeschick.',
+    'failed_pro' => 'Respekt in der Kabine, Spielerkontakte. Wenig Geld, die Presse erinnert an Skandale.',
+    'outsider' => 'Wirtschaftsgeschick, gute Verhandlungen. Wenig Ansehen bei Spielern, taktisch schwach.',
+    'scandal_coach' => 'Hohes Taktikwissen, Medienbekanntheit. Präsidentenvertrauen niedrig, Presse feindlich.',
+    'club_fixture' => 'Volles Präsidentenvertrauen, kennt Verein und Umfeld. Wenig Charisma, kaum Verhandlungsgeschick.',
+    'business_student' => 'Verhandlungsgeschick, Zahlenverständnis. Wenig Ansehen, wenig Kontakte, taktisch unerfahren.',
+    'youth_coach' => 'Sehr guter Talentblick. Niedriges Ansehen, schwaches Verhandlungsgeschick.',
     'pub_landlord' =>
       'Gutes Charisma, viele Kontakte. Niedriges Ansehen, wenig Taktikwissen.',
-    'wandering_saviour' =>
-      'Viel Erfahrung, Kontakte, Verhandlungsgeschick. Hoher Stress, wenig Präsidentenvertrauen.',
+    'wandering_saviour' => 'Viel Erfahrung, Kontakte, Verhandlungsgeschick. Hoher Stress, wenig Präsidentenvertrauen.',
     'pe_teacher' => 'Gutes Charisma. Niedriges Ansehen, wenige Kontakte.',
-    'ex_referee' =>
-      'Gutes Taktikwissen durch Regelkenntnis. Wenig Charisma.',
-    'tactics_streamer' =>
-      'Sehr hohes Taktikwissen, gutes Pressebild. Niedriges Ansehen in der Branche, wenige Kontakte.',
-    'motivation_guru' =>
-      'Sehr hohes Charisma, gutes Pressebild. Wenig Taktikwissen und Talentblick.',
+    'ex_referee' => 'Gutes Taktikwissen durch Regelkenntnis. Wenig Charisma.',
+    'tactics_streamer' => 'Sehr hohes Taktikwissen, gutes Pressebild. Niedriges Ansehen in der Branche, wenige Kontakte.',
+    'motivation_guru' => 'Sehr hohes Charisma, gutes Pressebild. Wenig Taktikwissen und Talentblick.',
     _ => id,
   };
   @override
@@ -216,8 +206,7 @@ class AppStringsDe implements AppStrings {
       'Der Präsident rechnet von Anfang an mit deinem Abschied.',
     'hook_pe_teacher' =>
       'Die Spieler siezen dich und fragen nach Hausaufgaben.',
-    'hook_ex_referee' =>
-      'Die Schiedsrichter kennen dich persönlich, und alle erwarten, dass du ihnen nie widersprichst.',
+    'hook_ex_referee' => 'Die Schiedsrichter kennen dich persönlich, und alle erwarten, dass du ihnen nie widersprichst.',
     'hook_tactics_streamer' => 'Moon feiert dich, Earth News zweifelt.',
     'hook_motivation_guru' => 'Du hältst Reden, und die Presse zählt mit.',
     _ => hookId,
@@ -316,17 +305,15 @@ class AppStringsDe implements AppStrings {
     _ => id,
   };
   @override
-  String presidentTraitWord(PresidentTrait trait, bool high) =>
-      switch (trait) {
-        PresidentTrait.patience => high ? 'geduldig' : 'ungeduldig',
-        PresidentTrait.meddling =>
-          high ? 'mischt sich ein' : 'lässt dich machen',
-        PresidentTrait.thrift => high ? 'geizig' : 'großzügig',
-        PresidentTrait.ambition => high ? 'ehrgeizig' : 'genügsam',
-        PresidentTrait.vanity => high ? 'eitel' : 'bescheiden',
-        PresidentTrait.loyalty => high ? 'treu' : 'wankelmütig',
-        PresidentTrait.pressCraving => high ? 'pressegeil' : 'pressescheu',
-      };
+  String presidentTraitWord(PresidentTrait trait, bool high) => switch (trait) {
+    PresidentTrait.patience => high ? 'geduldig' : 'ungeduldig',
+    PresidentTrait.meddling => high ? 'mischt sich ein' : 'lässt dich machen',
+    PresidentTrait.thrift => high ? 'geizig' : 'großzügig',
+    PresidentTrait.ambition => high ? 'ehrgeizig' : 'genügsam',
+    PresidentTrait.vanity => high ? 'eitel' : 'bescheiden',
+    PresidentTrait.loyalty => high ? 'treu' : 'wankelmütig',
+    PresidentTrait.pressCraving => high ? 'pressegeil' : 'pressescheu',
+  };
   @override
   String lastSeasonRank(int rank) => 'Platz $rank';
   @override
@@ -346,6 +333,7 @@ class AppStringsDe implements AppStrings {
     }
     return '$out €';
   }
+
   @override
   String leagueName(String key) => switch (key) {
     'liga_1' => '1. Liga',

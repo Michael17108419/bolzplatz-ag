@@ -35,11 +35,7 @@ abstract final class TrainerLooks {
 
 /// The trainer as a small portrait in the calm flat style of the crests.
 class TrainerAvatar extends StatelessWidget {
-  const TrainerAvatar({
-    required this.appearance,
-    this.size = 160,
-    super.key,
-  });
+  const TrainerAvatar({required this.appearance, this.size = 160, super.key});
 
   final TrainerAppearance appearance;
   final double size;
@@ -150,11 +146,7 @@ class _AvatarPainter extends CustomPainter {
     switch (a.beard) {
       case 1:
         canvas.drawArc(
-          Rect.fromCenter(
-            center: const Offset(50, 46),
-            width: 35,
-            height: 36,
-          ),
+          Rect.fromCenter(center: const Offset(50, 46), width: 35, height: 36),
           0,
           math.pi,
           true,
@@ -162,11 +154,7 @@ class _AvatarPainter extends CustomPainter {
         );
       case 2:
         canvas.drawArc(
-          Rect.fromCenter(
-            center: const Offset(50, 46),
-            width: 36,
-            height: 40,
-          ),
+          Rect.fromCenter(center: const Offset(50, 46), width: 36, height: 40),
           0.1,
           math.pi - 0.2,
           true,
