@@ -239,7 +239,23 @@ class SeasonRunner {
         for (final c in state.pottQualifiers)
           if (!taken.contains(c)) c,
       ].take(cups.bolzplatzLowerGroupSize - cups.thirdLeaguePlaces);
-      lower = [...third, ...qualified];
+      final chosen = <ClubId>[...third, ...qualified];
+      // Not enough qualified clubs (some moved up): fill with the best
+      // remaining clubs of the third and then the fourth leagues.
+      final reserve = <ClubId>[
+        for (final c in state.thirdLeagueQualifiers)
+          if (inThird.contains(c)) c,
+        ...(List<ClubId>.of(fourthLeagueClubs)..sort((a, b) {
+          final ra = state.previousRank[a] ?? 99;
+          final rb = state.previousRank[b] ?? 99;
+          return ra != rb ? ra.compareTo(rb) : a.value.compareTo(b.value);
+        })),
+      ];
+      for (final c in reserve) {
+        if (chosen.length >= cups.bolzplatzLowerGroupSize) break;
+        if (!taken.contains(c) && !chosen.contains(c)) chosen.add(c);
+      }
+      lower = chosen;
     }
     final bolzplatz = KnockoutCup.bolzplatz(
       top: top,
