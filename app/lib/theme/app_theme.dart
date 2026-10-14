@@ -47,6 +47,13 @@ ThemeData buildAppTheme() {
     titleMedium: head(text.titleMedium),
     labelLarge: head(text.labelLarge),
   );
+  // Buttons use the body font in bold; it reads better at small sizes.
+  TextStyle buttonText(double size) => TextStyle(
+    fontFamily: Tokens.bodyFont,
+    fontWeight: FontWeight.w700,
+    fontVariations: const [FontVariation.weight(700)],
+    fontSize: size,
+  );
   final shape = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(Tokens.radius),
   );
@@ -63,7 +70,7 @@ ThemeData buildAppTheme() {
       style: FilledButton.styleFrom(
         shape: shape,
         padding: padding,
-        textStyle: textTheme.labelLarge?.copyWith(fontSize: 18),
+        textStyle: buttonText(18),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
@@ -71,7 +78,7 @@ ThemeData buildAppTheme() {
         foregroundColor: Tokens.text,
         shape: shape,
         padding: padding,
-        textStyle: textTheme.labelLarge?.copyWith(fontSize: 16),
+        textStyle: buttonText(16),
       ),
     ),
   );
