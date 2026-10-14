@@ -46,7 +46,6 @@ void main() {
 
     final goals = <int, int>{};
     final games = <int, int>{};
-    final zero = <int, int>{};
     var hw = 0;
     var dr = 0;
     var aw = 0;
