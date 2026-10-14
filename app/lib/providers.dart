@@ -9,7 +9,7 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 });
 
 /// Loads all clubs; seeds a few on first start so the table is not empty.
-final clubsProvider = FutureProvider<List<Club>>((ref) async {
+final clubsProvider = FutureProvider<List<ClubRow>>((ref) async {
   final db = ref.watch(databaseProvider);
   var clubs = await db.allClubs();
   if (clubs.isEmpty) {

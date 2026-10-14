@@ -13,6 +13,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^3.4.3
+  game_core:
+    path: ../packages/game_core
 
 dev_dependencies:
   flutter_test:
