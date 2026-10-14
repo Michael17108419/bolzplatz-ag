@@ -152,7 +152,7 @@ class AppStringsDe implements AppStrings {
     'T-Shirt',
     'Hoodie',
     'Polo',
-    'Anzug mit Krawatte',
+    'Anzug',
     'Holzfällerhemd',
     'Muskelshirt',
   ][index];
