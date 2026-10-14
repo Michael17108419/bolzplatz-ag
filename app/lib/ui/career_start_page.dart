@@ -250,34 +250,36 @@ class _DetailCard extends ConsumerWidget {
                   Expanded(
                     child: ListView(
                       children: [
-                  Center(child: ClubCrest(clubId: chosen.id.value, size: 140)),
-                  const SizedBox(height: Tokens.gapM),
-                  Text(
-                    chosen.name,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall,
-                  ),
-                  Text(
-                    chosen.place,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: Tokens.gapS),
-                  Text(
-                    s.leagueName(league.name),
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: Tokens.gapM),
-                  Text(
-                    '${s.careerStrength((loaded.strength[chosen.id.value] ?? 0).toStringAsFixed(1))}'
-                    ' · '
-                    '${s.careerRank(clubs.indexWhere((c) => c.id == chosen.id) + 1, clubs.length)}',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Tokens.yellow,
-                    ),
-                  ),
+                        Center(
+                          child: ClubCrest(clubId: chosen.id.value, size: 140),
+                        ),
+                        const SizedBox(height: Tokens.gapM),
+                        Text(
+                          chosen.name,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.headlineSmall,
+                        ),
+                        Text(
+                          chosen.place,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyLarge,
+                        ),
+                        const SizedBox(height: Tokens.gapS),
+                        Text(
+                          s.leagueName(league.name),
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: Tokens.gapM),
+                        Text(
+                          '${s.careerStrength((loaded.strength[chosen.id.value] ?? 0).toStringAsFixed(1))}'
+                          ' · '
+                          '${s.careerRank(clubs.indexWhere((c) => c.id == chosen.id) + 1, clubs.length)}',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Tokens.yellow,
+                          ),
+                        ),
                       ],
                     ),
                   ),
