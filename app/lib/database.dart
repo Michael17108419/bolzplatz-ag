@@ -28,6 +28,9 @@ class Clubs extends Table {
   TextColumn get region => text().withDefault(const Constant('nord'))();
   IntColumn get leagueId => integer().nullable().references(Leagues, #id)();
 
+  /// First team of a second team (added in version 2).
+  IntColumn get parentClubId => integer().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -136,7 +139,10 @@ class AppDatabase extends _$AppDatabase {
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
       // One step per version.
-      if (from < 2) await m.addColumn(players, players.profileJson);
+      if (from < 2) {
+        await m.addColumn(players, players.profileJson);
+        await m.addColumn(clubs, clubs.parentClubId);
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

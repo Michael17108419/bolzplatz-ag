@@ -52,6 +52,7 @@ class GameRepository {
             place: Value(club.place),
             region: Value(club.region.id),
             leagueId: Value(club.leagueId?.value),
+            parentClubId: Value(club.parentClubId?.value),
           ),
         );
   }
@@ -68,6 +69,9 @@ class GameRepository {
       place: row.place,
       region: _region(row.region),
       leagueId: row.leagueId == null ? null : LeagueId(row.leagueId!),
+      parentClubId: row.parentClubId == null
+          ? null
+          : ClubId(row.parentClubId!),
     );
   }
 
@@ -115,48 +119,7 @@ class GameRepository {
     await _db.transaction(() async {
       await _db
           .into(_db.players)
-          .insertOnConflictUpdate(
-            PlayersCompanion(
-              id: Value(player.id.value),
-              firstName: Value(player.firstName),
-              lastName: Value(player.lastName),
-              birthEpochDay: Value(player.birthDate.epochDay),
-              position: Value(player.position.id),
-              attributesJson: Value(jsonEncode(player.attributes.toList())),
-              traitsJson: Value(
-                jsonEncode({
-                  for (final e in player.traits.entries) e.key.id: e.value,
-                }),
-              ),
-              injuryProneness: Value(player.injuryProneness),
-              abilitiesJson: Value(
-                jsonEncode([
-                  for (final a in player.abilities)
-                    {'type': a.type.id, 'tier': a.tier.name},
-                ]),
-              ),
-              developmentType: Value(player.developmentType.id),
-              potentialCore: Value(player.potentialCore),
-              potentialDynamic: Value(player.potentialDynamic),
-              rolesJson: Value(
-                jsonEncode({
-                  for (final e in player.roles.entries) e.key: e.value.name,
-                }),
-              ),
-              profileJson: Value(
-                jsonEncode({
-                  'foot': player.foot.id,
-                  'weak_foot': player.weakFoot,
-                  'nationality': player.nationality,
-                  'secondary': {
-                    for (final e in player.secondaryPositions.entries)
-                      e.key.id: e.value.name,
-                  },
-                }),
-              ),
-              clubId: Value(player.clubId?.value),
-            ),
-          );
+          .insertOnConflictUpdate(_playerCompanion(player));
       final contract = player.contract;
       if (contract != null) await _saveContract(contract);
     });
@@ -321,6 +284,7 @@ class GameRepository {
               place: Value(c.place),
               region: Value(c.region.id),
               leagueId: Value(c.leagueId?.value),
+              parentClubId: Value(c.parentClubId?.value),
             ),
         ]);
         b.insertAllOnConflictUpdate(_db.players, [
@@ -390,6 +354,9 @@ class GameRepository {
           place: r.place,
           region: _region(r.region),
           leagueId: r.leagueId == null ? null : LeagueId(r.leagueId!),
+          parentClubId: r.parentClubId == null
+              ? null
+              : ClubId(r.parentClubId!),
         ),
     ];
 
@@ -485,6 +452,17 @@ class GameRepository {
       potentialDynamic: Value(player.potentialDynamic),
       rolesJson: Value(
         jsonEncode({for (final e in player.roles.entries) e.key: e.value.name}),
+      ),
+      profileJson: Value(
+        jsonEncode({
+          'foot': player.foot.id,
+          'weak_foot': player.weakFoot,
+          'nationality': player.nationality,
+          'secondary': {
+            for (final e in player.secondaryPositions.entries)
+              e.key.id: e.value.name,
+          },
+        }),
       ),
       clubId: Value(player.clubId?.value),
     );
