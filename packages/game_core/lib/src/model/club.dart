@@ -10,6 +10,7 @@ class Club {
     required this.place,
     required this.region,
     this.leagueId,
+    this.parentClubId,
   });
 
   final ClubId id;
@@ -20,6 +21,11 @@ class Club {
 
   /// Null for pool clubs, which play in no league yet.
   final LeagueId? leagueId;
+
+  /// For a second team the id of its first team, otherwise null.
+  final ClubId? parentClubId;
+
+  bool get isSecondTeam => parentClubId != null;
 
   @override
   bool operator ==(Object other) => other is Club && other.id == id;

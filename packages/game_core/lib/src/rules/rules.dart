@@ -69,6 +69,8 @@ class Rules {
     required this.tierMultiplier,
     required this.ageCurves,
     required this.fourthLeagueRelegatedToPool,
+    required this.poolMinimumSize,
+    required this.poolNeighbours,
     required this.generator,
     required this.world,
     required this.tactics,
@@ -91,6 +93,13 @@ class Rules {
   /// Minimum number of last-placed clubs per fourth-tier league that move
   /// into the pool (more if needed to keep the league at its size).
   final int fourthLeagueRelegatedToPool;
+
+  /// A pool that falls below this size is topped up from the largest
+  /// neighbouring pool (Block 2, safety rule).
+  final int poolMinimumSize;
+
+  /// Geographic neighbours of every region, used by the safety rule.
+  final Map<Region, List<Region>> poolNeighbours;
 
   /// Numbers for the player generator.
   final GeneratorRules generator;
@@ -196,6 +205,25 @@ class Rules {
     if (toPool < 0) {
       throw const RulesError('fourth_league_relegated_to_pool must be >= 0');
     }
+    final poolMinimum = pyramid['pool_minimum_size'] as int;
+    if (poolMinimum < 1) {
+      throw const RulesError('pool_minimum_size must be >= 1');
+    }
+    final neighbourJson = pyramid['pool_neighbours'] as Map<String, dynamic>;
+    final neighbours = <Region, List<Region>>{};
+    for (final region in Region.values) {
+      final names = neighbourJson[region.id] as List<dynamic>?;
+      if (names == null || names.isEmpty) {
+        throw RulesError('pool_neighbours misses region ${region.id}');
+      }
+      neighbours[region] = List.unmodifiable([
+        for (final n in names)
+          Region.values.firstWhere(
+            (r) => r.id == n,
+            orElse: () => throw RulesError('Unknown region $n in neighbours'),
+          ),
+      ]);
+    }
 
     return Rules._(
       schemaVersion: version as int,
@@ -206,6 +234,8 @@ class Rules {
       tierMultiplier: Map.unmodifiable(tierMultiplier),
       ageCurves: Map.unmodifiable(curves),
       fourthLeagueRelegatedToPool: toPool,
+      poolMinimumSize: poolMinimum,
+      poolNeighbours: Map.unmodifiable(neighbours),
       generator: GeneratorRules.fromJson(
         root['generator'] as Map<String, dynamic>,
       ),

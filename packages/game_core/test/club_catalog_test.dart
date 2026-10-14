@@ -62,6 +62,51 @@ void main() {
     expect(catalog.entries.where((e) => e.secondTeam), isNotEmpty);
   });
 
+  test('every second team is linked to its first team', () {
+    final catalog = ClubCatalog.parse(_csv()).valueOrNull!;
+    final clubs = catalog.clubs(_rules).valueOrNull!;
+    final byId = {for (final c in clubs) c.id: c};
+    final level = {for (final l in _rules.leagues) LeagueId(l.id): l.level};
+    final second = clubs.where((c) => c.isSecondTeam).toList();
+    expect(second, hasLength(catalog.entries.where((e) => e.secondTeam).length));
+    expect(second, isNotEmpty);
+    for (final c in second) {
+      final first = byId[c.parentClubId]!;
+      expect(c.name, '${first.name} II');
+      expect(first.isSecondTeam, isFalse);
+      // At least one league lies between a first team and its second team.
+      expect(level[c.leagueId]! - level[first.leagueId]!, greaterThanOrEqualTo(2));
+    }
+  });
+
+  test('catalog and pyramid fit together with the second teams', () {
+    final catalog = ClubCatalog.parse(_csv()).valueOrNull!;
+    final clubs = catalog.clubs(_rules).valueOrNull!;
+    final standings = <LeagueId, List<ClubId>>{};
+    for (final c in clubs) {
+      final id = c.leagueId;
+      if (id != null) (standings[id] ??= []).add(c.id);
+    }
+    for (final cycle in [0, 1, 2]) {
+      final result = PyramidTransition.run(
+        _rules,
+        PyramidInput(
+          standings: standings,
+          clubRegion: catalog.regionOfClub,
+          pools: catalog.pools,
+          cycleYear: cycle,
+          secondTeams: {
+            for (final c in clubs)
+              if (c.parentClubId != null) c.id: c.parentClubId!,
+          },
+          seed: cycle,
+        ),
+        (higher, lower) => lower,
+      );
+      expect(result.errorOrNull, isNull);
+    }
+  });
+
   test('catalog and pyramid fit together', () {
     final catalog = ClubCatalog.parse(_csv()).valueOrNull!;
     final clubs = catalog.clubs(_rules).valueOrNull!;

@@ -1,6 +1,7 @@
 import '../model/ids.dart';
 import '../model/region.dart';
 import '../result/result.dart';
+import '../rng/seeded_random.dart';
 import '../rules/rules.dart';
 
 /// Why a club changed league.
@@ -40,6 +41,8 @@ class PyramidInput {
     required this.pools,
     required this.cycleYear,
     this.unlicensed = const {},
+    this.secondTeams = const {},
+    this.seed = 0,
   });
 
   /// Final table of every league, best club first.
@@ -57,6 +60,14 @@ class PyramidInput {
 
   /// Clubs without a license. They count as last in their table.
   final Set<ClubId> unlicensed;
+
+  /// Second teams: the club id of each second team mapped to its first team.
+  /// A second team may not be promoted, and there must be at least one
+  /// league between a first team and its second team (Block 2).
+  final Map<ClubId, ClubId> secondTeams;
+
+  /// Seed for the random choice of pool clubs.
+  final int seed;
 }
 
 class PyramidResult {
@@ -74,8 +85,10 @@ class PyramidResult {
 
 /// Promotion and relegation between the four tiers (Block 2).
 ///
-/// The second-team rule is not part of this function; the world generator
-/// marks affected clubs as [PyramidInput.unlicensed].
+/// Second teams (see [PyramidInput.secondTeams]) are never promoted. When a
+/// first team ends up too close to its second team, the second team is
+/// treated like a club without license and moves down; a second team in the
+/// fourth tier whose first team plays in the third tier goes to the pool.
 class PyramidTransition {
   const PyramidTransition._();
 
@@ -97,6 +110,174 @@ class PyramidTransition {
   static PyramidResult _run(
     Rules rules,
     PyramidInput input,
+    ClubId Function(ClubId, ClubId) playoffWinner,
+  ) {
+    final levelOfLeague = {for (final l in rules.leagues) l.id: l.level};
+    var unlicensed = {...input.unlicensed};
+    var result = _compute(rules, input, unlicensed, playoffWinner);
+    // Second teams in the third tier that end up too close to their first
+    // team are sent down like clubs without license. Run again until stable.
+    for (var pass = 0; pass < 3; pass++) {
+      final inThird = <ClubId>{
+        for (final e in result.leagues.entries)
+          if (levelOfLeague[e.key.value] == 3) ...e.value,
+      };
+      final tooClose = _tooClose(
+        input,
+        result,
+        levelOfLeague,
+      ).where(inThird.contains).toSet();
+      final fresh = tooClose.difference(unlicensed);
+      if (fresh.isEmpty) break;
+      unlicensed = {...unlicensed, ...fresh};
+      result = _compute(rules, input, unlicensed, playoffWinner);
+    }
+    return _sendSecondTeamsToPool(rules, input, result, levelOfLeague);
+  }
+
+  /// Second teams whose first team is less than two tiers above them.
+  static Set<ClubId> _tooClose(
+    PyramidInput input,
+    PyramidResult result,
+    Map<int, int> levelOfLeague,
+  ) {
+    final level = <ClubId, int>{};
+    for (final e in result.leagues.entries) {
+      for (final c in e.value) {
+        level[c] = levelOfLeague[e.key.value]!;
+      }
+    }
+    final out = <ClubId>{};
+    for (final e in input.secondTeams.entries) {
+      final second = level[e.key];
+      final first = level[e.value];
+      if (second == null || first == null) continue;
+      if (second - first < 2) out.add(e.key);
+    }
+    return out;
+  }
+
+  /// A second team in a fourth-tier league whose first team plays in the
+  /// third tier leaves for the pool; a random pool club takes its place.
+  static PyramidResult _sendSecondTeamsToPool(
+    Rules rules,
+    PyramidInput input,
+    PyramidResult result,
+    Map<int, int> levelOfLeague,
+  ) {
+    final leaving = _tooClose(input, result, levelOfLeague)
+        .where(
+          (c) => result.leagues.entries.any(
+            (e) => levelOfLeague[e.key.value] == 4 && e.value.contains(c),
+          ),
+        )
+        .toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
+    if (leaving.isEmpty) return result;
+    final leagues = {
+      for (final e in result.leagues.entries) e.key: [...e.value],
+    };
+    final pools = {
+      for (final r in Region.values) r: [...?result.pools[r]],
+    };
+    final movements = [...result.movements];
+    final rng = SeededRandom(input.seed).fork('second-teams');
+    for (final club in leaving) {
+      final entry = leagues.entries.firstWhere((e) => e.value.contains(club));
+      final region = rules.leagues
+          .firstWhere((l) => l.id == entry.key.value)
+          .region!;
+      entry.value.remove(club);
+      movements.add(Movement(club, entry.key, null, MovementKind.toPool));
+      final drawn = _drawFromPool(rules, pools, region, 1, rng);
+      for (final c in drawn) {
+        entry.value.add(c);
+        movements.add(Movement(c, null, entry.key, MovementKind.fromPool));
+      }
+      pools[region] = [...pools[region]!, club];
+      entry.value.sort((a, b) => a.value.compareTo(b.value));
+    }
+    _topUpPools(rules, pools, rng);
+    return PyramidResult(
+      leagues: leagues,
+      pools: pools,
+      movements: List.unmodifiable(movements),
+    );
+  }
+
+  /// Draws [count] clubs at random from the pool of [region]. If the pool is
+  /// too small, clubs come from the largest neighbouring pool first.
+  /// Returns the drawn clubs; the pool lists in [pools] are updated.
+  static List<ClubId> _drawFromPool(
+    Rules rules,
+    Map<Region, List<ClubId>> pools,
+    Region region,
+    int count,
+    SeededRandom rng,
+  ) {
+    while (pools[region]!.length < count) {
+      if (!_borrowFromNeighbour(rules, pools, region, rng)) {
+        throw PyramidError('Pool of ${region.id} has too few clubs');
+      }
+    }
+    final pool = pools[region]!;
+    final order = List<int>.generate(pool.length, (i) => i);
+    rng.shuffle(order);
+    final chosen = order.take(count).toSet();
+    final drawn = [for (final i in order.take(count)) pool[i]];
+    pools[region] = [
+      for (var i = 0; i < pool.length; i++)
+        if (!chosen.contains(i)) pool[i],
+    ];
+    return drawn;
+  }
+
+  /// Moves one random club from the largest neighbouring pool into the pool
+  /// of [region]. Returns false if no neighbour has a club to give.
+  static bool _borrowFromNeighbour(
+    Rules rules,
+    Map<Region, List<ClubId>> pools,
+    Region region,
+    SeededRandom rng,
+  ) {
+    Region? best;
+    for (final n in rules.poolNeighbours[region]!) {
+      if (pools[n]!.isEmpty) continue;
+      if (best == null || pools[n]!.length > pools[best]!.length) best = n;
+    }
+    if (best == null) return false;
+    final source = [...pools[best]!];
+    final club = source.removeAt(rng.nextInt(source.length));
+    pools[best] = source;
+    pools[region] = [...pools[region]!, club];
+    return true;
+  }
+
+  /// Safety rule: a pool below the minimum size gets clubs from the largest
+  /// neighbouring pool, as long as that pool stays at the minimum.
+  static void _topUpPools(
+    Rules rules,
+    Map<Region, List<ClubId>> pools,
+    SeededRandom rng,
+  ) {
+    for (final region in Region.values) {
+      while (pools[region]!.length < rules.poolMinimumSize) {
+        Region? best;
+        for (final n in rules.poolNeighbours[region]!) {
+          if (best == null || pools[n]!.length > pools[best]!.length) best = n;
+        }
+        if (best == null || pools[best]!.length <= rules.poolMinimumSize) {
+          break;
+        }
+        _borrowFromNeighbour(rules, pools, region, rng);
+      }
+    }
+  }
+
+  static PyramidResult _compute(
+    Rules rules,
+    PyramidInput input,
+    Set<ClubId> unlicensed,
     ClubId Function(ClubId, ClubId) playoffWinner,
   ) {
     LeagueRule single(int level) {
@@ -134,8 +315,8 @@ class PyramidTransition {
         throw PyramidError('Duplicate club in standings of ${l.key}');
       }
       return [
-        ...table.where((c) => !input.unlicensed.contains(c)),
-        ...table.where(input.unlicensed.contains),
+        ...table.where((c) => !unlicensed.contains(c)),
+        ...table.where(unlicensed.contains),
       ];
     }
 
@@ -143,6 +324,15 @@ class PyramidTransition {
     final s2 = ordered(l2);
     final s3 = ordered(l3);
     final s4 = {for (final e in regional.entries) e.key: ordered(e.value)};
+
+    // Second teams are never promoted, the next club moves up instead.
+    List<ClubId> eligible(List<ClubId> table) => [
+      for (final c in table)
+        if (!input.secondTeams.containsKey(c)) c,
+    ];
+    final e2 = eligible(s2);
+    final e3 = eligible(s3);
+    final rng = SeededRandom(input.seed).fork('pool');
 
     final members = <int, List<ClubId>>{
       l1.id: [...s1],
@@ -172,13 +362,13 @@ class PyramidTransition {
     for (final c in s1.sublist(16)) {
       move(c, l1.id, l2.id, MovementKind.relegation);
     }
-    for (final c in s2.sublist(0, 2)) {
+    for (final c in e2.sublist(0, 2)) {
       move(c, l2.id, l1.id, MovementKind.promotion);
     }
     for (final c in s2.sublist(16)) {
       move(c, l2.id, l3.id, MovementKind.relegation);
     }
-    for (final c in s3.sublist(0, 2)) {
+    for (final c in e3.sublist(0, 2)) {
       move(c, l3.id, l2.id, MovementKind.promotion);
     }
 
@@ -205,11 +395,13 @@ class PyramidTransition {
       }
     }
 
-    playoff(s1[15], s2[2], l1.id, l2.id);
-    playoff(s2[15], s3[2], l2.id, l3.id);
+    playoff(s1[15], e2[2], l1.id, l2.id);
+    playoff(s2[15], e3[2], l2.id, l3.id);
 
     // Fourth tier to third tier: champions per fixed cycle.
-    final champion = {for (final r in Region.values) r: s4[r]!.first};
+    final champion = {
+      for (final r in Region.values) r: eligible(s4[r]!).first,
+    };
     final promoted = <Region>{Region.west, Region.suedwest};
     switch (input.cycleYear) {
       case 0:
@@ -235,11 +427,12 @@ class PyramidTransition {
       final rule = regional[r]!;
       final up = promoted.contains(r) ? 1 : 0;
       final inCount = incoming[r]!.length;
+      final base = s4[r]!.where((c) => !(up == 1 && c == champion[r])).toList();
       final poolDown = [
         rules.fourthLeagueRelegatedToPool,
         inCount - up,
+        base.where(unlicensed.contains).length,
       ].reduce((a, b) => a > b ? a : b);
-      final base = s4[r]!.where((c) => !(up == 1 && c == champion[r])).toList();
       if (poolDown > base.length) {
         throw PyramidError('Not enough clubs to relegate in ${rule.key}');
       }
@@ -248,15 +441,12 @@ class PyramidTransition {
         move(c, rule.id, null, MovementKind.toPool);
       }
       final pull = up + poolDown - inCount;
-      final pool = pools[r]!;
-      if (pool.length < pull) {
-        throw PyramidError('Pool of ${r.id} has too few clubs');
-      }
-      for (final c in pool.sublist(0, pull)) {
+      for (final c in _drawFromPool(rules, pools, r, pull, rng)) {
         move(c, null, rule.id, MovementKind.fromPool);
       }
-      pools[r] = [...pool.sublist(pull), ...down];
+      pools[r] = [...pools[r]!, ...down];
     }
+    _topUpPools(rules, pools, rng);
 
     // Check the sizes and return stable, sorted membership.
     final leagues = <LeagueId, List<ClubId>>{};

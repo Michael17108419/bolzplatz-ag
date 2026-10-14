@@ -152,9 +152,25 @@ class ClubCatalog {
       return matches.isEmpty ? null : LeagueId(matches.first.id);
     }
 
+    // A second team carries the name of its first team plus " II".
+    final idByName = {
+      for (final e in entries)
+        if (!e.secondTeam) e.name: e.id,
+    };
+    ClubId? parentOf(ClubEntry e) {
+      if (!e.secondTeam) return null;
+      const suffix = ' II';
+      if (!e.name.endsWith(suffix)) return null;
+      return idByName[e.name.substring(0, e.name.length - suffix.length)];
+    }
+
     final result = <Club>[];
     for (final e in entries) {
       final league = leagueFor(e);
+      final parent = parentOf(e);
+      if (e.secondTeam && parent == null) {
+        return Err(CatalogError('No first team found for ${e.name}'));
+      }
       if (league == null && !e.isPool) {
         return Err(CatalogError('No league for ${e.name}'));
       }
@@ -166,6 +182,7 @@ class ClubCatalog {
           place: e.place,
           region: e.region,
           leagueId: league,
+          parentClubId: parent,
         ),
       );
     }

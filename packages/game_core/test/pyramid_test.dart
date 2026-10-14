@@ -20,6 +20,8 @@ PyramidInput _input({
   int cycleYear = 0,
   Set<ClubId> unlicensed = const {},
   Map<Region, List<ClubId>>? pools,
+  Map<ClubId, ClubId> secondTeams = const {},
+  int seed = 7,
 }) {
   final standings = <LeagueId, List<ClubId>>{
     for (final l in _rules.leagues) _lid(l.id): _clubs(l.id, l.teamCount),
@@ -40,6 +42,8 @@ PyramidInput _input({
         },
     cycleYear: cycleYear,
     unlicensed: unlicensed,
+    secondTeams: secondTeams,
+    seed: seed,
   );
 }
 
@@ -189,9 +193,10 @@ void main() {
     expect(r.pools[Region.west]!.contains(champion), isTrue);
   });
 
-  test('pool keeps order: oldest club is pulled first, new ones go last', () {
-    final input = _input();
+  test('clubs come out of the pool at random, relegated clubs go in', () {
+    final input = _input(seed: 11);
     final r = _run(input);
+    var anyNotOldest = false;
     for (final region in Region.values) {
       final before = input.pools[region]!;
       final after = r.pools[region]!;
@@ -201,12 +206,134 @@ void main() {
           .where((m) => m.to == _lid(_regionalLeague(region)))
           .map((m) => m.club)
           .toList();
-      expect(pulled, before.take(pulled.length).toList());
-      expect(
-        after.take(before.length - pulled.length),
-        before.skip(pulled.length),
-      );
+      expect(pulled, isNotEmpty);
+      // Everything pulled came from this pool and is no longer in it.
+      for (final c in pulled) {
+        expect(after.contains(c), isFalse);
+      }
+      // Pool clubs that stayed keep their relative order.
+      final stayed = [
+        for (final c in before)
+          if (!pulled.contains(c)) c,
+      ];
+      expect(after.take(stayed.length), stayed);
+      if (pulled.toSet().difference(before.take(pulled.length).toSet()).isNotEmpty) {
+        anyNotOldest = true;
+      }
     }
+    // With a fixed order the oldest clubs would always be pulled.
+    expect(anyNotOldest, isTrue);
+  });
+
+  test('the pool draw depends only on the seed', () {
+    String signature(int seed) => [
+      for (final m in _run(_input(seed: seed)).movements)
+        if (m.kind == MovementKind.fromPool) m.club.value,
+    ].join(',');
+    expect(signature(5), signature(5));
+    expect(signature(5), isNot(signature(6)));
+  });
+
+  test('a pool without enough clubs borrows from the largest neighbour', () {
+    final pools = {
+      for (final r in Region.values)
+        r: [for (var j = 0; j < 12; j++) ClubId(9000 + r.index * 20 + j)],
+    };
+    pools[Region.bayern] = [];
+    final input = _input(pools: pools);
+    final r = _run(input);
+    for (final l in _rules.leagues) {
+      expect(r.leagues[_lid(l.id)], hasLength(l.teamCount));
+    }
+    final before = {for (final p in input.pools.values) ...p};
+    final after = {for (final p in r.pools.values) ...p};
+    final moved = r.movements
+        .where((m) => m.kind == MovementKind.fromPool)
+        .map((m) => m.club)
+        .toSet();
+    expect(after.union(moved).containsAll(before), isTrue);
+  });
+
+  test('exactly the fourth-tier minimum relegates to the pool', () {
+    final r = _run(_input());
+    for (final region in Region.values) {
+      final down = r.movements.where(
+        (m) =>
+            m.kind == MovementKind.toPool &&
+            m.from == _lid(_regionalLeague(region)),
+      );
+      expect(down.length, greaterThanOrEqualTo(_rules.fourthLeagueRelegatedToPool));
+    }
+    expect(_rules.fourthLeagueRelegatedToPool, 4);
+  });
+
+  test('a second team in the third tier is not promoted', () {
+    // Club 301 is the champion of the third tier but a second team of 101.
+    final r = _run(_input(secondTeams: {ClubId(301): ClubId(101)}));
+    final l2 = r.leagues[_lid(2)]!;
+    expect(l2.contains(ClubId(301)), isFalse);
+    expect(l2.containsAll([ClubId(302), ClubId(303)]), isTrue);
+    expect(r.leagues[_lid(3)]!.contains(ClubId(301)), isTrue);
+  });
+
+  test('a second team in the fourth tier is not promoted', () {
+    final west = _regionalLeague(Region.west);
+    final second = ClubId(west * 100 + 1);
+    final r = _run(_input(secondTeams: {second: ClubId(101)}));
+    final l3 = r.leagues[_lid(3)]!;
+    expect(l3.contains(second), isFalse);
+    expect(l3.contains(ClubId(west * 100 + 2)), isTrue);
+    expect(r.leagues[_lid(west)]!.contains(second), isTrue);
+  });
+
+  test('a second team goes down when its first team drops next to it', () {
+    // First team 117 is relegated to the second tier, so its second team 305
+    // in the third tier may not stay one tier below.
+    final r = _run(_input(secondTeams: {ClubId(305): ClubId(117)}));
+    expect(r.leagues[_lid(3)]!.contains(ClubId(305)), isFalse);
+    final inFourth = [
+      for (final l in _rules.leagues.where((l) => l.level == 4))
+        ...r.leagues[_lid(l.id)]!,
+    ];
+    expect(inFourth.contains(ClubId(305)), isTrue);
+    // The ordinary fourth-tier relegations are not lost.
+    expect(r.leagues[_lid(3)]!, hasLength(20));
+  });
+
+  test('a second team leaves the fourth tier when its first team arrives', () {
+    // Club 317 is relegated to the fourth tier (region nordost). Its second
+    // team plays there already and goes to the pool.
+    final nordost = _regionalLeague(Region.nordost);
+    final second = ClubId(nordost * 100 + 5);
+    final r = _run(_input(secondTeams: {second: ClubId(317)}));
+    expect(r.leagues[_lid(nordost)]!.contains(ClubId(317)), isTrue);
+    expect(r.leagues[_lid(nordost)]!.contains(second), isFalse);
+    expect(r.pools[Region.nordost]!.contains(second), isTrue);
+    expect(r.leagues[_lid(nordost)]!, hasLength(18));
+  });
+
+  test('second teams do not break the sizes or lose clubs', () {
+    final nordost = _regionalLeague(Region.nordost);
+    final input = _input(
+      secondTeams: {
+        ClubId(nordost * 100 + 5): ClubId(317),
+        ClubId(305): ClubId(117),
+        ClubId(301): ClubId(101),
+      },
+    );
+    final r = _run(input);
+    for (final l in _rules.leagues) {
+      expect(r.leagues[_lid(l.id)], hasLength(l.teamCount));
+    }
+    final before = {
+      for (final t in input.standings.values) ...t,
+      for (final p in input.pools.values) ...p,
+    };
+    final after = {
+      for (final t in r.leagues.values) ...t,
+      for (final p in r.pools.values) ...p,
+    };
+    expect(after, before);
   });
 
   test('an empty pool is reported as an error', () {

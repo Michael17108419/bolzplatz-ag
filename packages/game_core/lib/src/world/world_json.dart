@@ -48,6 +48,7 @@ class WorldJson {
             'place': c.place,
             'region': c.region.id,
             'league_id': c.leagueId?.value,
+            if (c.parentClubId != null) 'parent_club_id': c.parentClubId!.value,
           },
       ],
       'league_seasons': [
@@ -204,6 +205,9 @@ class WorldJson {
     place: m['place'] as String,
     region: _region(m['region'] as String),
     leagueId: m['league_id'] == null ? null : LeagueId(m['league_id'] as int),
+    parentClubId: m['parent_club_id'] == null
+        ? null
+        : ClubId(m['parent_club_id'] as int),
   );
 
   static LeagueSeason _leagueSeason(

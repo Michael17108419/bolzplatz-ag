@@ -348,7 +348,15 @@
     }
   },
   "pyramid": {
-    "fourth_league_relegated_to_pool": 3
+    "fourth_league_relegated_to_pool": 4,
+    "pool_minimum_size": 3,
+    "pool_neighbours": {
+      "bayern": ["suedwest", "nordost"],
+      "west": ["suedwest", "nord"],
+      "nord": ["west", "nordost"],
+      "suedwest": ["bayern", "west"],
+      "nordost": ["bayern", "nord"]
+    }
   },
   "generator": {
     "note": "Draft numbers for the player generator, to be balanced with the distribution report.",

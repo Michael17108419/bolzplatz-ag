@@ -252,29 +252,48 @@ class SeasonRunner {
     final top = [...league1, ...league2];
     final List<ClubId> lower;
     final fourthLeagueClubs = [for (final l in fourth.values) ...l];
+    // Second teams do not take part in the Bolzplatzpokal and cannot qualify
+    // for it (Block 2); the next club takes their place.
+    final secondTeams = {
+      for (final c in state.clubs.values)
+        if (c.isSecondTeam) c.id,
+    };
+    bool eligible(ClubId c) => !secondTeams.contains(c);
     if (state.isFirstSeason) {
-      final draw = List<ClubId>.of(fourthLeagueClubs);
+      final thirdEligible = [
+        for (final c in league3)
+          if (eligible(c)) c,
+      ];
+      final draw = [
+        for (final c in fourthLeagueClubs)
+          if (eligible(c)) c,
+      ];
       root.fork('bolzplatz:fourth').shuffle(draw);
-      lower = [...league3, ...draw.take(cups.yearOneFourthLeaguePlaces)];
+      lower = [
+        ...thirdEligible,
+        ...draw.take(
+          cups.yearOneFourthLeaguePlaces + league3.length - thirdEligible.length,
+        ),
+      ];
     } else {
       final inTop = top.toSet();
       final inThird = league3.toSet();
       final third = [
         for (final c in state.thirdLeagueQualifiers)
-          if (inThird.contains(c)) c,
+          if (inThird.contains(c) && eligible(c)) c,
       ].take(cups.thirdLeaguePlaces);
       final taken = {...inTop, ...third};
       final qualified = [
         for (final c in state.pottQualifiers)
-          if (!taken.contains(c)) c,
+          if (!taken.contains(c) && eligible(c)) c,
       ].take(cups.bolzplatzLowerGroupSize - cups.thirdLeaguePlaces);
       final chosen = <ClubId>[...third, ...qualified];
       // Not enough qualified clubs (some moved up): fill with the best
       // remaining clubs of the third and then the fourth leagues.
       final reserve = <ClubId>[
         for (final c in state.thirdLeagueQualifiers)
-          if (inThird.contains(c)) c,
-        ...(List<ClubId>.of(fourthLeagueClubs)..sort((a, b) {
+          if (inThird.contains(c) && eligible(c)) c,
+        ...(List<ClubId>.of(fourthLeagueClubs.where(eligible))..sort((a, b) {
           final ra = state.previousRank[a] ?? 99;
           final rb = state.previousRank[b] ?? 99;
           return ra != rb ? ra.compareTo(rb) : a.value.compareTo(b.value);
@@ -425,7 +444,10 @@ class SeasonRunner {
     final firsts = <TableEntry>[];
     final seconds = <TableEntry>[];
     for (final l in rules.leagues.where((l) => l.level == 4)) {
-      final table = standings[LeagueId(l.id)]!;
+      final table = [
+        for (final t in standings[LeagueId(l.id)]!)
+          if (eligible(t.club)) t,
+      ];
       firsts.add(table[0]);
       seconds.add(table[1]);
     }
@@ -468,7 +490,7 @@ class SeasonRunner {
       ...semiLosers,
       ...quarterLosers,
     ]) {
-      if (!qualifiers.contains(c)) qualifiers.add(c);
+      if (eligible(c) && !qualifiers.contains(c)) qualifiers.add(c);
     }
 
     return SeasonOutcome(
@@ -542,6 +564,11 @@ class SeasonRunner {
       clubRegion: {for (final c in state.clubs.values) c.id: c.region},
       pools: state.pools,
       cycleYear: state.cycleYear,
+      secondTeams: {
+        for (final c in state.clubs.values)
+          if (c.parentClubId != null) c.id: c.parentClubId!,
+      },
+      seed: SeededRandom(seed).fork('pyramid').seed,
     );
     return PyramidTransition.run(
       rules,
