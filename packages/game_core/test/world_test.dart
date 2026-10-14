@@ -162,10 +162,7 @@ void main() {
     expect(world.players, hasLength(4738));
     expect(world.coaches, hasLength(206));
     expect(world.players.map((p) => p.id).toSet(), hasLength(4738));
-    expect(
-      world.players.map((p) => p.displayName).toSet(),
-      hasLength(4738),
-    );
+    expect(world.players.map((p) => p.displayName).toSet(), hasLength(4738));
     expect(world.players.every((p) => p.contract != null), isTrue);
     for (final ls in world.leagueSeasons) {
       expect(ls.clubIds, hasLength(ls.league.teamCount));
