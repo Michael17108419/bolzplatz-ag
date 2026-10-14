@@ -245,8 +245,11 @@ class _DetailCard extends ConsumerWidget {
                   style: theme.textTheme.bodyLarge,
                 ),
               )
-            : ListView(
+            : Column(
                 children: [
+                  Expanded(
+                    child: ListView(
+                      children: [
                   Center(child: ClubCrest(clubId: chosen.id.value, size: 140)),
                   const SizedBox(height: Tokens.gapM),
                   Text(
@@ -275,7 +278,10 @@ class _DetailCard extends ConsumerWidget {
                       color: Tokens.yellow,
                     ),
                   ),
-                  const SizedBox(height: Tokens.gapL),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: Tokens.gapM),
                   TextField(
                     controller: nameController,
                     onChanged: (_) => onChanged(),
