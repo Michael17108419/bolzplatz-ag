@@ -1,6 +1,6 @@
 # Langzeitlauf: 50 Saisons
 
-Startwelt 2026/27, Entwicklung und Rücktritte an, Saisonseeds fest. Rechenzeit 283 s.
+Startwelt 2026/27, Entwicklung und Rücktritte an, Saisonseeds fest. Rechenzeit 166 s.
 
 ## Gesamt
 
@@ -63,6 +63,22 @@ Startwelt 2026/27, Entwicklung und Rücktritte an, Saisonseeds fest. Rechenzeit 
 | 31–40 | 2.43 | 0.24 | 26.8 | 23.0 | 48.9 | 43.4 | 4.3 | 0.85 | 1.98 | 0.68 | 0.30 | 0.68 | 0.20 | 0.17 | 14.3 |
 | 41–50 | 2.24 | 0.26 | 27.9 | 23.0 | 49.8 | 44.1 | 4.5 | 0.84 | 1.96 | 0.68 | 0.32 | 0.82 | 0.25 | 0.15 | 13.6 |
 | alle | 2.34 | 0.25 | 27.4 | 23.0 | 49.5 | 44.1 | 4.3 | 0.83 | 1.97 | 0.70 | 0.34 | 0.71 | 0.22 | 0.15 | 13.0 |
+
+## Pokal
+
+Klubs aus Liga 3 oder 4 im Bolzplatzpokal pro Saison: Viertelfinale 0.24, Halbfinale 0.04.
+
+## Liga 1: Spielerwerte nach Zehnjahresblock
+
+| Wert | 1–10 | 11–20 | 21–30 | 31–40 | 41–50 |
+| --- | --- | --- | --- | --- | --- |
+| Abwehr: Zweikampf | 70.8 | 71.4 | 73.8 | 73.2 | 73.4 |
+| Angriff: Abschluss | 67.4 | 67.9 | 69.9 | 69.5 | 68.8 |
+| Angriff: Torinstinkt | 67.7 | 67.4 | 69.6 | 69.6 | 70.3 |
+| Overall Abwehr | 68.2 | 67.8 | 69.9 | 69.6 | 69.8 |
+| Overall Angriff | 68.0 | 68.3 | 69.9 | 70.7 | 70.2 |
+| Overall Mittelfeld | 68.4 | 67.4 | 69.9 | 69.4 | 70.0 |
+| Overall TW | 67.7 | 66.9 | 70.3 | 69.6 | 71.0 |
 
 ## Liga 1: Tore pro Spiel, Meister, Pokalsieger je Saison
 
