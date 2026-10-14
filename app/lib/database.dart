@@ -97,6 +97,16 @@ class LeagueSeasonClubs extends Table {
   Set<Column> get primaryKey => {leagueId, seasonStartYear, clubId};
 }
 
+/// Small key/value table for facts about the whole save (seed, season).
+@DataClassName('MetaRow')
+class GameMeta extends Table {
+  TextColumn get metaKey => text()();
+  TextColumn get metaValue => text()();
+
+  @override
+  Set<Column> get primaryKey => {metaKey};
+}
+
 @DriftDatabase(
   tables: [Leagues, Clubs, Players, Coaches, Contracts, LeagueSeasonClubs],
 )

@@ -182,7 +182,10 @@ class GameRepository {
     final contractRow = await (_db.select(
       _db.contracts,
     )..where((t) => t.playerId.equals(id.value))).getSingleOrNull();
+    return _playerFrom(row, contractRow);
+  }
 
+  Player _playerFrom(PlayerRow row, ContractRow? contractRow) {
     final values = (jsonDecode(row.attributesJson) as List<dynamic>)
         .map((e) => (e as num).toDouble())
         .toList();
@@ -257,4 +260,229 @@ class GameRepository {
 
   static Region _region(String id) =>
       Region.values.firstWhere((r) => r.id == id);
+
+  // --- the whole world ---
+
+  /// Writes the complete start world in one transaction.
+  Future<void> saveWorld(World w) async {
+    await _db.transaction(() async {
+      await _db.batch((b) {
+        b.insertAllOnConflictUpdate(_db.gameMeta, [
+          GameMetaCompanion(
+            metaKey: const Value('seed'),
+            metaValue: Value('${w.seed}'),
+          ),
+          GameMetaCompanion(
+            metaKey: const Value('season_start_year'),
+            metaValue: Value('${w.season.startYear}'),
+          ),
+        ]);
+        b.insertAllOnConflictUpdate(_db.leagues, [
+          for (final l in w.leagues)
+            LeaguesCompanion(
+              id: Value(l.id.value),
+              name: Value(l.name),
+              level: Value(l.level),
+              teamCount: Value(l.teamCount),
+              region: Value(l.region?.id),
+            ),
+        ]);
+        b.insertAllOnConflictUpdate(_db.clubs, [
+          for (final c in w.clubs)
+            ClubsCompanion(
+              id: Value(c.id.value),
+              name: Value(c.name),
+              shortName: Value(c.shortName),
+              place: Value(c.place),
+              region: Value(c.region.id),
+              leagueId: Value(c.leagueId?.value),
+            ),
+        ]);
+        b.insertAllOnConflictUpdate(_db.players, [
+          for (final p in w.players) _playerCompanion(p),
+        ]);
+        b.insertAllOnConflictUpdate(_db.contracts, [
+          for (final p in w.players)
+            if (p.contract != null) _contractCompanion(p.contract!),
+        ]);
+        b.insertAllOnConflictUpdate(_db.coaches, [
+          for (final c in w.coaches)
+            CoachesCompanion(
+              id: Value(c.id.value),
+              firstName: Value(c.firstName),
+              lastName: Value(c.lastName),
+              birthEpochDay: Value(c.birthDate.epochDay),
+              skillsJson: Value(jsonEncode(c.skills)),
+              clubId: Value(c.clubId?.value),
+            ),
+        ]);
+        b.insertAllOnConflictUpdate(_db.leagueSeasonClubs, [
+          for (final ls in w.leagueSeasons)
+            for (final clubId in ls.clubIds)
+              LeagueSeasonClubsCompanion(
+                leagueId: Value(ls.league.id.value),
+                seasonStartYear: Value(ls.season.startYear),
+                clubId: Value(clubId.value),
+              ),
+        ]);
+      });
+    });
+  }
+
+  /// Reads the complete world back. Returns null when no world is stored.
+  Future<World?> loadWorld() async {
+    final metaRows = await _db.select(_db.gameMeta).get();
+    final meta = {for (final r in metaRows) r.metaKey: r.metaValue};
+    if (!meta.containsKey('seed') || !meta.containsKey('season_start_year')) {
+      return null;
+    }
+    final season = Season(int.parse(meta['season_start_year']!));
+
+    final leagueRows = await (_db.select(
+      _db.leagues,
+    )..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
+    final leagues = [
+      for (final r in leagueRows)
+        League(
+          id: LeagueId(r.id),
+          name: r.name,
+          level: r.level,
+          teamCount: r.teamCount,
+          region: r.region == null ? null : _region(r.region!),
+        ),
+    ];
+    final leagueById = {for (final l in leagues) l.id: l};
+
+    final clubRows = await (_db.select(
+      _db.clubs,
+    )..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
+    final clubs = [
+      for (final r in clubRows)
+        Club(
+          id: ClubId(r.id),
+          name: r.name,
+          shortName: r.shortName,
+          place: r.place,
+          region: _region(r.region),
+          leagueId: r.leagueId == null ? null : LeagueId(r.leagueId!),
+        ),
+    ];
+
+    final pools = {
+      for (final region in Region.values)
+        region: [
+          for (final c in clubs)
+            if (c.leagueId == null && c.region == region) c.id,
+        ],
+    };
+
+    final seasonRows =
+        await (_db.select(_db.leagueSeasonClubs)..orderBy([
+              (t) => OrderingTerm.asc(t.leagueId),
+              (t) => OrderingTerm.asc(t.seasonStartYear),
+              (t) => OrderingTerm.asc(t.clubId),
+            ]))
+            .get();
+    final membersByLeague = <int, List<ClubId>>{};
+    for (final r in seasonRows) {
+      if (r.seasonStartYear != season.startYear) continue;
+      (membersByLeague[r.leagueId] ??= []).add(ClubId(r.clubId));
+    }
+    final leagueSeasons = [
+      for (final l in leagues)
+        LeagueSeason(
+          league: leagueById[l.id]!,
+          season: season,
+          clubIds: membersByLeague[l.id.value] ?? const [],
+        ),
+    ];
+
+    final contractRows = await _db.select(_db.contracts).get();
+    final contractByPlayer = {for (final r in contractRows) r.playerId: r};
+    final playerRows = await (_db.select(
+      _db.players,
+    )..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
+    final players = [
+      for (final r in playerRows) _playerFrom(r, contractByPlayer[r.id]),
+    ];
+
+    final coachRows = await (_db.select(
+      _db.coaches,
+    )..orderBy([(t) => OrderingTerm.asc(t.id)])).get();
+    final coaches = [
+      for (final r in coachRows)
+        Coach(
+          id: CoachId(r.id),
+          firstName: r.firstName,
+          lastName: r.lastName,
+          birthDate: GameDate.fromEpochDay(r.birthEpochDay),
+          skills: {
+            for (final e
+                in (jsonDecode(r.skillsJson) as Map<String, dynamic>).entries)
+              e.key: (e.value as num).toDouble(),
+          },
+          clubId: r.clubId == null ? null : ClubId(r.clubId!),
+        ),
+    ];
+
+    return World(
+      seed: int.parse(meta['seed']!),
+      season: season,
+      leagues: leagues,
+      clubs: clubs,
+      leagueSeasons: leagueSeasons,
+      pools: pools,
+      players: players,
+      coaches: coaches,
+    );
+  }
+
+  PlayersCompanion _playerCompanion(Player player) {
+    return PlayersCompanion(
+      id: Value(player.id.value),
+      firstName: Value(player.firstName),
+      lastName: Value(player.lastName),
+      birthEpochDay: Value(player.birthDate.epochDay),
+      position: Value(player.position.id),
+      attributesJson: Value(jsonEncode(player.attributes.toList())),
+      traitsJson: Value(
+        jsonEncode({for (final e in player.traits.entries) e.key.id: e.value}),
+      ),
+      injuryProneness: Value(player.injuryProneness),
+      abilitiesJson: Value(
+        jsonEncode([
+          for (final a in player.abilities)
+            {'type': a.type.id, 'tier': a.tier.name},
+        ]),
+      ),
+      developmentType: Value(player.developmentType.id),
+      potentialCore: Value(player.potentialCore),
+      potentialDynamic: Value(player.potentialDynamic),
+      rolesJson: Value(
+        jsonEncode({
+          for (final e in player.roles.entries) e.key: e.value.name,
+        }),
+      ),
+      clubId: Value(player.clubId?.value),
+    );
+  }
+
+  ContractsCompanion _contractCompanion(Contract c) {
+    return ContractsCompanion(
+      id: Value(c.id.value),
+      playerId: Value(c.playerId.value),
+      clubId: Value(c.clubId.value),
+      startEpochDay: Value(c.start.epochDay),
+      endEpochDay: Value(c.end.epochDay),
+      baseSalaryPerYear: Value(c.baseSalaryPerYear),
+      salaryStagesJson: Value(jsonEncode(c.salaryStages)),
+      appearanceBonus: Value(c.appearanceBonus),
+      goalBonus: Value(c.goalBonus),
+      titleBonus: Value(c.titleBonus),
+      signingBonus: Value(c.signingBonus),
+      releaseClause: Value(c.releaseClause),
+      rolePromise: Value(c.rolePromise),
+      loanFromClubId: Value(c.loanFromClubId?.value),
+    );
+  }
 }

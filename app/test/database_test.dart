@@ -167,6 +167,7 @@ void main() {
       'clubs',
       'coaches',
       'contracts',
+      'game_meta',
       'league_season_clubs',
       'leagues',
       'players',
