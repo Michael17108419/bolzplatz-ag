@@ -189,11 +189,11 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                     ),
                     if (a.gender != 1)
                       chips(
-                      'beard',
-                      [for (var i = 0; i < o['beard']!; i++) s.beardName(i)],
-                      a.beard,
-                      (i) => a.copyWith(beard: i),
-                    ),
+                        'beard',
+                        [for (var i = 0; i < o['beard']!; i++) s.beardName(i)],
+                        a.beard,
+                        (i) => a.copyWith(beard: i),
+                      ),
                     chips(
                       'glasses',
                       [
@@ -298,8 +298,11 @@ class DiceIcon extends StatelessWidget {
   const DiceIcon({super.key});
 
   @override
-  Widget build(BuildContext context) =>
-      const SizedBox(width: 24, height: 24, child: CustomPaint(painter: _DicePainter()));
+  Widget build(BuildContext context) => const SizedBox(
+    width: 24,
+    height: 24,
+    child: CustomPaint(painter: _DicePainter()),
+  );
 }
 
 class _DicePainter extends CustomPainter {

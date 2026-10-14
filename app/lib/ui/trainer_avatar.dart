@@ -23,6 +23,7 @@ abstract final class TrainerLooks {
     Color(0xFFB4501E),
     Color(0xFFBDBDBD),
   ];
+
   /// Outfit colours: the game colours plus navy, black and white.
   static const List<Color> outfit = [
     Color(0xFF2E8B57),
@@ -109,10 +110,7 @@ class _AvatarPainter extends CustomPainter {
     final disc = Path()..addOval(const Rect.fromLTWH(0, 0, 100, 100));
     canvas.save();
     canvas.clipPath(disc);
-    canvas.drawRect(
-      const Rect.fromLTWH(0, 0, 100, 100),
-      _fill(Tokens.panel),
-    );
+    canvas.drawRect(const Rect.fromLTWH(0, 0, 100, 100), _fill(Tokens.panel));
 
     // Hood of the hoodie sits behind the neck.
     if (a.outfit == 2) {
@@ -152,7 +150,11 @@ class _AvatarPainter extends CustomPainter {
       case 1:
         // Shoulder seams of the T-shirt.
         for (final x in const [24.0, 76.0]) {
-          canvas.drawLine(Offset(x, 80), Offset(x + (x < 50 ? 3 : -3), 104), _thin);
+          canvas.drawLine(
+            Offset(x, 80),
+            Offset(x + (x < 50 ? 3 : -3), 104),
+            _thin,
+          );
         }
       case 5:
         // Plaid: broad and thin stripes in both directions.
@@ -190,8 +192,16 @@ class _AvatarPainter extends CustomPainter {
       case 2:
         _shape(canvas, _oval(50, 71, 26, 11), skinDeep);
         for (final x in const [44.0, 56.0]) {
-          canvas.drawLine(Offset(x, 76), Offset(x - (x < 50 ? 1 : -1), 94), _outline);
-          canvas.drawCircle(Offset(x - (x < 50 ? 1 : -1), 95), 1.6, _fill(white));
+          canvas.drawLine(
+            Offset(x, 76),
+            Offset(x - (x < 50 ? 1 : -1), 94),
+            _outline,
+          );
+          canvas.drawCircle(
+            Offset(x - (x < 50 ? 1 : -1), 95),
+            1.6,
+            _fill(white),
+          );
         }
       case 3:
         _collar(canvas, clothLight, 36, 70, 42, 65, 50, 79, 50, 72);
@@ -294,9 +304,17 @@ class _AvatarPainter extends CustomPainter {
     }
     if (woman) {
       // Lashes at the outer corners.
-      canvas.drawLine(const Offset(34.5, 38), const Offset(31.5, 35.5), _outline);
+      canvas.drawLine(
+        const Offset(34.5, 38),
+        const Offset(31.5, 35.5),
+        _outline,
+      );
       canvas.drawLine(const Offset(34, 41), const Offset(30.5, 40), _outline);
-      canvas.drawLine(const Offset(65.5, 38), const Offset(68.5, 35.5), _outline);
+      canvas.drawLine(
+        const Offset(65.5, 38),
+        const Offset(68.5, 35.5),
+        _outline,
+      );
       canvas.drawLine(const Offset(66, 41), const Offset(69.5, 40), _outline);
     }
     // Eyebrows: one raised.
