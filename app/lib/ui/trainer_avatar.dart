@@ -32,6 +32,8 @@ abstract final class TrainerLooks {
     Color(0xFF1F2A5A),
     Color(0xFF1B1B1B),
     Color(0xFFF4F1E8),
+    Color(0xFF8A8F98),
+    Color(0xFF7A1F36),
   ];
 }
 
@@ -100,6 +102,7 @@ class _AvatarPainter extends CustomPainter {
     final hair = TrainerLooks.hair[a.hairColour];
     final hairDeep = Color.lerp(hair, const Color(0xFF000000), 0.2)!;
     final cloth = TrainerLooks.outfit[a.outfitColour];
+    final cloth2 = TrainerLooks.outfit[a.outfitColour2];
     final clothDeep = Color.lerp(cloth, const Color(0xFF000000), 0.22)!;
     final clothLight = Color.lerp(cloth, const Color(0xFFFFFFFF), 0.28)!;
     const white = Color(0xFFFFFFFF);
@@ -158,7 +161,7 @@ class _AvatarPainter extends CustomPainter {
         }
       case 5:
         // Plaid: broad and thin stripes in both directions.
-        final broad = _fill(clothDeep.withValues(alpha: 0.55));
+        final broad = _fill(cloth2.withValues(alpha: 0.7));
         final thin = Paint()
           ..color = _ink.withValues(alpha: 0.35)
           ..strokeWidth = 1;
@@ -168,6 +171,11 @@ class _AvatarPainter extends CustomPainter {
           canvas.drawRect(Rect.fromLTWH(0, 68 + i * 6.0, 100, 3), broad);
           canvas.drawLine(Offset(pos + 2, 60), Offset(pos + 2, 110), thin);
         }
+      case 7:
+        // Dress: a belt in the second colour.
+        canvas.drawRect(const Rect.fromLTWH(0, 93, 100, 7), _fill(cloth2));
+        canvas.drawLine(const Offset(0, 93), const Offset(100, 93), _thin);
+        canvas.drawLine(const Offset(0, 100), const Offset(100, 100), _thin);
       case 4:
         // Suit: lapels and the white shirt in between.
         canvas.drawPath(
@@ -225,10 +233,7 @@ class _AvatarPainter extends CustomPainter {
           ..close();
         _shape(canvas, lapelL, clothDeep);
         _shape(canvas, lapelR, clothDeep);
-        final tieColour = switch (a.outfitColour) {
-          1 || 2 || 5 => const Color(0xFF1F2A5A),
-          _ => Tokens.yellow,
-        };
+        final tieColour = cloth2;
         _shape(canvas, _rrect(46, 74, 8, 6, 2), tieColour);
         _shape(
           canvas,
@@ -241,6 +246,49 @@ class _AvatarPainter extends CustomPainter {
             ..close(),
           tieColour,
         );
+      case 7:
+        // Round neckline with a pearl necklace.
+        _shape(
+          canvas,
+          Path()
+            ..moveTo(33, 69)
+            ..quadraticBezierTo(50, 96, 67, 69)
+            ..close(),
+          skin,
+        );
+        for (var i = 0; i < 9; i++) {
+          final u = (i + 0.5) / 9;
+          final x = 33 + 34 * u;
+          final y = 69 + 2 * (1 - u) * u * 27;
+          canvas.drawCircle(Offset(x, y + 1), 1.9, _fill(white));
+          canvas.drawCircle(Offset(x, y + 1), 1.9, _thin);
+        }
+      case 8:
+        // Blouse: soft collar, a bow in the second colour, buttons.
+        _collar(canvas, clothLight, 36, 70, 42, 65, 50, 79, 50, 72);
+        _collar(canvas, clothLight, 64, 70, 58, 65, 50, 79, 50, 72);
+        for (final y in const [88.0, 96.0]) {
+          canvas.drawCircle(Offset(50, y), 1.5, _fill(white));
+        }
+        _shape(
+          canvas,
+          Path()
+            ..moveTo(50, 77)
+            ..lineTo(38, 71)
+            ..lineTo(38, 83)
+            ..close(),
+          cloth2,
+        );
+        _shape(
+          canvas,
+          Path()
+            ..moveTo(50, 77)
+            ..lineTo(62, 71)
+            ..lineTo(62, 83)
+            ..close(),
+          cloth2,
+        );
+        _shape(canvas, _oval(50, 77, 6, 6), cloth2);
       case 5:
         _collar(canvas, clothDeep, 34, 70, 40, 65, 50, 80, 50, 73);
         _collar(canvas, clothDeep, 66, 70, 60, 65, 50, 80, 50, 73);
@@ -259,7 +307,7 @@ class _AvatarPainter extends CustomPainter {
 
     // Neck (not for the hood and the tie, they cover it) and a whistle.
     _shape(canvas, _rrect(42, 60, 16, 14, 4), skinDeep);
-    if (a.outfit != 4) {
+    if (a.outfit != 4 && a.outfit != 7 && a.outfit != 8) {
       canvas.drawLine(const Offset(43, 72), const Offset(50, 90), _outline);
       canvas.drawLine(const Offset(57, 72), const Offset(50, 90), _outline);
       _shape(canvas, _rrect(46, 88, 9, 6, 3), Tokens.yellow);
@@ -475,7 +523,40 @@ class _AvatarPainter extends CustomPainter {
         ..strokeWidth = 2.2
         ..strokeJoin = StrokeJoin.round;
       final lens = _fill(white.withValues(alpha: 0.28));
-      if (a.glasses == 1) {
+      if (a.glasses == 3) {
+        // Aviator sunglasses: gold frame, dark teardrop lenses.
+        final gold = Paint()
+          ..color = const Color(0xFFD9B35A)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..strokeJoin = StrokeJoin.round;
+        final dark = _fill(const Color(0xE61A1A22));
+        final left = Path()
+          ..moveTo(29, 36.5)
+          ..quadraticBezierTo(39, 34.5, 49, 36.5)
+          ..quadraticBezierTo(50, 53, 39, 53)
+          ..quadraticBezierTo(28, 51, 29, 36.5)
+          ..close();
+        final right = Path()
+          ..moveTo(51, 36.5)
+          ..quadraticBezierTo(61, 34.5, 71, 36.5)
+          ..quadraticBezierTo(72, 51, 61, 53)
+          ..quadraticBezierTo(50, 53, 51, 36.5)
+          ..close();
+        for (final lensPath in [left, right]) {
+          canvas.drawPath(lensPath, dark);
+          canvas.drawPath(lensPath, gold);
+        }
+        canvas.drawLine(const Offset(49, 38), const Offset(51, 38), gold);
+        // Shine on the lenses.
+        final shine = Paint()
+          ..color = white.withValues(alpha: 0.55)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6
+          ..strokeCap = StrokeCap.round;
+        canvas.drawLine(const Offset(33, 40), const Offset(36, 38.5), shine);
+        canvas.drawLine(const Offset(55, 40), const Offset(58, 38.5), shine);
+      } else if (a.glasses == 1) {
         for (final x in const [40.0, 60.0]) {
           canvas.drawCircle(Offset(x, 43), 8.5, lens);
           canvas.drawCircle(Offset(x, 43), 8.5, frame);

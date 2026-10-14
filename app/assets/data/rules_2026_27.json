@@ -2236,9 +2236,10 @@
       "hair_style": 6,
       "hair_colour": 5,
       "beard": 4,
-      "glasses": 3,
-      "outfit": 7,
-      "outfit_colour": 6
+      "glasses": 4,
+      "outfit": 9,
+      "outfit_colour": 8,
+      "outfit_colour2": 8
     },
     "backstories": [
       { "id": "failed_pro", "hook": "hook_failed_pro", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+" } },

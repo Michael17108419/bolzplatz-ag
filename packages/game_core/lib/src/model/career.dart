@@ -111,6 +111,7 @@ class TrainerAppearance {
     this.glasses = 0,
     this.outfit = 0,
     this.outfitColour = 0,
+    this.outfitColour2 = 1,
   });
 
   /// 0 man, 1 woman, 2 diverse.
@@ -126,6 +127,9 @@ class TrainerAppearance {
   final int outfit;
   final int outfitColour;
 
+  /// Second colour: tie, plaid pattern, belt or bow, depending on the outfit.
+  final int outfitColour2;
+
   TrainerAppearance copyWith({
     int? gender,
     int? skin,
@@ -135,6 +139,7 @@ class TrainerAppearance {
     int? glasses,
     int? outfit,
     int? outfitColour,
+    int? outfitColour2,
   }) => TrainerAppearance(
     gender: gender ?? this.gender,
     skin: skin ?? this.skin,
@@ -144,6 +149,7 @@ class TrainerAppearance {
     glasses: glasses ?? this.glasses,
     outfit: outfit ?? this.outfit,
     outfitColour: outfitColour ?? this.outfitColour,
+    outfitColour2: outfitColour2 ?? this.outfitColour2,
   );
 
   Map<String, int> toJson() => {
@@ -155,6 +161,7 @@ class TrainerAppearance {
     'glasses': glasses,
     'outfit': outfit,
     'outfit_colour': outfitColour,
+    'outfit_colour2': outfitColour2,
   };
 
   factory TrainerAppearance.fromJson(Map<String, dynamic> m) =>
@@ -167,6 +174,7 @@ class TrainerAppearance {
         glasses: m['glasses'] as int,
         outfit: m['outfit'] as int,
         outfitColour: m['outfit_colour'] as int,
+        outfitColour2: m['outfit_colour2'] as int,
       );
 
   @override
@@ -179,7 +187,8 @@ class TrainerAppearance {
       other.glasses == glasses &&
       other.gender == gender &&
       other.outfit == outfit &&
-      other.outfitColour == outfitColour;
+      other.outfitColour == outfitColour &&
+      other.outfitColour2 == outfitColour2;
 
   @override
   int get hashCode => Object.hash(
@@ -191,6 +200,7 @@ class TrainerAppearance {
     glasses,
     outfit,
     outfitColour,
+    outfitColour2,
   );
 }
 

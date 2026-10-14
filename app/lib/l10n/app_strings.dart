@@ -40,6 +40,7 @@ abstract interface class AppStrings {
   String hairStyleName(int index);
   String beardName(int index);
   String glassesName(int index);
+  String secondColourLabel(int outfit);
   String get backstoryHeading;
   String get backstoryPick;
   String backstoryName(String id);
@@ -148,6 +149,7 @@ class AppStringsDe implements AppStrings {
     'gender' => 'Geschlecht',
     'outfit' => 'Kleidung',
     'outfit_colour' => 'Farbe der Kleidung',
+    'outfit_colour2' => 'Zweitfarbe',
     _ => key,
   };
   @override
@@ -161,6 +163,8 @@ class AppStringsDe implements AppStrings {
     'Anzug',
     'Holzfällerhemd',
     'Muskelshirt',
+    'Kleid',
+    'Bluse',
   ][index];
   @override
   String hairStyleName(int index) => const [
@@ -175,7 +179,15 @@ class AppStringsDe implements AppStrings {
   String beardName(int index) =>
       const ['Glatt', 'Dreitagebart', 'Vollbart', 'Schnauzer'][index];
   @override
-  String glassesName(int index) => const ['Keine', 'Rund', 'Eckig'][index];
+  String secondColourLabel(int outfit) => switch (outfit) {
+    4 => 'Farbe der Krawatte',
+    5 => 'Farbe des Musters',
+    7 => 'Farbe des Gürtels',
+    8 => 'Farbe der Schleife',
+    _ => 'Zweitfarbe',
+  };
+  @override
+  String glassesName(int index) => const ['Keine', 'Rund', 'Eckig', 'Sonnenbrille'][index];
   @override
   String get backstoryHeading => 'Wie bist du hierhergekommen?';
   @override

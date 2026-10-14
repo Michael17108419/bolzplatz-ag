@@ -81,6 +81,7 @@ class LookChips extends ConsumerWidget {
 /// A row of colour choices (one is selected).
 class LookSwatches extends ConsumerWidget {
   const LookSwatches({
+    this.label,
     required this.optionKey,
     required this.colors,
     required this.value,
@@ -88,6 +89,8 @@ class LookSwatches extends ConsumerWidget {
     super.key,
   });
 
+  /// Replaces the standard label of the option.
+  final String? label;
   final String optionKey;
   final List<Color> colors;
   final int value;
@@ -98,7 +101,7 @@ class LookSwatches extends ConsumerWidget {
     final s = ref.watch(stringsProvider);
     final a = ref.watch(careerDraftProvider).appearance;
     return LookRow(
-      label: s.lookLabel(optionKey),
+      label: label ?? s.lookLabel(optionKey),
       child: Wrap(
         spacing: Tokens.gapS,
         runSpacing: Tokens.gapS,
@@ -140,6 +143,7 @@ class AvatarPanel extends ConsumerWidget {
             glasses: r.nextInt(o['glasses']!),
             outfit: r.nextInt(o['outfit']!),
             outfitColour: r.nextInt(o['outfit_colour']!),
+            outfitColour2: r.nextInt(o['outfit_colour2']!),
           ),
         );
   }

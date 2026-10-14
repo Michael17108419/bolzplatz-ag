@@ -65,6 +65,14 @@ class LookStep extends ConsumerWidget {
                       value: a.outfitColour,
                       change: (a, i) => a.copyWith(outfitColour: i),
                     ),
+                    if (const [4, 5, 7, 8].contains(a.outfit))
+                      LookSwatches(
+                        label: s.secondColourLabel(a.outfit),
+                        optionKey: 'outfit_colour2',
+                        colors: TrainerLooks.outfit,
+                        value: a.outfitColour2,
+                        change: (a, i) => a.copyWith(outfitColour2: i),
+                      ),
                   ],
                 ),
               ),

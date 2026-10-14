@@ -110,6 +110,7 @@ class CareerRules {
         'glasses',
         'outfit',
         'outfit_colour',
+        'outfit_colour2',
       ])
         key: appearanceRaw[key] as int,
     };
@@ -308,7 +309,7 @@ class CareerRules {
   final Map<TraitLevel, double> standingThresholds;
 
   /// Number of options per looks setting (`skin`, `hair_style`,
-  /// `hair_colour`, `beard`, `glasses`, `outfit`, `outfit_colour`).
+  /// `hair_colour`, `beard`, `glasses`, `outfit`, `outfit_colour`, `outfit_colour2`).
   final Map<String, int> appearanceOptions;
   final List<Backstory> backstories;
   final OfferRules offers;

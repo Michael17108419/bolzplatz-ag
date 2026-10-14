@@ -67,7 +67,7 @@ void main() {
     );
     await tester.tap(next);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('outfit-4')));
+    await tester.tap(find.byKey(const ValueKey('outfit-5')));
     await tester.pumpAndSettle();
     await expectLater(
       find.byType(BolzplatzApp),
@@ -112,20 +112,20 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     const looks = [
-      TrainerAppearance(skin: 1, hairStyle: 1, hairColour: 1, outfit: 0, outfitColour: 0),
-      TrainerAppearance(skin: 2, hairStyle: 2, hairColour: 0, beard: 1, outfit: 1, outfitColour: 1),
+      TrainerAppearance(skin: 1, hairStyle: 1, hairColour: 1, glasses: 3, outfit: 0, outfitColour: 6),
+      TrainerAppearance(skin: 2, hairStyle: 2, hairColour: 0, beard: 1, outfit: 1, outfitColour: 7),
       TrainerAppearance(skin: 0, hairStyle: 3, hairColour: 3, glasses: 1, outfit: 2, outfitColour: 3),
-      TrainerAppearance(skin: 3, hairStyle: 4, hairColour: 0, beard: 2, outfit: 3, outfitColour: 2),
-      TrainerAppearance(skin: 4, hairStyle: 5, hairColour: 2, beard: 3, outfit: 4, outfitColour: 4),
-      TrainerAppearance(skin: 1, hairStyle: 2, hairColour: 4, glasses: 2, outfit: 5, outfitColour: 0),
+      TrainerAppearance(skin: 3, hairStyle: 4, hairColour: 0, beard: 2, glasses: 3, outfit: 3, outfitColour: 2),
+      TrainerAppearance(skin: 4, hairStyle: 5, hairColour: 2, beard: 3, outfit: 4, outfitColour: 4, outfitColour2: 7),
+      TrainerAppearance(skin: 1, hairStyle: 2, hairColour: 4, glasses: 2, outfit: 5, outfitColour: 0, outfitColour2: 3),
       TrainerAppearance(skin: 0, hairStyle: 0, beard: 2, glasses: 1, outfit: 6, outfitColour: 5),
-      TrainerAppearance(gender: 1, skin: 0, hairStyle: 4, hairColour: 2, outfit: 0, outfitColour: 2),
-      TrainerAppearance(gender: 1, skin: 2, hairStyle: 3, hairColour: 0, outfit: 1, outfitColour: 5),
-      TrainerAppearance(gender: 1, skin: 4, hairStyle: 2, hairColour: 1, glasses: 1, outfit: 2, outfitColour: 1),
-      TrainerAppearance(gender: 1, skin: 1, hairStyle: 1, hairColour: 3, outfit: 3, outfitColour: 3),
-      TrainerAppearance(gender: 1, skin: 3, hairStyle: 5, hairColour: 4, outfit: 4, outfitColour: 3),
-      TrainerAppearance(gender: 2, skin: 2, hairStyle: 1, hairColour: 0, glasses: 2, outfit: 5, outfitColour: 2),
-      TrainerAppearance(gender: 2, skin: 0, hairStyle: 0, beard: 3, outfit: 1, outfitColour: 4),
+      TrainerAppearance(gender: 1, skin: 0, hairStyle: 4, hairColour: 2, outfit: 7, outfitColour: 7, outfitColour2: 1),
+      TrainerAppearance(gender: 1, skin: 2, hairStyle: 3, hairColour: 0, glasses: 3, outfit: 8, outfitColour: 5, outfitColour2: 7),
+      TrainerAppearance(gender: 1, skin: 4, hairStyle: 2, hairColour: 1, glasses: 1, outfit: 7, outfitColour: 3, outfitColour2: 2),
+      TrainerAppearance(gender: 1, skin: 1, hairStyle: 1, hairColour: 3, outfit: 8, outfitColour: 6, outfitColour2: 4),
+      TrainerAppearance(gender: 1, skin: 3, hairStyle: 5, hairColour: 4, outfit: 4, outfitColour: 3, outfitColour2: 1),
+      TrainerAppearance(gender: 2, skin: 2, hairStyle: 1, hairColour: 0, glasses: 2, outfit: 5, outfitColour: 4, outfitColour2: 2),
+      TrainerAppearance(gender: 2, skin: 0, hairStyle: 0, beard: 3, glasses: 3, outfit: 8, outfitColour: 0, outfitColour2: 1),
     ];
     await tester.pumpWidget(
       MaterialApp(
