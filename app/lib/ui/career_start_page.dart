@@ -91,11 +91,7 @@ class _CareerWizardState extends ConsumerState<_CareerWizard> {
         onNext: () => _go(3),
       ),
       3 => WishStep(loaded: loaded, onBack: () => _go(2), onNext: () => _go(4)),
-      _ => OffersStep(
-        loaded: loaded,
-        onBack: () => _go(3),
-        onAccept: _accept,
-      ),
+      _ => OffersStep(loaded: loaded, onBack: () => _go(3), onAccept: _accept),
     };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

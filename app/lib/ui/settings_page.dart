@@ -20,30 +20,30 @@ class SettingsPage extends ConsumerWidget {
         children: [
           Expanded(
             child: ListView(
-        children: [
-          Text(s.settingsLanguage, style: theme.textTheme.titleMedium),
-          const SizedBox(height: Tokens.gapS),
-          Card(
-            child: ListTile(
-              title: Text(s.languageName),
-              trailing: const Icon(Icons.check, color: Tokens.green),
-            ),
-          ),
-          const SizedBox(height: Tokens.gapL),
-          Text(s.settingsShortcuts, style: theme.textTheme.titleMedium),
-          const SizedBox(height: Tokens.gapS),
-          Card(
-            child: ListTile(
-              title: Text(s.shortcutBack),
-              trailing: Text(
-                s.shortcutBackKey,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: Tokens.yellow,
+              children: [
+                Text(s.settingsLanguage, style: theme.textTheme.titleMedium),
+                const SizedBox(height: Tokens.gapS),
+                Card(
+                  child: ListTile(
+                    title: Text(s.languageName),
+                    trailing: const Icon(Icons.check, color: Tokens.green),
+                  ),
                 ),
-              ),
-            ),
-          ),
-        ],
+                const SizedBox(height: Tokens.gapL),
+                Text(s.settingsShortcuts, style: theme.textTheme.titleMedium),
+                const SizedBox(height: Tokens.gapS),
+                Card(
+                  child: ListTile(
+                    title: Text(s.shortcutBack),
+                    trailing: Text(
+                      s.shortcutBackKey,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: Tokens.yellow,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: Tokens.gapM),
