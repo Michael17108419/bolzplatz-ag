@@ -93,13 +93,15 @@ void main() {
 
   test('rejects an odd team count and an unknown region', () {
     final odd = _json();
-    ((odd['leagues'] as List<dynamic>).first as Map<String, dynamic>)[
-        'team_count'] = 17;
+    ((odd['leagues'] as List<dynamic>).first
+            as Map<String, dynamic>)['team_count'] =
+        17;
     expect(_parse(odd).isErr, isTrue);
 
     final region = _json();
-    ((region['leagues'] as List<dynamic>).last as Map<String, dynamic>)[
-        'region'] = 'mars';
+    ((region['leagues'] as List<dynamic>).last
+            as Map<String, dynamic>)['region'] =
+        'mars';
     expect(_parse(region).errorOrNull?.message, contains('mars'));
   });
 
