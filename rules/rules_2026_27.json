@@ -466,8 +466,8 @@
     },
     "mental_shift_factor": 0.5,
     "age_adjust": {
-      "growth_per_year": 1.8,
-      "decline_per_year": 1.4
+      "growth_per_year": 1.0,
+      "decline_per_year": 1.2
     },
     "attribute_noise_sd": 5,
     "potential_margin": {
