@@ -73,8 +73,8 @@ void main() {
       ['assets/data/names_de.json', '../data/names_de.json'],
     ]) {
       expect(
-        File(pair[0]).readAsStringSync(),
-        File(pair[1]).readAsStringSync(),
+        File(pair[0]).readAsStringSync().replaceAll('\r\n', '\n'),
+        File(pair[1]).readAsStringSync().replaceAll('\r\n', '\n'),
         reason: '${pair[0]} is out of date, copy it from ${pair[1]}',
       );
     }

@@ -244,20 +244,24 @@ class _DetailCard extends ConsumerWidget {
                   style: theme.textTheme.bodyLarge,
                 ),
               )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+            : ListView(
                 children: [
-                  ClubCrest(clubId: chosen.id.value, size: 140),
+                  Center(child: ClubCrest(clubId: chosen.id.value, size: 140)),
                   const SizedBox(height: Tokens.gapM),
                   Text(
                     chosen.name,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.headlineSmall,
                   ),
-                  Text(chosen.place, style: theme.textTheme.bodyLarge),
+                  Text(
+                    chosen.place,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge,
+                  ),
                   const SizedBox(height: Tokens.gapS),
                   Text(
                     s.leagueName(league.name),
+                    textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: Tokens.gapM),
@@ -270,7 +274,7 @@ class _DetailCard extends ConsumerWidget {
                       color: Tokens.yellow,
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(height: Tokens.gapL),
                   TextField(
                     controller: nameController,
                     onChanged: (_) => onChanged(),
