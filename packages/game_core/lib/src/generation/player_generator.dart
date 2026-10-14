@@ -191,6 +191,9 @@ class PlayerGenerator {
     final profile = _g.positionProfiles[position]!;
     final shift = _g.developmentShiftYears[devType]!;
     final isKeeper = position.isGoalkeeper;
+    // Centres the key attributes of the position on [level], so the same
+    // level means the same position overall for every position.
+    final norm = -_keyOffsetMean(position);
     final values = <Attribute, double>{};
     for (final attribute in Attribute.values) {
       if (attribute.isGoalkeeping && !isKeeper) {
@@ -204,6 +207,8 @@ class PlayerGenerator {
       var value = level + (profile[attribute] ?? 0);
       if (isKeeper && !attribute.isGoalkeeping) {
         value += _g.goalkeeperOutfieldOffset;
+      } else {
+        value += norm;
       }
       final mental = attribute.group == AttributeGroup.intelligence;
       final effectiveShift = mental ? shift * _g.mentalShiftFactor : shift;
@@ -212,6 +217,22 @@ class PlayerGenerator {
       values[attribute] = _round1(_clamp(value, Attribute.min, Attribute.max));
     }
     return AttributeSet.fromMap(values);
+  }
+
+  /// Mean profile offset of the key attributes of [position]: all goalkeeper
+  /// attributes for keepers, otherwise the attributes with a positive offset.
+  double _keyOffsetMean(Position position) {
+    final profile = _g.positionProfiles[position]!;
+    final keys = position.isGoalkeeper
+        ? Attribute.values.where((a) => a.isGoalkeeping)
+        : profile.entries.where((e) => e.value > 0).map((e) => e.key);
+    var sum = 0.0;
+    var n = 0;
+    for (final k in keys) {
+      sum += profile[k] ?? 0;
+      n++;
+    }
+    return n == 0 ? 0 : sum / n;
   }
 
   /// Points to add (zero or negative) for a player of [effectiveAge].
