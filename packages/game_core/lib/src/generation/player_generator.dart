@@ -124,6 +124,7 @@ class PlayerGenerator {
       ),
       abilities: _abilities(rng, position, tierRules),
       developmentType: devType,
+      roles: _roles(position, attributes),
       potentialCore: potentialCore,
       potentialDynamic: _round1(potentialDynamic),
       clubId: clubId,
@@ -250,6 +251,33 @@ class PlayerGenerator {
       return -(effectiveAge - curve.declinesFrom + 1) * _g.declinePerYear;
     }
     return 0;
+  }
+
+  /// Best role of the position is "expert", other roles of the position with
+  /// a nearly as good score are "comfortable"; the rest stay "basic".
+  Map<String, RoleFamiliarity> _roles(Position position, AttributeSet attrs) {
+    final scored = <(String, double)>[];
+    for (final role in rules.tactics.roles) {
+      if (!role.positions.contains(position)) continue;
+      var sum = 0.0;
+      for (final a in role.keyAttributes) {
+        sum += attrs[a];
+      }
+      scored.add((role.id, sum / role.keyAttributes.length));
+    }
+    if (scored.isEmpty) return const {};
+    scored.sort((a, b) {
+      final d = b.$2.compareTo(a.$2);
+      return d != 0 ? d : a.$1.compareTo(b.$1);
+    });
+    final best = scored.first.$2;
+    final result = <String, RoleFamiliarity>{
+      scored.first.$1: RoleFamiliarity.expert,
+    };
+    for (final r in scored.skip(1).take(2)) {
+      if (best - r.$2 <= 3) result[r.$1] = RoleFamiliarity.comfortable;
+    }
+    return result;
   }
 
   double _dynamicPotential(SeededRandom rng, int age) {
