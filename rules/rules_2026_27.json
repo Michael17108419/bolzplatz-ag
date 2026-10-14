@@ -1824,7 +1824,7 @@
       {
         "id": "close_range",
         "weight": 5.0,
-        "goal_base": 0.115,
+        "goal_base": 0.1288,
         "attributes": [
           "goal_instinct",
           "finishing",

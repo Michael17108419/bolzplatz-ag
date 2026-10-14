@@ -290,21 +290,6 @@ class SeasonRunner {
     var hw = 0;
     var dr = 0;
     var aw = 0;
-    final pottLast8Winners = <ClubId>[];
-    final pottLast8Losers = <ClubId>[];
-    final recorded = <Region>{};
-
-    // Clubs still in when four are left, and the four who lost the round
-    // before: they decide the places for the next Bolzplatzpokal.
-    void recordLastEight(Region region, KnockoutCup cup) {
-      if (recorded.contains(region)) return;
-      if (cup.remaining.length <= 4) {
-        recorded.add(region);
-        pottLast8Winners.addAll(cup.remaining);
-        pottLast8Losers.addAll(cup.eliminated.last);
-      }
-    }
-
     ClubId playTie(ClubId home, ClubId away, String label) {
       final k = _engine.simulateKnockout(
         _team(home),
@@ -358,7 +343,6 @@ class SeasonRunner {
           cup.playNextRound(
             (h, a) => playTie(h, a, 'pott:${region.id}:$round:${h.value}'),
           );
-          recordLastEight(region, cup);
         }
         pottRound++;
       }
@@ -375,18 +359,66 @@ class SeasonRunner {
         cup.playNextRound(
           (h, a) => playTie(h, a, 'pott:${region.id}:$round:${h.value}'),
         );
-        recordLastEight(region, cup);
       }
     }
 
-    // Places for the next Bolzplatzpokal: four per region (the last-four
-    // clubs), plus extra places drawn among the last-eight losers.
-    final extraRng = root.fork('pott:extra');
-    final losers = List<ClubId>.of(pottLast8Losers);
-    extraRng.shuffle(losers);
-    final qualifiers = <ClubId>[...pottLast8Winners, ...losers];
-
     final standings = {for (final e in tables.entries) e.key: e.value.standing};
+
+    // Places for the next Bolzplatzpokal, in this order: the five cup
+    // winners, the fourth-league champions and then the runners-up (most
+    // points first), the losing finalists, then the losing semi-finalists
+    // (most points per game in their league first).
+    int compareEntries(TableEntry a, TableEntry b) {
+      final p = b.points.compareTo(a.points);
+      if (p != 0) return p;
+      final g = b.goalDifference.compareTo(a.goalDifference);
+      if (g != 0) return g;
+      final f = b.goalsFor.compareTo(a.goalsFor);
+      return f != 0 ? f : a.club.value.compareTo(b.club.value);
+    }
+
+    final firsts = <TableEntry>[];
+    final seconds = <TableEntry>[];
+    for (final l in rules.leagues.where((l) => l.level == 4)) {
+      final table = standings[LeagueId(l.id)]!;
+      firsts.add(table[0]);
+      seconds.add(table[1]);
+    }
+    firsts.sort(compareEntries);
+    seconds.sort(compareEntries);
+    final entryOf = {
+      for (final table in standings.values)
+        for (final t in table) t.club: t,
+    };
+    double ppg(ClubId c) {
+      final t = entryOf[c]!;
+      return t.played == 0 ? 0 : t.points / t.played;
+    }
+
+    final finalLosers = <ClubId>[];
+    final semiLosers = <ClubId>[];
+    for (final region in Region.values) {
+      final cup = pott[region]!;
+      final out = cup.eliminated;
+      finalLosers.add(out.last.first);
+      semiLosers.addAll(out[out.length - 2]);
+    }
+    finalLosers.sort((a, b) => ppg(b).compareTo(ppg(a)));
+    semiLosers.sort((a, b) {
+      final d = ppg(b).compareTo(ppg(a));
+      return d != 0 ? d : a.value.compareTo(b.value);
+    });
+    final qualifiers = <ClubId>[];
+    for (final c in [
+      for (final region in Region.values) pott[region]!.winner!,
+      for (final t in firsts) t.club,
+      for (final t in seconds) t.club,
+      ...finalLosers,
+      ...semiLosers,
+    ]) {
+      if (!qualifiers.contains(c)) qualifiers.add(c);
+    }
+
     return SeasonOutcome(
       tables: standings,
       bolzplatz: bolzplatz,
