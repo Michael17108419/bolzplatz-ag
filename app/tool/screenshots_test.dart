@@ -42,6 +42,11 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Neues Spiel'));
+    await tester.pump();
+    // The world loads in real time (files and parsing), outside fake time.
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(seconds: 6)),
+    );
     await tester.pumpAndSettle();
     await expectLater(
       find.byType(BolzplatzApp),
