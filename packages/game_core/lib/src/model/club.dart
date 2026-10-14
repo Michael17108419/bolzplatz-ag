@@ -17,6 +17,7 @@ class Club {
   final String shortName;
   final String place;
   final Region region;
+
   /// Null for pool clubs, which play in no league yet.
   final LeagueId? leagueId;
 
