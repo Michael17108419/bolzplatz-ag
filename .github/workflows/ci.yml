@@ -52,7 +52,15 @@ jobs:
           grep -A8 'missing implementations' build.txt | head -12 | while read -r line; do echo "::error::${line}"; done
           exit $code
       - run: dart format lib test
-      - run: flutter analyze
+      - name: Analyze app
+        shell: bash
+        run: |
+          set +e
+          flutter analyze > analyze.txt 2>&1
+          code=$?
+          cat analyze.txt
+          grep -E '^\s*(info|warning|error) ' analyze.txt | head -20 | while read -r line; do echo "::error::${line}"; done
+          exit $code
       - name: Test
         shell: bash
         run: |
