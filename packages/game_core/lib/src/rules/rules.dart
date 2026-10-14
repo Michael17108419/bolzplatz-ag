@@ -5,6 +5,7 @@ import '../model/region.dart';
 import '../model/special_ability.dart';
 import '../result/result.dart';
 import 'generator_rules.dart';
+import 'match_rules.dart';
 import 'tactics_rules.dart';
 
 /// Reason why a rules file could not be used.
@@ -69,6 +70,7 @@ class Rules {
     required this.generator,
     required this.world,
     required this.tactics,
+    required this.match,
   });
 
   /// The only schema version this code understands.
@@ -94,6 +96,9 @@ class Rules {
 
   /// Numbers for tactics, roles and fit.
   final TacticsRules tactics;
+
+  /// Numbers for the match simulation.
+  final MatchRules match;
 
   /// Parses and validates a rules file given as JSON text.
   static Result<Rules, RulesError> parse(String jsonText) {
@@ -196,6 +201,7 @@ class Rules {
       ),
       world: WorldRules.fromJson(root['world'] as Map<String, dynamic>),
       tactics: TacticsRules.fromJson(root['tactics'] as Map<String, dynamic>),
+      match: MatchRules.fromJson(root['match'] as Map<String, dynamic>),
     );
   }
 

@@ -14,6 +14,7 @@ export 'src/pyramid/pyramid.dart';
 export 'src/result/result.dart';
 export 'src/rng/seeded_random.dart';
 export 'src/rules/generator_rules.dart';
+export 'src/rules/match_rules.dart';
 export 'src/rules/rules.dart';
 export 'src/rules/tactics_rules.dart';
 export 'src/world/club_catalog.dart';

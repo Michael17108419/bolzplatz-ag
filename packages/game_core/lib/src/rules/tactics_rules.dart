@@ -17,6 +17,11 @@ Attribute _attribute(String id) {
   throw RulesError('Unknown attribute $id');
 }
 
+Map<String, double> _numbers(Object? raw) => Map.unmodifiable({
+      for (final e in (raw! as Map<String, dynamic>).entries)
+        e.key: (e.value as num).toDouble(),
+    });
+
 List<Attribute> _attributes(Object? raw) => List.unmodifiable([
   for (final id in raw! as List<dynamic>) _attribute(id as String),
 ]);
@@ -65,11 +70,19 @@ class SystemRule {
     required this.id,
     required this.keyAttributes,
     required this.abilities,
+    required this.bonus,
+    required this.cost,
   });
 
   final String id;
   final List<Attribute> keyAttributes;
   final List<SpecialAbilityType> abilities;
+
+  /// Effects that grow with the fit of the squad (key to value).
+  final Map<String, double> bonus;
+
+  /// Effects that apply in full whatever the fit.
+  final Map<String, double> cost;
 }
 
 /// A tactic slider with ordered levels (lowest first).
@@ -105,6 +118,10 @@ class TacticsRules {
     required this.freeChanges,
     required this.penaltyPerExtraChange,
     required this.talks,
+    required this.systemFit,
+    required this.playerFitLow,
+    required this.playerFitHigh,
+    required this.maxSubstitutions,
   });
 
   factory TacticsRules.fromJson(Map<String, dynamic> m) {
@@ -208,6 +225,14 @@ class TacticsRules {
       freeChanges: live['free_changes'] as int,
       penaltyPerExtraChange: (live['penalty_per_extra_change'] as num)
           .toDouble(),
+      systemFit: SystemFitRules.fromJson(
+        m['system_fit'] as Map<String, dynamic>,
+      ),
+      playerFitLow: ((m['player_fit'] as Map<String, dynamic>)['low'] as num)
+          .toDouble(),
+      playerFitHigh: ((m['player_fit'] as Map<String, dynamic>)['high'] as num)
+          .toDouble(),
+      maxSubstitutions: m['max_substitutions'] as int,
       talks: List.unmodifiable((m['talks'] as List<dynamic>).cast<String>()),
     );
   }
@@ -225,6 +250,8 @@ class TacticsRules {
       id: m['id'] as String,
       keyAttributes: _attributes(m['key_attributes']),
       abilities: List.unmodifiable(abilities),
+      bonus: _numbers(m['bonus']),
+      cost: _numbers(m['cost']),
     );
   }
 
@@ -306,6 +333,15 @@ class TacticsRules {
   final int freeChanges;
   final double penaltyPerExtraChange;
 
+  /// How system fit turns into bonus strength.
+  final SystemFitRules systemFit;
+
+  /// Role key values at or below [playerFitLow] give fit 0, at or above
+  /// [playerFitHigh] fit 1.
+  final double playerFitLow;
+  final double playerFitHigh;
+  final int maxSubstitutions;
+
   /// Ids of the half-time talks.
   final List<String> talks;
 
@@ -313,4 +349,38 @@ class TacticsRules {
   FormationRule formation(String id) =>
       formations.firstWhere((f) => f.id == id);
   SystemRule system(String id) => systems.firstWhere((s) => s.id == id);
+}
+
+/// Numbers that turn the squad's fit for a system into effect strength.
+class SystemFitRules {
+  const SystemFitRules({
+    required this.slope,
+    required this.effectGain,
+    required this.costGain,
+    required this.abilityBonus,
+    required this.abilityCap,
+    required this.scaleMin,
+    required this.scaleMax,
+    required this.divisor,
+  });
+
+  factory SystemFitRules.fromJson(Map<String, dynamic> m) => SystemFitRules(
+        slope: (m['slope'] as num).toDouble(),
+        effectGain: (m['effect_gain'] as num).toDouble(),
+        costGain: (m['cost_gain'] as num).toDouble(),
+        abilityBonus: (m['ability_bonus'] as num).toDouble(),
+        abilityCap: (m['ability_cap'] as num).toDouble(),
+        scaleMin: (m['scale_min'] as num).toDouble(),
+        scaleMax: (m['scale_max'] as num).toDouble(),
+        divisor: (m['divisor'] as num).toDouble(),
+      );
+
+  final double slope;
+  final double effectGain;
+  final double costGain;
+  final double abilityBonus;
+  final double abilityCap;
+  final double scaleMin;
+  final double scaleMax;
+  final double divisor;
 }
