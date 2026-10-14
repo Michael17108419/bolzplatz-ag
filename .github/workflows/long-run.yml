@@ -9,6 +9,10 @@ on:
         description: Number of seasons
         required: false
         default: '50'
+      formation:
+        description: Formation for all clubs (empty = free choice)
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -28,7 +32,7 @@ jobs:
           dart pub get
           dart format bin
           set +e
-          dart run bin/long_run.dart ${{ github.event.inputs.seasons }} > run.txt 2>&1
+          dart run bin/long_run.dart ${{ github.event.inputs.seasons }} '${{ github.event.inputs.formation }}' > run.txt 2>&1
           code=$?
           cat run.txt
           grep -E 'Bad state|Unhandled|Error|error|Exception|Season .* failed|\.dart:[0-9]+' run.txt | head -15 | while read -r line; do echo "::error::${line}"; done
@@ -37,7 +41,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/langzeit_report.md
+          git add data/langzeit_report*.md
           git diff --cached --quiet || git commit -m "Langzeitlauf-Bericht"
           git checkout -- tools
           git pull --rebase

@@ -72,11 +72,14 @@ class SeasonOutcome {
 /// Plays a whole season of all leagues and both cups without a user
 /// interface. Everything depends only on the state, the rules and the seed.
 class SeasonRunner {
-  SeasonRunner(this.rules)
+  SeasonRunner(this.rules, {this.forcedFormation})
     : _engine = MatchEngine(rules),
       _auto = AutoManager(rules);
 
   final Rules rules;
+
+  /// If set, every club plays this formation (for tests and analysis).
+  final String? forcedFormation;
   final MatchEngine _engine;
   final AutoManager _auto;
 
@@ -119,7 +122,8 @@ class SeasonRunner {
         .join(',');
     var sheet = _sheets[club];
     if (sheet == null || _sheetKey[club] != key) {
-      sheet = _auto.build(squad, exclude: out) ?? _auto.build(squad)!;
+      sheet = _auto.build(squad, exclude: out, formationId: forcedFormation) ??
+          _auto.build(squad, formationId: forcedFormation)!;
       _sheets[club] = sheet;
       _sheetKey[club] = key;
     }
@@ -531,7 +535,7 @@ class SeasonRunner {
 
   MatchTeam _tempTeam(SeasonState state, ClubId club) {
     final squad = state.squads[club]!;
-    final sheet = _auto.build(squad)!;
+    final sheet = _auto.build(squad, formationId: forcedFormation)!;
     return MatchTeam(
       clubId: club,
       name: state.clubs[club]!.name,

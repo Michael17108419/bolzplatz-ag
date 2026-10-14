@@ -53,6 +53,7 @@ String _f(double v, [int d = 2]) => v.toStringAsFixed(d);
 void main(List<String> args) {
   const root = '..';
   final seasons = args.isEmpty ? 50 : int.parse(args.first);
+  final formation = args.length > 1 && args[1].isNotEmpty ? args[1] : null;
   final rules = Rules.parse(
     File('$root/rules/rules_2026_27.json').readAsStringSync(),
   ).valueOrNull!;
@@ -63,7 +64,7 @@ void main(List<String> args) {
     File('$root/data/names_de.json').readAsStringSync(),
   );
   final tierOf = {for (final l in rules.leagues) LeagueId(l.id): l.level};
-  final runner = SeasonRunner(rules);
+  final runner = SeasonRunner(rules, forcedFormation: formation);
   var state = SeasonState.fromWorld(world);
   final watch = Stopwatch()..start();
 
@@ -305,7 +306,7 @@ void main(List<String> args) {
   }
 
   final b = StringBuffer()
-    ..writeln('# Langzeitlauf: $seasons Saisons')
+    ..writeln('# Langzeitlauf: $seasons Saisons${formation == null ? '' : ', alle Klubs spielen $formation'}')
     ..writeln()
     ..writeln(
       'Startwelt 2026/27, Entwicklung und Rücktritte an, Saisonseeds fest. '
@@ -451,7 +452,9 @@ void main(List<String> args) {
     ..writeln('| --- | --- | --- | --- |')
     ..write(seasonLines);
 
-  final out = File('$root/data/langzeit_report.md');
+  final out = File(
+    '$root/data/langzeit_report${formation == null ? '' : '_$formation'}.md',
+  );
   out.writeAsStringSync(b.toString());
   stdout.writeln('Wrote ${out.path} in ${watch.elapsed.inSeconds} s');
 }
