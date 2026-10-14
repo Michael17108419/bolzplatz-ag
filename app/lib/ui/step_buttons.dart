@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 /// The bottom row of a career start step: back on the left, next on the
 /// right. A null [onNext] disables the button.
 class StepButtons extends StatelessWidget {
