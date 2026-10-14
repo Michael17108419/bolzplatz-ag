@@ -1,4 +1,5 @@
 import 'package:bolzplatz_app/main.dart';
+import 'package:bolzplatz_app/ui/logo.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,9 +10,9 @@ Future<void> _start(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('the main menu shows title and four entries', (tester) async {
+  testWidgets('the main menu shows the logo and four entries', (tester) async {
     await _start(tester);
-    expect(find.text('Bolzplatz AG'), findsWidgets);
+    expect(find.byType(BolzplatzLogo), findsOneWidget);
     expect(find.text('Neues Spiel'), findsOneWidget);
     expect(find.text('Spiel laden'), findsOneWidget);
     expect(find.text('Einstellungen'), findsOneWidget);

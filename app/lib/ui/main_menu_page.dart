@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'logo.dart';
 import 'placeholder_page.dart';
 import 'settings_page.dart';
 
@@ -23,21 +24,15 @@ class MainMenuPage extends ConsumerWidget {
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
+          constraints: const BoxConstraints(maxWidth: 440),
           child: Padding(
             padding: const EdgeInsets.all(Tokens.gapL),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  s.appTitle,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    color: Tokens.yellow,
-                  ),
-                ),
-                const SizedBox(height: Tokens.gapS),
+                const BolzplatzLogo(height: 200),
+                const SizedBox(height: Tokens.gapM),
                 Text(
                   s.tagline,
                   textAlign: TextAlign.center,
