@@ -187,7 +187,8 @@ class AppStringsDe implements AppStrings {
     _ => 'Zweitfarbe',
   };
   @override
-  String glassesName(int index) => const ['Keine', 'Rund', 'Eckig', 'Sonnenbrille'][index];
+  String glassesName(int index) =>
+      const ['Keine', 'Rund', 'Eckig', 'Sonnenbrille'][index];
   @override
   String get backstoryHeading => 'Wie bist du hierhergekommen?';
   @override
