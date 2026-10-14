@@ -68,11 +68,16 @@ class Development {
       own[a] = delta;
     }
 
+    // A follower takes part of its change from its drivers and the rest from
+    // its own age curve, so couplings move the timing of the change but do
+    // not add growth on top of the age curve over a whole career.
     final coupled = <Attribute, double>{};
+    final weight = <Attribute, double>{};
     for (final c in dev.couplings) {
       if (c.follower.isGoalkeeping && !isKeeper) continue;
       coupled[c.follower] =
           (coupled[c.follower] ?? 0) + c.factor * own[c.driver]!;
+      weight[c.follower] = (weight[c.follower] ?? 0) + c.factor;
     }
 
     final values = <Attribute, double>{};
