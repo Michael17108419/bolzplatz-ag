@@ -17,8 +17,7 @@ class Schedule {
   /// with [rng], so every season looks different but stays reproducible.
   /// Returns one list of fixtures per matchday; the second half mirrors the
   /// first with home and away swapped. Every club has a balanced home/away
-  /// sequence (no more than two home or away games in a row, except for the
-  /// fixed club at the turn of the halves).
+  /// sequence (no more than two home or away games in a row).
   static List<List<Fixture>> doubleRoundRobin(
     List<ClubId> clubs,
     SeededRandom rng,
@@ -36,8 +35,9 @@ class Schedule {
       for (var i = 0; i < n ~/ 2; i++) {
         final a = ring[i];
         final b = ring[n - 1 - i];
-        // The fixed club (index 0) alternates, the others by pair position.
-        final swap = i == 0 ? round.isOdd : (round + i).isOdd;
+        // Swapping all pairs on odd rounds keeps home and away balanced:
+        // no club has more than two home or away games in a row.
+        final swap = round.isOdd;
         day.add(
           swap ? Fixture(order[b], order[a]) : Fixture(order[a], order[b]),
         );

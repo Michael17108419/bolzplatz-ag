@@ -41,7 +41,7 @@ void main() {
             : (homeRun <= 0 ? homeRun - 1 : -1);
         maxRun = homeRun.abs() > maxRun ? homeRun.abs() : maxRun;
       }
-      expect(maxRun <= 3, isTrue, reason: 'club ${c.value}');
+      expect(maxRun <= 2, isTrue, reason: 'club ${c.value}');
     }
   });
 
