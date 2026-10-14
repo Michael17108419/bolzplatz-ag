@@ -106,6 +106,8 @@ void main(List<String> args) {
     }
     final outcome = runner.play(state, seed: 1000 + year);
     matches += outcome.matchesPlayed;
+    note(decade, 'Schüsse pro Saison (alle Ligen und Pokale)', outcome.shots / 1.0);
+    note(decade, 'Tore je 100 Schüsse (Liga-Tore durch alle Schüsse)', outcome.goalsScored / outcome.shots * 100);
     goalsAll += outcome.goalsScored;
     yellow += outcome.yellowCards;
     red += outcome.redCards;

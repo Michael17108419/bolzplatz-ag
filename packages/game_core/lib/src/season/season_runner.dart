@@ -35,6 +35,7 @@ class SeasonOutcome {
     required this.redCards,
     required this.yellowCards,
     required this.minutesByPlayer,
+    required this.shots,
   });
 
   final Map<LeagueId, List<TableEntry>> tables;
@@ -55,6 +56,9 @@ class SeasonOutcome {
 
   /// Minutes played per player over all matches of the season.
   final Map<PlayerId, int> minutesByPlayer;
+
+  /// All shots of the season (league and cups).
+  final int shots;
 
   List<ClubId> standing(LeagueId league) => [
     for (final e in tables[league]!) e.club,
@@ -83,6 +87,7 @@ class SeasonRunner {
   int _injuries = 0;
   int _reds = 0;
   int _yellows = 0;
+  int _shots = 0;
   final Map<PlayerId, int> _goals = {};
   final Map<PlayerId, int> _minutes = {};
   int _seed = 0;
@@ -159,6 +164,7 @@ class SeasonRunner {
     for (final e in r.minutesPlayed.entries) {
       _minutes[e.key] = (_minutes[e.key] ?? 0) + e.value;
     }
+    _shots += r.homeStats.shots + r.awayStats.shots;
     _reds += r.homeStats.redCards + r.awayStats.redCards;
     _yellows += r.homeStats.yellowCards + r.awayStats.yellowCards;
     if (countForm) {
@@ -195,6 +201,7 @@ class SeasonRunner {
     _injuries = 0;
     _reds = 0;
     _yellows = 0;
+    _shots = 0;
     _goals.clear();
     _minutes.clear();
     final root = SeededRandom(seed);
@@ -450,6 +457,7 @@ class SeasonRunner {
       redCards: _reds,
       yellowCards: _yellows,
       minutesByPlayer: Map.of(_minutes),
+      shots: _shots,
     );
   }
 
