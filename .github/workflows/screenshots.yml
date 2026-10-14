@@ -1,0 +1,33 @@
+name: screenshots
+
+# Run by hand. Draws the app screens to PNG files (app/tool/out) and commits
+# them, so the screens can be looked at without a Windows computer.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: app/pubspec.yaml
+          channel: stable
+      - run: flutter pub get
+      - run: flutter test tool/screenshots_test.dart --update-goldens
+      - name: Commit pictures
+        working-directory: .
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/tool/out
+          git diff --cached --quiet || git commit -m "Bildschirmfotos der App"
+          git pull --rebase
+          git push
