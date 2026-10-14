@@ -1,10 +1,11 @@
 name: bolzplatz_app
-description: "A new Flutter project."
+description: "Bolzplatz AG, Windows app (platform check in Phase 0)."
 publish_to: 'none'
 version: 0.1.0+1
 
 environment:
   sdk: ^3.13.5
+  flutter: 3.47.7
 
 dependencies:
   drift: ^2.35.2
