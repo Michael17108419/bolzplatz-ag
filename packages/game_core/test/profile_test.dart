@@ -351,9 +351,7 @@ void _agingTests() {
       double mean(Iterable<double> v) => v.reduce((a, b) => a + b) / v.length;
       double trait(Iterable<Player> group, CharacterTrait t) =>
           mean(group.map((p) => p.traits[t]!));
-      final young = players.where(
-        (p) => p.ageOn(GameDate(2026, 7, 1)) <= 21,
-      );
+      final young = players.where((p) => p.ageOn(GameDate(2026, 7, 1)) <= 21);
       final old = players.where((p) => p.ageOn(GameDate(2026, 7, 1)) >= 31);
       // Leadership rises until 34, so older players have more of it.
       expect(
