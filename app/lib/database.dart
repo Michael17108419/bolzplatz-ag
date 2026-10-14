@@ -108,7 +108,15 @@ class GameMeta extends Table {
 }
 
 @DriftDatabase(
-  tables: [Leagues, Clubs, Players, Coaches, Contracts, LeagueSeasonClubs],
+  tables: [
+    Leagues,
+    Clubs,
+    Players,
+    Coaches,
+    Contracts,
+    LeagueSeasonClubs,
+    GameMeta,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
