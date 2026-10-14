@@ -1,0 +1,31 @@
+name: world-report
+
+# Run by hand. Writes data/world_report_2026_27.md from the shipped world
+# file and commits it.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - name: Build report
+        working-directory: tools
+        run: |
+          dart pub get
+          dart run bin/world_report.dart
+      - name: Commit report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/world_report_2026_27.md
+          git diff --cached --quiet || git commit -m "Update world distribution report"
+          git pull --rebase
+          git push

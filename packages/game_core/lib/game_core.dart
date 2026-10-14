@@ -19,3 +19,4 @@ export 'src/world/club_catalog.dart';
 export 'src/world/world.dart';
 export 'src/world/world_generator.dart';
 export 'src/world/world_json.dart';
+export 'src/world/world_report.dart';

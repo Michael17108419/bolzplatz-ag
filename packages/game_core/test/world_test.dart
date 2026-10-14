@@ -168,4 +168,36 @@ void main() {
       expect(ls.clubIds, hasLength(ls.league.teamCount));
     }
   });
+
+  reportTests();
+}
+
+void reportTests() {
+  test('the distribution report covers all tiers and sections', () {
+    final report = WorldReport.build(_shared, _rules);
+    expect(report, contains('# Verteilungsbericht Startwelt 2026/27'));
+    expect(report, contains('## Je Ebene'));
+    expect(report, contains('| Pool |'));
+    expect(report, contains('## Spezialfähigkeiten'));
+    expect(report, contains('## Die zehn besten Spieler'));
+    expect(report, contains('Überlappung der Ebenen'));
+  });
+
+  test('overall is higher for stronger tiers', () {
+    double mean(int tier) {
+      final ids = _catalog.entries
+          .where((e) => e.tier == tier)
+          .map((e) => e.id)
+          .toSet();
+      final list = _shared.players
+          .where((p) => ids.contains(p.clubId))
+          .map((p) => WorldReport.overall(p, _rules))
+          .toList();
+      return list.reduce((a, b) => a + b) / list.length;
+    }
+
+    for (var t = 1; t < 5; t++) {
+      expect(mean(t), greaterThan(mean(t + 1)));
+    }
+  });
 }
