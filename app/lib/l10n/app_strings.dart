@@ -27,6 +27,9 @@ abstract interface class AppStrings {
   String careerStrength(String value);
   String careerRank(int rank, int total);
   String get homeTitle;
+
+  /// Display name of a league from its key in the world data.
+  String leagueName(String key);
 }
 
 /// German, the only language for now.
@@ -82,6 +85,18 @@ class AppStringsDe implements AppStrings {
       'Platz $rank von $total nach Stärke';
   @override
   String get homeTitle => 'Büro';
+  @override
+  String leagueName(String key) => switch (key) {
+    'liga_1' => '1. Liga',
+    'liga_2' => '2. Liga',
+    'liga_3' => '3. Liga',
+    'liga_4_nord' => '4. Liga Nord',
+    'liga_4_nordost' => '4. Liga Nordost',
+    'liga_4_west' => '4. Liga West',
+    'liga_4_suedwest' => '4. Liga Südwest',
+    'liga_4_bayern' => '4. Liga Bayern',
+    _ => key,
+  };
 }
 
 /// The strings in use. Later this follows a setting in the settings screen.

@@ -97,7 +97,7 @@ class _CareerBodyState extends ConsumerState<_CareerBody> {
           children: [
             for (final l in leagues)
               ChoiceChip(
-                label: Text(l.name),
+                label: Text(s.leagueName(l.name)),
                 selected: l.id == _league.id,
                 onSelected: (_) => setState(() {
                   _league = l;
@@ -256,7 +256,10 @@ class _DetailCard extends ConsumerWidget {
                   ),
                   Text(chosen.place, style: theme.textTheme.bodyLarge),
                   const SizedBox(height: Tokens.gapS),
-                  Text(league.name, style: theme.textTheme.bodyMedium),
+                  Text(
+                    s.leagueName(league.name),
+                    style: theme.textTheme.bodyMedium,
+                  ),
                   const SizedBox(height: Tokens.gapM),
                   Text(
                     '${s.careerStrength((loaded.strength[chosen.id.value] ?? 0).toStringAsFixed(1))}'
