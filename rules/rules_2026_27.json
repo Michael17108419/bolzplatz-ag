@@ -1,0 +1,350 @@
+{
+  "schema_version": 1,
+  "season_start_year": 2026,
+  "note": "Draft numbers, to be balanced by mass tests. Texts live in language files, not here.",
+  "leagues": [
+    {
+      "id": 1,
+      "key": "liga_1",
+      "level": 1,
+      "team_count": 18,
+      "region": null
+    },
+    {
+      "id": 2,
+      "key": "liga_2",
+      "level": 2,
+      "team_count": 18,
+      "region": null
+    },
+    {
+      "id": 3,
+      "key": "liga_3",
+      "level": 3,
+      "team_count": 20,
+      "region": null
+    },
+    {
+      "id": 4,
+      "key": "liga_4_nord",
+      "level": 4,
+      "team_count": 18,
+      "region": "nord"
+    },
+    {
+      "id": 5,
+      "key": "liga_4_nordost",
+      "level": 4,
+      "team_count": 18,
+      "region": "nordost"
+    },
+    {
+      "id": 6,
+      "key": "liga_4_west",
+      "level": 4,
+      "team_count": 18,
+      "region": "west"
+    },
+    {
+      "id": 7,
+      "key": "liga_4_suedwest",
+      "level": 4,
+      "team_count": 18,
+      "region": "suedwest"
+    },
+    {
+      "id": 8,
+      "key": "liga_4_bayern",
+      "level": 4,
+      "team_count": 18,
+      "region": "bayern"
+    }
+  ],
+  "abilities": {
+    "max_per_player": 4,
+    "max_gold_per_player": 1,
+    "tier_multiplier": {
+      "bronze": 1.0,
+      "silver": 1.6,
+      "gold": 2.2
+    }
+  },
+  "character": {
+    "display_bands": {
+      "low": [
+        1,
+        30
+      ],
+      "medium": [
+        31,
+        55
+      ],
+      "high": [
+        56,
+        80
+      ],
+      "extreme": [
+        81,
+        100
+      ]
+    }
+  },
+  "attribute_range": {
+    "min": 1,
+    "max": 100
+  },
+  "age_curves": {
+    "acceleration": {
+      "rises_until": 23,
+      "plateau_from": 24,
+      "plateau_to": 27,
+      "declines_from": 28
+    },
+    "sprint_speed": {
+      "rises_until": 24,
+      "plateau_from": 25,
+      "plateau_to": 27,
+      "declines_from": 28
+    },
+    "stamina": {
+      "rises_until": 27,
+      "plateau_from": 28,
+      "plateau_to": 31,
+      "declines_from": 32
+    },
+    "strength": {
+      "rises_until": 28,
+      "plateau_from": 29,
+      "plateau_to": 32,
+      "declines_from": 33
+    },
+    "jumping": {
+      "rises_until": 25,
+      "plateau_from": 26,
+      "plateau_to": 28,
+      "declines_from": 29
+    },
+    "recovery": {
+      "rises_until": 25,
+      "plateau_from": 26,
+      "plateau_to": 28,
+      "declines_from": 29
+    },
+    "goal_instinct": {
+      "rises_until": 29,
+      "plateau_from": 30,
+      "plateau_to": 33,
+      "declines_from": 34
+    },
+    "finishing": {
+      "rises_until": 27,
+      "plateau_from": 28,
+      "plateau_to": 31,
+      "declines_from": 32
+    },
+    "shot_power": {
+      "rises_until": 25,
+      "plateau_from": 26,
+      "plateau_to": 29,
+      "declines_from": 30
+    },
+    "long_shots": {
+      "rises_until": 27,
+      "plateau_from": 28,
+      "plateau_to": 31,
+      "declines_from": 32
+    },
+    "volleys": {
+      "rises_until": 26,
+      "plateau_from": 27,
+      "plateau_to": 30,
+      "declines_from": 31
+    },
+    "penalties": {
+      "rises_until": 30,
+      "plateau_from": 31,
+      "plateau_to": 35,
+      "declines_from": 36
+    },
+    "free_kicks": {
+      "rises_until": 28,
+      "plateau_from": 29,
+      "plateau_to": 34,
+      "declines_from": 35
+    },
+    "corners": {
+      "rises_until": 27,
+      "plateau_from": 28,
+      "plateau_to": 33,
+      "declines_from": 34
+    },
+    "short_passing": {
+      "rises_until": 27,
+      "plateau_from": 28,
+      "plateau_to": 32,
+      "declines_from": 33
+    },
+    "long_passing": {
+      "rises_until": 28,
+      "plateau_from": 29,
+      "plateau_to": 33,
+      "declines_from": 34
+    },
+    "crossing": {
+      "rises_until": 27,
+      "plateau_from": 28,
+      "plateau_to": 31,
+      "declines_from": 32
+    },
+    "curve": {
+      "rises_until": 28,
+      "plateau_from": 29,
+      "plateau_to": 33,
+      "declines_from": 34
+    },
+    "vision": {
+      "rises_until": 30,
+      "plateau_from": 31,
+      "plateau_to": 35,
+      "declines_from": 36
+    },
+    "composure": {
+      "rises_until": 30,
+      "plateau_from": 31,
+      "plateau_to": 35,
+      "declines_from": 36
+    },
+    "reactions": {
+      "rises_until": 25,
+      "plateau_from": 26,
+      "plateau_to": 29,
+      "declines_from": 30
+    },
+    "anticipation": {
+      "rises_until": 31,
+      "plateau_from": 32,
+      "plateau_to": 35,
+      "declines_from": 36
+    },
+    "decision_making": {
+      "rises_until": 31,
+      "plateau_from": 32,
+      "plateau_to": 35,
+      "declines_from": 37
+    },
+    "tactical_sense": {
+      "rises_until": 32,
+      "plateau_from": 33,
+      "plateau_to": 36,
+      "declines_from": 37
+    },
+    "concentration": {
+      "rises_until": 29,
+      "plateau_from": 30,
+      "plateau_to": 33,
+      "declines_from": 34
+    },
+    "agility": {
+      "rises_until": 24,
+      "plateau_from": 25,
+      "plateau_to": 27,
+      "declines_from": 28
+    },
+    "balance": {
+      "rises_until": 26,
+      "plateau_from": 27,
+      "plateau_to": 31,
+      "declines_from": 32
+    },
+    "ball_control": {
+      "rises_until": 28,
+      "plateau_from": 29,
+      "plateau_to": 33,
+      "declines_from": 34
+    },
+    "dribbling": {
+      "rises_until": 26,
+      "plateau_from": 27,
+      "plateau_to": 30,
+      "declines_from": 31
+    },
+    "interceptions": {
+      "rises_until": 29,
+      "plateau_from": 30,
+      "plateau_to": 33,
+      "declines_from": 34
+    },
+    "heading": {
+      "rises_until": 27,
+      "plateau_from": 28,
+      "plateau_to": 32,
+      "declines_from": 33
+    },
+    "defensive_awareness": {
+      "rises_until": 30,
+      "plateau_from": 31,
+      "plateau_to": 35,
+      "declines_from": 36
+    },
+    "standing_tackle": {
+      "rises_until": 28,
+      "plateau_from": 29,
+      "plateau_to": 32,
+      "declines_from": 33
+    },
+    "sliding_tackle": {
+      "rises_until": 26,
+      "plateau_from": 27,
+      "plateau_to": 30,
+      "declines_from": 31
+    },
+    "gk_reflexes": {
+      "rises_until": 27,
+      "plateau_from": 28,
+      "plateau_to": 32,
+      "declines_from": 33
+    },
+    "gk_diving": {
+      "rises_until": 27,
+      "plateau_from": 28,
+      "plateau_to": 32,
+      "declines_from": 33
+    },
+    "gk_handling": {
+      "rises_until": 29,
+      "plateau_from": 30,
+      "plateau_to": 34,
+      "declines_from": 35
+    },
+    "gk_positioning": {
+      "rises_until": 31,
+      "plateau_from": 32,
+      "plateau_to": 36,
+      "declines_from": 37
+    },
+    "gk_kicking": {
+      "rises_until": 28,
+      "plateau_from": 29,
+      "plateau_to": 34,
+      "declines_from": 35
+    },
+    "gk_command_of_area": {
+      "rises_until": 30,
+      "plateau_from": 31,
+      "plateau_to": 35,
+      "declines_from": 36
+    },
+    "gk_distribution": {
+      "rises_until": 29,
+      "plateau_from": 30,
+      "plateau_to": 34,
+      "declines_from": 35
+    },
+    "gk_one_on_one": {
+      "rises_until": 29,
+      "plateau_from": 30,
+      "plateau_to": 34,
+      "declines_from": 35
+    }
+  }
+}
