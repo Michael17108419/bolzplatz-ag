@@ -27,7 +27,12 @@ jobs:
         run: |
           dart pub get
           dart format bin
-          dart run bin/long_run.dart ${{ github.event.inputs.seasons }}
+          set +e
+          dart run bin/long_run.dart ${{ github.event.inputs.seasons }} > run.txt 2>&1
+          code=$?
+          cat run.txt
+          grep -E 'Error|error|Exception|Season .* failed|\.dart:[0-9]+' run.txt | head -15 | while read -r line; do echo "::error::${line}"; done
+          exit $code
       - name: Commit report
         run: |
           git config user.name "github-actions[bot]"
