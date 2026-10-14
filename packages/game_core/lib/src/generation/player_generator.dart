@@ -87,7 +87,9 @@ class PlayerGenerator {
 
     // Prime level of this player, before age effects and position profile.
     final level = _clamp(
-      tierRules.levelMean + levelOffset + rng.nextGaussian() * tierRules.levelSd,
+      tierRules.levelMean +
+          levelOffset +
+          rng.nextGaussian() * tierRules.levelSd,
       1,
       99,
     );
