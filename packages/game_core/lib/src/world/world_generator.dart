@@ -217,6 +217,5 @@ class WorldGenerator {
     );
   }
 
-  static int _roundTo(double value, int step) =>
-      (value / step).round() * step;
+  static int _roundTo(double value, int step) => (value / step).round() * step;
 }

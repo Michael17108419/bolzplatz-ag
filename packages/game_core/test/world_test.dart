@@ -79,9 +79,9 @@ void main() {
           .map((e) => e.id)
           .toSet();
       final list = _shared.players.where((p) => ids.contains(p.clubId));
-      return list.map((p) => p.contract!.baseSalaryPerYear).reduce(
-            (a, b) => a + b,
-          ) /
+      return list
+              .map((p) => p.contract!.baseSalaryPerYear)
+              .reduce((a, b) => a + b) /
           list.length;
     }
 
@@ -131,7 +131,10 @@ void main() {
   });
 
   test('a broken world text is rejected with a FormatException', () {
-    expect(() => WorldJson.decode('{"format_version": 9}'), throwsFormatException);
+    expect(
+      () => WorldJson.decode('{"format_version": 9}'),
+      throwsFormatException,
+    );
     expect(() => WorldJson.decode('[]'), throwsFormatException);
   });
 

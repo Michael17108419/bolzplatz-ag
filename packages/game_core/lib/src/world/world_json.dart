@@ -278,7 +278,9 @@ class WorldJson {
           e.key: RoleFamiliarity.values.byName(e.value as String),
       },
       clubId: m['club_id'] == null ? null : ClubId(m['club_id'] as int),
-      contract: contractRaw == null ? null : _contractFrom(contractRaw, playerId),
+      contract: contractRaw == null
+          ? null
+          : _contractFrom(contractRaw, playerId),
     );
   }
 
