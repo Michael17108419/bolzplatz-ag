@@ -459,9 +459,7 @@ class GameRepository {
       potentialCore: Value(player.potentialCore),
       potentialDynamic: Value(player.potentialDynamic),
       rolesJson: Value(
-        jsonEncode({
-          for (final e in player.roles.entries) e.key: e.value.name,
-        }),
+        jsonEncode({for (final e in player.roles.entries) e.key: e.value.name}),
       ),
       clubId: Value(player.clubId?.value),
     );

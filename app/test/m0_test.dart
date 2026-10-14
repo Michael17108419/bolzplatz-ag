@@ -80,8 +80,10 @@ void main() {
     lap('one season change');
 
     // ignore: avoid_print
-    print('M0-REPORT players=${loaded.players.length} '
-        'clubs=${loaded.clubs.length} coaches=${loaded.coaches.length}');
+    print(
+      'M0-REPORT players=${loaded.players.length} '
+      'clubs=${loaded.clubs.length} coaches=${loaded.coaches.length}',
+    );
     for (final e in timings.entries) {
       // ignore: avoid_print
       print('M0-REPORT ${e.key}: ${e.value} ms');
