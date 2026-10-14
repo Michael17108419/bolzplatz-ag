@@ -531,8 +531,11 @@ class MatchSession {
         (1 + _m.momentumEffect * defender.momentum);
     var state = 1.0;
     if (_minute >= _m.gameStateFromMinute) {
-      final diff = ((t == 0 ? _goalsHome - _goalsAway : _goalsAway - _goalsHome))
-          .limit(-_m.gameStateMaxDiff, _m.gameStateMaxDiff);
+      final diff =
+          ((t == 0 ? _goalsHome - _goalsAway : _goalsAway - _goalsHome)).limit(
+            -_m.gameStateMaxDiff,
+            _m.gameStateMaxDiff,
+          );
       state = 1 - _m.gameStateEffect * diff;
     }
     final q =
