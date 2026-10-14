@@ -1,6 +1,6 @@
 # Langzeitlauf: 50 Saisons
 
-Startwelt 2026/27, Entwicklung und Rücktritte an, Saisonseeds fest. Rechenzeit 166 s.
+Startwelt 2026/27, Entwicklung und Rücktritte an, Saisonseeds fest. Rechenzeit 289 s.
 
 ## Gesamt
 
@@ -79,6 +79,8 @@ Klubs aus Liga 3 oder 4 im Bolzplatzpokal pro Saison: Viertelfinale 0.24, Halbfi
 | Overall Angriff | 68.0 | 68.3 | 69.9 | 70.7 | 70.2 |
 | Overall Mittelfeld | 68.4 | 67.4 | 69.9 | 69.4 | 70.0 |
 | Overall TW | 67.7 | 66.9 | 70.3 | 69.6 | 71.0 |
+| Schüsse pro Saison (alle Ligen und Pokale) | 69203.6 | 68826.9 | 62178.1 | 65381.6 | 61110.9 |
+| Tore je 100 Schüsse (Liga-Tore durch alle Schüsse) | 9.0 | 9.1 | 9.2 | 9.4 | 9.4 |
 
 ## Liga 1: Tore pro Spiel, Meister, Pokalsieger je Saison
 
