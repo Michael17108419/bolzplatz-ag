@@ -88,6 +88,13 @@ void main(List<String> args) {
   var topScorerGoals = 0.0;
   final poolStrength = <double>[];
   final seasonLines = StringBuffer();
+  // Tier 1 only, per decade: position-group overall and key attributes.
+  final diag = <int, Map<String, List<double>>>{};
+  void note(int decade, String key, double v) =>
+      ((diag[decade] ??= {})[key] ??= []).add(v);
+  // Lower-tier clubs in the last eight and last four of the Bolzplatzpokal.
+  var lowerLast8 = 0;
+  var lowerLast4 = 0;
 
   for (var year = 0; year < seasons; year++) {
     final decade = year ~/ 10;
@@ -117,6 +124,17 @@ void main(List<String> args) {
       pottWinnerTier[tiers[w] ?? 5] = (pottWinnerTier[tiers[w] ?? 5] ?? 0) + 1;
     }
 
+    final rounds = outcome.bolzplatz.rounds;
+    if (rounds.length >= 3) {
+      for (final t in rounds[rounds.length - 3]) {
+        if ((tiers[t.home] ?? 5) >= 3) lowerLast8++;
+        if ((tiers[t.away] ?? 5) >= 3) lowerLast8++;
+      }
+      for (final t in rounds[rounds.length - 2]) {
+        if ((tiers[t.home] ?? 5) >= 3) lowerLast4++;
+        if ((tiers[t.away] ?? 5) >= 3) lowerLast4++;
+      }
+    }
     for (final e in outcome.tables.entries) {
       final tier = tierOf[e.key]!;
       final a = at(tier, decade);
@@ -162,6 +180,33 @@ void main(List<String> args) {
       final on = GameDate(state.startYear, 7, 1);
       for (final t in table) {
         for (final p in state.squads[t.club]!) {
+          if (tier == 1) {
+            final ov = WorldReport.overall(p, rules);
+            final String group;
+            if (p.position == Position.tw) {
+              group = 'TW';
+            } else if (const [
+              Position.iv,
+              Position.lv,
+              Position.rv,
+              Position.zdm,
+            ].contains(p.position)) {
+              group = 'Abwehr';
+            } else if (p.position == Position.zm ||
+                p.position == Position.zom) {
+              group = 'Mittelfeld';
+            } else {
+              group = 'Angriff';
+            }
+            note(decade, 'Overall $group', ov);
+            if (group == 'Angriff') {
+              note(decade, 'Angriff: Abschluss', p.attributes[Attribute.finishing]);
+              note(decade, 'Angriff: Torinstinkt', p.attributes[Attribute.goalInstinct]);
+            }
+            if (group == 'Abwehr') {
+              note(decade, 'Abwehr: Zweikampf', p.attributes[Attribute.standingTackle]);
+            }
+          }
           count++;
           final age = p.ageOn(on);
           ages += age;
@@ -293,6 +338,28 @@ void main(List<String> args) {
   }
 
   b
+    ..writeln('## Pokal')
+    ..writeln()
+    ..writeln(
+      'Klubs aus Liga 3 oder 4 im Bolzplatzpokal pro Saison: '
+      'Viertelfinale ${_f(lowerLast8 / seasons)}, Halbfinale ${_f(lowerLast4 / seasons)}.',
+    )
+    ..writeln()
+    ..writeln('## Liga 1: Spielerwerte nach Zehnjahresblock')
+    ..writeln()
+    ..writeln('| Wert | ${(diag.keys.toList()..sort()).map((d) => '${d * 10 + 1}–${d * 10 + 10}').join(' | ')} |')
+    ..writeln('|${' --- |' * (diag.length + 1)}');
+  final keys = diag.values.expand((m) => m.keys).toSet().toList()..sort();
+  for (final k in keys) {
+    b.writeln(
+      '| $k | ${(diag.keys.toList()..sort()).map((d) {
+        final l = diag[d]![k]!;
+        return _f(l.fold(0.0, (x, y) => x + y) / l.length, 1);
+      }).join(' | ')} |',
+    );
+  }
+  b
+    ..writeln()
     ..writeln('## Liga 1: Tore pro Spiel, Meister, Pokalsieger je Saison')
     ..writeln()
     ..writeln('| Saison | Tore/Spiel | Meister (Klub-ID) | Pokalsieger (Klub-ID) |')
