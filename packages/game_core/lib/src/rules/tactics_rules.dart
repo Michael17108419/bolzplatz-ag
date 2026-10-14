@@ -69,7 +69,7 @@ class SystemRule {
 
   final String id;
   final List<Attribute> keyAttributes;
-  final List<SpecialAbility> abilities;
+  final List<SpecialAbilityType> abilities;
 }
 
 /// A tactic slider with ordered levels (lowest first).
@@ -213,9 +213,9 @@ class TacticsRules {
   }
 
   static SystemRule _system(Map<String, dynamic> m) {
-    final abilities = <SpecialAbility>[];
+    final abilities = <SpecialAbilityType>[];
     for (final id in m['abilities'] as List<dynamic>) {
-      final matches = SpecialAbility.values.where((a) => a.id == id);
+      final matches = SpecialAbilityType.values.where((SpecialAbilityType a) => a.id == id);
       if (matches.isEmpty) throw RulesError('Unknown ability $id');
       abilities.add(matches.first);
     }
