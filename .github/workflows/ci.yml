@@ -44,10 +44,12 @@ jobs:
         shell: bash
         run: |
           set +e
+          flutter pub deps --style=list | grep -E '^- (build|build_runner|build_runner_core|build_daemon|analyzer|drift_dev|source_gen) ' | while read -r line; do echo "::error::dep ${line}"; done
           dart run build_runner build --delete-conflicting-outputs > build.txt 2>&1
           code=$?
           cat build.txt
           grep -iE 'error|severe|exception|\[SEVERE\]' build.txt | head -20 | while read -r line; do echo "::error::${line}"; done
+          grep -A8 'missing implementations' build.txt | head -12 | while read -r line; do echo "::error::${line}"; done
           exit $code
       - run: dart format lib test
       - run: flutter analyze
