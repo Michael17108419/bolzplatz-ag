@@ -32,34 +32,34 @@ class MainMenuPage extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const BolzplatzLogo(height: 200),
-                const SizedBox(height: Tokens.gapM),
-                Text(
-                  s.tagline,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyLarge,
-                ),
-                const SizedBox(height: Tokens.gapL * 1.5),
-                FilledButton(
-                  onPressed: () => _open(context, const CareerStartPage()),
-                  child: Text(s.menuNewGame),
-                ),
-                const SizedBox(height: Tokens.gapM),
-                FilledButton.tonal(
-                  onPressed: () => _open(
-                    context,
-                    PlaceholderPage(title: s.menuLoadGame, step: 8),
+                children: [
+                  const BolzplatzLogo(height: 200),
+                  const SizedBox(height: Tokens.gapM),
+                  Text(
+                    s.tagline,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge,
                   ),
-                  child: Text(s.menuLoadGame),
-                ),
-                const SizedBox(height: Tokens.gapM),
-                FilledButton.tonal(
-                  onPressed: () => _open(context, const SettingsPage()),
-                  child: Text(s.menuSettings),
-                ),
-                const SizedBox(height: Tokens.gapM),
-                TextButton(onPressed: () => exit(0), child: Text(s.menuQuit)),
+                  const SizedBox(height: Tokens.gapL * 1.5),
+                  FilledButton(
+                    onPressed: () => _open(context, const CareerStartPage()),
+                    child: Text(s.menuNewGame),
+                  ),
+                  const SizedBox(height: Tokens.gapM),
+                  FilledButton.tonal(
+                    onPressed: () => _open(
+                      context,
+                      PlaceholderPage(title: s.menuLoadGame, step: 8),
+                    ),
+                    child: Text(s.menuLoadGame),
+                  ),
+                  const SizedBox(height: Tokens.gapM),
+                  FilledButton.tonal(
+                    onPressed: () => _open(context, const SettingsPage()),
+                    child: Text(s.menuSettings),
+                  ),
+                  const SizedBox(height: Tokens.gapM),
+                  TextButton(onPressed: () => exit(0), child: Text(s.menuQuit)),
                 ],
               ),
             ),
