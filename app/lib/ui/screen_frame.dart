@@ -6,10 +6,16 @@ import '../theme/tokens.dart';
 /// Common frame of all screens except the main menu: centred content with a
 /// maximum width, airy margins, and Esc to go back.
 class ScreenFrame extends StatelessWidget {
-  const ScreenFrame({required this.title, required this.child, super.key});
+  const ScreenFrame({
+    required this.title,
+    required this.child,
+    this.maxWidth = 720,
+    super.key,
+  });
 
   final String title;
   final Widget child;
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +35,7 @@ class ScreenFrame extends StatelessWidget {
           ),
           body: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
+              constraints: BoxConstraints(maxWidth: maxWidth),
               child: Padding(
                 padding: const EdgeInsets.all(Tokens.gapL),
                 child: child,

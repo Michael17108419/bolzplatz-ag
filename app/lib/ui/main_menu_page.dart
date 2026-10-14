@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'logo.dart';
+import 'career_start_page.dart';
 import 'placeholder_page.dart';
 import 'settings_page.dart';
 
@@ -40,10 +41,7 @@ class MainMenuPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: Tokens.gapL * 1.5),
                 FilledButton(
-                  onPressed: () => _open(
-                    context,
-                    PlaceholderPage(title: s.menuNewGame, step: 2),
-                  ),
+                  onPressed: () => _open(context, const CareerStartPage()),
                   child: Text(s.menuNewGame),
                 ),
                 const SizedBox(height: Tokens.gapM),

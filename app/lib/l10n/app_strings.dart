@@ -17,6 +17,16 @@ abstract interface class AppStrings {
   String get shortcutBack;
   String get shortcutBackKey;
   String comingInStep(int step);
+  String get careerTitle;
+  String get careerChooseClub;
+  String get careerLoading;
+  String get careerLoadFailed;
+  String get careerManagerName;
+  String get careerStart;
+  String get careerNoClubChosen;
+  String careerStrength(String value);
+  String careerRank(int rank, int total);
+  String get homeTitle;
 }
 
 /// German, the only language for now.
@@ -51,6 +61,27 @@ class AppStringsDe implements AppStrings {
   String get shortcutBackKey => 'Esc';
   @override
   String comingInStep(int step) => 'Kommt in Bauabschnitt $step.';
+  @override
+  String get careerTitle => 'Karrierestart';
+  @override
+  String get careerChooseClub => 'Wähle deinen Verein';
+  @override
+  String get careerLoading => 'Die Welt wird aufgebaut ...';
+  @override
+  String get careerLoadFailed => 'Die Welt konnte nicht geladen werden.';
+  @override
+  String get careerManagerName => 'Dein Name als Manager';
+  @override
+  String get careerStart => 'Karriere starten';
+  @override
+  String get careerNoClubChosen => 'Noch kein Verein gewählt.';
+  @override
+  String careerStrength(String value) => 'Stärke $value';
+  @override
+  String careerRank(int rank, int total) =>
+      'Platz $rank von $total nach Stärke';
+  @override
+  String get homeTitle => 'Büro';
 }
 
 /// The strings in use. Later this follows a setting in the settings screen.

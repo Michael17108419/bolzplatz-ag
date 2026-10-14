@@ -13,6 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^3.4.3
+  flutter_svg: ^2.0.10
   game_core:
     path: ../packages/game_core
 
@@ -28,6 +29,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/data/
   fonts:
     - family: SpaceGrotesk
       fonts:

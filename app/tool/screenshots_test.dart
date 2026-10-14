@@ -2,6 +2,7 @@
 // `screenshots` runs it with `--update-goldens` to write PNG pictures of the
 // screens into `tool/out/`, so the screens can be looked at without Windows.
 import 'package:bolzplatz_app/main.dart';
+import 'package:bolzplatz_app/ui/crest.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,5 +38,24 @@ void main() {
       find.byType(BolzplatzApp),
       matchesGoldenFile('out/02_einstellungen.png'),
     );
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Neues Spiel'));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/03_karrierestart.png'),
+    );
+
+    await tester.tap(find.byType(ClubCrest).at(2));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Uschi Muster');
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/04_karrierestart_gewaehlt.png'),
+    );
+
   });
 }
