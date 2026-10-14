@@ -1,0 +1,38 @@
+name: long-run
+
+# Run by hand. Plays many seasons without a user interface and commits
+# data/langzeit_report.md.
+on:
+  workflow_dispatch:
+    inputs:
+      seasons:
+        description: Number of seasons
+        required: false
+        default: '50'
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - name: Play seasons
+        working-directory: tools
+        run: |
+          dart pub get
+          dart format bin
+          dart run bin/long_run.dart ${{ github.event.inputs.seasons }}
+      - name: Commit report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/langzeit_report.md
+          git diff --cached --quiet || git commit -m "Langzeitlauf-Bericht"
+          git pull --rebase
+          git push
