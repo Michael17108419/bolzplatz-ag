@@ -95,6 +95,14 @@ void main(List<String> args) {
   final top3Pos = <int, Map<Position, int>>{};
   final goalsByPos = <int, Map<Position, int>>{};
   final kingLines = StringBuffer();
+  final assistKingPos = <int, Map<Position, int>>{};
+  final assistKingCount = <int, List<int>>{};
+  final assistTop3Pos = <int, Map<Position, int>>{};
+  final assistsByPos = <int, Map<Position, int>>{};
+  final assistedGoals = <int, int>{};
+  final allGoals = <int, int>{};
+  final pointsKingPos = <int, Map<Position, int>>{};
+  final pointsKingCount = <int, List<int>>{};
   // Tier 1 only, per decade: position-group overall and key attributes.
   final diag = <int, Map<String, List<double>>>{};
   void note(int decade, String key, double v) =>
@@ -147,6 +155,52 @@ void main(List<String> args) {
         (byTier[i.$2] ??= []).add(e);
         final gp = goalsByPos[i.$2] ??= {};
         gp[i.$1] = (gp[i.$1] ?? 0) + e.value;
+      }
+      final assistsTier = <int, List<MapEntry<PlayerId, int>>>{};
+      final pointsTier = <int, Map<PlayerId, int>>{};
+      for (final e in outcome.leagueAssistsByPlayer.entries) {
+        final i = info[e.key];
+        if (i == null || i.$2 > 4) continue;
+        (assistsTier[i.$2] ??= []).add(e);
+        final ap = assistsByPos[i.$2] ??= {};
+        ap[i.$1] = (ap[i.$1] ?? 0) + e.value;
+        assistedGoals[i.$2] = (assistedGoals[i.$2] ?? 0) + e.value;
+        final pt = pointsTier[i.$2] ??= {};
+        pt[e.key] = (pt[e.key] ?? 0) + e.value;
+      }
+      for (final e in outcome.leagueGoalsByPlayer.entries) {
+        final i = info[e.key];
+        if (i == null || i.$2 > 4) continue;
+        allGoals[i.$2] = (allGoals[i.$2] ?? 0) + e.value;
+        final pt = pointsTier[i.$2] ??= {};
+        pt[e.key] = (pt[e.key] ?? 0) + e.value;
+      }
+      for (final tier in assistsTier.keys) {
+        final list = assistsTier[tier]!
+          ..sort((a, b) {
+            final d = b.value.compareTo(a.value);
+            return d != 0 ? d : a.key.value.compareTo(b.key.value);
+          });
+        final kp = info[list.first.key]!.$1;
+        final m = assistKingPos[tier] ??= {};
+        m[kp] = (m[kp] ?? 0) + 1;
+        (assistKingCount[tier] ??= []).add(list.first.value);
+        for (final e in list.take(3)) {
+          final pos = info[e.key]!.$1;
+          final m3 = assistTop3Pos[tier] ??= {};
+          m3[pos] = (m3[pos] ?? 0) + 1;
+        }
+      }
+      for (final tier in pointsTier.keys) {
+        final list = pointsTier[tier]!.entries.toList()
+          ..sort((a, b) {
+            final d = b.value.compareTo(a.value);
+            return d != 0 ? d : a.key.value.compareTo(b.key.value);
+          });
+        final kp = info[list.first.key]!.$1;
+        final m = pointsKingPos[tier] ??= {};
+        m[kp] = (m[kp] ?? 0) + 1;
+        (pointsKingCount[tier] ??= []).add(list.first.value);
       }
       for (final tier in byTier.keys) {
         final list = byTier[tier]!
@@ -414,6 +468,31 @@ void main(List<String> args) {
       ..writeln('- Position des Königs: ${share(kingPos[tier]!)}.')
       ..writeln('- Positionen der besten drei: ${share(top3Pos[tier]!)}.')
       ..writeln('- Anteil an allen Ligatoren: ${share(gp)}.')
+      ..writeln();
+    final ac = assistKingCount[tier]!;
+    final asorted = [...ac]..sort();
+    final pc = pointsKingCount[tier]!;
+    final psorted = [...pc]..sort();
+    b
+      ..writeln('#### Torvorbereitungen, Liga-Ebene $tier')
+      ..writeln()
+      ..writeln(
+        '- Anteil der Tore mit Vorlage: '
+        '${(100 * assistedGoals[tier]! / allGoals[tier]!).round()} %.',
+      )
+      ..writeln(
+        '- Vorlagenkönig: im Schnitt ${_f(ac.fold(0, (x, y) => x + y) / ac.length, 1)} '
+        'Vorlagen, Median ${asorted[asorted.length ~/ 2]}, '
+        'min ${asorted.first}, max ${asorted.last}.',
+      )
+      ..writeln('- Position des Vorlagenkönigs: ${share(assistKingPos[tier]!)}.')
+      ..writeln('- Positionen der besten drei Vorlagengeber: ${share(assistTop3Pos[tier]!)}.')
+      ..writeln('- Anteil an allen Vorlagen: ${share(assistsByPos[tier]!)}.')
+      ..writeln(
+        '- Scorerpunkte (Tore plus Vorlagen), bester Spieler: im Schnitt '
+        '${_f(pc.fold(0, (x, y) => x + y) / pc.length, 1)}, '
+        'Median ${psorted[psorted.length ~/ 2]}; Position: ${share(pointsKingPos[tier]!)}.',
+      )
       ..writeln();
   }
   b

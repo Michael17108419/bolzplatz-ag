@@ -1794,7 +1794,7 @@
       "normal": 1.0,
       "fast": 1.08
     },
-    "home_advantage": 1.07,
+    "home_advantage": 1.03,
     "possession_exponent": 1.0,
     "breakthrough": {
       "base": 0.16,
@@ -1825,7 +1825,7 @@
       {
         "id": "close_range",
         "weight": 5.0,
-        "goal_base": 0.1288,
+        "goal_base": 0.1649,
         "attributes": [
           "goal_instinct",
           "finishing",
@@ -1903,6 +1903,16 @@
     "shot_outcome": {
       "blocked": 0.18,
       "off_target": 0.27
+    },
+    "assist": {
+      "open_play_chance": 0.78,
+      "set_piece_chance": 0.9,
+      "position_weight": {
+        "TW": 0.0, "IV": 0.4, "LV": 1.5, "RV": 1.5, "ZDM": 1.0,
+        "ZM": 2.5, "ZOM": 4.0, "LA": 3.5, "RA": 3.5, "ST": 1.5
+      },
+      "attributes": ["vision", "short_passing", "crossing", "dribbling"],
+      "set_piece_attributes": ["crossing", "corners", "long_passing"]
     },
     "shooter_slot_weight": {
       "ST": 5.0,

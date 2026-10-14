@@ -37,6 +37,7 @@ class SeasonOutcome {
     required this.minutesByPlayer,
     required this.shots,
     required this.leagueGoalsByPlayer,
+    required this.leagueAssistsByPlayer,
   });
 
   final Map<LeagueId, List<TableEntry>> tables;
@@ -63,6 +64,9 @@ class SeasonOutcome {
 
   /// Goals per player in league matches only.
   final Map<PlayerId, int> leagueGoalsByPlayer;
+
+  /// Assists per player in league matches only.
+  final Map<PlayerId, int> leagueAssistsByPlayer;
 
   List<ClubId> standing(LeagueId league) => [
     for (final e in tables[league]!) e.club,
@@ -97,6 +101,7 @@ class SeasonRunner {
   int _shots = 0;
   final Map<PlayerId, int> _goals = {};
   final Map<PlayerId, int> _leagueGoals = {};
+  final Map<PlayerId, int> _leagueAssists = {};
   final Map<PlayerId, int> _minutes = {};
   int _seed = 0;
 
@@ -151,6 +156,8 @@ class SeasonRunner {
         _goals[e.player!] = (_goals[e.player!] ?? 0) + 1;
         if (countForm) {
           _leagueGoals[e.player!] = (_leagueGoals[e.player!] ?? 0) + 1;
+          final a = e.otherPlayer;
+          if (a != null) _leagueAssists[a] = (_leagueAssists[a] ?? 0) + 1;
         }
       }
       if (e.type == MatchEventType.secondYellow ||
@@ -217,6 +224,7 @@ class SeasonRunner {
     _shots = 0;
     _goals.clear();
     _leagueGoals.clear();
+    _leagueAssists.clear();
     _minutes.clear();
     final root = SeededRandom(seed);
     final tiers = _tiers(state);
@@ -473,6 +481,7 @@ class SeasonRunner {
       minutesByPlayer: Map.of(_minutes),
       shots: _shots,
       leagueGoalsByPlayer: Map.of(_leagueGoals),
+      leagueAssistsByPlayer: Map.of(_leagueAssists),
     );
   }
 

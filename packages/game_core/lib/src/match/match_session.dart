@@ -553,6 +553,36 @@ class MatchSession {
     return slots[_rng.weightedIndex(weights)].player;
   }
 
+  /// The player who made the pass for a goal, or null without an assist.
+  /// Open-play goals and header goals from crosses can have one; penalties
+  /// and direct free kicks never do.
+  Player? _pickAssister(
+    _Side side,
+    Player shooter,
+    String typeId,
+    ChanceQuality? quality,
+  ) {
+    final bool setPiece = quality == null && typeId == 'header';
+    if (quality == null && !setPiece) return null;
+    final chance = setPiece ? _m.assistSetPieceChance : _m.assistOpenPlayChance;
+    if (_rng.nextDouble() >= chance) return null;
+    final attrs = setPiece ? _m.assistSetPieceAttributes : _m.assistAttributes;
+    final slots = [
+      for (final s in side.pitch)
+        if (s.player.id != shooter.id &&
+            (_m.assistPositionWeight[s.position] ?? 0) > 0)
+          s,
+    ];
+    if (slots.isEmpty) return null;
+    final weights = [
+      for (final s in slots)
+        _m.assistPositionWeight[s.position]! *
+                _slotMean(side, s, attrs) +
+            0.001,
+    ];
+    return slots[_rng.weightedIndex(weights)].player;
+  }
+
   _Slot _slotOf(_Side side, Player p) =>
       side.pitch.firstWhere((s) => s.player.id == p.id);
 
@@ -639,10 +669,14 @@ class MatchSession {
         1.0,
       );
     }
+    final Player? assister = outcome == ShotOutcome.goal
+        ? _pickAssister(attacker, shooter, typeId, quality)
+        : null;
     _add(
       MatchEventType.shot,
       t,
       player: shooter,
+      other: assister,
       shotType: typeId,
       quality: quality,
       outcome: outcome,

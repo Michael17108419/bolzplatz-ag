@@ -78,6 +78,11 @@ class MatchRules {
     required this.blockedShare,
     required this.offTargetShare,
     required this.shooterSlotWeight,
+    required this.assistOpenPlayChance,
+    required this.assistSetPieceChance,
+    required this.assistPositionWeight,
+    required this.assistAttributes,
+    required this.assistSetPieceAttributes,
     required this.keeperAttributes,
     required this.freeKicksPerMatch,
     required this.cornersPerMatch,
@@ -152,6 +157,14 @@ class MatchRules {
       if (v == null) throw RulesError('shooter_slot_weight misses ${p.id}');
       slotWeights[p] = _d(v);
     }
+    final assistRaw = m['assist'] as Map<String, dynamic>;
+    final assistWeights = <Position, double>{};
+    final assistPos = assistRaw['position_weight'] as Map<String, dynamic>;
+    for (final p in Position.values) {
+      final v = assistPos[p.id];
+      if (v == null) throw RulesError('assist.position_weight misses ${p.id}');
+      assistWeights[p] = _d(v);
+    }
     final st = m['standards'] as Map<String, dynamic>;
     final cards = m['cards'] as Map<String, dynamic>;
     final inj = m['injuries'] as Map<String, dynamic>;
@@ -214,6 +227,11 @@ class MatchRules {
       blockedShare: _d(outcome['blocked']),
       offTargetShare: _d(outcome['off_target']),
       shooterSlotWeight: Map.unmodifiable(slotWeights),
+      assistOpenPlayChance: _d(assistRaw['open_play_chance']),
+      assistSetPieceChance: _d(assistRaw['set_piece_chance']),
+      assistPositionWeight: Map.unmodifiable(assistWeights),
+      assistAttributes: _attributes(assistRaw['attributes']),
+      assistSetPieceAttributes: _attributes(assistRaw['set_piece_attributes']),
       keeperAttributes: _attributes(m['keeper_attributes']),
       freeKicksPerMatch: _d(st['free_kicks_per_match']),
       cornersPerMatch: _d(st['corners_per_match']),
@@ -352,6 +370,15 @@ class MatchRules {
   final double blockedShare;
   final double offTargetShare;
   final Map<Position, double> shooterSlotWeight;
+
+  /// Chance that a goal from open play has an assist.
+  final double assistOpenPlayChance;
+
+  /// Chance that a header goal from a corner or free-kick cross has an assist.
+  final double assistSetPieceChance;
+  final Map<Position, double> assistPositionWeight;
+  final List<Attribute> assistAttributes;
+  final List<Attribute> assistSetPieceAttributes;
   final List<Attribute> keeperAttributes;
   final double freeKicksPerMatch;
   final double cornersPerMatch;
