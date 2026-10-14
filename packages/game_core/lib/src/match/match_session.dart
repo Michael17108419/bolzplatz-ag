@@ -529,10 +529,17 @@ class MatchSession {
         (1 + _fx(o, 'dfn')) *
         defender.homeFactor *
         (1 + _m.momentumEffect * defender.momentum);
+    var state = 1.0;
+    if (_minute >= _m.gameStateFromMinute) {
+      final diff = ((t == 0 ? _goalsHome - _goalsAway : _goalsAway - _goalsHome))
+          .limit(-_m.gameStateMaxDiff, _m.gameStateMaxDiff);
+      state = 1 - _m.gameStateEffect * diff;
+    }
     final q =
         (_m.breakthroughBase *
                 math.pow(att / dfn, _m.breakthroughExponent) *
-                rateMult)
+                rateMult *
+                state)
             .limit(_m.breakthroughMin, _m.breakthroughMax);
     if (_rng.nextDouble() > q) return;
     _chance(t);

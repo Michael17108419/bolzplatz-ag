@@ -72,6 +72,9 @@ class MatchRules {
     required this.qualityWeights,
     required this.qualityGoalMult,
     required this.goalExponent,
+    required this.gameStateEffect,
+    required this.gameStateFromMinute,
+    required this.gameStateMaxDiff,
     required this.keeperQualityReference,
     required this.keeperQualityExponent,
     required this.goalMin,
@@ -223,6 +226,9 @@ class MatchRules {
           _d((quality[k] as Map<String, dynamic>)['goal_mult']),
       ]),
       goalExponent: _d(goal['exponent']),
+      gameStateEffect: _d(m['game_state']['effect']),
+      gameStateFromMinute: (m['game_state']['from_minute'] as num).toInt(),
+      gameStateMaxDiff: (m['game_state']['max_diff'] as num).toInt(),
       keeperQualityReference: _d(goal['keeper_quality_reference']),
       keeperQualityExponent: _d(goal['keeper_quality_exponent']),
       goalMin: _d(goal['min']),
@@ -368,6 +374,13 @@ class MatchRules {
   final List<double> qualityWeights;
   final List<double> qualityGoalMult;
   final double goalExponent;
+
+  /// Teams that lead attack a little less and teams that trail a little
+  /// more: per goal of difference (up to [gameStateMaxDiff]) the
+  /// breakthrough chance changes by this share, from [gameStateFromMinute].
+  final double gameStateEffect;
+  final int gameStateFromMinute;
+  final int gameStateMaxDiff;
 
   /// Weaker goalkeepers concede more than the ratio of shooter to keeper
   /// alone says: the goal chance is also multiplied by

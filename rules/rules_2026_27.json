@@ -1827,7 +1827,7 @@
       {
         "id": "close_range",
         "weight": 5.0,
-        "goal_base": 0.2251,
+        "goal_base": 0.2409,
         "attributes": [
           "goal_instinct",
           "finishing",
@@ -1905,6 +1905,11 @@
     "shot_outcome": {
       "blocked": 0.18,
       "off_target": 0.27
+    },
+    "game_state": {
+      "effect": 0.08,
+      "from_minute": 30,
+      "max_diff": 2
     },
     "assist": {
       "open_play_chance": 0.78,
