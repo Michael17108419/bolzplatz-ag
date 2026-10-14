@@ -138,6 +138,21 @@ void main() {
       ' strongestChampion=${f(champStrongest / leagueCount)}'
       ' strongestTop3=${f(champTop3 / leagueCount)}',
     );
+    // Guard rails: if a change to the rules moves the league far away from
+    // the values we agreed on, this test fails and says which one.
+    expect(hw / total, inInclusiveRange(0.36, 0.45), reason: 'home wins');
+    expect(dr / total, inInclusiveRange(0.17, 0.30), reason: 'draws');
+    expect(aw / total, inInclusiveRange(0.30, 0.42), reason: 'away wins');
+    for (final tier in goals.keys) {
+      final perGame = 2 * goals[tier]! / games[tier]!;
+      expect(perGame, inInclusiveRange(2.8, 3.8), reason: 'goals tier $tier');
+      expect(
+        ageSum[tier]! / ageN[tier]!,
+        inInclusiveRange(25.0, 28.5),
+        reason: 'age tier $tier',
+      );
+      expect(mean(corrs[tier]!), greaterThan(0.55), reason: 'corr tier $tier');
+    }
     for (final tier in goals.keys.toList()..sort()) {
       stdout.writeln(
         'BALANCE-REPORT tier$tier goals/team/game=${f(goals[tier]! / games[tier]!)}'
