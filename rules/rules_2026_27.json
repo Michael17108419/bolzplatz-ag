@@ -748,5 +748,44 @@
         "ST"
       ]
     }
+  },
+  "world": {
+    "seed": 2026,
+    "salary_base_by_tier": {
+      "1": 900000,
+      "2": 300000,
+      "3": 120000,
+      "4": 50000,
+      "5": 25000
+    },
+    "salary_level_factor": {
+      "min": 0.6,
+      "max": 1.4
+    },
+    "remaining_years_weights_young": [
+      4,
+      3,
+      2,
+      1
+    ],
+    "remaining_years_weights_older": [
+      6,
+      3,
+      1,
+      0
+    ],
+    "older_from_age": 30,
+    "coach": {
+      "skill_mean_by_tier": {
+        "1": 70,
+        "2": 62,
+        "3": 55,
+        "4": 48,
+        "5": 42
+      },
+      "skill_sd": 8,
+      "age_min": 36,
+      "age_max": 64
+    }
   }
 }

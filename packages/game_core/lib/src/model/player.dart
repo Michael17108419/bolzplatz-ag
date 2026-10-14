@@ -77,6 +77,27 @@ class Player {
   final ClubId? clubId;
   final Contract? contract;
 
+  /// Copy with a different name and/or contract. Everything else is kept.
+  Player copyWith({String? firstName, String? lastName, Contract? contract}) {
+    return Player(
+      id: id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      birthDate: birthDate,
+      position: position,
+      attributes: attributes,
+      traits: traits,
+      injuryProneness: injuryProneness,
+      abilities: abilities,
+      developmentType: developmentType,
+      potentialCore: potentialCore,
+      potentialDynamic: potentialDynamic,
+      roles: roles,
+      clubId: clubId,
+      contract: contract ?? this.contract,
+    );
+  }
+
   String get displayName => '$firstName $lastName';
 
   int ageOn(GameDate date) {

@@ -217,3 +217,75 @@ class GeneratorRules {
   /// Players per club according to the squad template.
   int get squadSize => squadTemplate.values.fold(0, (a, b) => a + b);
 }
+
+/// Numbers for building the start world (contracts and coaches).
+class WorldRules {
+  const WorldRules({
+    required this.seed,
+    required this.salaryBaseByTier,
+    required this.salaryLevelMin,
+    required this.salaryLevelMax,
+    required this.remainingYearsWeightsYoung,
+    required this.remainingYearsWeightsOlder,
+    required this.olderFromAge,
+    required this.coachSkillMeanByTier,
+    required this.coachSkillSd,
+    required this.coachAgeMin,
+    required this.coachAgeMax,
+  });
+
+  factory WorldRules.fromJson(Map<String, dynamic> m) {
+    Map<int, double> byTier(Object? raw) {
+      final map = {
+        for (final e in (raw as Map<String, dynamic>).entries)
+          int.parse(e.key): (e.value as num).toDouble(),
+      };
+      for (var tier = 1; tier <= 5; tier++) {
+        if (!map.containsKey(tier)) throw RulesError('Missing tier $tier');
+      }
+      return Map.unmodifiable(map);
+    }
+
+    List<double> weights(Object? raw) {
+      final list = [
+        for (final w in raw as List<dynamic>) (w as num).toDouble(),
+      ];
+      if (list.length != 4 || list.every((w) => w <= 0)) {
+        throw const RulesError('Remaining years weights need 4 entries');
+      }
+      return List.unmodifiable(list);
+    }
+
+    final level = m['salary_level_factor'] as Map<String, dynamic>;
+    final coach = m['coach'] as Map<String, dynamic>;
+    final ageMin = coach['age_min'] as int;
+    final ageMax = coach['age_max'] as int;
+    if (ageMin > ageMax) throw const RulesError('Bad coach age range');
+    return WorldRules(
+      seed: m['seed'] as int,
+      salaryBaseByTier: byTier(m['salary_base_by_tier']),
+      salaryLevelMin: (level['min'] as num).toDouble(),
+      salaryLevelMax: (level['max'] as num).toDouble(),
+      remainingYearsWeightsYoung: weights(m['remaining_years_weights_young']),
+      remainingYearsWeightsOlder: weights(m['remaining_years_weights_older']),
+      olderFromAge: m['older_from_age'] as int,
+      coachSkillMeanByTier: byTier(coach['skill_mean_by_tier']),
+      coachSkillSd: (coach['skill_sd'] as num).toDouble(),
+      coachAgeMin: ageMin,
+      coachAgeMax: ageMax,
+    );
+  }
+
+  /// Seed of the shipped start world.
+  final int seed;
+  final Map<int, double> salaryBaseByTier;
+  final double salaryLevelMin;
+  final double salaryLevelMax;
+  final List<double> remainingYearsWeightsYoung;
+  final List<double> remainingYearsWeightsOlder;
+  final int olderFromAge;
+  final Map<int, double> coachSkillMeanByTier;
+  final double coachSkillSd;
+  final int coachAgeMin;
+  final int coachAgeMax;
+}

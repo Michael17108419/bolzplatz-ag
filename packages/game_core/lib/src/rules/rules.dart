@@ -66,6 +66,7 @@ class Rules {
     required this.ageCurves,
     required this.fourthLeagueRelegatedToPool,
     required this.generator,
+    required this.world,
   });
 
   /// The only schema version this code understands.
@@ -85,6 +86,9 @@ class Rules {
 
   /// Numbers for the player generator.
   final GeneratorRules generator;
+
+  /// Numbers for building the start world.
+  final WorldRules world;
 
   /// Parses and validates a rules file given as JSON text.
   static Result<Rules, RulesError> parse(String jsonText) {
@@ -185,6 +189,7 @@ class Rules {
       generator: GeneratorRules.fromJson(
         root['generator'] as Map<String, dynamic>,
       ),
+      world: WorldRules.fromJson(root['world'] as Map<String, dynamic>),
     );
   }
 

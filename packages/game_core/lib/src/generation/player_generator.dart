@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../calendar/game_date.dart';
 import '../model/attribute.dart';
 import '../model/attribute_set.dart';
@@ -11,18 +13,38 @@ import '../rng/seeded_random.dart';
 import '../rules/generator_rules.dart';
 import '../rules/rules.dart';
 
-/// First and last names to draw from. Real lists come from a data file.
+/// First and last names to draw from, read from `data/names_de.json`.
 class NameLists {
-  NameLists({required List<String> first, required List<String> last})
-    : first = List.unmodifiable(first),
-      last = List.unmodifiable(last) {
+  NameLists({
+    required List<String> first,
+    required List<String> last,
+    Set<String> blocked = const {},
+  }) : first = List.unmodifiable(first),
+       last = List.unmodifiable(last),
+       blocked = Set.unmodifiable(blocked) {
     if (first.isEmpty || last.isEmpty) {
       throw ArgumentError('Name lists must not be empty');
     }
   }
 
+  /// Reads the name file. Throws [FormatException] for wrong content.
+  factory NameLists.fromJson(String text) {
+    final m = jsonDecode(text) as Map<String, dynamic>;
+    List<String> list(String key) => [
+      for (final v in m[key] as List<dynamic>) v as String,
+    ];
+    return NameLists(
+      first: list('first_names'),
+      last: list('last_names'),
+      blocked: list('blocked_full_names').toSet(),
+    );
+  }
+
   final List<String> first;
   final List<String> last;
+
+  /// Full names that must never be produced (real people).
+  final Set<String> blocked;
 }
 
 /// Creates players from the numbers in the rules.
@@ -69,12 +91,14 @@ class PlayerGenerator {
     );
 
     final attributes = _attributes(rng, position, level, age, devType);
-    final potentialCore = _clamp(
-      level +
-          _g.potentialMarginMean +
-          rng.nextGaussian() * _g.potentialMarginSd,
-      level,
-      100,
+    final potentialCore = _round1(
+      _clamp(
+        level +
+            _g.potentialMarginMean +
+            rng.nextGaussian() * _g.potentialMarginSd,
+        level,
+        100,
+      ),
     );
     final potentialDynamic = _dynamicPotential(rng, age);
 
@@ -87,17 +111,17 @@ class PlayerGenerator {
       attributes: attributes,
       traits: {
         for (final t in CharacterTrait.values)
-          t: _clamp(_g.traitMean + rng.nextGaussian() * _g.traitSd, 1, 100),
+          t: _round1(
+            _clamp(_g.traitMean + rng.nextGaussian() * _g.traitSd, 1, 100),
+          ),
       },
-      injuryProneness: _clamp(
-        _g.injuryMean + rng.nextGaussian() * _g.injurySd,
-        1,
-        100,
+      injuryProneness: _round1(
+        _clamp(_g.injuryMean + rng.nextGaussian() * _g.injurySd, 1, 100),
       ),
       abilities: _abilities(rng, position, tierRules),
       developmentType: devType,
       potentialCore: potentialCore,
-      potentialDynamic: potentialDynamic,
+      potentialDynamic: _round1(potentialDynamic),
       clubId: clubId,
     );
   }
@@ -170,9 +194,11 @@ class PlayerGenerator {
     final values = <Attribute, double>{};
     for (final attribute in Attribute.values) {
       if (attribute.isGoalkeeping && !isKeeper) {
-        values[attribute] =
-            _g.goalkeeperFieldMin +
-            rng.nextDouble() * (_g.goalkeeperFieldMax - _g.goalkeeperFieldMin);
+        values[attribute] = _round1(
+          _g.goalkeeperFieldMin +
+              rng.nextDouble() *
+                  (_g.goalkeeperFieldMax - _g.goalkeeperFieldMin),
+        );
         continue;
       }
       var value = level + (profile[attribute] ?? 0);
@@ -183,7 +209,7 @@ class PlayerGenerator {
       final effectiveShift = mental ? shift * _g.mentalShiftFactor : shift;
       value += _ageAdjust(rules.ageCurves[attribute]!, age - effectiveShift);
       value += rng.nextGaussian() * _g.attributeNoiseSd;
-      values[attribute] = _clamp(value, Attribute.min, Attribute.max);
+      values[attribute] = _round1(_clamp(value, Attribute.min, Attribute.max));
     }
     return AttributeSet.fromMap(values);
   }
@@ -240,6 +266,9 @@ class PlayerGenerator {
     }
     return result;
   }
+
+  /// Rounds to one decimal so stored values are short and stable.
+  static double _round1(double v) => (v * 10).round() / 10;
 
   static double _clamp(double v, double min, double max) =>
       v < min ? min : (v > max ? max : v);
