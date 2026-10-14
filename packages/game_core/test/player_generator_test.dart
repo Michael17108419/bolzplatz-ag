@@ -118,7 +118,9 @@ void main() {
           players.length;
     }
 
-    final means = [for (final t in [1, 2, 3, 4, 5]) mean(t)];
+    final means = [
+      for (final t in [1, 2, 3, 4, 5]) mean(t),
+    ];
     for (var i = 0; i < means.length - 1; i++) {
       expect(means[i], greaterThan(means[i + 1]), reason: 'tier ${i + 1}');
     }
@@ -200,10 +202,8 @@ void main() {
       }
     }
     // Gold and ability counts are higher in the top tier than in the pool.
-    int abilities(int tier) => _tierSample(
-      tier,
-      40,
-    ).fold(0, (sum, p) => sum + p.abilities.length);
+    int abilities(int tier) =>
+        _tierSample(tier, 40).fold(0, (sum, p) => sum + p.abilities.length);
     expect(abilities(1), greaterThan(abilities(5)));
   });
 

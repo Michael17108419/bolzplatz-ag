@@ -163,7 +163,8 @@ class PlayerGenerator {
     final values = <Attribute, double>{};
     for (final attribute in Attribute.values) {
       if (attribute.isGoalkeeping && !isKeeper) {
-        values[attribute] = _g.goalkeeperFieldMin +
+        values[attribute] =
+            _g.goalkeeperFieldMin +
             rng.nextDouble() * (_g.goalkeeperFieldMax - _g.goalkeeperFieldMin);
         continue;
       }
