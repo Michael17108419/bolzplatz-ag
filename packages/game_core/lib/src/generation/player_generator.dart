@@ -136,10 +136,17 @@ class PlayerGenerator {
   }
 
   GameDate _birthDate(SeededRandom rng, int age) {
-    // age years back from the reference date, plus up to a year more, so
-    // the player is exactly [age] years old on the reference date.
-    final daysBack = age * 365 + age ~/ 4 + rng.nextInt(365);
-    return GameDate.fromEpochDay(referenceDate.epochDay - daysBack);
+    // The birthday on the reference date, [age] years back, then up to 364
+    // days earlier: the player is exactly [age] years old on that date.
+    final day = referenceDate.month == 2 && referenceDate.day == 29
+        ? 28
+        : referenceDate.day;
+    final anniversary = GameDate(
+      referenceDate.year - age,
+      referenceDate.month,
+      day,
+    );
+    return GameDate.fromEpochDay(anniversary.epochDay - rng.nextInt(365));
   }
 
   DevelopmentType _developmentType(SeededRandom rng) {

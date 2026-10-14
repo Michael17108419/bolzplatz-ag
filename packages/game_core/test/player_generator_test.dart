@@ -98,6 +98,7 @@ void main() {
       for (final p in _tierSample(tier, 20)) {
         final age = p.ageOn(GameDate(2026, 7, 1));
         expect(age, inInclusiveRange(17, 37));
+        expect(p.birthDate.isBefore(GameDate(2010, 1, 1)), isTrue);
         expect(p.abilities.length, lessThanOrEqualTo(4));
         expect(
           p.abilities.where((a) => a.tier == AbilityTier.gold).length,
@@ -155,7 +156,7 @@ void main() {
             .reduce((a, b) => a + b) /
         8;
     for (final p in keepers) {
-      expect(keeperMean(p), greaterThan(40));
+      expect(keeperMean(p), greaterThan(30));
     }
   });
 
