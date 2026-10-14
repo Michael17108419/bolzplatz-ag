@@ -28,3 +28,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: SpaceGrotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk.ttf
+    - family: Figtree
+      fonts:
+        - asset: assets/fonts/Figtree.ttf

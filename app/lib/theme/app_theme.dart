@@ -1,0 +1,75 @@
+import 'package:flutter/material.dart';
+
+import 'tokens.dart';
+
+/// The one dark theme of the app.
+ThemeData buildAppTheme() {
+  const scheme = ColorScheme.dark(
+    primary: Tokens.yellow,
+    onPrimary: Tokens.ink,
+    secondary: Tokens.orange,
+    onSecondary: Tokens.ink,
+    tertiary: Tokens.green,
+    onTertiary: Tokens.ink,
+    surface: Tokens.panel,
+    onSurface: Tokens.text,
+    error: Tokens.orange,
+    onError: Tokens.ink,
+  );
+  final base = ThemeData(
+    useMaterial3: true,
+    colorScheme: scheme,
+    scaffoldBackgroundColor: Tokens.ground,
+    fontFamily: Tokens.bodyFont,
+  );
+  final text = base.textTheme.apply(
+    fontFamily: Tokens.bodyFont,
+    bodyColor: Tokens.text,
+    displayColor: Tokens.text,
+  );
+  TextStyle? head(TextStyle? s) =>
+      s?.copyWith(fontFamily: Tokens.headlineFont, fontWeight: FontWeight.w700);
+  final textTheme = text.copyWith(
+    displayLarge: head(text.displayLarge),
+    displayMedium: head(text.displayMedium),
+    displaySmall: head(text.displaySmall),
+    headlineLarge: head(text.headlineLarge),
+    headlineMedium: head(text.headlineMedium),
+    headlineSmall: head(text.headlineSmall),
+    titleLarge: head(text.titleLarge),
+    titleMedium: head(text.titleMedium),
+    labelLarge: head(text.labelLarge),
+  );
+  final shape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(Tokens.radius),
+  );
+  const padding = EdgeInsets.symmetric(horizontal: 28, vertical: 20);
+  return base.copyWith(
+    textTheme: textTheme,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Tokens.ground,
+      foregroundColor: Tokens.text,
+      elevation: 0,
+    ),
+    cardTheme: CardThemeData(
+      color: Tokens.panel,
+      elevation: 0,
+      shape: shape,
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        shape: shape,
+        padding: padding,
+        textStyle: textTheme.labelLarge?.copyWith(fontSize: 18),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: Tokens.text,
+        shape: shape,
+        padding: padding,
+        textStyle: textTheme.labelLarge?.copyWith(fontSize: 16),
+      ),
+    ),
+  );
+}
