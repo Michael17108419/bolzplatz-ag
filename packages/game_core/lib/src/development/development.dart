@@ -77,7 +77,7 @@ class Development {
 
     final values = <Attribute, double>{};
     for (final a in Attribute.values) {
-      var change = own[a]!;
+      var change = own[a]! * (1 - (weight[a] ?? 0));
       final extra = coupled[a];
       if (extra != null) {
         change += extra.limit(
