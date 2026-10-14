@@ -91,7 +91,7 @@ void main() {
   });
 
   test('parses quoted fields, CRLF and a byte order mark', () {
-    final text =
+    const text =
         '﻿Ebene;Fiktiver Verein;Ort;Zweitmannschaft;Heimatregion\r\n'
         '1;"FC ""Test""; Nord";Ort;Nein;nord\r\n';
     final result = ClubCatalog.parse(text);
