@@ -7,7 +7,6 @@ import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'crest.dart';
-import 'step_buttons.dart';
 
 /// Step 4: the random job offers; the player takes one.
 class OffersStep extends ConsumerStatefulWidget {
