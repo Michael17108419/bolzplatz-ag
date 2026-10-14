@@ -187,7 +187,9 @@ class WorldReport {
       ..writeln()
       ..writeln('## Überlappung der Ebenen')
       ..writeln();
-    overlap.forEach((line) => out.writeln('- $line'));
+    for (final line in overlap) {
+      out.writeln('- $line');
+    }
     return out.toString();
   }
 }
