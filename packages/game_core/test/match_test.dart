@@ -111,8 +111,11 @@ void main() {
     final away = byTier(1)[3];
     final session = MatchSession(rules: rules, home: home, away: away, seed: 3)
       ..advanceTo(30);
-    final keeperOff = home.sheet.startingXi[0];
-    final fieldOff = home.sheet.startingXi[5];
+    bool isKeeper(PlayerId id) =>
+        home.squad.firstWhere((p) => p.id == id).position.isGoalkeeper;
+    final onPitch = session.onPitch(0).toList();
+    final keeperOff = onPitch.firstWhere(isKeeper);
+    final fieldOff = onPitch.firstWhere((id) => !isKeeper(id));
     final bench = session.benchOf(0);
     final benchKeeper = bench.firstWhere(
       (id) => home.squad.firstWhere((p) => p.id == id).position.isGoalkeeper,
