@@ -1,9 +1,5 @@
 /// Tier of a special ability.
-enum AbilityTier {
-  bronze,
-  silver,
-  gold,
-}
+enum AbilityTier { bronze, silver, gold }
 
 /// The 16 special abilities of the MVP.
 enum SpecialAbilityType {

@@ -2,38 +2,37 @@ import 'package:game_core/game_core.dart';
 import 'package:test/test.dart';
 
 Map<CharacterTrait, double> _traits() => {
-      for (final t in CharacterTrait.values) t: 50,
-    };
+  for (final t in CharacterTrait.values) t: 50,
+};
 
 Player _player({
   List<SpecialAbility> abilities = const [],
   Contract? contract,
   double potentialCore = 60,
-}) =>
-    Player(
-      id: const PlayerId(1),
-      firstName: 'Kalle',
-      lastName: 'Kopfball',
-      birthDate: GameDate(2000, 3, 15),
-      position: Position.st,
-      attributes: AttributeSet.filled(50),
-      traits: _traits(),
-      injuryProneness: 30,
-      abilities: abilities,
-      developmentType: DevelopmentType.normal,
-      potentialCore: potentialCore,
-      potentialDynamic: 10,
-      contract: contract,
-    );
+}) => Player(
+  id: const PlayerId(1),
+  firstName: 'Kalle',
+  lastName: 'Kopfball',
+  birthDate: GameDate(2000, 3, 15),
+  position: Position.st,
+  attributes: AttributeSet.filled(50),
+  traits: _traits(),
+  injuryProneness: 30,
+  abilities: abilities,
+  developmentType: DevelopmentType.normal,
+  potentialCore: potentialCore,
+  potentialDynamic: 10,
+  contract: contract,
+);
 
 Contract _contract({PlayerId playerId = const PlayerId(1)}) => Contract(
-      id: const ContractId(1),
-      playerId: playerId,
-      clubId: const ClubId(1),
-      start: GameDate(2026, 7, 1),
-      end: GameDate(2029, 6, 30),
-      baseSalaryPerYear: 60000,
-    );
+  id: const ContractId(1),
+  playerId: playerId,
+  clubId: const ClubId(1),
+  start: GameDate(2026, 7, 1),
+  end: GameDate(2029, 6, 30),
+  baseSalaryPerYear: 60000,
+);
 
 void main() {
   group('enums', () {
@@ -208,21 +207,11 @@ void main() {
   group('League', () {
     test('level and team count are validated', () {
       expect(
-        () => League(
-          id: const LeagueId(1),
-          name: 'X',
-          level: 5,
-          teamCount: 18,
-        ),
+        () => League(id: const LeagueId(1), name: 'X', level: 5, teamCount: 18),
         throwsArgumentError,
       );
       expect(
-        () => League(
-          id: const LeagueId(1),
-          name: 'X',
-          level: 1,
-          teamCount: 17,
-        ),
+        () => League(id: const LeagueId(1), name: 'X', level: 1, teamCount: 17),
         throwsArgumentError,
       );
     });

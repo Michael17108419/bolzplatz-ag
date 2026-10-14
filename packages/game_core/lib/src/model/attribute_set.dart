@@ -5,7 +5,7 @@ import 'attribute.dart';
 /// Immutable values for all 42 attributes, stored by [Attribute.index].
 class AttributeSet {
   AttributeSet._(List<double> values)
-      : _values = UnmodifiableListView<double>(values);
+    : _values = UnmodifiableListView<double>(values);
 
   /// Builds a set from a complete map. Throws [ArgumentError] when an
   /// attribute is missing or a value is outside 1 to 100.

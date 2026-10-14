@@ -10,9 +10,4 @@ enum DevelopmentType {
 }
 
 /// How well a player knows a role (four levels).
-enum RoleFamiliarity {
-  unfamiliar,
-  basic,
-  comfortable,
-  expert,
-}
+enum RoleFamiliarity { unfamiliar, basic, comfortable, expert }

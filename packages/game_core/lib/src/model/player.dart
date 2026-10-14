@@ -25,9 +25,9 @@ class Player {
     Map<String, RoleFamiliarity> roles = const {},
     this.clubId,
     this.contract,
-  })  : traits = Map.unmodifiable(traits),
-        abilities = List.unmodifiable(abilities),
-        roles = Map.unmodifiable(roles) {
+  }) : traits = Map.unmodifiable(traits),
+       abilities = List.unmodifiable(abilities),
+       roles = Map.unmodifiable(roles) {
     for (final trait in CharacterTrait.values) {
       final value = traits[trait];
       if (value == null || value < 1 || value > 100) {
