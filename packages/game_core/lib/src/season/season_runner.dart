@@ -122,7 +122,8 @@ class SeasonRunner {
         .join(',');
     var sheet = _sheets[club];
     if (sheet == null || _sheetKey[club] != key) {
-      sheet = _auto.build(squad, exclude: out, formationId: forcedFormation) ??
+      sheet =
+          _auto.build(squad, exclude: out, formationId: forcedFormation) ??
           _auto.build(squad, formationId: forcedFormation)!;
       _sheets[club] = sheet;
       _sheetKey[club] = key;
