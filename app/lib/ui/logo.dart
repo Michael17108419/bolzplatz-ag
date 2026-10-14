@@ -78,9 +78,8 @@ class BolzplatzLogo extends StatelessWidget {
                             ),
                             child: Text(
                               'AG',
-                              style: style(
-                                Tokens.orange,
-                              ).copyWith(fontSize: 38, letterSpacing: 0),
+                              style: style(Tokens.orange)
+                                  .copyWith(fontSize: 38, letterSpacing: 0),
                             ),
                           ),
                         ),
