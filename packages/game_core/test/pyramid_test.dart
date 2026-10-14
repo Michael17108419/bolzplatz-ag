@@ -275,11 +275,11 @@ void main() {
 
   test('a second team in the third tier is not promoted', () {
     // Club 301 is the champion of the third tier but a second team of 101.
-    final r = _run(_input(secondTeams: {ClubId(301): ClubId(101)}));
-    final l2 = r.leagues[_lid(2)]!;
-    expect(l2.contains(ClubId(301)), isFalse);
-    expect(l2.containsAll([ClubId(302), ClubId(303)]), isTrue);
-    expect(r.leagues[_lid(3)]!.contains(ClubId(301)), isTrue);
+    final r = _run(_input(secondTeams: {const ClubId(301): const ClubId(101)}));
+    final l2 = r.leagues[_lid(2)]!.toSet();
+    expect(l2.contains(const ClubId(301)), isFalse);
+    expect(l2.containsAll({const ClubId(302), const ClubId(303)}), isTrue);
+    expect(r.leagues[_lid(3)]!.contains(const ClubId(301)), isTrue);
   });
 
   test('a second team in the fourth tier is not promoted', () {
