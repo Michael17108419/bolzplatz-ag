@@ -19,9 +19,9 @@ class LoadedWorld {
     for (final p in world.players) {
       final club = p.clubId;
       if (club == null) continue;
-      byClub.putIfAbsent(club.value, () => []).add(
-        WorldReport.overall(p, rules),
-      );
+      byClub
+          .putIfAbsent(club.value, () => [])
+          .add(WorldReport.overall(p, rules));
     }
     final strength = <int, double>{};
     for (final e in byClub.entries) {
