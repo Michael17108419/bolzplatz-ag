@@ -293,8 +293,9 @@ class WorldJson {
       secondaryPositions: {
         for (final e
             in (m['secondary_positions'] as Map<String, dynamic>).entries)
-          Position.values.firstWhere((p) => p.id == e.key):
-              PositionFamiliarity.values.byName(e.value as String),
+          Position.values.firstWhere((p) => p.id == e.key): PositionFamiliarity
+              .values
+              .byName(e.value as String),
       },
       clubId: m['club_id'] == null ? null : ClubId(m['club_id'] as int),
       contract: contractRaw == null

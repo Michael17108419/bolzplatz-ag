@@ -250,8 +250,9 @@ class GameRepository {
       nationality: (profile['nationality'] as String?) ?? 'DE',
       secondaryPositions: {
         for (final e in secondaryRaw.entries)
-          Position.values.firstWhere((p) => p.id == e.key):
-              PositionFamiliarity.values.byName(e.value as String),
+          Position.values.firstWhere((p) => p.id == e.key): PositionFamiliarity
+              .values
+              .byName(e.value as String),
       },
       clubId: row.clubId == null ? null : ClubId(row.clubId!),
       contract: contractRow == null ? null : _contract(contractRow),

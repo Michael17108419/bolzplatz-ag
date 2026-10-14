@@ -170,8 +170,14 @@ void main() {
         secondary: {Position.iv: PositionFamiliarity.practised},
       );
       final d = distance[Position.iv]!;
-      expect(_fit.positionMultiplier(base, Position.iv), closeTo(1 - d / 100, 1e-9));
-      expect(_fit.positionMultiplier(trained, Position.iv), closeTo(0.98, 1e-9));
+      expect(
+        _fit.positionMultiplier(base, Position.iv),
+        closeTo(1 - d / 100, 1e-9),
+      );
+      expect(
+        _fit.positionMultiplier(trained, Position.iv),
+        closeTo(0.98, 1e-9),
+      );
       expect(
         _fit.positionMultiplier(practised, Position.iv),
         closeTo(1 - d / 200, 1e-9),

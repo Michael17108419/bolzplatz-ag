@@ -150,10 +150,7 @@ class WorldGenerator {
       attempt++;
       final rng = world.fork('name:${player.id.value}:$attempt');
       final (first, last) = names.pickName(rng, player.nationality);
-      current = current.copyWith(
-        firstName: first,
-        lastName: last,
-      );
+      current = current.copyWith(firstName: first, lastName: last);
       if (attempt > 1000) {
         throw StateError('No free name for player ${player.id.value}');
       }
