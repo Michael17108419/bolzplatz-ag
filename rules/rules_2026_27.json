@@ -787,5 +787,947 @@
       "age_min": 36,
       "age_max": 64
     }
+  },
+  "tactics": {
+    "positions": [
+      "TW",
+      "IV",
+      "LV",
+      "RV",
+      "ZDM",
+      "ZM",
+      "ZOM",
+      "LA",
+      "RA",
+      "ST"
+    ],
+    "position_distance": {
+      "TW": [
+        0,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60,
+        60
+      ],
+      "IV": [
+        60,
+        0,
+        6,
+        6,
+        7,
+        13,
+        20,
+        24,
+        24,
+        28
+      ],
+      "LV": [
+        60,
+        6,
+        0,
+        7,
+        12,
+        14,
+        18,
+        10,
+        16,
+        22
+      ],
+      "RV": [
+        60,
+        6,
+        7,
+        0,
+        12,
+        14,
+        18,
+        16,
+        10,
+        22
+      ],
+      "ZDM": [
+        60,
+        7,
+        12,
+        12,
+        0,
+        4,
+        10,
+        18,
+        18,
+        22
+      ],
+      "ZM": [
+        60,
+        12,
+        14,
+        14,
+        4,
+        0,
+        4,
+        10,
+        10,
+        16
+      ],
+      "ZOM": [
+        60,
+        20,
+        18,
+        18,
+        10,
+        4,
+        0,
+        8,
+        8,
+        8
+      ],
+      "LA": [
+        60,
+        24,
+        10,
+        16,
+        18,
+        10,
+        8,
+        0,
+        8,
+        8
+      ],
+      "RA": [
+        60,
+        24,
+        16,
+        10,
+        18,
+        10,
+        8,
+        8,
+        0,
+        8
+      ],
+      "ST": [
+        60,
+        28,
+        22,
+        22,
+        22,
+        16,
+        8,
+        8,
+        8,
+        0
+      ]
+    },
+    "position_familiarity": {
+      "main": 0.0,
+      "trained_points_max": 2.0,
+      "practised_factor": 0.5,
+      "unfamiliar_factor": 1.0
+    },
+    "role_familiarity_factor": {
+      "minus": -0.1,
+      "zero": 0.0,
+      "plus": 0.04,
+      "plus_plus": 0.08
+    },
+    "role_familiarity_limits": {
+      "max_plus": 3,
+      "max_plus_plus": 1
+    },
+    "weak_foot_penalty": {
+      "1": 0.2,
+      "2": 0.14,
+      "3": 0.09,
+      "4": 0.04,
+      "5": 0.0
+    },
+    "roles": [
+      {
+        "id": "line_keeper",
+        "positions": [
+          "TW"
+        ],
+        "key_attributes": [
+          "gk_reflexes",
+          "gk_diving",
+          "gk_handling",
+          "gk_positioning"
+        ],
+        "fits_systems": [
+          "wall",
+          "counter"
+        ]
+      },
+      {
+        "id": "sweeper_keeper",
+        "positions": [
+          "TW"
+        ],
+        "key_attributes": [
+          "anticipation",
+          "acceleration",
+          "gk_distribution",
+          "gk_one_on_one"
+        ],
+        "fits_systems": [
+          "gegenpressing",
+          "possession"
+        ]
+      },
+      {
+        "id": "playmaking_keeper",
+        "positions": [
+          "TW"
+        ],
+        "key_attributes": [
+          "gk_distribution",
+          "short_passing",
+          "long_passing",
+          "ball_control"
+        ],
+        "fits_systems": [
+          "possession"
+        ]
+      },
+      {
+        "id": "box_keeper",
+        "positions": [
+          "TW"
+        ],
+        "key_attributes": [
+          "gk_command_of_area",
+          "jumping",
+          "concentration",
+          "gk_positioning"
+        ],
+        "fits_systems": [
+          "wall"
+        ]
+      },
+      {
+        "id": "anchor_defender",
+        "positions": [
+          "IV"
+        ],
+        "key_attributes": [
+          "defensive_awareness",
+          "anticipation",
+          "concentration",
+          "heading"
+        ],
+        "fits_systems": [
+          "wall",
+          "counter"
+        ]
+      },
+      {
+        "id": "stopper",
+        "positions": [
+          "IV"
+        ],
+        "key_attributes": [
+          "standing_tackle",
+          "strength",
+          "heading",
+          "interceptions"
+        ],
+        "fits_systems": [
+          "gegenpressing",
+          "wall"
+        ]
+      },
+      {
+        "id": "ball_playing_defender",
+        "positions": [
+          "IV"
+        ],
+        "key_attributes": [
+          "short_passing",
+          "long_passing",
+          "ball_control",
+          "decision_making",
+          "vision"
+        ],
+        "fits_systems": [
+          "possession",
+          "counter"
+        ]
+      },
+      {
+        "id": "libero",
+        "positions": [
+          "IV"
+        ],
+        "key_attributes": [
+          "vision",
+          "anticipation",
+          "long_passing",
+          "defensive_awareness"
+        ],
+        "fits_systems": [
+          "possession",
+          "wall"
+        ]
+      },
+      {
+        "id": "wide_centre_back",
+        "positions": [
+          "IV"
+        ],
+        "key_attributes": [
+          "stamina",
+          "sprint_speed",
+          "acceleration",
+          "standing_tackle",
+          "crossing"
+        ],
+        "fits_systems": [
+          "wings",
+          "gegenpressing"
+        ],
+        "only_with_back_three_or_five": true
+      },
+      {
+        "id": "full_back",
+        "positions": [
+          "LV",
+          "RV"
+        ],
+        "key_attributes": [
+          "defensive_awareness",
+          "standing_tackle",
+          "concentration",
+          "stamina"
+        ],
+        "fits_systems": [
+          "wall",
+          "counter"
+        ]
+      },
+      {
+        "id": "inverted_full_back",
+        "positions": [
+          "LV",
+          "RV"
+        ],
+        "key_attributes": [
+          "defensive_awareness",
+          "tactical_sense",
+          "anticipation",
+          "heading"
+        ],
+        "fits_systems": [
+          "wall"
+        ]
+      },
+      {
+        "id": "wing_back",
+        "positions": [
+          "LV",
+          "RV"
+        ],
+        "key_attributes": [
+          "stamina",
+          "sprint_speed",
+          "crossing",
+          "standing_tackle"
+        ],
+        "fits_systems": [
+          "wings"
+        ]
+      },
+      {
+        "id": "attacking_wing_back",
+        "positions": [
+          "LV",
+          "RV"
+        ],
+        "key_attributes": [
+          "acceleration",
+          "sprint_speed",
+          "crossing",
+          "dribbling",
+          "stamina"
+        ],
+        "fits_systems": [
+          "wings",
+          "gegenpressing"
+        ]
+      },
+      {
+        "id": "inside_wing_back",
+        "positions": [
+          "LV",
+          "RV"
+        ],
+        "key_attributes": [
+          "short_passing",
+          "ball_control",
+          "vision",
+          "decision_making",
+          "tactical_sense"
+        ],
+        "fits_systems": [
+          "possession"
+        ]
+      },
+      {
+        "id": "ball_winner",
+        "positions": [
+          "ZDM",
+          "ZM"
+        ],
+        "key_attributes": [
+          "standing_tackle",
+          "interceptions",
+          "defensive_awareness",
+          "anticipation",
+          "strength"
+        ],
+        "fits_systems": [
+          "wall",
+          "gegenpressing"
+        ]
+      },
+      {
+        "id": "anchor_midfielder",
+        "positions": [
+          "ZDM"
+        ],
+        "key_attributes": [
+          "defensive_awareness",
+          "heading",
+          "strength",
+          "concentration"
+        ],
+        "fits_systems": [
+          "wall"
+        ]
+      },
+      {
+        "id": "deep_playmaker",
+        "positions": [
+          "ZDM",
+          "ZM"
+        ],
+        "key_attributes": [
+          "long_passing",
+          "short_passing",
+          "vision",
+          "ball_control",
+          "decision_making"
+        ],
+        "fits_systems": [
+          "possession",
+          "counter"
+        ]
+      },
+      {
+        "id": "box_to_box",
+        "positions": [
+          "ZM"
+        ],
+        "key_attributes": [
+          "stamina",
+          "acceleration",
+          "standing_tackle",
+          "goal_instinct",
+          "strength"
+        ],
+        "fits_systems": [
+          "gegenpressing",
+          "counter"
+        ]
+      },
+      {
+        "id": "playmaker",
+        "positions": [
+          "ZM",
+          "ZOM"
+        ],
+        "key_attributes": [
+          "short_passing",
+          "vision",
+          "ball_control",
+          "decision_making"
+        ],
+        "fits_systems": [
+          "possession"
+        ]
+      },
+      {
+        "id": "half_winger",
+        "positions": [
+          "ZM",
+          "ZOM"
+        ],
+        "key_attributes": [
+          "dribbling",
+          "crossing",
+          "stamina",
+          "acceleration"
+        ],
+        "fits_systems": [
+          "wings"
+        ]
+      },
+      {
+        "id": "classic_ten",
+        "positions": [
+          "ZOM"
+        ],
+        "key_attributes": [
+          "dribbling",
+          "short_passing",
+          "vision",
+          "ball_control"
+        ],
+        "fits_systems": [
+          "possession"
+        ]
+      },
+      {
+        "id": "shadow_striker",
+        "positions": [
+          "ZOM"
+        ],
+        "key_attributes": [
+          "goal_instinct",
+          "acceleration",
+          "finishing",
+          "anticipation"
+        ],
+        "fits_systems": [
+          "counter",
+          "gegenpressing"
+        ]
+      },
+      {
+        "id": "winger",
+        "positions": [
+          "LA",
+          "RA"
+        ],
+        "key_attributes": [
+          "acceleration",
+          "sprint_speed",
+          "dribbling",
+          "crossing",
+          "agility"
+        ],
+        "fits_systems": [
+          "wings",
+          "counter"
+        ]
+      },
+      {
+        "id": "inside_forward",
+        "positions": [
+          "LA",
+          "RA"
+        ],
+        "key_attributes": [
+          "dribbling",
+          "finishing",
+          "goal_instinct",
+          "acceleration",
+          "curve"
+        ],
+        "fits_systems": [
+          "counter",
+          "wings"
+        ]
+      },
+      {
+        "id": "wide_playmaker",
+        "positions": [
+          "LA",
+          "RA"
+        ],
+        "key_attributes": [
+          "short_passing",
+          "vision",
+          "ball_control",
+          "decision_making"
+        ],
+        "fits_systems": [
+          "possession"
+        ]
+      },
+      {
+        "id": "wide_midfielder",
+        "positions": [
+          "LA",
+          "RA"
+        ],
+        "key_attributes": [
+          "stamina",
+          "standing_tackle",
+          "defensive_awareness",
+          "short_passing"
+        ],
+        "fits_systems": [
+          "wall",
+          "gegenpressing"
+        ]
+      },
+      {
+        "id": "advanced_forward",
+        "positions": [
+          "ST"
+        ],
+        "key_attributes": [
+          "acceleration",
+          "sprint_speed",
+          "finishing",
+          "goal_instinct",
+          "dribbling"
+        ],
+        "fits_systems": [
+          "counter"
+        ]
+      },
+      {
+        "id": "poacher",
+        "positions": [
+          "ST"
+        ],
+        "key_attributes": [
+          "goal_instinct",
+          "finishing",
+          "anticipation",
+          "composure"
+        ],
+        "fits_systems": [
+          "wings",
+          "wall"
+        ]
+      },
+      {
+        "id": "false_nine",
+        "positions": [
+          "ST"
+        ],
+        "key_attributes": [
+          "short_passing",
+          "ball_control",
+          "vision",
+          "dribbling"
+        ],
+        "fits_systems": [
+          "possession"
+        ]
+      },
+      {
+        "id": "target_man",
+        "positions": [
+          "ST"
+        ],
+        "key_attributes": [
+          "strength",
+          "heading",
+          "jumping",
+          "ball_control"
+        ],
+        "fits_systems": [
+          "wings"
+        ]
+      }
+    ],
+    "formations": [
+      {
+        "id": "4-4-2",
+        "slots": [
+          "TW",
+          "LV",
+          "IV",
+          "IV",
+          "RV",
+          "LA",
+          "ZM",
+          "ZM",
+          "RA",
+          "ST",
+          "ST"
+        ],
+        "back_line": 4,
+        "wing_back_slots": false
+      },
+      {
+        "id": "4-3-3",
+        "slots": [
+          "TW",
+          "LV",
+          "IV",
+          "IV",
+          "RV",
+          "ZDM",
+          "ZM",
+          "ZM",
+          "LA",
+          "ST",
+          "RA"
+        ],
+        "back_line": 4,
+        "wing_back_slots": false
+      },
+      {
+        "id": "4-2-3-1",
+        "slots": [
+          "TW",
+          "LV",
+          "IV",
+          "IV",
+          "RV",
+          "ZDM",
+          "ZDM",
+          "LA",
+          "ZOM",
+          "RA",
+          "ST"
+        ],
+        "back_line": 4,
+        "wing_back_slots": false
+      },
+      {
+        "id": "4-1-4-1",
+        "slots": [
+          "TW",
+          "LV",
+          "IV",
+          "IV",
+          "RV",
+          "ZDM",
+          "LA",
+          "ZM",
+          "ZM",
+          "RA",
+          "ST"
+        ],
+        "back_line": 4,
+        "wing_back_slots": false
+      },
+      {
+        "id": "4-3-1-2",
+        "slots": [
+          "TW",
+          "LV",
+          "IV",
+          "IV",
+          "RV",
+          "ZDM",
+          "ZM",
+          "ZM",
+          "ZOM",
+          "ST",
+          "ST"
+        ],
+        "back_line": 4,
+        "wing_back_slots": false
+      },
+      {
+        "id": "3-5-2",
+        "slots": [
+          "TW",
+          "IV",
+          "IV",
+          "IV",
+          "LV",
+          "RV",
+          "ZDM",
+          "ZM",
+          "ZM",
+          "ST",
+          "ST"
+        ],
+        "back_line": 3,
+        "wing_back_slots": true
+      },
+      {
+        "id": "3-4-3",
+        "slots": [
+          "TW",
+          "IV",
+          "IV",
+          "IV",
+          "LV",
+          "RV",
+          "ZM",
+          "ZM",
+          "LA",
+          "ST",
+          "RA"
+        ],
+        "back_line": 3,
+        "wing_back_slots": true
+      },
+      {
+        "id": "5-3-2",
+        "slots": [
+          "TW",
+          "LV",
+          "IV",
+          "IV",
+          "IV",
+          "RV",
+          "ZM",
+          "ZM",
+          "ZM",
+          "ST",
+          "ST"
+        ],
+        "back_line": 5,
+        "wing_back_slots": false
+      },
+      {
+        "id": "5-4-1",
+        "slots": [
+          "TW",
+          "LV",
+          "IV",
+          "IV",
+          "IV",
+          "RV",
+          "LA",
+          "ZM",
+          "ZM",
+          "RA",
+          "ST"
+        ],
+        "back_line": 5,
+        "wing_back_slots": false
+      }
+    ],
+    "systems": [
+      {
+        "id": "possession",
+        "key_attributes": [
+          "short_passing",
+          "ball_control",
+          "vision",
+          "decision_making"
+        ],
+        "abilities": [
+          "playmaker",
+          "dribbler",
+          "ball_shield",
+          "first_touch"
+        ]
+      },
+      {
+        "id": "counter",
+        "key_attributes": [
+          "sprint_speed",
+          "acceleration",
+          "long_passing",
+          "composure"
+        ],
+        "abilities": [
+          "counter_player"
+        ]
+      },
+      {
+        "id": "gegenpressing",
+        "key_attributes": [
+          "stamina",
+          "acceleration",
+          "standing_tackle",
+          "strength",
+          "decision_making"
+        ],
+        "abilities": [
+          "pressing_machine",
+          "vacuum_cleaner"
+        ]
+      },
+      {
+        "id": "wings",
+        "key_attributes": [
+          "dribbling",
+          "sprint_speed",
+          "long_passing",
+          "heading"
+        ],
+        "abilities": [
+          "dribbler",
+          "target_man"
+        ]
+      },
+      {
+        "id": "wall",
+        "key_attributes": [
+          "defensive_awareness",
+          "standing_tackle",
+          "strength",
+          "heading",
+          "decision_making"
+        ],
+        "abilities": [
+          "vacuum_cleaner",
+          "pass_reader"
+        ]
+      }
+    ],
+    "sliders": [
+      {
+        "id": "pressing",
+        "levels": [
+          "low",
+          "normal",
+          "high"
+        ],
+        "key_attributes": [
+          "stamina",
+          "acceleration",
+          "anticipation"
+        ]
+      },
+      {
+        "id": "tempo",
+        "levels": [
+          "patient",
+          "normal",
+          "fast"
+        ],
+        "key_attributes": [
+          "acceleration",
+          "sprint_speed",
+          "stamina",
+          "short_passing"
+        ]
+      },
+      {
+        "id": "defensive_line",
+        "levels": [
+          "low",
+          "normal",
+          "high"
+        ],
+        "key_attributes": [
+          "sprint_speed",
+          "anticipation",
+          "defensive_awareness"
+        ]
+      }
+    ],
+    "fit_bonus_max": 0.04,
+    "live_changes": {
+      "warmup_minutes": 5,
+      "free_changes": 3,
+      "penalty_per_extra_change": 0.02,
+      "substitution_counts_as_change": false
+    },
+    "talks": [
+      "motivate",
+      "calm",
+      "criticise",
+      "praise",
+      "demand_focus"
+    ]
   }
 }
