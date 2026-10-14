@@ -44,7 +44,7 @@ class Player {
       throw ArgumentError('Potential dynamic share outside 0 to 100');
     }
     _checkAbilities(abilities);
-    if (contract != null && contract.playerId != id) {
+    if (contract != null && contract!.playerId != id) {
       throw ArgumentError('Contract belongs to another player');
     }
   }
