@@ -366,7 +366,7 @@
     },
     "tiers": {
       "1": {
-        "level_mean": 70,
+        "level_mean": 73,
         "level_sd": 6,
         "ability_count_weights": [
           1,
@@ -1827,7 +1827,7 @@
       {
         "id": "close_range",
         "weight": 5.0,
-        "goal_base": 0.2602,
+        "goal_base": 0.2706,
         "attributes": [
           "goal_instinct",
           "finishing",
