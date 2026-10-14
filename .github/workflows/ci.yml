@@ -40,7 +40,15 @@ jobs:
           flutter-version-file: app/pubspec.yaml
           channel: stable
       - run: flutter pub get
-      - run: dart run build_runner build --delete-conflicting-outputs
+      - name: Generate code
+        shell: bash
+        run: |
+          set +e
+          dart run build_runner build --delete-conflicting-outputs > build.txt 2>&1
+          code=$?
+          cat build.txt
+          grep -iE 'error|severe|exception|\[SEVERE\]' build.txt | head -20 | while read -r line; do echo "::error::${line}"; done
+          exit $code
       - run: dart format lib test
       - run: flutter analyze
       - run: flutter test
