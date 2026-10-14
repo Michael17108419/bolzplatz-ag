@@ -2,7 +2,6 @@
 // `screenshots` runs it with `--update-goldens` to write PNG pictures of the
 // screens into `tool/out/`, so the screens can be looked at without Windows.
 import 'package:bolzplatz_app/main.dart';
-import 'package:bolzplatz_app/ui/crest.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -50,16 +49,47 @@ void main() {
     await tester.pumpAndSettle();
     await expectLater(
       find.byType(BolzplatzApp),
-      matchesGoldenFile('out/03_karrierestart.png'),
+      matchesGoldenFile('out/03_trainer_leer.png'),
     );
 
-    await tester.tap(find.byType(ClubCrest).at(2));
-    await tester.pumpAndSettle();
+    final next = find.byKey(const ValueKey('step-next'));
     await tester.enterText(find.byType(TextField), 'Uschi Muster');
     await tester.pumpAndSettle();
     await expectLater(
       find.byType(BolzplatzApp),
-      matchesGoldenFile('out/04_karrierestart_gewaehlt.png'),
+      matchesGoldenFile('out/04_trainer.png'),
+    );
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('story-pe_teacher')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/05_werdegang.png'),
+    );
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find
+          .byWidgetPredicate(
+            (w) =>
+                w.key is ValueKey<String> &&
+                (w.key! as ValueKey<String>).value.startsWith('wish-club-'),
+          )
+          .at(1),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/06_wunschverein.png'),
+    );
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('offer-0')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/07_angebote.png'),
     );
   });
 }

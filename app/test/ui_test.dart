@@ -16,6 +16,7 @@ Future<void> _start(WidgetTester tester) async {
           () async => LoadedWorld.fromTexts(
             File('../data/world_2026_27.json').readAsStringSync(),
             File('../rules/rules_2026_27.json').readAsStringSync(),
+            File('../data/names_de.json').readAsStringSync(),
           ),
         ),
       ],
@@ -45,30 +46,34 @@ void main() {
     expect(find.text('Neues Spiel'), findsOneWidget);
   });
 
-  testWidgets('a career can be started with a club and a name', (tester) async {
+  testWidgets('a career is started through the four steps', (tester) async {
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await _start(tester);
     await tester.tap(find.text('Neues Spiel'));
     await tester.pumpAndSettle();
-    expect(find.text('Wähle deinen Verein'), findsOneWidget);
-    expect(find.text('Noch kein Verein gewählt.'), findsOneWidget);
-    // The first club row of the first league.
-    await tester.tap(
-      find
-          .byWidgetPredicate(
-            (w) =>
-                w.key is ValueKey<String> &&
-                (w.key! as ValueKey<String>).value.startsWith('club-'),
-          )
-          .first,
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Karriere starten'), findsOneWidget);
+    // Step 1: the trainer needs a name.
+    final next = find.byKey(const ValueKey('step-next'));
+    expect(tester.widget<FilledButton>(next).onPressed, isNull);
     await tester.enterText(find.byType(TextField), 'Uschi Muster');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Karriere starten'));
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+    // Step 2: a backstory.
+    expect(tester.widget<FilledButton>(next).onPressed, isNull);
+    await tester.tap(find.byKey(const ValueKey('story-pe_teacher')));
+    await tester.pumpAndSettle();
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+    // Step 3: no wish club.
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+    // Step 4: offers; take the first.
+    expect(find.byKey(const ValueKey('offer-0')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('offer-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('offer-accept')));
     await tester.pumpAndSettle();
     expect(find.text('Kommt in Bauabschnitt 3.'), findsOneWidget);
   });

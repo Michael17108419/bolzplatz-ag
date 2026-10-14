@@ -6,11 +6,14 @@ import '../game/career.dart';
 import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
-import 'crest.dart';
+import 'backstory_step.dart';
+import 'offers_step.dart';
 import 'placeholder_page.dart';
 import 'screen_frame.dart';
+import 'trainer_step.dart';
+import 'wish_step.dart';
 
-/// Choose a league, a club and a manager name, then start the career.
+/// The career start (document 16): trainer, backstory, wish club, offers.
 class CareerStartPage extends ConsumerWidget {
   const CareerStartPage({super.key});
 
@@ -33,40 +36,28 @@ class CareerStartPage extends ConsumerWidget {
           ),
         ),
         error: (e, _) => Center(child: Text(s.careerLoadFailed)),
-        data: (loaded) => _CareerBody(loaded: loaded),
+        data: (loaded) => _CareerWizard(loaded: loaded),
       ),
     );
   }
 }
 
-class _CareerBody extends ConsumerStatefulWidget {
-  const _CareerBody({required this.loaded});
+class _CareerWizard extends ConsumerStatefulWidget {
+  const _CareerWizard({required this.loaded});
 
   final LoadedWorld loaded;
 
   @override
-  ConsumerState<_CareerBody> createState() => _CareerBodyState();
+  ConsumerState<_CareerWizard> createState() => _CareerWizardState();
 }
 
-class _CareerBodyState extends ConsumerState<_CareerBody> {
-  late League _league = widget.loaded.world.leagues.firstWhere(
-    (l) => l.level == 1,
-  );
-  Club? _club;
-  final _name = TextEditingController();
+class _CareerWizardState extends ConsumerState<_CareerWizard> {
+  int _step = 0;
 
-  @override
-  void dispose() {
-    _name.dispose();
-    super.dispose();
-  }
+  void _go(int step) => setState(() => _step = step);
 
-  void _start() {
-    final club = _club;
-    if (club == null || _name.text.trim().isEmpty) return;
-    ref
-        .read(careerProvider.notifier)
-        .start(managerName: _name.text, clubId: club.id);
+  void _accept(Trainer trainer, JobOffer offer) {
+    ref.read(careerProvider.notifier).start(trainer: trainer, offer: offer);
     final s = ref.read(stringsProvider);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
@@ -78,239 +69,84 @@ class _CareerBodyState extends ConsumerState<_CareerBody> {
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(stringsProvider);
-    final theme = Theme.of(context);
     final loaded = widget.loaded;
-    final leagues = [...loaded.world.leagues]
-      ..sort((a, b) {
-        final l = a.level.compareTo(b.level);
-        return l != 0 ? l : a.id.value.compareTo(b.id.value);
-      });
-    final clubs = loaded.clubsOf(_league);
+    final titles = [
+      s.careerStepTrainer,
+      s.careerStepBackstory,
+      s.careerStepWish,
+      s.careerStepOffers,
+    ];
+    final Widget body = switch (_step) {
+      0 => TrainerStep(loaded: loaded, onNext: () => _go(1)),
+      1 => BackstoryStep(
+        loaded: loaded,
+        onBack: () => _go(0),
+        onNext: () => _go(2),
+      ),
+      2 => WishStep(loaded: loaded, onBack: () => _go(1), onNext: () => _go(3)),
+      _ => OffersStep(
+        loaded: loaded,
+        onBack: () => _go(2),
+        onAccept: _accept,
+      ),
+    };
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(s.careerChooseClub, style: theme.textTheme.headlineSmall),
-        const SizedBox(height: Tokens.gapM),
-        Wrap(
-          spacing: Tokens.gapS,
-          runSpacing: Tokens.gapS,
-          children: [
-            for (final l in leagues)
-              ChoiceChip(
-                label: Text(s.leagueName(l.name)),
-                selected: l.id == _league.id,
-                onSelected: (_) => setState(() {
-                  _league = l;
-                  _club = null;
-                }),
-              ),
-          ],
-        ),
+        _StepBar(titles: titles, current: _step),
         const SizedBox(height: Tokens.gapL),
-        Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 3,
-                child: ListView.separated(
-                  itemCount: clubs.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: Tokens.gapS),
-                  itemBuilder: (context, i) {
-                    final club = clubs[i];
-                    final selected = club.id == _club?.id;
-                    return _ClubRow(
-                      club: club,
-                      strength: loaded.strength[club.id.value] ?? 0,
-                      selected: selected,
-                      onTap: () => setState(() => _club = club),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(width: Tokens.gapL),
-              Expanded(
-                flex: 2,
-                child: _DetailCard(
-                  club: _club,
-                  league: _league,
-                  clubs: clubs,
-                  loaded: loaded,
-                  nameController: _name,
-                  onChanged: () => setState(() {}),
-                  onStart: _start,
-                ),
-              ),
-            ],
-          ),
-        ),
+        Expanded(child: body),
       ],
     );
   }
 }
 
-class _ClubRow extends StatelessWidget {
-  const _ClubRow({
-    required this.club,
-    required this.strength,
-    required this.selected,
-    required this.onTap,
-  });
+class _StepBar extends StatelessWidget {
+  const _StepBar({required this.titles, required this.current});
 
-  final Club club;
-  final double strength;
-  final bool selected;
-  final VoidCallback onTap;
+  final List<String> titles;
+  final int current;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      key: ValueKey('club-${club.id.value}'),
-      color: Tokens.panel,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(Tokens.radius),
-        side: BorderSide(
-          color: selected ? Tokens.yellow : Colors.transparent,
-          width: 2,
-        ),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(Tokens.radius),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: Tokens.gapM,
-            vertical: Tokens.gapS + 2,
+    return Row(
+      children: [
+        for (var i = 0; i < titles.length; i++) ...[
+          if (i > 0)
+            Expanded(
+              child: Container(
+                height: 2,
+                margin: const EdgeInsets.symmetric(horizontal: Tokens.gapS),
+                color: i <= current ? Tokens.yellow : Tokens.panel,
+              ),
+            ),
+          Container(
+            key: ValueKey('step-$i'),
+            width: 30,
+            height: 30,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: i <= current ? Tokens.yellow : Tokens.panel,
+            ),
+            child: Text(
+              '${i + 1}',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: i <= current ? Tokens.ink : Tokens.text,
+              ),
+            ),
           ),
-          child: Row(
-            children: [
-              ClubCrest(clubId: club.id.value, size: 48),
-              const SizedBox(width: Tokens.gapM),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(club.name, style: theme.textTheme.titleMedium),
-                    Text(club.place, style: theme.textTheme.bodyMedium),
-                  ],
-                ),
-              ),
-              Text(
-                strength.toStringAsFixed(1),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: Tokens.yellow,
-                ),
-              ),
-            ],
+          const SizedBox(width: Tokens.gapS),
+          Text(
+            titles[i],
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: i == current ? Tokens.yellow : Tokens.text,
+              fontWeight: i == current ? FontWeight.w700 : FontWeight.w400,
+            ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DetailCard extends ConsumerWidget {
-  const _DetailCard({
-    required this.club,
-    required this.league,
-    required this.clubs,
-    required this.loaded,
-    required this.nameController,
-    required this.onChanged,
-    required this.onStart,
-  });
-
-  final Club? club;
-  final League league;
-  final List<Club> clubs;
-  final LoadedWorld loaded;
-  final TextEditingController nameController;
-  final VoidCallback onChanged;
-  final VoidCallback onStart;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final s = ref.watch(stringsProvider);
-    final theme = Theme.of(context);
-    final chosen = club;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(Tokens.gapL),
-        child: chosen == null
-            ? Center(
-                child: Text(
-                  s.careerNoClubChosen,
-                  style: theme.textTheme.bodyLarge,
-                ),
-              )
-            : Column(
-                children: [
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        Center(
-                          child: ClubCrest(clubId: chosen.id.value, size: 140),
-                        ),
-                        const SizedBox(height: Tokens.gapM),
-                        Text(
-                          chosen.name,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.headlineSmall,
-                        ),
-                        Text(
-                          chosen.place,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyLarge,
-                        ),
-                        const SizedBox(height: Tokens.gapS),
-                        Text(
-                          s.leagueName(league.name),
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: Tokens.gapM),
-                        Text(
-                          '${s.careerStrength((loaded.strength[chosen.id.value] ?? 0).toStringAsFixed(1))}'
-                          ' · '
-                          '${s.careerRank(clubs.indexWhere((c) => c.id == chosen.id) + 1, clubs.length)}',
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Tokens.yellow,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: Tokens.gapM),
-                  TextField(
-                    controller: nameController,
-                    onChanged: (_) => onChanged(),
-                    onSubmitted: (_) => onStart(),
-                    decoration: InputDecoration(
-                      labelText: s.careerManagerName,
-                      filled: true,
-                      fillColor: Tokens.ground,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(Tokens.radius),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: Tokens.gapM),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: nameController.text.trim().isEmpty
-                          ? null
-                          : onStart,
-                      child: Text(s.careerStart),
-                    ),
-                  ),
-                ],
-              ),
-      ),
+        ],
+      ],
     );
   }
 }
