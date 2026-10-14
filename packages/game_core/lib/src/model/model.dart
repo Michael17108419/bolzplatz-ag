@@ -1,5 +1,6 @@
 export 'attribute.dart';
 export 'attribute_set.dart';
+export 'career.dart';
 export 'character.dart';
 export 'club.dart';
 export 'coach.dart';

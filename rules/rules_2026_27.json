@@ -2225,6 +2225,81 @@
       "extra_time_half_minutes": 15
     }
   },
+  "career": {
+    "note": "Document 16. Levels: - low, 0 middle, + high, ++ very high. All numbers are drafts for the mass tests.",
+    "level_values": { "-": 25, "0": 50, "+": 72, "++": 90 },
+    "value_spread_sd": 4,
+    "standing_thresholds": { "0": 40, "+": 62, "++": 80 },
+    "appearance_options": {
+      "skin": 5,
+      "hair_style": 6,
+      "hair_colour": 5,
+      "beard": 4,
+      "glasses": 3,
+      "jacket": 6
+    },
+    "backstories": [
+      { "id": "failed_pro", "hook": "hook_failed_pro", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+" } },
+      { "id": "outsider", "hook": "hook_outsider", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "+", "press_image": "0", "contacts": "-", "tactical_knowledge": "-", "negotiation": "+", "talent_eye": "0" } },
+      { "id": "scandal_coach", "hook": "hook_scandal_coach", "levels": { "standing": "0", "charisma": "+", "stress": "+", "president_trust": "-", "press_image": "-", "contacts": "0", "tactical_knowledge": "+", "negotiation": "0", "talent_eye": "0" } },
+      { "id": "club_fixture", "hook": "hook_club_fixture", "levels": { "standing": "0", "charisma": "-", "stress": "-", "president_trust": "++", "press_image": "0", "contacts": "0", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+" } },
+      { "id": "business_student", "hook": "hook_business_student", "levels": { "standing": "-", "charisma": "-", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "-", "tactical_knowledge": "-", "negotiation": "++", "talent_eye": "-" } },
+      { "id": "youth_coach", "hook": "hook_youth_coach", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "0", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "++" } },
+      { "id": "pub_landlord", "hook": "hook_pub_landlord", "levels": { "standing": "-", "charisma": "+", "stress": "0", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "-", "negotiation": "0", "talent_eye": "0" } },
+      { "id": "wandering_saviour", "hook": "hook_wandering_saviour", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "-", "press_image": "0", "contacts": "+", "tactical_knowledge": "0", "negotiation": "+", "talent_eye": "0" } },
+      { "id": "pe_teacher", "hook": "hook_pe_teacher", "levels": { "standing": "-", "charisma": "+", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "-", "tactical_knowledge": "0", "negotiation": "0", "talent_eye": "0" } },
+      { "id": "ex_referee", "hook": "hook_ex_referee", "levels": { "standing": "0", "charisma": "-", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "0", "tactical_knowledge": "+", "negotiation": "0", "talent_eye": "0" } },
+      { "id": "tactics_streamer", "hook": "hook_tactics_streamer", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "0", "press_image": "+", "contacts": "-", "tactical_knowledge": "++", "negotiation": "0", "talent_eye": "0" } },
+      { "id": "motivation_guru", "hook": "hook_motivation_guru", "levels": { "standing": "0", "charisma": "++", "stress": "0", "president_trust": "0", "press_image": "+", "contacts": "0", "tactical_knowledge": "-", "negotiation": "0", "talent_eye": "-" } }
+    ],
+    "offers": {
+      "count_range_by_level": { "-": [3, 3], "0": [3, 4], "+": [4, 5], "++": [4, 5] },
+      "tier_weights_by_level": {
+        "-": { "4": 1.0 },
+        "0": { "4": 0.4, "3": 0.4, "2": 0.2 },
+        "+": { "4": 0.1, "3": 0.3, "2": 0.4, "1": 0.2 },
+        "++": { "3": 0.1, "2": 0.4, "1": 0.5 }
+      },
+      "situation_weights_by_strength_quarter": {
+        "favourite": [0.6, 0.25, 0.05, 0.0],
+        "mid_table": [0.3, 0.45, 0.35, 0.1],
+        "relegation": [0.0, 0.1, 0.4, 0.7],
+        "bankrupt": [0.05, 0.05, 0.15, 0.25]
+      },
+      "budget_base_by_tier": { "1": 12000000, "2": 4000000, "3": 1200000, "4": 300000 },
+      "budget_factor_by_situation": {
+        "favourite": 1.5,
+        "mid_table": 1.0,
+        "relegation": 0.8,
+        "bankrupt": 0.15
+      },
+      "budget_spread": 0.15,
+      "quirk_weights": {
+        "none": 0.3,
+        "debt_mountain": 0.15,
+        "talent_factory": 0.2,
+        "feuding_squad": 0.15,
+        "loyal_fans": 0.1,
+        "crumbling_stadium": 0.1
+      },
+      "president_type_weights_by_tier": {
+        "1": { "construction_tycoon": 3, "car_dealer": 3, "rich_heir": 2, "patron": 1, "ex_pro": 1 },
+        "2": { "construction_tycoon": 2, "car_dealer": 3, "ex_pro": 2, "savings_bank_director": 1, "patron": 1, "rich_heir": 1 },
+        "3": { "car_dealer": 2, "savings_bank_director": 2, "thrifty_butcher": 2, "ex_pro": 2, "patron": 1, "club_fixture": 1 },
+        "4": { "thrifty_butcher": 3, "savings_bank_director": 2, "club_fixture": 3, "patron": 1, "ex_pro": 1 }
+      }
+    },
+    "president_types": {
+      "construction_tycoon": { "patience": "-", "meddling": "+", "thrift": "-", "ambition": "++", "vanity": "+", "loyalty": "0", "press_craving": "+" },
+      "thrifty_butcher": { "patience": "+", "meddling": "0", "thrift": "++", "ambition": "-", "vanity": "-", "loyalty": "+", "press_craving": "-" },
+      "car_dealer": { "patience": "-", "meddling": "+", "thrift": "0", "ambition": "+", "vanity": "++", "loyalty": "-", "press_craving": "++" },
+      "savings_bank_director": { "patience": "+", "meddling": "-", "thrift": "+", "ambition": "0", "vanity": "0", "loyalty": "+", "press_craving": "-" },
+      "ex_pro": { "patience": "0", "meddling": "++", "thrift": "0", "ambition": "+", "vanity": "0", "loyalty": "0", "press_craving": "0" },
+      "rich_heir": { "patience": "-", "meddling": "-", "thrift": "-", "ambition": "-", "vanity": "+", "loyalty": "-", "press_craving": "0" },
+      "patron": { "patience": "+", "meddling": "0", "thrift": "-", "ambition": "0", "vanity": "-", "loyalty": "++", "press_craving": "-" },
+      "club_fixture": { "patience": "++", "meddling": "+", "thrift": "+", "ambition": "-", "vanity": "-", "loyalty": "++", "press_craving": "-" }
+    }
+  },
   "development": {
     "retire_from_age": 34,
     "retire_chance_per_year_above": 0.35,
