@@ -1,0 +1,13 @@
+name: bolzplatz_tools
+description: Command line tools for Bolzplatz AG (world generation, reports).
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  game_core:
+    path: ../packages/game_core
+
+dev_dependencies:
+  lints: ^5.0.0
