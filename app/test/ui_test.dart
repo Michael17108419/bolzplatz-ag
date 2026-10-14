@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:bolzplatz_app/game/loaded_world.dart';
 import 'package:bolzplatz_app/main.dart';
-import 'package:bolzplatz_app/ui/crest.dart';
 import 'package:bolzplatz_app/ui/logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -56,7 +55,15 @@ void main() {
     expect(find.text('Wähle deinen Verein'), findsOneWidget);
     expect(find.text('Noch kein Verein gewählt.'), findsOneWidget);
     // The first club row of the first league.
-    await tester.tap(find.byType(ClubCrest).first);
+    await tester.tap(
+      find
+          .byWidgetPredicate(
+            (w) =>
+                w.key is ValueKey<String> &&
+                (w.key! as ValueKey<String>).value.startsWith('club-'),
+          )
+          .first,
+    );
     await tester.pumpAndSettle();
     expect(find.text('Karriere starten'), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'Uschi Muster');

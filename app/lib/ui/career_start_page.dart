@@ -167,6 +167,7 @@ class _ClubRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Material(
+      key: ValueKey('club-${club.id.value}'),
       color: Tokens.panel,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Tokens.radius),

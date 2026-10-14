@@ -24,13 +24,14 @@ class MainMenuPage extends ConsumerWidget {
     final theme = Theme.of(context);
     return Scaffold(
       body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 440),
-          child: Padding(
-            padding: const EdgeInsets.all(Tokens.gapL),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Padding(
+              padding: const EdgeInsets.all(Tokens.gapL),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const BolzplatzLogo(height: 200),
                 const SizedBox(height: Tokens.gapM),
@@ -59,7 +60,8 @@ class MainMenuPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: Tokens.gapM),
                 TextButton(onPressed: () => exit(0), child: Text(s.menuQuit)),
-              ],
+                ],
+              ),
             ),
           ),
         ),
