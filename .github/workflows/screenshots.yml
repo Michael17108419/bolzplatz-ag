@@ -21,7 +21,15 @@ jobs:
           flutter-version-file: app/pubspec.yaml
           channel: stable
       - run: flutter pub get
-      - run: flutter test tool/screenshots_test.dart --update-goldens
+      - name: Draw screens
+        shell: bash
+        run: |
+          set +e
+          flutter test tool/screenshots_test.dart --update-goldens > shots.txt 2>&1
+          code=$?
+          cat shots.txt
+          grep -E 'Exception|Error|error|Expected|Actual|Which|\.dart:[0-9]+' shots.txt | grep -v 'package:flutter/' | head -20 | while read -r line; do echo "::error::${line}"; done
+          exit $code
       - name: Commit pictures
         working-directory: .
         run: |
