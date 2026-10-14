@@ -576,8 +576,7 @@ class MatchSession {
     if (slots.isEmpty) return null;
     final weights = [
       for (final s in slots)
-        _m.assistPositionWeight[s.position]! *
-                _slotMean(side, s, attrs) +
+        _m.assistPositionWeight[s.position]! * _slotMean(side, s, attrs) +
             0.001,
     ];
     return slots[_rng.weightedIndex(weights)].player;
