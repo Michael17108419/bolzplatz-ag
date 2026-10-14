@@ -88,6 +88,12 @@ void main(List<String> args) {
   var topScorerGoals = 0.0;
   final poolStrength = <double>[];
   final seasonLines = StringBuffer();
+  // Top scorer (league goals only) per tier: position counts, goals, details.
+  final kingPos = <int, Map<Position, int>>{};
+  final kingGoals = <int, List<int>>{};
+  final top3Pos = <int, Map<Position, int>>{};
+  final goalsByPos = <int, Map<Position, int>>{};
+  final kingLines = StringBuffer();
   // Tier 1 only, per decade: position-group overall and key attributes.
   final diag = <int, Map<String, List<double>>>{};
   void note(int decade, String key, double v) =>
@@ -126,6 +132,46 @@ void main(List<String> args) {
       pottWinnerTier[tiers[w] ?? 5] = (pottWinnerTier[tiers[w] ?? 5] ?? 0) + 1;
     }
 
+    {
+      final info = <PlayerId, (Position, int)>{};
+      for (final e in state.squads.entries) {
+        for (final p in e.value) {
+          info[p.id] = (p.position, tiers[e.key] ?? 5);
+        }
+      }
+      final byTier = <int, List<MapEntry<PlayerId, int>>>{};
+      for (final e in outcome.leagueGoalsByPlayer.entries) {
+        final i = info[e.key];
+        if (i == null || i.$2 > 4) continue;
+        (byTier[i.$2] ??= []).add(e);
+        final gp = goalsByPos[i.$2] ??= {};
+        gp[i.$1] = (gp[i.$1] ?? 0) + e.value;
+      }
+      for (final tier in byTier.keys) {
+        final list = byTier[tier]!
+          ..sort((a, b) {
+            final d = b.value.compareTo(a.value);
+            return d != 0 ? d : a.key.value.compareTo(b.key.value);
+          });
+        final king = list.first;
+        final kp = info[king.key]!.$1;
+        (kingPos[tier] ??= {})[kp] = ((kingPos[tier] ??= {})[kp] ?? 0) + 1;
+        (kingGoals[tier] ??= []).add(king.value);
+        for (final e in list.take(3)) {
+          final pos = info[e.key]!.$1;
+          final m = top3Pos[tier] ??= {};
+          m[pos] = (m[pos] ?? 0) + 1;
+        }
+        if (tier == 1) {
+          kingLines.writeln(
+            '| ${state.startYear}/${(state.startYear + 1) % 100} | '
+            '${kp.id} | ${king.value} | '
+            '${list.skip(1).first.value} | ${list.skip(2).first.value} | '
+            '${info[list.skip(1).first.key]!.$1.id} |',
+          );
+        }
+      }
+    }
     final rounds = outcome.bolzplatz.rounds;
     if (rounds.length >= 3) {
       for (final t in rounds[rounds.length - 3]) {
@@ -339,6 +385,43 @@ void main(List<String> args) {
     b.writeln();
   }
 
+  b
+    ..writeln('## Torschützenkönige (nur Ligaspiele)')
+    ..writeln();
+  for (final tier in kingGoals.keys.toList()..sort()) {
+    final goals = kingGoals[tier]!;
+    final mean = goals.fold(0, (x, y) => x + y) / goals.length;
+    final sorted = [...goals]..sort();
+    String share(Map<Position, int> m) {
+      final total = m.values.fold(0, (x, y) => x + y);
+      final keys = m.keys.toList()
+        ..sort((a, c) => m[c]!.compareTo(m[a]!));
+      return keys
+          .map((k) => '${k.id} ${(100 * m[k]! / total).round()} %')
+          .join(', ');
+    }
+
+    final gp = goalsByPos[tier]!;
+    b
+      ..writeln('### Liga-Ebene $tier')
+      ..writeln()
+      ..writeln(
+        '- Tore des Königs: im Schnitt ${_f(mean, 1)}, '
+        'Median ${sorted[sorted.length ~/ 2]}, '
+        'min ${sorted.first}, max ${sorted.last}.',
+      )
+      ..writeln('- Position des Königs: ${share(kingPos[tier]!)}.')
+      ..writeln('- Positionen der besten drei: ${share(top3Pos[tier]!)}.')
+      ..writeln('- Anteil an allen Ligatoren: ${share(gp)}.')
+      ..writeln();
+  }
+  b
+    ..writeln('### Liga 1: Könige je Saison')
+    ..writeln()
+    ..writeln('| Saison | Position | Tore | Zweiter | Dritter | Pos. Zweiter |')
+    ..writeln('| --- | --- | --- | --- | --- | --- |')
+    ..write(kingLines)
+    ..writeln();
   b
     ..writeln('## Pokal')
     ..writeln()
