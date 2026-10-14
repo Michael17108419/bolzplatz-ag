@@ -2,6 +2,8 @@
 // `screenshots` runs it with `--update-goldens` to write PNG pictures of the
 // screens into `tool/out/`, so the screens can be looked at without Windows.
 import 'package:bolzplatz_app/main.dart';
+import 'package:bolzplatz_app/ui/trainer_avatar.dart';
+import 'package:game_core/game_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,6 +96,47 @@ void main() {
     await expectLater(
       find.byType(BolzplatzApp),
       matchesGoldenFile('out/07_angebote.png'),
+    );
+  });
+
+  testWidgets('trainer portraits', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const looks = [
+      TrainerAppearance(skin: 1, hairStyle: 1, hairColour: 1, jacket: 1),
+      TrainerAppearance(skin: 2, hairStyle: 2, hairColour: 0, beard: 1),
+      TrainerAppearance(skin: 0, hairStyle: 3, hairColour: 3, glasses: 1),
+      TrainerAppearance(skin: 3, hairStyle: 4, hairColour: 0, beard: 2),
+      TrainerAppearance(skin: 4, hairStyle: 5, hairColour: 2, beard: 3),
+      TrainerAppearance(skin: 1, hairStyle: 2, hairColour: 4, glasses: 2),
+      TrainerAppearance(skin: 0, hairStyle: 0, beard: 2, glasses: 1, jacket: 3),
+      TrainerAppearance(skin: 2, hairStyle: 3, hairColour: 1, beard: 3),
+      TrainerAppearance(skin: 3, hairStyle: 1, hairColour: 4, beard: 1),
+      TrainerAppearance(skin: 4, hairStyle: 4, hairColour: 3, glasses: 2),
+      TrainerAppearance(skin: 0, hairStyle: 5, hairColour: 1, beard: 2),
+      TrainerAppearance(skin: 1, hairStyle: 0, glasses: 2, jacket: 4),
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          backgroundColor: const Color(0xFF12261A),
+          body: Center(
+            child: Wrap(
+              spacing: 24,
+              runSpacing: 24,
+              children: [
+                for (final l in looks) TrainerAvatar(appearance: l, size: 180),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('out/08_trainer_koepfe.png'),
     );
   });
 }
