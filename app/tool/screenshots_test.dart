@@ -4,7 +4,7 @@
 import 'package:bolzplatz_app/main.dart';
 import 'package:bolzplatz_app/ui/crest.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -56,6 +56,5 @@ void main() {
       find.byType(BolzplatzApp),
       matchesGoldenFile('out/04_karrierestart_gewaehlt.png'),
     );
-
   });
 }
