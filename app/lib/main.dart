@@ -12,10 +12,7 @@ class BolzplatzApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Bolzplatz AG',
-      home: ClubTablePage(),
-    );
+    return const MaterialApp(title: 'Bolzplatz AG', home: ClubTablePage());
   }
 }
 
@@ -37,11 +34,13 @@ class ClubTablePage extends ConsumerWidget {
             ],
             rows: [
               for (final c in rows)
-                DataRow(cells: [
-                  DataCell(Text('${c.id}')),
-                  DataCell(Text(c.name)),
-                  DataCell(Text(c.place)),
-                ]),
+                DataRow(
+                  cells: [
+                    DataCell(Text('${c.id}')),
+                    DataCell(Text(c.name)),
+                    DataCell(Text(c.place)),
+                  ],
+                ),
             ],
           ),
         ),

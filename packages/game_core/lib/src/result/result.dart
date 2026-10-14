@@ -11,15 +11,15 @@ sealed class Result<T, E> {
 
   /// The value if this is [Ok], otherwise null.
   T? get valueOrNull => switch (this) {
-        Ok<T, E>(:final value) => value,
-        Err<T, E>() => null,
-      };
+    Ok<T, E>(:final value) => value,
+    Err<T, E>() => null,
+  };
 
   /// The error if this is [Err], otherwise null.
   E? get errorOrNull => switch (this) {
-        Ok<T, E>() => null,
-        Err<T, E>(:final error) => error,
-      };
+    Ok<T, E>() => null,
+    Err<T, E>(:final error) => error,
+  };
 
   R fold<R>(R Function(T value) onOk, R Function(E error) onErr) =>
       switch (this) {
@@ -28,9 +28,9 @@ sealed class Result<T, E> {
       };
 
   Result<U, E> map<U>(U Function(T value) transform) => switch (this) {
-        Ok<T, E>(:final value) => Ok(transform(value)),
-        Err<T, E>(:final error) => Err(error),
-      };
+    Ok<T, E>(:final value) => Ok(transform(value)),
+    Err<T, E>(:final error) => Err(error),
+  };
 }
 
 final class Ok<T, E> extends Result<T, E> {

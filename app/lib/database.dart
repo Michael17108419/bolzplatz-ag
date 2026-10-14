@@ -13,7 +13,7 @@ class Clubs extends Table {
 @DriftDatabase(tables: [Clubs])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
-      : super(executor ?? driftDatabase(name: 'bolzplatz'));
+    : super(executor ?? driftDatabase(name: 'bolzplatz'));
 
   @override
   int get schemaVersion => 1;

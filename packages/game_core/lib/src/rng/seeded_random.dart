@@ -6,11 +6,11 @@
 class SeededRandom {
   /// Creates a generator from a seed in the range 0 to 2^32 - 1.
   SeededRandom(int seed)
-      : seed = seed & _mask,
-        _s0 = 0,
-        _s1 = 0,
-        _s2 = 0,
-        _s3 = 0 {
+    : seed = seed & _mask,
+      _s0 = 0,
+      _s1 = 0,
+      _s2 = 0,
+      _s3 = 0 {
     var z = this.seed;
     z = (z + _golden) & _mask;
     _s0 = _mix32(z);
@@ -158,6 +158,8 @@ class SeededRandom {
   /// how many numbers were drawn before. This keeps parts of the world stable
   /// when other parts change.
   SeededRandom fork(String label) {
-    return SeededRandom(_mix32((_mul32(seed, 0x9E3779B1) + _fnv1a32(label)) & _mask));
+    return SeededRandom(
+      _mix32((_mul32(seed, 0x9E3779B1) + _fnv1a32(label)) & _mask),
+    );
   }
 }
