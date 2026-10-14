@@ -46,13 +46,16 @@ void main() {
   });
 
   test('league table orders by points, goal difference, goals', () {
-    final t = LeagueTable(const [ClubId(1), ClubId(2), ClubId(3)])
-      ..record(ClubId(1), ClubId(2), 2, 0)
-      ..record(ClubId(2), ClubId(3), 1, 1)
-      ..record(ClubId(3), ClubId(1), 0, 0);
+    const one = ClubId(1);
+    const two = ClubId(2);
+    const three = ClubId(3);
+    final t = LeagueTable(const [one, two, three])
+      ..record(one, two, 2, 0)
+      ..record(two, three, 1, 1)
+      ..record(three, one, 0, 0);
     final order = t.order.map((c) => c.value).toList();
     expect(order, [1, 3, 2]);
-    expect(t.entryOf(ClubId(1)).points, 4);
+    expect(t.entryOf(one).points, 4);
   });
 
   test('a full season of all leagues and cups runs and is consistent', () {
