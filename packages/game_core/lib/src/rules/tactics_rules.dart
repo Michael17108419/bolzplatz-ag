@@ -18,9 +18,9 @@ Attribute _attribute(String id) {
 }
 
 Map<String, double> _numbers(Object? raw) => Map.unmodifiable({
-      for (final e in (raw! as Map<String, dynamic>).entries)
-        e.key: (e.value as num).toDouble(),
-    });
+  for (final e in (raw! as Map<String, dynamic>).entries)
+    e.key: (e.value as num).toDouble(),
+});
 
 List<Attribute> _attributes(Object? raw) => List.unmodifiable([
   for (final id in raw! as List<dynamic>) _attribute(id as String),
@@ -365,15 +365,15 @@ class SystemFitRules {
   });
 
   factory SystemFitRules.fromJson(Map<String, dynamic> m) => SystemFitRules(
-        slope: (m['slope'] as num).toDouble(),
-        effectGain: (m['effect_gain'] as num).toDouble(),
-        costGain: (m['cost_gain'] as num).toDouble(),
-        abilityBonus: (m['ability_bonus'] as num).toDouble(),
-        abilityCap: (m['ability_cap'] as num).toDouble(),
-        scaleMin: (m['scale_min'] as num).toDouble(),
-        scaleMax: (m['scale_max'] as num).toDouble(),
-        divisor: (m['divisor'] as num).toDouble(),
-      );
+    slope: (m['slope'] as num).toDouble(),
+    effectGain: (m['effect_gain'] as num).toDouble(),
+    costGain: (m['cost_gain'] as num).toDouble(),
+    abilityBonus: (m['ability_bonus'] as num).toDouble(),
+    abilityCap: (m['ability_cap'] as num).toDouble(),
+    scaleMin: (m['scale_min'] as num).toDouble(),
+    scaleMax: (m['scale_max'] as num).toDouble(),
+    divisor: (m['divisor'] as num).toDouble(),
+  );
 
   final double slope;
   final double effectGain;

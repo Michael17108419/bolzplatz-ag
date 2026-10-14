@@ -6,25 +6,25 @@ import 'rules.dart';
 double _d(Object? v) => (v! as num).toDouble();
 
 Map<String, double> _numbers(Object? raw) => Map.unmodifiable({
-      for (final e in (raw! as Map<String, dynamic>).entries)
-        if (e.value is num) e.key: _d(e.value),
-    });
+  for (final e in (raw! as Map<String, dynamic>).entries)
+    if (e.value is num) e.key: _d(e.value),
+});
 
 List<Attribute> _attributes(Object? raw) => List.unmodifiable([
-      for (final id in raw! as List<dynamic>)
-        Attribute.values.firstWhere(
-          (a) => a.id == id,
-          orElse: () => throw RulesError('Unknown attribute $id'),
-        ),
-    ]);
+  for (final id in raw! as List<dynamic>)
+    Attribute.values.firstWhere(
+      (a) => a.id == id,
+      orElse: () => throw RulesError('Unknown attribute $id'),
+    ),
+]);
 
 List<SpecialAbilityType> _abilities(Object? raw) => List.unmodifiable([
-      for (final id in raw! as List<dynamic>)
-        SpecialAbilityType.values.firstWhere(
-          (a) => a.id == id,
-          orElse: () => throw RulesError('Unknown ability $id'),
-        ),
-    ]);
+  for (final id in raw! as List<dynamic>)
+    SpecialAbilityType.values.firstWhere(
+      (a) => a.id == id,
+      orElse: () => throw RulesError('Unknown ability $id'),
+    ),
+]);
 
 /// One kind of shot.
 class ShotTypeRule {
@@ -162,8 +162,8 @@ class MatchRules {
       throw const RulesError('injuries.severity_weights needs three values');
     }
     List<int> days(String key) => List.unmodifiable([
-          for (final v in inj[key] as List<dynamic>) v as int,
-        ]);
+      for (final v in inj[key] as List<dynamic>) v as int,
+    ]);
 
     final sliders = <String, Map<String, SliderLevelEffect>>{};
     final slidersRaw = m['sliders'] as Map<String, dynamic>;
@@ -248,7 +248,8 @@ class MatchRules {
       momentumDecay: _d(mom['decay']),
       momentumEffect: _d(mom['effect']),
       counterDominanceScale: _d(
-        (m['attack_matchup'] as Map<String, dynamic>)['counter_dominance_scale'],
+        (m['attack_matchup']
+            as Map<String, dynamic>)['counter_dominance_scale'],
       ),
       sliders: Map.unmodifiable(sliders),
       sliderFitReference: _d(sliderFit['reference']),
@@ -267,12 +268,12 @@ class MatchRules {
   }
 
   static ShotTypeRule _shotType(Map<String, dynamic> m) => ShotTypeRule(
-        id: m['id'] as String,
-        weight: _d(m['weight']),
-        goalBase: _d(m['goal_base']),
-        attributes: _attributes(m['attributes']),
-        abilities: _abilities(m['abilities']),
-      );
+    id: m['id'] as String,
+    weight: _d(m['weight']),
+    goalBase: _d(m['goal_base']),
+    attributes: _attributes(m['attributes']),
+    abilities: _abilities(m['abilities']),
+  );
 
   void _validate() {
     if (minutes <= 0 || halfTimeMinute <= 0 || halfTimeMinute >= minutes) {
