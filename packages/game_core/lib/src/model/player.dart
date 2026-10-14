@@ -23,11 +23,16 @@ class Player {
     required this.potentialCore,
     required this.potentialDynamic,
     Map<String, RoleFamiliarity> roles = const {},
+    this.foot = Foot.right,
+    this.weakFoot = 3,
+    this.nationality = 'DE',
+    Map<Position, PositionFamiliarity> secondaryPositions = const {},
     this.clubId,
     this.contract,
   }) : traits = Map.unmodifiable(traits),
        abilities = List.unmodifiable(abilities),
-       roles = Map.unmodifiable(roles) {
+       roles = Map.unmodifiable(roles),
+       secondaryPositions = Map.unmodifiable(secondaryPositions) {
     for (final trait in CharacterTrait.values) {
       final value = traits[trait];
       if (value == null || value < 1 || value > 100) {
@@ -42,6 +47,23 @@ class Player {
     }
     if (potentialDynamic < 0 || potentialDynamic > 100) {
       throw ArgumentError('Potential dynamic share outside 0 to 100');
+    }
+    if (weakFoot < 1 || weakFoot > 5) {
+      throw ArgumentError('Weak foot outside 1 to 5 stars');
+    }
+    if (nationality.length != 2) {
+      throw ArgumentError('Nationality must be a two-letter code');
+    }
+    if (secondaryPositions.length > 3) {
+      throw ArgumentError('At most three secondary positions');
+    }
+    if (secondaryPositions.containsKey(position) ||
+        (!position.isGoalkeeper &&
+            secondaryPositions.containsKey(Position.tw))) {
+      throw ArgumentError('Bad secondary position');
+    }
+    if (position.isGoalkeeper && secondaryPositions.isNotEmpty) {
+      throw ArgumentError('A goalkeeper has no secondary positions');
     }
     _checkAbilities(abilities);
     if (contract != null && contract!.playerId != id) {
@@ -73,11 +95,24 @@ class Player {
   /// Role id (from rules) to familiarity. Missing means basic (no bonus, no deduction).
   final Map<String, RoleFamiliarity> roles;
 
+  /// Preferred foot.
+  final Foot foot;
+
+  /// Weak foot, 1 to 5 stars (5 means two-footed).
+  final int weakFoot;
+
+  /// Two-letter country code (flag and name pool).
+  final String nationality;
+
+  /// Up to three secondary positions with their familiarity.
+  final Map<Position, PositionFamiliarity> secondaryPositions;
+
   /// Null for free agents without a club.
   final ClubId? clubId;
   final Contract? contract;
 
-  /// Copy with other name, contract, attributes or dynamic potential.
+  /// Copy with other name, contract, attributes, dynamic potential, traits,
+  /// weak foot or secondary positions.
   /// Everything else is kept.
   Player copyWith({
     String? firstName,
@@ -85,6 +120,9 @@ class Player {
     Contract? contract,
     AttributeSet? attributes,
     double? potentialDynamic,
+    Map<CharacterTrait, double>? traits,
+    int? weakFoot,
+    Map<Position, PositionFamiliarity>? secondaryPositions,
   }) {
     return Player(
       id: id,
@@ -93,13 +131,17 @@ class Player {
       birthDate: birthDate,
       position: position,
       attributes: attributes ?? this.attributes,
-      traits: traits,
+      traits: traits ?? this.traits,
       injuryProneness: injuryProneness,
       abilities: abilities,
       developmentType: developmentType,
       potentialCore: potentialCore,
       potentialDynamic: potentialDynamic ?? this.potentialDynamic,
       roles: roles,
+      foot: foot,
+      weakFoot: weakFoot ?? this.weakFoot,
+      nationality: nationality,
+      secondaryPositions: secondaryPositions ?? this.secondaryPositions,
       clubId: clubId,
       contract: contract ?? this.contract,
     );

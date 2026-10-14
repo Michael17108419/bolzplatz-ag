@@ -149,9 +149,10 @@ class WorldGenerator {
       if (!names.blocked.contains(full) && used.add(full)) return current;
       attempt++;
       final rng = world.fork('name:${player.id.value}:$attempt');
+      final (first, last) = names.pickName(rng, player.nationality);
       current = current.copyWith(
-        firstName: rng.pick(names.first),
-        lastName: rng.pick(names.last),
+        firstName: first,
+        lastName: last,
       );
       if (attempt > 1000) {
         throw StateError('No free name for player ${player.id.value}');

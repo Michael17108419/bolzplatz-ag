@@ -489,6 +489,14 @@
       "per_year": 0.8,
       "max": 12
     },
+    "profile": {
+      "left_foot_share": 0.24,
+      "wide_natural_foot_share": 0.8,
+      "weak_foot_weights": [8, 24, 38, 22, 8],
+      "secondary_count_weights": [45, 35, 15, 5],
+      "secondary_max_distance": 14,
+      "trained_share": 0.4
+    },
     "traits": {
       "mean": 50,
       "sd": 20
@@ -956,6 +964,22 @@
       "4": 0.04,
       "5": 0.0
     },
+    "weak_foot_attributes": [
+      "finishing",
+      "shot_power",
+      "long_shots",
+      "volleys",
+      "short_passing",
+      "long_passing",
+      "crossing",
+      "curve"
+    ],
+    "weak_foot_exposure": {
+      "central": 0.2,
+      "natural": 0.2,
+      "inverse": 0.5
+    },
+    "side_role_factor": 0.03,
     "roles": [
       {
         "id": "line_keeper",
@@ -1104,6 +1128,7 @@
       },
       {
         "id": "full_back",
+        "side": "natural",
         "positions": [
           "LV",
           "RV"
@@ -1137,6 +1162,7 @@
       },
       {
         "id": "wing_back",
+        "side": "natural",
         "positions": [
           "LV",
           "RV"
@@ -1153,6 +1179,7 @@
       },
       {
         "id": "attacking_wing_back",
+        "side": "natural",
         "positions": [
           "LV",
           "RV"
@@ -1171,6 +1198,7 @@
       },
       {
         "id": "inside_wing_back",
+        "side": "inverse",
         "positions": [
           "LV",
           "RV"
@@ -1319,6 +1347,7 @@
       },
       {
         "id": "winger",
+        "side": "natural",
         "positions": [
           "LA",
           "RA"
@@ -1337,6 +1366,7 @@
       },
       {
         "id": "inside_forward",
+        "side": "inverse",
         "positions": [
           "LA",
           "RA"

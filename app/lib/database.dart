@@ -47,6 +47,9 @@ class Players extends Table {
   RealColumn get potentialCore => real()();
   RealColumn get potentialDynamic => real()();
   TextColumn get rolesJson => text()();
+
+  /// Foot, weak foot, nationality and secondary positions (added in version 2).
+  TextColumn get profileJson => text().withDefault(const Constant('{}'))();
   IntColumn get clubId => integer().nullable().references(Clubs, #id)();
 
   @override
@@ -123,7 +126,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor ?? driftDatabase(name: 'bolzplatz'));
 
   /// Bump on every schema change and add a step to [migration].
-  static const int currentSchemaVersion = 1;
+  static const int currentSchemaVersion = 2;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -132,8 +135,8 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
-      // Add one step per version here, for example:
-      // if (from < 2) await m.addColumn(players, players.newColumn);
+      // One step per version.
+      if (from < 2) await m.addColumn(players, players.profileJson);
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

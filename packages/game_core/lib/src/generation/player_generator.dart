@@ -13,30 +13,79 @@ import '../rng/seeded_random.dart';
 import '../rules/generator_rules.dart';
 import '../rules/rules.dart';
 
+/// First and last names of one country.
+class NationalityNames {
+  NationalityNames({
+    required this.code,
+    required this.weight,
+    required List<String> first,
+    required List<String> last,
+  }) : first = List.unmodifiable(first),
+       last = List.unmodifiable(last) {
+    if (code.length != 2) throw ArgumentError('Bad country code $code');
+    if (weight <= 0) throw ArgumentError('Weight of $code must be positive');
+    if (first.isEmpty || last.isEmpty) {
+      throw ArgumentError('Name lists of $code must not be empty');
+    }
+  }
+
+  /// Two-letter country code, also the nationality of generated players.
+  final String code;
+
+  /// Relative frequency of this nationality among players.
+  final double weight;
+  final List<String> first;
+  final List<String> last;
+}
+
 /// First and last names to draw from, read from `data/names_de.json`.
+///
+/// [first] and [last] belong to the home nationality [homeCode]; [others]
+/// hold the names of the other countries.
 class NameLists {
   NameLists({
     required List<String> first,
     required List<String> last,
     Set<String> blocked = const {},
+    this.homeCode = 'DE',
+    this.homeWeight = 1,
+    List<NationalityNames> others = const [],
   }) : first = List.unmodifiable(first),
        last = List.unmodifiable(last),
-       blocked = Set.unmodifiable(blocked) {
+       blocked = Set.unmodifiable(blocked),
+       others = List.unmodifiable(others) {
     if (first.isEmpty || last.isEmpty) {
       throw ArgumentError('Name lists must not be empty');
+    }
+    if (homeWeight <= 0) throw ArgumentError('Home weight must be positive');
+    final codes = {homeCode, for (final o in others) o.code};
+    if (codes.length != others.length + 1) {
+      throw ArgumentError('Duplicate nationality');
     }
   }
 
   /// Reads the name file. Throws [FormatException] for wrong content.
   factory NameLists.fromJson(String text) {
     final m = jsonDecode(text) as Map<String, dynamic>;
-    List<String> list(String key) => [
-      for (final v in m[key] as List<dynamic>) v as String,
+    List<String> list(Map<String, dynamic> map, String key) => [
+      for (final v in map[key] as List<dynamic>) v as String,
     ];
+    final home = (m['home_nationality'] as Map<String, dynamic>?) ?? const {};
     return NameLists(
-      first: list('first_names'),
-      last: list('last_names'),
-      blocked: list('blocked_full_names').toSet(),
+      first: list(m, 'first_names'),
+      last: list(m, 'last_names'),
+      blocked: list(m, 'blocked_full_names').toSet(),
+      homeCode: (home['code'] as String?) ?? 'DE',
+      homeWeight: ((home['weight'] as num?) ?? 1).toDouble(),
+      others: [
+        for (final raw in (m['nationalities'] as List<dynamic>?) ?? const [])
+          NationalityNames(
+            code: (raw as Map<String, dynamic>)['code'] as String,
+            weight: (raw['weight'] as num).toDouble(),
+            first: list(raw, 'first_names'),
+            last: list(raw, 'last_names'),
+          ),
+      ],
     );
   }
 
@@ -45,6 +94,32 @@ class NameLists {
 
   /// Full names that must never be produced (real people).
   final Set<String> blocked;
+
+  /// Country code of [first] and [last].
+  final String homeCode;
+  final double homeWeight;
+  final List<NationalityNames> others;
+
+  /// Draws a nationality by weight.
+  String pickNationality(SeededRandom rng) {
+    final weights = [homeWeight, for (final o in others) o.weight];
+    final index = rng.weightedIndex(weights);
+    return index == 0 ? homeCode : others[index - 1].code;
+  }
+
+  /// Draws (first name, last name) for [nationality]; unknown codes use the
+  /// home lists.
+  (String, String) pickName(SeededRandom rng, String nationality) {
+    var firstList = first;
+    var lastList = last;
+    for (final o in others) {
+      if (o.code == nationality) {
+        firstList = o.first;
+        lastList = o.last;
+      }
+    }
+    return (rng.pick(firstList), rng.pick(lastList));
+  }
 }
 
 /// Creates players from the numbers in the rules.
@@ -106,10 +181,21 @@ class PlayerGenerator {
     );
     final potentialDynamic = _dynamicPotential(rng, playerAge);
 
+    final identity = rng.fork('identity');
+    final nationality = names.pickNationality(identity);
+    final (firstName, lastName) = names.pickName(identity, nationality);
+    final profile = rng.fork('profile');
+    final foot = _foot(profile, position);
+    final secondary = _secondaryPositions(profile, position);
+
     return Player(
       id: id,
-      firstName: rng.pick(names.first),
-      lastName: rng.pick(names.last),
+      firstName: firstName,
+      lastName: lastName,
+      nationality: nationality,
+      foot: foot,
+      weakFoot: profile.weightedIndex(_g.weakFootWeights) + 1,
+      secondaryPositions: secondary,
       birthDate: birthDate,
       position: position,
       attributes: attributes,
@@ -158,6 +244,47 @@ class PlayerGenerator {
       }
     }
     return players;
+  }
+
+  Foot _foot(SeededRandom rng, Position position) {
+    final side = position.wideSide;
+    if (side == null) {
+      return rng.nextDouble() < _g.leftFootShare ? Foot.left : Foot.right;
+    }
+    final natural = rng.nextDouble() < _g.wideNaturalFootShare;
+    if (natural) return side;
+    return side == Foot.left ? Foot.right : Foot.left;
+  }
+
+  /// Zero to three secondary positions, close ones more often than far ones.
+  /// Goalkeepers have none.
+  Map<Position, PositionFamiliarity> _secondaryPositions(
+    SeededRandom rng,
+    Position position,
+  ) {
+    if (position.isGoalkeeper) return const {};
+    final distance = rules.tactics.positionDistance[position]!;
+    final candidates = [
+      for (final p in Position.values)
+        if (p != position &&
+            !p.isGoalkeeper &&
+            distance[p]! <= _g.secondaryMaxDistance)
+          p,
+    ];
+    var count = rng.weightedIndex(_g.secondaryCountWeights);
+    if (count > candidates.length) count = candidates.length;
+    final result = <Position, PositionFamiliarity>{};
+    while (result.length < count) {
+      final weights = [
+        for (final c in candidates)
+          result.containsKey(c) ? 0.0 : 1 / (1 + distance[c]!),
+      ];
+      final chosen = candidates[rng.weightedIndex(weights)];
+      result[chosen] = rng.nextDouble() < _g.trainedShare
+          ? PositionFamiliarity.trained
+          : PositionFamiliarity.practised;
+    }
+    return result;
   }
 
   int _age(SeededRandom rng) {

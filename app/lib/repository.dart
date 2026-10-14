@@ -143,6 +143,17 @@ class GameRepository {
                   for (final e in player.roles.entries) e.key: e.value.name,
                 }),
               ),
+              profileJson: Value(
+                jsonEncode({
+                  'foot': player.foot.id,
+                  'weak_foot': player.weakFoot,
+                  'nationality': player.nationality,
+                  'secondary': {
+                    for (final e in player.secondaryPositions.entries)
+                      e.key.id: e.value.name,
+                  },
+                }),
+              ),
               clubId: Value(player.clubId?.value),
             ),
           );
@@ -212,6 +223,9 @@ class GameRepository {
       for (final e in rolesRaw.entries)
         e.key: RoleFamiliarity.values.byName(e.value as String),
     };
+    final profile = jsonDecode(row.profileJson) as Map<String, dynamic>;
+    final secondaryRaw =
+        (profile['secondary'] as Map<String, dynamic>?) ?? const {};
 
     return Player(
       id: PlayerId(row.id),
@@ -229,6 +243,16 @@ class GameRepository {
       potentialCore: row.potentialCore,
       potentialDynamic: row.potentialDynamic,
       roles: roles,
+      foot: Foot.values.firstWhere(
+        (f) => f.id == (profile['foot'] ?? Foot.right.id),
+      ),
+      weakFoot: (profile['weak_foot'] as int?) ?? 3,
+      nationality: (profile['nationality'] as String?) ?? 'DE',
+      secondaryPositions: {
+        for (final e in secondaryRaw.entries)
+          Position.values.firstWhere((p) => p.id == e.key):
+              PositionFamiliarity.values.byName(e.value as String),
+      },
       clubId: row.clubId == null ? null : ClubId(row.clubId!),
       contract: contractRow == null ? null : _contract(contractRow),
     );

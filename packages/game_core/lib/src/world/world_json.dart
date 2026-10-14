@@ -97,6 +97,12 @@ class WorldJson {
     'potential_core': p.potentialCore,
     'potential_dynamic': p.potentialDynamic,
     'roles': {for (final e in p.roles.entries) e.key: e.value.name},
+    'foot': p.foot.id,
+    'weak_foot': p.weakFoot,
+    'nationality': p.nationality,
+    'secondary_positions': {
+      for (final e in p.secondaryPositions.entries) e.key.id: e.value.name,
+    },
     'club_id': p.clubId?.value,
     'contract': p.contract == null ? null : _contract(p.contract!),
   };
@@ -280,6 +286,15 @@ class WorldJson {
       roles: {
         for (final e in (m['roles'] as Map<String, dynamic>).entries)
           e.key: RoleFamiliarity.values.byName(e.value as String),
+      },
+      foot: Foot.values.firstWhere((f) => f.id == m['foot']),
+      weakFoot: m['weak_foot'] as int,
+      nationality: m['nationality'] as String,
+      secondaryPositions: {
+        for (final e
+            in (m['secondary_positions'] as Map<String, dynamic>).entries)
+          Position.values.firstWhere((p) => p.id == e.key):
+              PositionFamiliarity.values.byName(e.value as String),
       },
       clubId: m['club_id'] == null ? null : ClubId(m['club_id'] as int),
       contract: contractRaw == null

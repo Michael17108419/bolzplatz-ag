@@ -44,6 +44,12 @@ class GeneratorRules {
     required this.dynamicFrozenFromAge,
     required this.dynamicPerYear,
     required this.dynamicMax,
+    required this.leftFootShare,
+    required this.wideNaturalFootShare,
+    required this.weakFootWeights,
+    required this.secondaryCountWeights,
+    required this.secondaryMaxDistance,
+    required this.trainedShare,
     required this.traitMean,
     required this.traitSd,
     required this.injuryMean,
@@ -156,6 +162,23 @@ class GeneratorRules {
     final age = m['age_adjust'] as Map<String, dynamic>;
     final margin = m['potential_margin'] as Map<String, dynamic>;
     final dynamic_ = m['dynamic_potential'] as Map<String, dynamic>;
+    final profile = m['profile'] as Map<String, dynamic>;
+    List<double> weightList(String key, int length) {
+      final list = [
+        for (final w in profile[key] as List<dynamic>) (w as num).toDouble(),
+      ];
+      if (list.length != length || list.every((w) => w <= 0)) {
+        throw RulesError('profile.$key needs $length weights');
+      }
+      return List.unmodifiable(list);
+    }
+
+    double share(String key) {
+      final v = num_(profile, key);
+      if (v < 0 || v > 1) throw RulesError('profile.$key outside 0 to 1');
+      return v;
+    }
+
     final traits = m['traits'] as Map<String, dynamic>;
     final injury = m['injury_proneness'] as Map<String, dynamic>;
     final gk = (m['goalkeeper_field_attribute_range'] as List<dynamic>)
@@ -182,6 +205,12 @@ class GeneratorRules {
       dynamicFrozenFromAge: dynamic_['frozen_from_age'] as int,
       dynamicPerYear: num_(dynamic_, 'per_year'),
       dynamicMax: num_(dynamic_, 'max'),
+      leftFootShare: share('left_foot_share'),
+      wideNaturalFootShare: share('wide_natural_foot_share'),
+      weakFootWeights: weightList('weak_foot_weights', 5),
+      secondaryCountWeights: weightList('secondary_count_weights', 4),
+      secondaryMaxDistance: num_(profile, 'secondary_max_distance'),
+      trainedShare: share('trained_share'),
       traitMean: num_(traits, 'mean'),
       traitSd: num_(traits, 'sd'),
       injuryMean: num_(injury, 'mean'),
@@ -214,6 +243,24 @@ class GeneratorRules {
   final int dynamicFrozenFromAge;
   final double dynamicPerYear;
   final double dynamicMax;
+
+  /// Share of left-footed players on central positions.
+  final double leftFootShare;
+
+  /// Share of wide players whose foot is on their own side.
+  final double wideNaturalFootShare;
+
+  /// Weights of 1 to 5 weak-foot stars.
+  final List<double> weakFootWeights;
+
+  /// Weights of having 0, 1, 2 or 3 secondary positions.
+  final List<double> secondaryCountWeights;
+
+  /// Secondary positions only up to this distance deduction (in points).
+  final double secondaryMaxDistance;
+
+  /// Share of secondary positions that are trained (rest practised).
+  final double trainedShare;
   final double traitMean;
   final double traitSd;
   final double injuryMean;

@@ -175,8 +175,11 @@ class MatchSession {
       s.player,
       attributes,
       positionMult: mult,
+      footMult: _fit.weakFootMultiplier(s.player, s.position),
       role: role,
-      roleFactorValue: _fit.roleFactor(s.player, s.role),
+      roleFactorValue:
+          _fit.roleFactor(s.player, s.role) +
+          _fit.sideFactor(s.player, s.position, role),
     );
   }
 

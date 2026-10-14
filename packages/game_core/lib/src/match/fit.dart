@@ -14,15 +14,56 @@ class Fit {
   final Rules rules;
 
   /// Multiplier (0.4 to 1) for playing on [slot] instead of the own position.
-  /// Without secondary positions in the model, any other position counts as
-  /// unfamiliar and takes the full distance deduction.
+  /// A secondary position takes less of the distance deduction: trained
+  /// (at most [TacticsRules.trainedPointsMax] points), practised (a share of
+  /// it); every other position is foreign and takes all of it.
   double positionMultiplier(Player player, Position slot) {
     if (player.position == slot) return 1;
     final tactics = rules.tactics;
-    final points =
-        tactics.positionDistance[player.position]![slot]! *
-        tactics.unfamiliarFactor;
+    final distance = tactics.positionDistance[player.position]![slot]!;
+    final double points;
+    switch (player.secondaryPositions[slot]) {
+      case PositionFamiliarity.trained:
+        points = distance < tactics.trainedPointsMax
+            ? distance
+            : tactics.trainedPointsMax;
+      case PositionFamiliarity.practised:
+        points = distance * tactics.practisedFactor;
+      case null:
+        points = distance * tactics.unfamiliarFactor;
+    }
     return (1 - points / 100).limit(0.0, 1.0);
+  }
+
+  /// True when the foot of the player is on the side of the wide [slot];
+  /// null for central slots.
+  bool? naturalSide(Player player, Position slot) {
+    final side = slot.wideSide;
+    return side == null ? null : side == player.foot;
+  }
+
+  /// Multiplier (below 1 for a weak foot) for shots, passes and crosses of
+  /// the player on [slot]. Depends on the weak-foot stars and on how often
+  /// the weak foot is used on that slot.
+  double weakFootMultiplier(Player player, Position slot) {
+    final tactics = rules.tactics;
+    final penalty = tactics.weakFootPenalty[player.weakFoot]!;
+    if (penalty == 0) return 1;
+    final natural = naturalSide(player, slot);
+    final key = natural == null ? 'central' : (natural ? 'natural' : 'inverse');
+    return 1 - penalty * tactics.weakFootExposure[key]!;
+  }
+
+  /// Change of the role key values because foot and side fit the role or not
+  /// (0 when the role or the slot does not care).
+  double sideFactor(Player player, Position slot, RoleRule? role) {
+    final side = role?.side;
+    if (side == null) return 0;
+    final natural = naturalSide(player, slot);
+    if (natural == null) return 0;
+    final matches = (side == 'natural') == natural;
+    final f = rules.tactics.sideRoleFactor;
+    return matches ? f : -f;
   }
 
   /// Relative change of the role key values (for example 0.04 for "+").
@@ -62,13 +103,16 @@ class Fit {
     Player player,
     Iterable<Attribute> attributes, {
     double positionMult = 1,
+    double footMult = 1,
     RoleRule? role,
     double roleFactorValue = 0,
   }) {
+    final footAttributes = rules.tactics.weakFootAttributes;
     var sum = 0.0;
     var n = 0;
     for (final a in attributes) {
       var v = player.attributes[a] * positionMult;
+      if (footMult != 1 && footAttributes.contains(a)) v *= footMult;
       if (role != null && role.keyAttributes.contains(a)) {
         v *= 1 + roleFactorValue;
       }
@@ -84,6 +128,7 @@ class Fit {
       player,
       keyAttributes(slot),
       positionMult: positionMultiplier(player, slot),
+      footMult: weakFootMultiplier(player, slot),
     );
   }
 
@@ -96,8 +141,10 @@ class Fit {
       player,
       keys,
       positionMult: positionMultiplier(player, slot),
+      footMult: weakFootMultiplier(player, slot),
       role: role,
-      roleFactorValue: roleFactor(player, roleId),
+      roleFactorValue:
+          roleFactor(player, roleId) + sideFactor(player, slot, role),
     );
     final low = tactics.playerFitLow;
     final high = tactics.playerFitHigh;

@@ -34,6 +34,7 @@ class RoleRule {
     required this.keyAttributes,
     required this.fitsSystems,
     required this.onlyWithBackThreeOrFive,
+    this.side,
   });
 
   final String id;
@@ -43,6 +44,10 @@ class RoleRule {
 
   /// True for roles that exist only in a back three or back five.
   final bool onlyWithBackThreeOrFive;
+
+  /// "natural" (foot on his own side), "inverse" (foot on the other side) or
+  /// null when the foot does not matter for the role.
+  final String? side;
 }
 
 /// One formation: eleven slots, goalkeeper first.
@@ -109,6 +114,9 @@ class TacticsRules {
     required this.maxPlusRoles,
     required this.maxPlusPlusRoles,
     required this.weakFootPenalty,
+    required this.weakFootAttributes,
+    required this.weakFootExposure,
+    required this.sideRoleFactor,
     required this.roles,
     required this.formations,
     required this.systems,
@@ -216,6 +224,11 @@ class TacticsRules {
       maxPlusRoles: limits['max_plus'] as int,
       maxPlusPlusRoles: limits['max_plus_plus'] as int,
       weakFootPenalty: Map.unmodifiable(weakFoot),
+      weakFootAttributes: Set.unmodifiable(
+        _attributes(m['weak_foot_attributes']),
+      ),
+      weakFootExposure: _exposure(m['weak_foot_exposure']),
+      sideRoleFactor: (m['side_role_factor'] as num).toDouble(),
       roles: List.unmodifiable(roles),
       formations: List.unmodifiable(formations),
       systems: List.unmodifiable(systems),
@@ -255,6 +268,17 @@ class TacticsRules {
     );
   }
 
+  static Map<String, double> _exposure(Object? raw) {
+    final map = _numbers(raw);
+    for (final key in const ['central', 'natural', 'inverse']) {
+      final v = map[key];
+      if (v == null || v < 0 || v > 1) {
+        throw RulesError('weak_foot_exposure.$key needs a value in 0 to 1');
+      }
+    }
+    return map;
+  }
+
   static RoleRule _role(Map<String, dynamic> m) => RoleRule(
     id: m['id'] as String,
     positions: List.unmodifiable([
@@ -266,7 +290,16 @@ class TacticsRules {
     ),
     onlyWithBackThreeOrFive:
         (m['only_with_back_three_or_five'] as bool?) ?? false,
+    side: _side(m['side']),
   );
+
+  static String? _side(Object? raw) {
+    if (raw == null) return null;
+    if (raw != 'natural' && raw != 'inverse') {
+      throw RulesError('Unknown role side $raw');
+    }
+    return raw as String;
+  }
 
   static FormationRule _formation(Map<String, dynamic> m) {
     final slots = [
@@ -319,6 +352,17 @@ class TacticsRules {
 
   /// Share lost on pass, shot and cross per weak-foot star (1 to 5).
   final Map<int, double> weakFootPenalty;
+
+  /// Attributes that suffer from a weak foot (shots, passes, crosses).
+  final Set<Attribute> weakFootAttributes;
+
+  /// Share of the actions done with the weak foot on a central position
+  /// (`central`), on the natural side (`natural`) and on the inverse side
+  /// (`inverse`).
+  final Map<String, double> weakFootExposure;
+
+  /// Change of the role key values for a matching (+) or wrong (-) side.
+  final double sideRoleFactor;
 
   final List<RoleRule> roles;
   final List<FormationRule> formations;

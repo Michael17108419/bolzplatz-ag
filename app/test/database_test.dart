@@ -24,6 +24,10 @@ Player _player({Contract? contract}) => Player(
   potentialCore: 61,
   potentialDynamic: 9.5,
   roles: const {'target_man': RoleFamiliarity.expert},
+  foot: Foot.left,
+  weakFoot: 2,
+  nationality: 'PL',
+  secondaryPositions: const {Position.zom: PositionFamiliarity.trained},
   clubId: const ClubId(1),
   contract: contract,
 );
@@ -98,6 +102,10 @@ void main() {
     expect(loaded.traits, original.traits);
     expect(loaded.abilities, original.abilities);
     expect(loaded.roles, original.roles);
+    expect(loaded.foot, Foot.left);
+    expect(loaded.weakFoot, 2);
+    expect(loaded.nationality, 'PL');
+    expect(loaded.secondaryPositions, original.secondaryPositions);
     expect(loaded.birthDate, original.birthDate);
     expect(loaded.developmentType, DevelopmentType.lateBloomer);
     expect(loaded.potentialDynamic, 9.5);
