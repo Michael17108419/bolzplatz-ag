@@ -1794,7 +1794,7 @@
       "normal": 1.0,
       "fast": 1.08
     },
-    "home_advantage": 1.03,
+    "home_advantage": 1.02,
     "possession_exponent": 1.0,
     "breakthrough": {
       "base": 0.16,
@@ -1825,7 +1825,7 @@
       {
         "id": "close_range",
         "weight": 5.0,
-        "goal_base": 0.1649,
+        "goal_base": 0.1847,
         "attributes": [
           "goal_instinct",
           "finishing",
