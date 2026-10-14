@@ -4,11 +4,7 @@ import 'rules.dart';
 /// One of the twelve backstories: start levels of the nine manager values
 /// and the id of the hook (the text lives in the language files).
 class Backstory {
-  const Backstory({
-    required this.id,
-    required this.hook,
-    required this.levels,
-  });
+  const Backstory({required this.id, required this.hook, required this.levels});
 
   final String id;
   final String hook;

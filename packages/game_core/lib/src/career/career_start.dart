@@ -211,9 +211,8 @@ class OfferGenerator {
     var guard = 0;
     while (chosen.length < count && guard++ < 1000) {
       final tiers = tierWeights.keys.toList()..sort();
-      final tier = tiers[pick.weightedIndex([
-        for (final t in tiers) tierWeights[t]!,
-      ])];
+      final tier =
+          tiers[pick.weightedIndex([for (final t in tiers) tierWeights[t]!])];
       final club = pick.pick(_byTier[tier]!);
       if (chosen.any((c) => c.id == club.id)) continue;
       chosen.add(club);
@@ -247,9 +246,10 @@ class OfferGenerator {
 
     final quarter = ((rank - 1) * 4 ~/ size).limit(0, 3);
     final situations = Situation.values;
-    final situation = situations[rng.fork('situation').weightedIndex([
-      for (final s in situations) _o.situationWeights[s]![quarter],
-    ])];
+    final situation =
+        situations[rng.fork('situation').weightedIndex([
+          for (final s in situations) _o.situationWeights[s]![quarter],
+        ])];
 
     final lastRank = _lastSeasonRank(rng.fork('rank'), situation, size);
     final goal = switch (situation) {
@@ -309,9 +309,10 @@ class OfferGenerator {
   President _president(SeededRandom rng, int tier) {
     final weights = _o.presidentTypeWeightsByTier[tier]!;
     final ids = weights.keys.toList()..sort();
-    final typeId = ids[rng.fork('type').weightedIndex([
-      for (final id in ids) weights[id]!,
-    ])];
+    final typeId =
+        ids[rng.fork('type').weightedIndex([
+          for (final id in ids) weights[id]!,
+        ])];
     final type = rules.career.presidentTypes[typeId]!;
     final traitRng = rng.fork('traits');
     final traits = <PresidentTrait, double>{};
