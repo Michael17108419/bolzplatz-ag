@@ -106,7 +106,7 @@ void main() {
         );
         expect(p.potentialCore, greaterThanOrEqualTo(1));
         expect(p.potentialCore, lessThanOrEqualTo(100));
-        expect(p.potentialDynamic, inInclusiveRange(0, 12));
+        expect(p.potentialDynamic, inInclusiveRange(-10, 10));
         if (age >= 28) expect(p.potentialDynamic, 0);
       }
     }

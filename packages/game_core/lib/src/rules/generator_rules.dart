@@ -43,7 +43,7 @@ class GeneratorRules {
     required this.clubLevelPersistence,
     required this.dynamicFrozenFromAge,
     required this.dynamicPerYear,
-    required this.dynamicMax,
+    required this.dynamicSd,
     required this.leftFootShare,
     required this.wideNaturalFootShare,
     required this.weakFootWeights,
@@ -204,7 +204,7 @@ class GeneratorRules {
       clubLevelPersistence: num_(m, 'club_level_persistence'),
       dynamicFrozenFromAge: dynamic_['frozen_from_age'] as int,
       dynamicPerYear: num_(dynamic_, 'per_year'),
-      dynamicMax: num_(dynamic_, 'max'),
+      dynamicSd: num_(dynamic_, 'sd'),
       leftFootShare: share('left_foot_share'),
       wideNaturalFootShare: share('wide_natural_foot_share'),
       weakFootWeights: weightList('weak_foot_weights', 5),
@@ -242,7 +242,7 @@ class GeneratorRules {
   final double clubLevelPersistence;
   final int dynamicFrozenFromAge;
   final double dynamicPerYear;
-  final double dynamicMax;
+  final double dynamicSd;
 
   /// Share of left-footed players on central positions.
   final double leftFootShare;

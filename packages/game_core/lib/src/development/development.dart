@@ -94,14 +94,29 @@ class Development {
       values[a] = (next.limit(Attribute.min, Attribute.max) * 10).round() / 10;
     }
 
+    // The dynamic part of the potential rises with playing time and with a
+    // professional, ambitious character, and falls without them (also with
+    // a party life). It is frozen from [dynamicFrozenFromAge].
     var dynamic = p.potentialDynamic;
     if (age < g.dynamicFrozenFromAge) {
-      dynamic += dev.dynamicChangePerYear * (minutesShare - 0.5) * 2;
-      dynamic = dynamic.limit(0.0, dev.dynamicMax);
+      var change = dev.dynamicChangePerYear * (minutesShare - 0.5) * 2;
+      for (final e in dev.dynamicTraitEffect.entries) {
+        change += e.value * (p.traits[e.key]! - 50) / 50;
+      }
+      dynamic = (dynamic + change).limit(-dev.dynamicMax, dev.dynamicMax);
     }
+
+    final traits = {
+      for (final e in p.traits.entries)
+        e.key:
+            ((e.value + dev.traitDelta(e.key, age)).limit(1.0, 100.0) * 10)
+                .round() /
+            10,
+    };
     return p.copyWith(
       attributes: AttributeSet.fromMap(values),
       potentialDynamic: (dynamic * 10).round() / 10,
+      traits: traits,
     );
   }
 }

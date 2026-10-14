@@ -487,7 +487,7 @@
     "dynamic_potential": {
       "frozen_from_age": 28,
       "per_year": 0.8,
-      "max": 12
+      "sd": 3.0
     },
     "profile": {
       "left_foot_share": 0.24,
@@ -2236,7 +2236,30 @@
     "potential_headroom": 5.0,
     "coupling_cap_per_season": 3.0,
     "dynamic_change_per_year": 1.0,
-    "dynamic_max": 12.0,
+    "dynamic_max": 10.0,
+    "dynamic_trait_effect": {
+      "professionalism": 0.3,
+      "ambition": 0.2,
+      "party_factor": -0.3
+    },
+    "trait_reference_age": 25,
+    "trait_aging": {
+      "rise_per_year": 1.0,
+      "fall_per_year": 1.0,
+      "traits": {
+        "professionalism": { "rise_until": 30 },
+        "aggression": { "rise_until": 27, "fall_from": 33 },
+        "leadership": { "rise_until": 34 },
+        "pressure_resistance": { "rise_until": 32 },
+        "creativity": { "rise_until": 28 },
+        "media_hunger": { "fall_from": 30 },
+        "party_factor": { "fall_from": 28 },
+        "greed": { "rise_until": 28 },
+        "ambition": { "rise_until": 30, "fall_from": 32 },
+        "loyalty": { "rise_until": 40 },
+        "consistency": { "rise_until": 30 }
+      }
+    },
     "contract_extension_years": [
       1,
       2,

@@ -45,8 +45,8 @@ class Player {
     if (potentialCore < 1 || potentialCore > 100) {
       throw ArgumentError('Potential core outside 1 to 100');
     }
-    if (potentialDynamic < 0 || potentialDynamic > 100) {
-      throw ArgumentError('Potential dynamic share outside 0 to 100');
+    if (potentialDynamic < -100 || potentialDynamic > 100) {
+      throw ArgumentError('Potential dynamic share outside -100 to 100');
     }
     if (weakFoot < 1 || weakFoot > 5) {
       throw ArgumentError('Weak foot outside 1 to 5 stars');
@@ -92,7 +92,8 @@ class Player {
   /// Dynamic part of the potential (moves with development and play).
   final double potentialDynamic;
 
-  /// Role id (from rules) to familiarity. Missing means basic (no bonus, no deduction).
+  /// Role id (from rules) to familiarity. Missing means basic (no bonus, no
+  /// deduction).
   final Map<String, RoleFamiliarity> roles;
 
   /// Preferred foot.

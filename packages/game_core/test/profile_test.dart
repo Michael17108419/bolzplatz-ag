@@ -50,6 +50,7 @@ List<Player> _sample(int squads) {
 }
 
 void main() {
+  _agingTests();
   group('player model', () {
     test('rejects bad profile data', () {
       expect(() => _player(weakFoot: 0), throwsArgumentError);
@@ -157,7 +158,7 @@ void main() {
     });
 
     test('trained: at most two points, practised: half, foreign: all', () {
-      final st = Position.st;
+      const st = Position.st;
       final base = _player(position: st, foot: Foot.right);
       final trained = _player(
         position: st,
@@ -234,6 +235,140 @@ void main() {
         _fit.playerFit(leftFoot, Position.ra, 'wide_playmaker'),
       );
       expect(_fit.sideFactor(rightFoot, Position.zm, null), 0);
+    });
+  });
+}
+
+void _agingTests() {
+  group('character aging and dynamic potential', () {
+    final dev = _rules.development;
+
+    test('traits change by age as in the table', () {
+      // Professionalism rises until 30, then stays.
+      expect(dev.traitDelta(CharacterTrait.professionalism, 30), 1);
+      expect(dev.traitDelta(CharacterTrait.professionalism, 31), 0);
+      // Aggression: rises to 27, plateau to 32, then falls.
+      expect(dev.traitDelta(CharacterTrait.aggression, 27), 1);
+      expect(dev.traitDelta(CharacterTrait.aggression, 30), 0);
+      expect(dev.traitDelta(CharacterTrait.aggression, 33), -1);
+      // Party factor falls from 28, media hunger from 30.
+      expect(dev.traitDelta(CharacterTrait.partyFactor, 27), 0);
+      expect(dev.traitDelta(CharacterTrait.partyFactor, 28), -1);
+      expect(dev.traitDelta(CharacterTrait.mediaHunger, 29), 0);
+      expect(dev.traitDelta(CharacterTrait.mediaHunger, 30), -1);
+      // Ambition: high until 30, falls from 32.
+      expect(dev.traitDelta(CharacterTrait.ambition, 31), 0);
+      expect(dev.traitDelta(CharacterTrait.ambition, 32), -1);
+      // Temper does not change.
+      expect(dev.traitDelta(CharacterTrait.temper, 20), 0);
+      expect(dev.traitDelta(CharacterTrait.temper, 35), 0);
+    });
+
+    test('the shift between two ages adds up in both directions', () {
+      const t = CharacterTrait.leadership;
+      expect(dev.traitShift(t, 25, 34), 9);
+      expect(dev.traitShift(t, 25, 40), 9);
+      expect(dev.traitShift(t, 25, 20), -5);
+      expect(dev.traitShift(t, 25, 25), 0);
+    });
+
+    test('one year of development moves the traits of the player', () {
+      final p = _player(position: Position.zm);
+      final next = Development(_rules).advance(
+        p,
+        newSeasonStart: GameDate(2027, 7, 1),
+        rng: SeededRandom(1),
+        minutesShare: 0.8,
+      );
+      final age = next.ageOn(GameDate(2027, 7, 1));
+      expect(
+        next.traits[CharacterTrait.professionalism],
+        50 + dev.traitDelta(CharacterTrait.professionalism, age),
+      );
+      expect(next.traits[CharacterTrait.temper], 50);
+    });
+
+    test('the dynamic potential can fall below zero and is capped at 10', () {
+      final young = Player(
+        id: const PlayerId(2),
+        firstName: 'A',
+        lastName: 'B',
+        birthDate: GameDate(2007, 1, 1),
+        position: Position.zm,
+        attributes: AttributeSet.filled(60),
+        traits: {for (final t in CharacterTrait.values) t: 50},
+        injuryProneness: 30,
+        abilities: const [],
+        developmentType: DevelopmentType.normal,
+        potentialCore: 70,
+        potentialDynamic: -9.8,
+      );
+      final bench = Development(_rules).advance(
+        young,
+        newSeasonStart: GameDate(2027, 7, 1),
+        rng: SeededRandom(1),
+        minutesShare: 0,
+      );
+      expect(bench.potentialDynamic, lessThan(-9.8));
+      expect(bench.potentialDynamic, greaterThanOrEqualTo(-dev.dynamicMax));
+      final star = young.copyWith(potentialDynamic: 9.9);
+      final plays = Development(_rules).advance(
+        star,
+        newSeasonStart: GameDate(2027, 7, 1),
+        rng: SeededRandom(1),
+        minutesShare: 1,
+      );
+      expect(plays.potentialDynamic, dev.dynamicMax);
+    });
+
+    test('older players keep their dynamic potential', () {
+      // Born 1995: 32 years old, so the value is frozen.
+      final frozen = Player(
+        id: const PlayerId(3),
+        firstName: 'A',
+        lastName: 'B',
+        birthDate: GameDate(1995, 1, 1),
+        position: Position.zm,
+        attributes: AttributeSet.filled(60),
+        traits: {for (final t in CharacterTrait.values) t: 50},
+        injuryProneness: 30,
+        abilities: const [],
+        developmentType: DevelopmentType.normal,
+        potentialCore: 70,
+        potentialDynamic: -3,
+      );
+      final after = Development(_rules).advance(
+        frozen,
+        newSeasonStart: GameDate(2027, 7, 1),
+        rng: SeededRandom(1),
+        minutesShare: 1,
+      );
+      expect(after.potentialDynamic, -3);
+    });
+
+    test('generated traits and dynamic potential follow the age', () {
+      final players = _sample(120);
+      double mean(Iterable<double> v) => v.reduce((a, b) => a + b) / v.length;
+      double trait(Iterable<Player> group, CharacterTrait t) =>
+          mean(group.map((p) => p.traits[t]!));
+      final young = players.where(
+        (p) => p.ageOn(GameDate(2026, 7, 1)) <= 21,
+      );
+      final old = players.where((p) => p.ageOn(GameDate(2026, 7, 1)) >= 31);
+      // Leadership rises until 34, so older players have more of it.
+      expect(
+        trait(old, CharacterTrait.leadership),
+        greaterThan(trait(young, CharacterTrait.leadership)),
+      );
+      // The party factor falls from 28.
+      expect(
+        trait(old, CharacterTrait.partyFactor),
+        lessThan(trait(young, CharacterTrait.partyFactor)),
+      );
+      // The dynamic potential has both signs among players below 28.
+      final open = players.where((p) => p.ageOn(GameDate(2026, 7, 1)) < 28);
+      expect(open.any((p) => p.potentialDynamic < 0), isTrue);
+      expect(open.any((p) => p.potentialDynamic > 0), isTrue);
     });
   });
 }

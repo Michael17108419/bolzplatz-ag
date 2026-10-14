@@ -287,15 +287,17 @@ class WorldJson {
         for (final e in (m['roles'] as Map<String, dynamic>).entries)
           e.key: RoleFamiliarity.values.byName(e.value as String),
       },
-      foot: Foot.values.firstWhere((f) => f.id == m['foot']),
-      weakFoot: m['weak_foot'] as int,
-      nationality: m['nationality'] as String,
+      // Files written before these fields existed use neutral values.
+      foot: Foot.values.firstWhere((f) => f.id == (m['foot'] ?? 'R')),
+      weakFoot: (m['weak_foot'] as int?) ?? 3,
+      nationality: (m['nationality'] as String?) ?? 'DE',
       secondaryPositions: {
         for (final e
-            in (m['secondary_positions'] as Map<String, dynamic>).entries)
-          Position.values.firstWhere((p) => p.id == e.key): PositionFamiliarity
-              .values
-              .byName(e.value as String),
+            in ((m['secondary_positions'] as Map<String, dynamic>?) ??
+                    const <String, dynamic>{})
+                .entries)
+          Position.values.firstWhere((p) => p.id == e.key):
+              PositionFamiliarity.values.byName(e.value as String),
       },
       clubId: m['club_id'] == null ? null : ClubId(m['club_id'] as int),
       contract: contractRaw == null

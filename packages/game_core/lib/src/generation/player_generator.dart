@@ -200,9 +200,21 @@ class PlayerGenerator {
       position: position,
       attributes: attributes,
       traits: {
+        // The draw is the value at the reference age; younger players have
+        // not yet grown into their character, older ones have changed.
         for (final t in CharacterTrait.values)
           t: _round1(
-            _clamp(_g.traitMean + rng.nextGaussian() * _g.traitSd, 1, 100),
+            _clamp(
+              _g.traitMean +
+                  rng.nextGaussian() * _g.traitSd +
+                  rules.development.traitShift(
+                    t,
+                    rules.development.traitReferenceAge,
+                    playerAge,
+                  ),
+              1,
+              100,
+            ),
           ),
       },
       injuryProneness: _round1(
@@ -409,9 +421,10 @@ class PlayerGenerator {
 
   double _dynamicPotential(SeededRandom rng, int age) {
     if (age >= _g.dynamicFrozenFromAge) return 0;
-    final base = (_g.dynamicFrozenFromAge - age) * _g.dynamicPerYear;
-    final value = base * (0.5 + rng.nextDouble());
-    return value > _g.dynamicMax ? _g.dynamicMax : value;
+    // Young players tend to have room to grow, with a spread both ways.
+    final mean = (_g.dynamicFrozenFromAge - age) * _g.dynamicPerYear;
+    final max = rules.development.dynamicMax;
+    return _clamp(mean + rng.nextGaussian() * _g.dynamicSd, -max, max);
   }
 
   List<SpecialAbility> _abilities(
