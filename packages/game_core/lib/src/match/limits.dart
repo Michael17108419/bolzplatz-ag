@@ -5,5 +5,6 @@ extension DoubleLimit on double {
 }
 
 extension IntLimit on int {
-  int limit(int low, int high) => this < low ? low : (this > high ? high : this);
+  int limit(int low, int high) =>
+      this < low ? low : (this > high ? high : this);
 }

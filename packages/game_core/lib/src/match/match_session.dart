@@ -160,8 +160,7 @@ class MatchSession {
         (_m.formMaxFactor - _m.formMinFactor) * form / 100;
   }
 
-  double _energyFactor(_Slot s) =>
-      1 - _m.fatigueScale * (1 - s.energy / 100);
+  double _energyFactor(_Slot s) => 1 - _m.fatigueScale * (1 - s.energy / 100);
 
   double _slotMean(_Side side, _Slot s, Iterable<Attribute> attributes) {
     final tactics = rules.tactics;
@@ -308,9 +307,7 @@ class MatchSession {
       homeStats: _sides[0].stats,
       awayStats: _sides[1].stats,
       injuries: List.unmodifiable(_injuries),
-      minutesPlayed: {
-        for (final side in _sides) ...side.played,
-      },
+      minutesPlayed: {for (final side in _sides) ...side.played},
     );
   }
 
@@ -361,8 +358,7 @@ class MatchSession {
         _m.tempoPhaseFactor[rules.tactics.sliders[1].levels[side.sheet.tempo
             .limit(0, 2)]]!,
     ];
-    final phases =
-        _m.phasesPerMatch / _m.minutes * (tempo[0] + tempo[1]) / 2;
+    final phases = _m.phasesPerMatch / _m.minutes * (tempo[0] + tempo[1]) / 2;
     var n = phases.floor();
     if (_rng.nextDouble() < phases - n) n++;
     for (var i = 0; i < n; i++) {
@@ -619,7 +615,8 @@ class MatchSession {
     if (defending) {
       final keeper = side.pitch.where((s) => s.position.isGoalkeeper);
       if (keeper.isNotEmpty) {
-        final command = keeper.first.player.attributes[Attribute.gkCommandOfArea];
+        final command =
+            keeper.first.player.attributes[Attribute.gkCommandOfArea];
         mean = (mean * 3 + command) / 4;
       }
     }
@@ -639,14 +636,19 @@ class MatchSession {
     return slots[_rng.weightedIndex(weights)].player;
   }
 
-  void _crossChance(int t, double base, double takerScore, MatchEventType type) {
+  void _crossChance(
+    int t,
+    double base,
+    double takerScore,
+    MatchEventType type,
+  ) {
     final attacker = _sides[t];
     final defender = _sides[1 - t];
-    final ratio = _headerStrength(attacker) / _headerStrength(defender, defending: true);
-    final goal = (base *
-            math.pow(ratio, _m.goalExponent) *
-            math.pow(takerScore / 50, 1))
-        .limit(_m.goalMin, _m.goalMax);
+    final ratio =
+        _headerStrength(attacker) / _headerStrength(defender, defending: true);
+    final goal =
+        (base * math.pow(ratio, _m.goalExponent) * math.pow(takerScore / 50, 1))
+            .limit(_m.goalMin, _m.goalMax);
     final scorer = _headerScorer(attacker);
     if (_rng.nextDouble() < goal) {
       _shot(t, scorer, 'header', null, 1);
@@ -662,9 +664,9 @@ class MatchSession {
     _add(MatchEventType.freeKick, t, player: taker);
     if (_rng.nextDouble() < _m.freeKickDirectShare) {
       final keeper = _sides[1 - t].ratings.keeper;
-      final goal = (_m.freeKickDirectGoal *
-              math.pow(score / keeper, _m.goalExponent))
-          .limit(_m.goalMin, _m.goalMax);
+      final goal =
+          (_m.freeKickDirectGoal * math.pow(score / keeper, _m.goalExponent))
+              .limit(_m.goalMin, _m.goalMax);
       _shot(t, taker, 'long_shot', null, goal);
     } else {
       _crossChance(t, _m.freeKickCrossGoal, score, MatchEventType.freeKick);
@@ -703,7 +705,10 @@ class MatchSession {
   void _cardsAndInjuries(int minute) {
     for (var i = 0; i < 2; i++) {
       final side = _sides[i];
-      final p = math.max(0.0, _m.yellowPerMinutePerTeam + (side.fx['yellow'] ?? 0));
+      final p = math.max(
+        0.0,
+        _m.yellowPerMinutePerTeam + (side.fx['yellow'] ?? 0),
+      );
       if (side.pitch.length > 1 && _rng.nextDouble() < p) {
         final slots = [
           for (final s in side.pitch)
@@ -897,20 +902,22 @@ class MatchSession {
       _Slot? tired;
       for (final s in side.pitch) {
         if (s.position.isGoalkeeper) continue;
-        if (s.energy < _m.aiTiredEnergy && (tired == null || s.energy < tired.energy)) {
+        if (s.energy < _m.aiTiredEnergy &&
+            (tired == null || s.energy < tired.energy)) {
           tired = s;
         }
       }
       final target = tired;
       if (target != null) {
-        final options = [
-          for (final p in side.bench)
-            if (!p.position.isGoalkeeper) p,
-        ]..sort(
-            (a, b) => _fit
-                .slotScore(b, target.position)
-                .compareTo(_fit.slotScore(a, target.position)),
-          );
+        final options =
+            [
+              for (final p in side.bench)
+                if (!p.position.isGoalkeeper) p,
+            ]..sort(
+              (a, b) => _fit
+                  .slotScore(b, target.position)
+                  .compareTo(_fit.slotScore(a, target.position)),
+            );
         if (options.isNotEmpty) {
           substitute(i, target.player.id, options.first.id);
           return;

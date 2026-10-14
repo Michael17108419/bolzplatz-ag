@@ -276,8 +276,9 @@ class MatchRules {
       ratingPositions: Map.unmodifiable({
         for (final e in rating.entries)
           e.key: List<Position>.unmodifiable([
-            for (final id in (e.value as Map<String, dynamic>)['positions']
-                as List<dynamic>)
+            for (final id
+                in (e.value as Map<String, dynamic>)['positions']
+                    as List<dynamic>)
               Position.values.firstWhere(
                 (p) => p.id == id,
                 orElse: () => throw RulesError('Unknown position $id'),

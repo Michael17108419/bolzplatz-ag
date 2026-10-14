@@ -44,7 +44,10 @@ class Fit {
   /// Attributes that count for a position (positive weights in the profile).
   List<Attribute> keyAttributes(Position position) {
     if (position.isGoalkeeper) {
-      return [for (final a in Attribute.values) if (a.isGoalkeeping) a];
+      return [
+        for (final a in Attribute.values)
+          if (a.isGoalkeeping) a,
+      ];
     }
     final profile = rules.generator.positionProfiles[position]!;
     return [

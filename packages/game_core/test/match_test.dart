@@ -109,12 +109,8 @@ void main() {
   test('substitutions: limits and goalkeeper rule', () {
     final home = byTier(1)[2];
     final away = byTier(1)[3];
-    final session = MatchSession(
-      rules: rules,
-      home: home,
-      away: away,
-      seed: 3,
-    )..advanceTo(30);
+    final session = MatchSession(rules: rules, home: home, away: away, seed: 3)
+      ..advanceTo(30);
     final keeperOff = home.sheet.startingXi[0];
     final fieldOff = home.sheet.startingXi[5];
     final bench = session.benchOf(0);
