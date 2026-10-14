@@ -4,6 +4,7 @@ import '../model/attribute.dart';
 import '../model/region.dart';
 import '../model/special_ability.dart';
 import '../result/result.dart';
+import 'generator_rules.dart';
 
 /// Reason why a rules file could not be used.
 class RulesError {
@@ -64,6 +65,7 @@ class Rules {
     required this.tierMultiplier,
     required this.ageCurves,
     required this.fourthLeagueRelegatedToPool,
+    required this.generator,
   });
 
   /// The only schema version this code understands.
@@ -80,6 +82,9 @@ class Rules {
   /// Minimum number of last-placed clubs per fourth-tier league that move
   /// into the pool (more if needed to keep the league at its size).
   final int fourthLeagueRelegatedToPool;
+
+  /// Numbers for the player generator.
+  final GeneratorRules generator;
 
   /// Parses and validates a rules file given as JSON text.
   static Result<Rules, RulesError> parse(String jsonText) {
@@ -177,6 +182,9 @@ class Rules {
       tierMultiplier: Map.unmodifiable(tierMultiplier),
       ageCurves: Map.unmodifiable(curves),
       fourthLeagueRelegatedToPool: toPool,
+      generator: GeneratorRules.fromJson(
+        root['generator'] as Map<String, dynamic>,
+      ),
     );
   }
 
