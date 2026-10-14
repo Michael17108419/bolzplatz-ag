@@ -34,9 +34,7 @@ void main() {
   test('back line size matches the formation name', () {
     for (final f in _tactics().formations) {
       expect(f.backLine, int.parse(f.id.substring(0, 1)), reason: f.id);
-      final defenders = f.slots
-          .where((p) => p == Position.iv)
-          .length;
+      final defenders = f.slots.where((p) => p == Position.iv).length;
       expect(defenders, f.backLine == 4 ? 2 : 3, reason: f.id);
       expect(f.wingBackSlots, f.backLine == 3, reason: f.id);
     }
@@ -55,15 +53,22 @@ void main() {
     }
   });
 
-  test('every position offers at least one role and every role fits a system', () {
-    final t = _tactics();
-    for (final p in Position.values) {
-      expect(t.roles.any((r) => r.positions.contains(p)), isTrue, reason: p.id);
-    }
-    for (final r in t.roles) {
-      expect(r.fitsSystems, isNotEmpty, reason: r.id);
-    }
-  });
+  test(
+    'every position offers at least one role and every role fits a system',
+    () {
+      final t = _tactics();
+      for (final p in Position.values) {
+        expect(
+          t.roles.any((r) => r.positions.contains(p)),
+          isTrue,
+          reason: p.id,
+        );
+      }
+      for (final r in t.roles) {
+        expect(r.fitsSystems, isNotEmpty, reason: r.id);
+      }
+    },
+  );
 
   test('goalkeeper roles use goalkeeper attributes, field roles do not', () {
     for (final r in _tactics().roles) {
@@ -106,7 +111,8 @@ void main() {
 
   test('a formation with a missing slot is rejected', () {
     final result = _parseChanged((t) {
-      final f = (t['formations'] as List<dynamic>).first as Map<String, dynamic>;
+      final f =
+          (t['formations'] as List<dynamic>).first as Map<String, dynamic>;
       (f['slots'] as List<dynamic>).removeLast();
     });
     expect(result.errorOrNull, isNotNull);

@@ -18,8 +18,8 @@ Attribute _attribute(String id) {
 }
 
 List<Attribute> _attributes(Object? raw) => List.unmodifiable([
-      for (final id in raw! as List<dynamic>) _attribute(id as String),
-    ]);
+  for (final id in raw! as List<dynamic>) _attribute(id as String),
+]);
 
 /// One role (what a player does on his position).
 class RoleRule {
@@ -206,10 +206,9 @@ class TacticsRules {
       fitBonusMax: (m['fit_bonus_max'] as num).toDouble(),
       warmupMinutes: live['warmup_minutes'] as int,
       freeChanges: live['free_changes'] as int,
-      penaltyPerExtraChange: (live['penalty_per_extra_change'] as num).toDouble(),
-      talks: List.unmodifiable(
-        (m['talks'] as List<dynamic>).cast<String>(),
-      ),
+      penaltyPerExtraChange: (live['penalty_per_extra_change'] as num)
+          .toDouble(),
+      talks: List.unmodifiable((m['talks'] as List<dynamic>).cast<String>()),
     );
   }
 
@@ -228,17 +227,17 @@ class TacticsRules {
   }
 
   static RoleRule _role(Map<String, dynamic> m) => RoleRule(
-        id: m['id'] as String,
-        positions: List.unmodifiable([
-          for (final id in m['positions'] as List<dynamic>)
-            _position(id as String),
-        ]),
-        keyAttributes: _attributes(m['key_attributes']),
-        fitsSystems:
-            List.unmodifiable((m['fits_systems'] as List<dynamic>).cast<String>()),
-        onlyWithBackThreeOrFive:
-            (m['only_with_back_three_or_five'] as bool?) ?? false,
-      );
+    id: m['id'] as String,
+    positions: List.unmodifiable([
+      for (final id in m['positions'] as List<dynamic>) _position(id as String),
+    ]),
+    keyAttributes: _attributes(m['key_attributes']),
+    fitsSystems: List.unmodifiable(
+      (m['fits_systems'] as List<dynamic>).cast<String>(),
+    ),
+    onlyWithBackThreeOrFive:
+        (m['only_with_back_three_or_five'] as bool?) ?? false,
+  );
 
   static FormationRule _formation(Map<String, dynamic> m) {
     final slots = [
