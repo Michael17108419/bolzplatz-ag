@@ -22,7 +22,8 @@ class GameRepository {
             name: Value(league.name),
             level: Value(league.level),
             teamCount: Value(league.teamCount),
-            region: Value(league.region?.id),),
+            region: Value(league.region?.id),
+          ),
         );
   }
 
@@ -50,7 +51,8 @@ class GameRepository {
             shortName: Value(club.shortName),
             place: Value(club.place),
             region: Value(club.region.id),
-            leagueId: Value(club.leagueId.value),),
+            leagueId: Value(club.leagueId.value),
+          ),
         );
   }
 
@@ -74,8 +76,7 @@ class GameRepository {
     final year = entry.season.startYear;
     await _db.transaction(() async {
       await (_db.delete(_db.leagueSeasonClubs)..where(
-            (t) =>
-                t.leagueId.equals(leagueId) & t.seasonStartYear.equals(year),
+            (t) => t.leagueId.equals(leagueId) & t.seasonStartYear.equals(year),
           ))
           .go();
       for (final clubId in entry.clubIds) {
@@ -85,13 +86,17 @@ class GameRepository {
               LeagueSeasonClubsCompanion(
                 leagueId: Value(leagueId),
                 seasonStartYear: Value(year),
-                clubId: Value(clubId.value),),
+                clubId: Value(clubId.value),
+              ),
             );
       }
     });
   }
 
-  Future<List<ClubId>> loadLeagueSeasonClubs(LeagueId league, Season season) async {
+  Future<List<ClubId>> loadLeagueSeasonClubs(
+    LeagueId league,
+    Season season,
+  ) async {
     final rows =
         await (_db.select(_db.leagueSeasonClubs)
               ..where(
@@ -118,21 +123,28 @@ class GameRepository {
               birthEpochDay: Value(player.birthDate.epochDay),
               position: Value(player.position.id),
               attributesJson: Value(jsonEncode(player.attributes.toList())),
-              traitsJson: Value(jsonEncode({
-                for (final e in player.traits.entries) e.key.id: e.value,
-              })),
+              traitsJson: Value(
+                jsonEncode({
+                  for (final e in player.traits.entries) e.key.id: e.value,
+                }),
+              ),
               injuryProneness: Value(player.injuryProneness),
-              abilitiesJson: Value(jsonEncode([
-                for (final a in player.abilities)
-                  {'type': a.type.id, 'tier': a.tier.name},
-              ])),
+              abilitiesJson: Value(
+                jsonEncode([
+                  for (final a in player.abilities)
+                    {'type': a.type.id, 'tier': a.tier.name},
+                ]),
+              ),
               developmentType: Value(player.developmentType.id),
               potentialCore: Value(player.potentialCore),
               potentialDynamic: Value(player.potentialDynamic),
-              rolesJson: Value(jsonEncode({
-                for (final e in player.roles.entries) e.key: e.value.name,
-              })),
-              clubId: Value(player.clubId?.value),),
+              rolesJson: Value(
+                jsonEncode({
+                  for (final e in player.roles.entries) e.key: e.value.name,
+                }),
+              ),
+              clubId: Value(player.clubId?.value),
+            ),
           );
       final contract = player.contract;
       if (contract != null) await _saveContract(contract);
@@ -157,7 +169,8 @@ class GameRepository {
             signingBonus: Value(c.signingBonus),
             releaseClause: Value(c.releaseClause),
             rolePromise: Value(c.rolePromise),
-            loanFromClubId: Value(c.loanFromClubId?.value),),
+            loanFromClubId: Value(c.loanFromClubId?.value),
+          ),
         );
   }
 

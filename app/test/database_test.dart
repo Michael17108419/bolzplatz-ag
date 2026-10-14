@@ -155,7 +155,8 @@ void main() {
               id: const Value(5),
               name: Value('X'),
               place: Value('Y'),
-              leagueId: const Value(404),),
+              leagueId: const Value(404),
+            ),
           ),
       throwsA(isA<Exception>()),
     );

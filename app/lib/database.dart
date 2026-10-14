@@ -98,14 +98,7 @@ class LeagueSeasonClubs extends Table {
 }
 
 @DriftDatabase(
-  tables: [
-    Leagues,
-    Clubs,
-    Players,
-    Coaches,
-    Contracts,
-    LeagueSeasonClubs,
-  ],
+  tables: [Leagues, Clubs, Players, Coaches, Contracts, LeagueSeasonClubs],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
@@ -133,8 +126,8 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> addClub(String name, String place) async {
     final next = (await allClubs()).length + 1;
-    await into(
-      clubs,
-    ).insert(ClubsCompanion(id: Value(next), name: Value(name), place: Value(place)));
+    await into(clubs).insert(
+      ClubsCompanion(id: Value(next), name: Value(name), place: Value(place)),
+    );
   }
 }
