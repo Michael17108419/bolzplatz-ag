@@ -620,7 +620,11 @@ class MatchSession {
     final goal =
         (type.goalBase *
                 _m.qualityGoalMult[qualityIndex] *
-                math.pow(scores[typeIndex] / keeper, _m.goalExponent))
+                math.pow(scores[typeIndex] / keeper, _m.goalExponent) *
+                math.pow(
+                  _m.keeperQualityReference / keeper,
+                  _m.keeperQualityExponent,
+                ))
             .limit(_m.goalMin, _m.goalMax);
     _shot(t, shooter, type.id, quality, goal);
   }

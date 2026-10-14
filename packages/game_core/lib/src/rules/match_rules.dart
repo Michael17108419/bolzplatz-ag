@@ -72,6 +72,8 @@ class MatchRules {
     required this.qualityWeights,
     required this.qualityGoalMult,
     required this.goalExponent,
+    required this.keeperQualityReference,
+    required this.keeperQualityExponent,
     required this.goalMin,
     required this.goalMax,
     required this.shotTypes,
@@ -221,6 +223,8 @@ class MatchRules {
           _d((quality[k] as Map<String, dynamic>)['goal_mult']),
       ]),
       goalExponent: _d(goal['exponent']),
+      keeperQualityReference: _d(goal['keeper_quality_reference']),
+      keeperQualityExponent: _d(goal['keeper_quality_exponent']),
       goalMin: _d(goal['min']),
       goalMax: _d(goal['max']),
       shotTypes: List.unmodifiable(shotTypes),
@@ -364,6 +368,12 @@ class MatchRules {
   final List<double> qualityWeights;
   final List<double> qualityGoalMult;
   final double goalExponent;
+
+  /// Weaker goalkeepers concede more than the ratio of shooter to keeper
+  /// alone says: the goal chance is also multiplied by
+  /// (reference / keeper) ^ exponent.
+  final double keeperQualityReference;
+  final double keeperQualityExponent;
   final double goalMin;
   final double goalMax;
   final List<ShotTypeRule> shotTypes;

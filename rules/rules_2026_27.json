@@ -1818,6 +1818,8 @@
     },
     "goal": {
       "exponent": 1.2,
+      "keeper_quality_reference": 60,
+      "keeper_quality_exponent": 0.4,
       "min": 0.01,
       "max": 0.7
     },
@@ -1825,7 +1827,7 @@
       {
         "id": "close_range",
         "weight": 5.0,
-        "goal_base": 0.1847,
+        "goal_base": 0.2124,
         "attributes": [
           "goal_instinct",
           "finishing",
