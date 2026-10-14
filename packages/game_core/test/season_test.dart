@@ -46,7 +46,7 @@ void main() {
   });
 
   test('league table orders by points, goal difference, goals', () {
-    final t = LeagueTable([ClubId(1), ClubId(2), ClubId(3)])
+    final t = LeagueTable(const [ClubId(1), ClubId(2), ClubId(3)])
       ..record(ClubId(1), ClubId(2), 2, 0)
       ..record(ClubId(2), ClubId(3), 1, 1)
       ..record(ClubId(3), ClubId(1), 0, 0);
