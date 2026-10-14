@@ -125,6 +125,10 @@ class MatchRules {
     required this.aiTiredEnergy,
     required this.aiCheckInterval,
     required this.aiAttackWhenTrailingMinute,
+    required this.attackRateReference,
+    required this.abilityShotBonus,
+    required this.ratingAttributes,
+    required this.ratingPositions,
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -155,6 +159,7 @@ class MatchRules {
     final mom = m['momentum'] as Map<String, dynamic>;
     final sliderFit = m['slider_fit'] as Map<String, dynamic>;
     final ai = m['ai'] as Map<String, dynamic>;
+    final rating = m['team_rating'] as Map<String, dynamic>;
     final severity = [
       for (final w in inj['severity_weights'] as List<dynamic>) _d(w),
     ];
@@ -262,6 +267,23 @@ class MatchRules {
       aiTiredEnergy: _d(ai['tired_energy']),
       aiCheckInterval: ai['check_interval'] as int,
       aiAttackWhenTrailingMinute: ai['attack_when_trailing_minute'] as int,
+      attackRateReference: _d(m['attack_rate_reference']),
+      abilityShotBonus: _d(m['ability_shot_bonus']),
+      ratingAttributes: Map.unmodifiable({
+        for (final e in rating.entries)
+          e.key: _attributes((e.value as Map<String, dynamic>)['attributes']),
+      }),
+      ratingPositions: Map.unmodifiable({
+        for (final e in rating.entries)
+          e.key: List<Position>.unmodifiable([
+            for (final id in (e.value as Map<String, dynamic>)['positions']
+                as List<dynamic>)
+              Position.values.firstWhere(
+                (p) => p.id == id,
+                orElse: () => throw RulesError('Unknown position $id'),
+              ),
+          ]),
+      }),
     );
     result._validate();
     return result;
@@ -378,4 +400,15 @@ class MatchRules {
   final double aiTiredEnergy;
   final int aiCheckInterval;
   final int aiAttackWhenTrailingMinute;
+
+  /// Attack probability per minute that the system `rate` effects refer to.
+  final double attackRateReference;
+
+  /// Relative shot quality bonus per unit of the ability tier multiplier.
+  final double abilityShotBonus;
+
+  /// Attributes and positions of the groups `build`, `attack`, `defense`
+  /// and `duel_header`.
+  final Map<String, List<Attribute>> ratingAttributes;
+  final Map<String, List<Position>> ratingPositions;
 }

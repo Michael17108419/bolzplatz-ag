@@ -1795,7 +1795,7 @@
     "home_advantage": 1.04,
     "possession_exponent": 1.5,
     "breakthrough": {
-      "base": 0.2,
+      "base": 0.17,
       "exponent": 1.8,
       "min": 0.04,
       "max": 0.6
@@ -1979,12 +1979,12 @@
     },
     "fatigue": {
       "start_minute": 55,
-      "scale": 0.35,
+      "scale": 0.2,
       "stamina_reference": 70.0,
       "stamina_min_factor": 0.5,
       "stamina_max_factor": 1.5,
       "base_drain": 0.08,
-      "energy_loss_per_minute": 0.55
+      "energy_loss_per_minute": 0.33
     },
     "form": {
       "min_factor": 0.95,
@@ -2065,6 +2065,74 @@
       "max_ai_changes_per_check": 1,
       "check_interval": 5,
       "attack_when_trailing_minute": 70
+    },
+    "attack_rate_reference": 0.3,
+    "ability_shot_bonus": 0.05,
+    "team_rating": {
+      "build": {
+        "positions": [
+          "ZDM",
+          "ZM",
+          "ZOM",
+          "LV",
+          "RV"
+        ],
+        "attributes": [
+          "short_passing",
+          "ball_control",
+          "vision",
+          "decision_making"
+        ]
+      },
+      "attack": {
+        "positions": [
+          "LA",
+          "RA",
+          "ST",
+          "ZOM"
+        ],
+        "attributes": [
+          "finishing",
+          "dribbling",
+          "goal_instinct",
+          "acceleration",
+          "composure"
+        ]
+      },
+      "defense": {
+        "positions": [
+          "IV",
+          "LV",
+          "RV",
+          "ZDM",
+          "ZM"
+        ],
+        "attributes": [
+          "defensive_awareness",
+          "standing_tackle",
+          "strength",
+          "heading",
+          "interceptions"
+        ]
+      },
+      "duel_header": {
+        "positions": [
+          "IV",
+          "ZDM",
+          "ST",
+          "LA",
+          "RA",
+          "ZOM",
+          "ZM",
+          "LV",
+          "RV"
+        ],
+        "attributes": [
+          "heading",
+          "jumping",
+          "strength"
+        ]
+      }
     }
   }
 }
