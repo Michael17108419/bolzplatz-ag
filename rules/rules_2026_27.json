@@ -471,6 +471,7 @@
     },
     "attribute_noise_sd": 5,
     "club_level_sd": 4,
+    "club_level_persistence": 0.9,
     "potential_margin": {
       "mean": 3,
       "sd": 2

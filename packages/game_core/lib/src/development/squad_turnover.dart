@@ -50,6 +50,7 @@ class SquadTurnover {
     }
     nextId++;
 
+    final offsets = <ClubId, double>{};
     final result = <ClubId, List<Player>>{};
     for (final club in clubIds) {
       final tier = tiers[club] ?? 5;
@@ -69,10 +70,14 @@ class SquadTurnover {
             position: p.position,
             tier: tier,
             clubId: club,
-            levelOffset: WorldGenerator.clubLevelOffset(
-              rules,
-              rules.world.seed,
+            levelOffset: offsets.putIfAbsent(
               club,
+              () => WorldGenerator.clubLevelOffset(
+                rules,
+                rules.world.seed,
+                club,
+                year: newStartYear - rules.seasonStartYear,
+              ),
             ),
             age: rng
                 .fork('youth-age:$nextId')

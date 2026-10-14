@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../calendar/game_date.dart';
 import '../calendar/season.dart';
 import '../generation/player_generator.dart';
@@ -112,11 +114,25 @@ class WorldGenerator {
     );
   }
 
-  /// How much stronger or weaker than its tier a club is, fixed by the
-  /// world seed and the club id alone.
-  static double clubLevelOffset(Rules rules, int worldSeed, ClubId club) {
-    final rng = SeededRandom(worldSeed).fork('club-level:${club.value}');
-    return rng.nextGaussian() * rules.generator.clubLevelSd;
+  /// How much stronger or weaker than its tier a club is [year] years after
+  /// the start. The level follows a yearly random walk that falls back to the
+  /// tier mean, so clubs rise and fall over the decades. It is fixed by the
+  /// world seed, the club id and the year alone.
+  static double clubLevelOffset(
+    Rules rules,
+    int worldSeed,
+    ClubId club, {
+    int year = 0,
+  }) {
+    final g = rules.generator;
+    final root = SeededRandom(worldSeed).fork('club-level:${club.value}');
+    var level = root.nextGaussian() * g.clubLevelSd;
+    final rho = g.clubLevelPersistence;
+    final step = g.clubLevelSd * math.sqrt(1 - rho * rho);
+    for (var y = 1; y <= year; y++) {
+      level = level * rho + root.fork('year:$y').nextGaussian() * step;
+    }
+    return level;
   }
 
   /// Draws new names until the full name is neither blocked nor taken.

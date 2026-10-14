@@ -40,6 +40,7 @@ class GeneratorRules {
     required this.potentialMarginMean,
     required this.potentialMarginSd,
     required this.clubLevelSd,
+    required this.clubLevelPersistence,
     required this.dynamicFrozenFromAge,
     required this.dynamicPerYear,
     required this.dynamicMax,
@@ -177,6 +178,7 @@ class GeneratorRules {
       potentialMarginMean: num_(margin, 'mean'),
       potentialMarginSd: num_(margin, 'sd'),
       clubLevelSd: num_(m, 'club_level_sd'),
+      clubLevelPersistence: num_(m, 'club_level_persistence'),
       dynamicFrozenFromAge: dynamic_['frozen_from_age'] as int,
       dynamicPerYear: num_(dynamic_, 'per_year'),
       dynamicMax: num_(dynamic_, 'max'),
@@ -206,6 +208,9 @@ class GeneratorRules {
 
   /// Spread of the level of whole clubs around the mean of their tier.
   final double clubLevelSd;
+
+  /// How much of a club's level carries over to the next year (0 to 1).
+  final double clubLevelPersistence;
   final int dynamicFrozenFromAge;
   final double dynamicPerYear;
   final double dynamicMax;
