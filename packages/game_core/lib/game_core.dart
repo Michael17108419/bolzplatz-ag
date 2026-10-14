@@ -5,3 +5,8 @@
 /// - no wall clock and no platform random source outside the seeded generator
 /// - no player-facing text; use language file keys
 library;
+
+export 'src/calendar/game_date.dart';
+export 'src/calendar/season.dart';
+export 'src/result/result.dart';
+export 'src/rng/seeded_random.dart';

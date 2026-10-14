@@ -1,0 +1,33 @@
+name: format
+
+# Formats Dart code on main and commits the result. Replaces a strict format
+# check until the code is written on a machine with Dart installed.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/**.dart'
+      - 'app/lib/**.dart'
+      - 'app/test/**.dart'
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - run: dart format packages app/lib app/test
+      - name: Commit if changed
+        run: |
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -am "Format Dart code"
+            git push
+          fi
