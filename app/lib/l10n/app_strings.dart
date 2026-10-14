@@ -27,9 +27,11 @@ abstract interface class AppStrings {
   String get careerStepTrainer;
   String get careerStepBackstory;
   String get careerStepWish;
+  String get careerStepLook;
   String get careerStepOffers;
   String get next;
   String get trainerHeading;
+  String get lookHeading;
   String get trainerNameLabel;
   String get trainerRandomLook;
   String lookLabel(String key);
@@ -123,9 +125,13 @@ class AppStringsDe implements AppStrings {
   @override
   String get careerStepWish => 'Wunschverein';
   @override
+  String get careerStepLook => 'Kleidung';
+  @override
   String get careerStepOffers => 'Angebote';
   @override
   String get next => 'Weiter';
+  @override
+  String get lookHeading => 'Brille und Kleidung';
   @override
   String get trainerHeading => 'Wer bist du?';
   @override

@@ -7,6 +7,7 @@ import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'backstory_step.dart';
+import 'look_step.dart';
 import 'offers_step.dart';
 import 'placeholder_page.dart';
 import 'screen_frame.dart';
@@ -72,19 +73,29 @@ class _CareerWizardState extends ConsumerState<_CareerWizard> {
     final loaded = widget.loaded;
     final titles = [
       s.careerStepTrainer,
+      s.careerStepLook,
       s.careerStepBackstory,
       s.careerStepWish,
       s.careerStepOffers,
     ];
     final Widget body = switch (_step) {
-      0 => TrainerStep(loaded: loaded, onNext: () => _go(1)),
-      1 => BackstoryStep(
+      0 => TrainerStep(
         loaded: loaded,
-        onBack: () => _go(0),
-        onNext: () => _go(2),
+        onBack: () => Navigator.of(context).maybePop(),
+        onNext: () => _go(1),
       ),
-      2 => WishStep(loaded: loaded, onBack: () => _go(1), onNext: () => _go(3)),
-      _ => OffersStep(loaded: loaded, onBack: () => _go(2), onAccept: _accept),
+      1 => LookStep(loaded: loaded, onBack: () => _go(0), onNext: () => _go(2)),
+      2 => BackstoryStep(
+        loaded: loaded,
+        onBack: () => _go(1),
+        onNext: () => _go(3),
+      ),
+      3 => WishStep(loaded: loaded, onBack: () => _go(2), onNext: () => _go(4)),
+      _ => OffersStep(
+        loaded: loaded,
+        onBack: () => _go(3),
+        onAccept: _accept,
+      ),
     };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

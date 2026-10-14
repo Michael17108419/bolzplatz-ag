@@ -15,7 +15,11 @@ class SettingsPage extends ConsumerWidget {
     final theme = Theme.of(context);
     return ScreenFrame(
       title: s.settingsTitle,
-      child: ListView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: ListView(
         children: [
           Text(s.settingsLanguage, style: theme.textTheme.titleMedium),
           const SizedBox(height: Tokens.gapS),
@@ -38,6 +42,19 @@ class SettingsPage extends ConsumerWidget {
                 ),
               ),
             ),
+          ),
+        ],
+            ),
+          ),
+          const SizedBox(height: Tokens.gapM),
+          Row(
+            children: [
+              TextButton(
+                key: const ValueKey('settings-back'),
+                onPressed: () => Navigator.of(context).maybePop(),
+                child: Text(s.back),
+              ),
+            ],
           ),
         ],
       ),

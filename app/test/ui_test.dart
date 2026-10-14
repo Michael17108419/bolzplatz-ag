@@ -46,7 +46,7 @@ void main() {
     expect(find.text('Neues Spiel'), findsOneWidget);
   });
 
-  testWidgets('a career is started through the four steps', (tester) async {
+  testWidgets('a career is started through the five steps', (tester) async {
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -60,16 +60,21 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(next);
     await tester.pumpAndSettle();
-    // Step 2: a backstory.
+    // Step 2: glasses and clothes.
+    await tester.tap(find.byKey(const ValueKey('outfit-4')));
+    await tester.pumpAndSettle();
+    await tester.tap(next);
+    await tester.pumpAndSettle();
+    // Step 3: a backstory.
     expect(tester.widget<FilledButton>(next).onPressed, isNull);
     await tester.tap(find.byKey(const ValueKey('story-pe_teacher')));
     await tester.pumpAndSettle();
     await tester.tap(next);
     await tester.pumpAndSettle();
-    // Step 3: no wish club.
+    // Step 4: no wish club.
     await tester.tap(next);
     await tester.pumpAndSettle();
-    // Step 4: offers; take the first.
+    // Step 5: offers; take the first.
     expect(find.byKey(const ValueKey('offer-0')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('offer-0')));
     await tester.pumpAndSettle();

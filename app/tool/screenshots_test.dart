@@ -67,6 +67,14 @@ void main() {
     );
     await tester.tap(next);
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('outfit-4')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/04b_kleidung.png'),
+    );
+    await tester.tap(next);
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('story-pe_teacher')));
     await tester.pumpAndSettle();
     await expectLater(
