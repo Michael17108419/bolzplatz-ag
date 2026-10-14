@@ -112,6 +112,7 @@ class AutoManager {
     if (keeper != null) bench.add(keeper);
     for (final p in rest) {
       if (bench.length >= 7) break;
+      if (p.position.isGoalkeeper) continue;
       if (!bench.contains(p)) bench.add(p);
     }
     final system = SystemFit(rules).bestSystem(bestEleven);

@@ -1793,10 +1793,10 @@
       "fast": 1.08
     },
     "home_advantage": 1.04,
-    "possession_exponent": 1.5,
+    "possession_exponent": 1.0,
     "breakthrough": {
       "base": 0.145,
-      "exponent": 1.8,
+      "exponent": 1.2,
       "min": 0.04,
       "max": 0.6
     },
@@ -1815,7 +1815,7 @@
       }
     },
     "goal": {
-      "exponent": 1.8,
+      "exponent": 1.2,
       "min": 0.01,
       "max": 0.7
     },
@@ -1950,11 +1950,11 @@
     },
     "cards": {
       "yellow_per_minute_per_team": 0.014,
-      "straight_red_per_minute": 0.0015,
+      "straight_red_per_minute": 0.0008,
       "second_yellow_is_red": true,
       "red_card_strength": 0.92,
       "lead_risk_factor": 0.0,
-      "repeat_yellow_weight": 0.35
+      "repeat_yellow_weight": 0.25
     },
     "injuries": {
       "per_player_per_minute": 0.00014,

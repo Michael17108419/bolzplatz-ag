@@ -117,7 +117,9 @@ void main() {
     final benchKeeper = bench.firstWhere(
       (id) => home.squad.firstWhere((p) => p.id == id).position.isGoalkeeper,
     );
-    final benchField = bench.firstWhere((id) => id != benchKeeper);
+    final benchField = bench.firstWhere(
+      (id) => !home.squad.firstWhere((p) => p.id == id).position.isGoalkeeper,
+    );
     expect(session.substitute(0, keeperOff, benchField), isFalse);
     expect(session.substitute(0, fieldOff, benchKeeper), isFalse);
     expect(session.substitute(0, fieldOff, benchField), isTrue);
