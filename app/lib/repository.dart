@@ -69,9 +69,7 @@ class GameRepository {
       place: row.place,
       region: _region(row.region),
       leagueId: row.leagueId == null ? null : LeagueId(row.leagueId!),
-      parentClubId: row.parentClubId == null
-          ? null
-          : ClubId(row.parentClubId!),
+      parentClubId: row.parentClubId == null ? null : ClubId(row.parentClubId!),
     );
   }
 
@@ -354,9 +352,7 @@ class GameRepository {
           place: r.place,
           region: _region(r.region),
           leagueId: r.leagueId == null ? null : LeagueId(r.leagueId!),
-          parentClubId: r.parentClubId == null
-              ? null
-              : ClubId(r.parentClubId!),
+          parentClubId: r.parentClubId == null ? null : ClubId(r.parentClubId!),
         ),
     ];
 
