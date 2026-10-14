@@ -285,7 +285,7 @@ void main() {
   test('a second team in the fourth tier is not promoted', () {
     final west = _regionalLeague(Region.west);
     final second = ClubId(west * 100 + 1);
-    final r = _run(_input(secondTeams: {second: ClubId(101)}));
+    final r = _run(_input(secondTeams: {second: const ClubId(101)}));
     final l3 = r.leagues[_lid(3)]!;
     expect(l3.contains(second), isFalse);
     expect(l3.contains(ClubId(west * 100 + 2)), isTrue);
@@ -295,13 +295,13 @@ void main() {
   test('a second team goes down when its first team drops next to it', () {
     // First team 117 is relegated to the second tier, so its second team 305
     // in the third tier may not stay one tier below.
-    final r = _run(_input(secondTeams: {ClubId(305): ClubId(117)}));
-    expect(r.leagues[_lid(3)]!.contains(ClubId(305)), isFalse);
+    final r = _run(_input(secondTeams: {const ClubId(305): const ClubId(117)}));
+    expect(r.leagues[_lid(3)]!.contains(const ClubId(305)), isFalse);
     final inFourth = [
       for (final l in _rules.leagues.where((l) => l.level == 4))
         ...r.leagues[_lid(l.id)]!,
     ];
-    expect(inFourth.contains(ClubId(305)), isTrue);
+    expect(inFourth.contains(const ClubId(305)), isTrue);
     // The ordinary fourth-tier relegations are not lost.
     expect(r.leagues[_lid(3)]!, hasLength(20));
   });
@@ -311,8 +311,8 @@ void main() {
     // team plays there already and goes to the pool.
     final nordost = _regionalLeague(Region.nordost);
     final second = ClubId(nordost * 100 + 5);
-    final r = _run(_input(secondTeams: {second: ClubId(317)}));
-    expect(r.leagues[_lid(nordost)]!.contains(ClubId(317)), isTrue);
+    final r = _run(_input(secondTeams: {second: const ClubId(317)}));
+    expect(r.leagues[_lid(nordost)]!.contains(const ClubId(317)), isTrue);
     expect(r.leagues[_lid(nordost)]!.contains(second), isFalse);
     expect(r.pools[Region.nordost]!.contains(second), isTrue);
     expect(r.leagues[_lid(nordost)]!, hasLength(18));
@@ -322,9 +322,9 @@ void main() {
     final nordost = _regionalLeague(Region.nordost);
     final input = _input(
       secondTeams: {
-        ClubId(nordost * 100 + 5): ClubId(317),
-        ClubId(305): ClubId(117),
-        ClubId(301): ClubId(101),
+        ClubId(nordost * 100 + 5): const ClubId(317),
+        const ClubId(305): const ClubId(117),
+        const ClubId(301): const ClubId(101),
       },
     );
     final r = _run(input);
