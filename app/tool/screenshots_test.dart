@@ -104,18 +104,20 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     const looks = [
-      TrainerAppearance(skin: 1, hairStyle: 1, hairColour: 1, jacket: 1),
-      TrainerAppearance(skin: 2, hairStyle: 2, hairColour: 0, beard: 1),
-      TrainerAppearance(skin: 0, hairStyle: 3, hairColour: 3, glasses: 1),
-      TrainerAppearance(skin: 3, hairStyle: 4, hairColour: 0, beard: 2),
-      TrainerAppearance(skin: 4, hairStyle: 5, hairColour: 2, beard: 3),
-      TrainerAppearance(skin: 1, hairStyle: 2, hairColour: 4, glasses: 2),
-      TrainerAppearance(skin: 0, hairStyle: 0, beard: 2, glasses: 1, jacket: 3),
-      TrainerAppearance(skin: 2, hairStyle: 3, hairColour: 1, beard: 3),
-      TrainerAppearance(skin: 3, hairStyle: 1, hairColour: 4, beard: 1),
-      TrainerAppearance(skin: 4, hairStyle: 4, hairColour: 3, glasses: 2),
-      TrainerAppearance(skin: 0, hairStyle: 5, hairColour: 1, beard: 2),
-      TrainerAppearance(skin: 1, hairStyle: 0, glasses: 2, jacket: 4),
+      TrainerAppearance(skin: 1, hairStyle: 1, hairColour: 1, outfit: 0, outfitColour: 0),
+      TrainerAppearance(skin: 2, hairStyle: 2, hairColour: 0, beard: 1, outfit: 1, outfitColour: 1),
+      TrainerAppearance(skin: 0, hairStyle: 3, hairColour: 3, glasses: 1, outfit: 2, outfitColour: 3),
+      TrainerAppearance(skin: 3, hairStyle: 4, hairColour: 0, beard: 2, outfit: 3, outfitColour: 2),
+      TrainerAppearance(skin: 4, hairStyle: 5, hairColour: 2, beard: 3, outfit: 4, outfitColour: 4),
+      TrainerAppearance(skin: 1, hairStyle: 2, hairColour: 4, glasses: 2, outfit: 5, outfitColour: 0),
+      TrainerAppearance(skin: 0, hairStyle: 0, beard: 2, glasses: 1, outfit: 6, outfitColour: 5),
+      TrainerAppearance(gender: 1, skin: 0, hairStyle: 4, hairColour: 2, outfit: 0, outfitColour: 2),
+      TrainerAppearance(gender: 1, skin: 2, hairStyle: 3, hairColour: 0, outfit: 1, outfitColour: 5),
+      TrainerAppearance(gender: 1, skin: 4, hairStyle: 2, hairColour: 1, glasses: 1, outfit: 2, outfitColour: 1),
+      TrainerAppearance(gender: 1, skin: 1, hairStyle: 1, hairColour: 3, outfit: 3, outfitColour: 3),
+      TrainerAppearance(gender: 1, skin: 3, hairStyle: 5, hairColour: 4, outfit: 4, outfitColour: 3),
+      TrainerAppearance(gender: 2, skin: 2, hairStyle: 1, hairColour: 0, glasses: 2, outfit: 5, outfitColour: 2),
+      TrainerAppearance(gender: 2, skin: 0, hairStyle: 0, beard: 3, outfit: 1, outfitColour: 4),
     ];
     await tester.pumpWidget(
       MaterialApp(
@@ -123,10 +125,10 @@ void main() {
           backgroundColor: const Color(0xFF12261A),
           body: Center(
             child: Wrap(
-              spacing: 24,
-              runSpacing: 24,
+              spacing: 16,
+              runSpacing: 16,
               children: [
-                for (final l in looks) TrainerAvatar(appearance: l, size: 180),
+                for (final l in looks) TrainerAvatar(appearance: l, size: 150),
               ],
             ),
           ),

@@ -41,12 +41,16 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
     final o = widget.loaded.rules.career.appearanceOptions;
     _look(
       TrainerAppearance(
+        gender: ref.read(careerDraftProvider).appearance.gender,
         skin: r.nextInt(o['skin']!),
         hairStyle: r.nextInt(o['hair_style']!),
         hairColour: r.nextInt(o['hair_colour']!),
-        beard: r.nextInt(o['beard']!),
+        beard: ref.read(careerDraftProvider).appearance.gender == 1
+            ? 0
+            : r.nextInt(o['beard']!),
         glasses: r.nextInt(o['glasses']!),
-        jacket: r.nextInt(o['jacket']!),
+        outfit: r.nextInt(o['outfit']!),
+        outfitColour: r.nextInt(o['outfit_colour']!),
       ),
     );
   }
@@ -79,7 +83,7 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                 onTap: () => _look(switch (key) {
                   'skin' => a.copyWith(skin: i),
                   'hair_colour' => a.copyWith(hairColour: i),
-                  _ => a.copyWith(jacket: i),
+                  _ => a.copyWith(outfitColour: i),
                 }),
               ),
           ],
@@ -124,9 +128,11 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                   children: [
                     TrainerAvatar(appearance: a, size: 220),
                     const SizedBox(height: Tokens.gapM),
-                    TextButton(
+                    TextButton.icon(
+                      key: const ValueKey('random-look'),
                       onPressed: _randomLook,
-                      child: Text(s.trainerRandomLook),
+                      icon: const DiceIcon(),
+                      label: Text(s.trainerRandomLook),
                     ),
                   ],
                 ),
@@ -159,6 +165,12 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                       ),
                     ),
                     const SizedBox(height: Tokens.gapL),
+                    chips(
+                      'gender',
+                      [for (var i = 0; i < o['gender']!; i++) s.genderName(i)],
+                      a.gender,
+                      (i) => a.copyWith(gender: i, beard: i == 1 ? 0 : a.beard),
+                    ),
                     swatches('skin', TrainerLooks.skin, a.skin, o['skin']!),
                     chips(
                       'hair_style',
@@ -175,7 +187,8 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                       a.hairColour,
                       o['hair_colour']!,
                     ),
-                    chips(
+                    if (a.gender != 1)
+                      chips(
                       'beard',
                       [for (var i = 0; i < o['beard']!; i++) s.beardName(i)],
                       a.beard,
@@ -190,11 +203,17 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                       a.glasses,
                       (i) => a.copyWith(glasses: i),
                     ),
+                    chips(
+                      'outfit',
+                      [for (var i = 0; i < o['outfit']!; i++) s.outfitName(i)],
+                      a.outfit,
+                      (i) => a.copyWith(outfit: i),
+                    ),
                     swatches(
-                      'jacket',
-                      TrainerLooks.jacket,
-                      a.jacket,
-                      o['jacket']!,
+                      'outfit_colour',
+                      TrainerLooks.outfit,
+                      a.outfitColour,
+                      o['outfit_colour']!,
                     ),
                   ],
                 ),
@@ -272,4 +291,40 @@ class _Swatch extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A small die, drawn by hand (the icon font is not always available).
+class DiceIcon extends StatelessWidget {
+  const DiceIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) =>
+      const SizedBox(width: 24, height: 24, child: CustomPaint(painter: _DicePainter()));
+}
+
+class _DicePainter extends CustomPainter {
+  const _DicePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final box = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(size.width * 0.22),
+    );
+    canvas.drawRRect(box, Paint()..color = Tokens.yellow);
+    final dot = Paint()..color = Tokens.ink;
+    final r = size.width * 0.085;
+    for (final p in const [
+      Offset(0.28, 0.28),
+      Offset(0.72, 0.28),
+      Offset(0.5, 0.5),
+      Offset(0.28, 0.72),
+      Offset(0.72, 0.72),
+    ]) {
+      canvas.drawCircle(Offset(p.dx * size.width, p.dy * size.height), r, dot);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DicePainter old) => false;
 }

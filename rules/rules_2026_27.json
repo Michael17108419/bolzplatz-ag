@@ -2231,12 +2231,14 @@
     "value_spread_sd": 4,
     "standing_thresholds": { "0": 40, "+": 62, "++": 80 },
     "appearance_options": {
+      "gender": 3,
       "skin": 5,
       "hair_style": 6,
       "hair_colour": 5,
       "beard": 4,
       "glasses": 3,
-      "jacket": 6
+      "outfit": 7,
+      "outfit_colour": 6
     },
     "backstories": [
       { "id": "failed_pro", "hook": "hook_failed_pro", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+" } },

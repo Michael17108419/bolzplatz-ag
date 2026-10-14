@@ -103,54 +103,70 @@ enum ClubQuirk {
 /// How the manager looks: indices into the options of the rules.
 class TrainerAppearance {
   const TrainerAppearance({
+    this.gender = 0,
     this.skin = 0,
     this.hairStyle = 0,
     this.hairColour = 0,
     this.beard = 0,
     this.glasses = 0,
-    this.jacket = 0,
+    this.outfit = 0,
+    this.outfitColour = 0,
   });
 
+  /// 0 man, 1 woman, 2 diverse.
+  final int gender;
   final int skin;
   final int hairStyle;
   final int hairColour;
   final int beard;
   final int glasses;
-  final int jacket;
+
+  /// Kind of clothing (tracksuit jacket, T-shirt, hoodie, polo, suit with
+  /// tie, lumberjack shirt, tank top).
+  final int outfit;
+  final int outfitColour;
 
   TrainerAppearance copyWith({
+    int? gender,
     int? skin,
     int? hairStyle,
     int? hairColour,
     int? beard,
     int? glasses,
-    int? jacket,
+    int? outfit,
+    int? outfitColour,
   }) => TrainerAppearance(
+    gender: gender ?? this.gender,
     skin: skin ?? this.skin,
     hairStyle: hairStyle ?? this.hairStyle,
     hairColour: hairColour ?? this.hairColour,
     beard: beard ?? this.beard,
     glasses: glasses ?? this.glasses,
-    jacket: jacket ?? this.jacket,
+    outfit: outfit ?? this.outfit,
+    outfitColour: outfitColour ?? this.outfitColour,
   );
 
   Map<String, int> toJson() => {
+    'gender': gender,
     'skin': skin,
     'hair_style': hairStyle,
     'hair_colour': hairColour,
     'beard': beard,
     'glasses': glasses,
-    'jacket': jacket,
+    'outfit': outfit,
+    'outfit_colour': outfitColour,
   };
 
   factory TrainerAppearance.fromJson(Map<String, dynamic> m) =>
       TrainerAppearance(
+        gender: m['gender'] as int,
         skin: m['skin'] as int,
         hairStyle: m['hair_style'] as int,
         hairColour: m['hair_colour'] as int,
         beard: m['beard'] as int,
         glasses: m['glasses'] as int,
-        jacket: m['jacket'] as int,
+        outfit: m['outfit'] as int,
+        outfitColour: m['outfit_colour'] as int,
       );
 
   @override
@@ -161,11 +177,21 @@ class TrainerAppearance {
       other.hairColour == hairColour &&
       other.beard == beard &&
       other.glasses == glasses &&
-      other.jacket == jacket;
+      other.gender == gender &&
+      other.outfit == outfit &&
+      other.outfitColour == outfitColour;
 
   @override
-  int get hashCode =>
-      Object.hash(skin, hairStyle, hairColour, beard, glasses, jacket);
+  int get hashCode => Object.hash(
+    gender,
+    skin,
+    hairStyle,
+    hairColour,
+    beard,
+    glasses,
+    outfit,
+    outfitColour,
+  );
 }
 
 /// The player's manager: name, looks, backstory and the nine values.

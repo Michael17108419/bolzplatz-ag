@@ -33,6 +33,8 @@ abstract interface class AppStrings {
   String get trainerNameLabel;
   String get trainerRandomLook;
   String lookLabel(String key);
+  String genderName(int index);
+  String outfitName(int index);
   String hairStyleName(int index);
   String beardName(int index);
   String glassesName(int index);
@@ -137,9 +139,23 @@ class AppStringsDe implements AppStrings {
     'hair_colour' => 'Haarfarbe',
     'beard' => 'Bart',
     'glasses' => 'Brille',
-    'jacket' => 'Trainingsjacke',
+    'gender' => 'Geschlecht',
+    'outfit' => 'Kleidung',
+    'outfit_colour' => 'Farbe der Kleidung',
     _ => key,
   };
+  @override
+  String genderName(int index) => const ['Mann', 'Frau', 'Divers'][index];
+  @override
+  String outfitName(int index) => const [
+    'Trainingsjacke',
+    'T-Shirt',
+    'Hoodie',
+    'Polo',
+    'Anzug mit Krawatte',
+    'Holzfällerhemd',
+    'Muskelshirt',
+  ][index];
   @override
   String hairStyleName(int index) => const [
     'Glatze',

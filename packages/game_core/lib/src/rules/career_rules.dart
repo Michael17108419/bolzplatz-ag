@@ -102,12 +102,14 @@ class CareerRules {
     final appearanceRaw = m['appearance_options'] as Map<String, dynamic>;
     final appearance = {
       for (final key in const [
+        'gender',
         'skin',
         'hair_style',
         'hair_colour',
         'beard',
         'glasses',
-        'jacket',
+        'outfit',
+        'outfit_colour',
       ])
         key: appearanceRaw[key] as int,
     };
@@ -306,7 +308,7 @@ class CareerRules {
   final Map<TraitLevel, double> standingThresholds;
 
   /// Number of options per looks setting (`skin`, `hair_style`,
-  /// `hair_colour`, `beard`, `glasses`, `jacket`).
+  /// `hair_colour`, `beard`, `glasses`, `outfit`, `outfit_colour`).
   final Map<String, int> appearanceOptions;
   final List<Backstory> backstories;
   final OfferRules offers;

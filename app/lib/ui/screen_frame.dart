@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
+import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'logo_svg.dart';
 
 /// Common frame of all screens except the main menu: centred content with a
 /// maximum width, airy margins, and Esc to go back.
-class ScreenFrame extends StatelessWidget {
+class ScreenFrame extends ConsumerWidget {
   const ScreenFrame({
     required this.title,
     required this.child,
@@ -18,7 +22,8 @@ class ScreenFrame extends StatelessWidget {
   final double maxWidth;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(stringsProvider);
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.escape): () =>
@@ -28,6 +33,29 @@ class ScreenFrame extends StatelessWidget {
         autofocus: true,
         child: Scaffold(
           appBar: AppBar(
+            toolbarHeight: 72,
+            automaticallyImplyLeading: false,
+            leadingWidth: 130,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: Tokens.gapL),
+              child: SvgPicture.string(
+                bolzplatzLogoSvg,
+                key: const ValueKey('app-logo'),
+                alignment: Alignment.centerLeft,
+                semanticsLabel: 'Bolzplatz AG',
+              ),
+            ),
+            actions: [
+              if (Navigator.of(context).canPop())
+                Padding(
+                  padding: const EdgeInsets.only(right: Tokens.gapL),
+                  child: TextButton(
+                    key: const ValueKey('frame-back'),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    child: Text(s.back),
+                  ),
+                ),
+            ],
             title: Text(
               title,
               style: Theme.of(context).textTheme.headlineSmall,
