@@ -71,14 +71,12 @@ class _AvatarPainter extends CustomPainter {
   }
 
   Path _oval(double cx, double cy, double w, double h) =>
-      Path()..addOval(Rect.fromCenter(center: Offset(cx, cy), width: w, height: h));
+      Path()
+        ..addOval(Rect.fromCenter(center: Offset(cx, cy), width: w, height: h));
 
   Path _rrect(double l, double t, double w, double h, double r) => Path()
     ..addRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(l, t, w, h),
-        Radius.circular(r),
-      ),
+      RRect.fromRectAndRadius(Rect.fromLTWH(l, t, w, h), Radius.circular(r)),
     );
 
   @override
@@ -96,7 +94,10 @@ class _AvatarPainter extends CustomPainter {
     final disc = Path()..addOval(const Rect.fromLTWH(0, 0, 100, 100));
     canvas.save();
     canvas.clipPath(disc);
-    canvas.drawRect(const Rect.fromLTWH(0, 0, 100, 100), Paint()..color = Tokens.panel);
+    canvas.drawRect(
+      const Rect.fromLTWH(0, 0, 100, 100),
+      Paint()..color = Tokens.panel,
+    );
 
     // Hair behind the head (long hair, mullet).
     if (a.hairStyle == 4) {
@@ -197,9 +198,13 @@ class _AvatarPainter extends CustomPainter {
     } else {
       _shape(canvas, grin, white);
     }
-    canvas.drawLine(const Offset(50, 61.2), const Offset(50, 69.5), Paint()
-      ..color = _ink
-      ..strokeWidth = 1);
+    canvas.drawLine(
+      const Offset(50, 61.2),
+      const Offset(50, 69.5),
+      Paint()
+        ..color = _ink
+        ..strokeWidth = 1,
+    );
 
     // Moustache.
     if (a.beard == 3) {
@@ -268,7 +273,11 @@ class _AvatarPainter extends CustomPainter {
           Offset(27, 42),
           Offset(73, 42),
         ]) {
-          _shape(canvas, Path()..addOval(Rect.fromCircle(center: c, radius: 8)), hair);
+          _shape(
+            canvas,
+            Path()..addOval(Rect.fromCircle(center: c, radius: 8)),
+            hair,
+          );
         }
         // Cover the inner outlines so the curls read as one mass.
         canvas.drawPath(
