@@ -164,7 +164,7 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: Tokens.gapL),
+                    const SizedBox(height: Tokens.gapM),
                     chips(
                       'gender',
                       [for (var i = 0; i < o['gender']!; i++) s.genderName(i)],
@@ -242,7 +242,7 @@ class _LookRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: Tokens.gapM),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -278,8 +278,8 @@ class _Swatch extends StatelessWidget {
       customBorder: const CircleBorder(),
       onTap: onTap,
       child: Container(
-        width: 38,
-        height: 38,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: color,

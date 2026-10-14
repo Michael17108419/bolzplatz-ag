@@ -405,23 +405,16 @@ class _AvatarPainter extends CustomPainter {
           hair,
         );
       case 5:
-        // Mullet: short and spiky on top.
+        // Mullet: short on top with a little quiff, long at the back.
         _shape(
           canvas,
           Path()
-            ..moveTo(27, 38)
-            ..lineTo(27, 26)
-            ..lineTo(33, 20)
-            ..lineTo(38, 13)
-            ..lineTo(44, 19)
-            ..lineTo(51, 11)
-            ..lineTo(57, 19)
-            ..lineTo(64, 13)
-            ..lineTo(68, 21)
-            ..lineTo(73, 27)
-            ..lineTo(73, 38)
-            ..quadraticBezierTo(66, 27, 50, 27)
-            ..quadraticBezierTo(34, 27, 27, 38)
+            ..moveTo(26, 40)
+            ..quadraticBezierTo(24, 17, 46, 15)
+            ..quadraticBezierTo(52, 9, 60, 15)
+            ..quadraticBezierTo(76, 18, 74, 40)
+            ..quadraticBezierTo(66, 31, 50, 31)
+            ..quadraticBezierTo(34, 31, 26, 40)
             ..close(),
           hair,
         );
