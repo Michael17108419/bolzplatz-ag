@@ -85,6 +85,7 @@ class WorldGenerator {
         firstId: (entry.id.value - 1) * squadSize + 1,
         tier: entry.tier,
         clubId: club.id,
+        levelOffset: clubLevelOffset(rules, worldSeed, club.id),
       );
       for (final raw in squad) {
         final named = uniqueName(raw, names, usedNames, rng);
@@ -109,6 +110,13 @@ class WorldGenerator {
         coaches: List.unmodifiable(coaches),
       ),
     );
+  }
+
+  /// How much stronger or weaker than its tier a club is, fixed by the
+  /// world seed and the club id alone.
+  static double clubLevelOffset(Rules rules, int worldSeed, ClubId club) {
+    final rng = SeededRandom(worldSeed).fork('club-level:${club.value}');
+    return rng.nextGaussian() * rules.generator.clubLevelSd;
   }
 
   /// Draws new names until the full name is neither blocked nor taken.

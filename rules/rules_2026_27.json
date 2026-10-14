@@ -470,6 +470,7 @@
       "decline_per_year": 1.2
     },
     "attribute_noise_sd": 5,
+    "club_level_sd": 4,
     "potential_margin": {
       "mean": 3,
       "sd": 2
@@ -1792,10 +1793,10 @@
       "normal": 1.0,
       "fast": 1.08
     },
-    "home_advantage": 1.04,
+    "home_advantage": 1.07,
     "possession_exponent": 1.0,
     "breakthrough": {
-      "base": 0.145,
+      "base": 0.16,
       "exponent": 1.2,
       "min": 0.04,
       "max": 0.6

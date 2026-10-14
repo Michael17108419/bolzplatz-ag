@@ -75,6 +75,7 @@ class PlayerGenerator {
     required int tier,
     ClubId? clubId,
     int? age,
+    double levelOffset = 0,
   }) {
     final tierRules = _g.tiers[tier];
     if (tierRules == null) throw ArgumentError.value(tier, 'tier');
@@ -86,7 +87,7 @@ class PlayerGenerator {
 
     // Prime level of this player, before age effects and position profile.
     final level = _clamp(
-      tierRules.levelMean + rng.nextGaussian() * tierRules.levelSd,
+      tierRules.levelMean + levelOffset + rng.nextGaussian() * tierRules.levelSd,
       1,
       99,
     );
@@ -134,6 +135,7 @@ class PlayerGenerator {
     required int firstId,
     required int tier,
     ClubId? clubId,
+    double levelOffset = 0,
   }) {
     final players = <Player>[];
     var next = firstId;
@@ -147,6 +149,7 @@ class PlayerGenerator {
             position: position,
             tier: tier,
             clubId: clubId,
+            levelOffset: levelOffset,
           ),
         );
       }

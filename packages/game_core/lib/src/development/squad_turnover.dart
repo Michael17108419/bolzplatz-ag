@@ -69,6 +69,11 @@ class SquadTurnover {
             position: p.position,
             tier: tier,
             clubId: club,
+            levelOffset: WorldGenerator.clubLevelOffset(
+              rules,
+              rules.world.seed,
+              club,
+            ),
             age: rng
                 .fork('youth-age:$nextId')
                 .nextIntInRange(dev.youthAgeMin, dev.youthAgeMax),

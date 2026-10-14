@@ -39,6 +39,7 @@ class GeneratorRules {
     required this.attributeNoiseSd,
     required this.potentialMarginMean,
     required this.potentialMarginSd,
+    required this.clubLevelSd,
     required this.dynamicFrozenFromAge,
     required this.dynamicPerYear,
     required this.dynamicMax,
@@ -175,6 +176,7 @@ class GeneratorRules {
       attributeNoiseSd: num_(m, 'attribute_noise_sd'),
       potentialMarginMean: num_(margin, 'mean'),
       potentialMarginSd: num_(margin, 'sd'),
+      clubLevelSd: num_(m, 'club_level_sd'),
       dynamicFrozenFromAge: dynamic_['frozen_from_age'] as int,
       dynamicPerYear: num_(dynamic_, 'per_year'),
       dynamicMax: num_(dynamic_, 'max'),
@@ -201,6 +203,9 @@ class GeneratorRules {
   final double attributeNoiseSd;
   final double potentialMarginMean;
   final double potentialMarginSd;
+
+  /// Spread of the level of whole clubs around the mean of their tier.
+  final double clubLevelSd;
   final int dynamicFrozenFromAge;
   final double dynamicPerYear;
   final double dynamicMax;
