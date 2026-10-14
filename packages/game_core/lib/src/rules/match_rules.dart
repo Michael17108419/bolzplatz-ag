@@ -93,6 +93,7 @@ class MatchRules {
     required this.standardAbilityBonus,
     required this.yellowPerMinutePerTeam,
     required this.straightRedPerMinute,
+    required this.repeatYellowWeight,
     required this.redCardStrength,
     required this.injuryPerPlayerMinute,
     required this.injuryFatigueFactor,
@@ -228,6 +229,7 @@ class MatchRules {
       standardAbilityBonus: _d(st['ability_bonus']),
       yellowPerMinutePerTeam: _d(cards['yellow_per_minute_per_team']),
       straightRedPerMinute: _d(cards['straight_red_per_minute']),
+      repeatYellowWeight: _d(cards['repeat_yellow_weight']),
       redCardStrength: _d(cards['red_card_strength']),
       injuryPerPlayerMinute: _d(inj['per_player_per_minute']),
       injuryFatigueFactor: _d(inj['fatigue_factor']),
@@ -365,6 +367,10 @@ class MatchRules {
   final double standardAbilityBonus;
   final double yellowPerMinutePerTeam;
   final double straightRedPerMinute;
+
+  /// Weight of a player who already has a yellow card when the next
+  /// player to be booked is drawn (1 means no difference).
+  final double repeatYellowWeight;
   final double redCardStrength;
   final double injuryPerPlayerMinute;
   final double injuryFatigueFactor;

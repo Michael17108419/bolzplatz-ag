@@ -1795,7 +1795,7 @@
     "home_advantage": 1.04,
     "possession_exponent": 1.5,
     "breakthrough": {
-      "base": 0.17,
+      "base": 0.145,
       "exponent": 1.8,
       "min": 0.04,
       "max": 0.6
@@ -1925,9 +1925,9 @@
       "corners_per_match": 9.0,
       "penalties_per_match": 0.3,
       "free_kick_direct_share": 0.18,
-      "free_kick_direct_goal": 0.06,
-      "free_kick_cross_goal": 0.045,
-      "corner_goal": 0.035,
+      "free_kick_direct_goal": 0.05,
+      "free_kick_cross_goal": 0.03,
+      "corner_goal": 0.025,
       "penalty_goal": 0.76,
       "taker_attributes": [
         "free_kicks",
@@ -1949,11 +1949,12 @@
       "ability_bonus": 0.15
     },
     "cards": {
-      "yellow_per_minute_per_team": 0.0175,
+      "yellow_per_minute_per_team": 0.014,
       "straight_red_per_minute": 0.0015,
       "second_yellow_is_red": true,
       "red_card_strength": 0.92,
-      "lead_risk_factor": 0.0
+      "lead_risk_factor": 0.0,
+      "repeat_yellow_weight": 0.35
     },
     "injuries": {
       "per_player_per_minute": 0.00014,

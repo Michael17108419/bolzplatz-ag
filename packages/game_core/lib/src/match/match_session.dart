@@ -719,6 +719,9 @@ class MatchSession {
             (101 - s.player.attributes[Attribute.composure]) *
                 (s.position == Position.iv || s.position == Position.zdm
                     ? 1.5
+                    : 1.0) *
+                ((side.yellows[s.player.id] ?? 0) > 0
+                    ? _m.repeatYellowWeight
                     : 1.0),
         ];
         if (slots.isNotEmpty) _yellow(i, slots[_rng.weightedIndex(weights)]);
