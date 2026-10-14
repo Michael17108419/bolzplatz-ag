@@ -17,10 +17,12 @@ class SeasonState {
     List<ClubId> thirdLeagueQualifiers = const [],
     Map<ClubId, int> previousRank = const {},
   }) : members = Map.unmodifiable({
-         for (final e in members.entries) e.key: List<ClubId>.unmodifiable(e.value),
+         for (final e in members.entries)
+           e.key: List<ClubId>.unmodifiable(e.value),
        }),
        pools = Map.unmodifiable({
-         for (final e in pools.entries) e.key: List<ClubId>.unmodifiable(e.value),
+         for (final e in pools.entries)
+           e.key: List<ClubId>.unmodifiable(e.value),
        }),
        clubs = Map.unmodifiable(clubs),
        squads = Map.unmodifiable(squads),
@@ -38,9 +40,7 @@ class SeasonState {
     }
     return SeasonState(
       startYear: world.season.startYear,
-      members: {
-        for (final ls in world.leagueSeasons) ls.league.id: ls.clubIds,
-      },
+      members: {for (final ls in world.leagueSeasons) ls.league.id: ls.clubIds},
       pools: world.pools,
       clubs: {for (final c in world.clubs) c.id: c},
       squads: squads,

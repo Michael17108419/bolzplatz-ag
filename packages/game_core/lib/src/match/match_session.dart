@@ -324,20 +324,24 @@ class MatchSession {
           for (final s in side.pitch)
             if (!s.position.isGoalkeeper) s,
         ]..sort(
-            (a, b) => _fit
-                .slotScore(b.player, b.position)
-                .compareTo(_fit.slotScore(a.player, a.position)),
-          ),
+          (a, b) => _fit
+              .slotScore(b.player, b.position)
+              .compareTo(_fit.slotScore(a.player, a.position)),
+        ),
     ];
     bool kick(int t) {
       final takers = order[t];
-      final slot = takers.isEmpty ? _sides[t].pitch.first : takers[taken[t] % takers.length];
+      final slot = takers.isEmpty
+          ? _sides[t].pitch.first
+          : takers[taken[t] % takers.length];
       final side = _sides[t];
       final defender = _sides[1 - t];
       final score = _slotMean(side, slot, _m.penaltyAttributes);
       final keeper = math.max(20.0, defender.ratings.keeper);
-      final p = (_m.penaltyGoal * math.pow(score / keeper, 0.5))
-          .limit(0.2, 0.95);
+      final p = (_m.penaltyGoal * math.pow(score / keeper, 0.5)).limit(
+        0.2,
+        0.95,
+      );
       final goal = _rng.nextDouble() < p;
       taken[t]++;
       if (goal) scored[t]++;

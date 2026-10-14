@@ -60,7 +60,9 @@ class SeasonOutcome {
 /// Plays a whole season of all leagues and both cups without a user
 /// interface. Everything depends only on the state, the rules and the seed.
 class SeasonRunner {
-  SeasonRunner(this.rules) : _engine = MatchEngine(rules), _auto = AutoManager(rules);
+  SeasonRunner(this.rules)
+    : _engine = MatchEngine(rules),
+      _auto = AutoManager(rules);
 
   final Rules rules;
   final MatchEngine _engine;
@@ -137,7 +139,10 @@ class SeasonRunner {
         final n = (_yellowCount[e.player!] ?? 0) + 1;
         _yellowCount[e.player!] = n;
         if (n % rules.season.suspensionYellowCards == 0) {
-          _outUntil[e.player!] = math.max(_outUntil[e.player!] ?? -1, _tick + 1);
+          _outUntil[e.player!] = math.max(
+            _outUntil[e.player!] ?? -1,
+            _tick + 1,
+          );
         }
       }
     }
@@ -152,7 +157,8 @@ class SeasonRunner {
       void move(ClubId club, double delta) {
         final f = _form[club] ?? rules.match.defaultForm;
         final next = f + delta;
-        _form[club] = next + (rules.match.defaultForm - next) * rules.season.formDrift;
+        _form[club] =
+            next + (rules.match.defaultForm - next) * rules.season.formDrift;
       }
 
       if (r.homeGoals > r.awayGoals) {
@@ -237,21 +243,23 @@ class SeasonRunner {
     for (final region in Region.values) {
       final participants = [
         for (final id in [...league3, ...fourthLeagueClubs])
-          if (state.clubs[id]!.region == region && !inBolzplatz.contains(id)) id,
+          if (state.clubs[id]!.region == region && !inBolzplatz.contains(id))
+            id,
       ];
       // The year-one draw above removed some fourth-league clubs; they play
       // in the main cup only.
-      final fourthOfRegion = [
-        for (final id in participants)
-          if (tier(id) == 4) id,
-      ]..sort((a, b) {
-          final ra = state.previousRank[a];
-          final rb = state.previousRank[b];
-          if (ra != null && rb != null) return ra.compareTo(rb);
-          if (ra != null) return -1;
-          if (rb != null) return 1;
-          return a.value.compareTo(b.value);
-        });
+      final fourthOfRegion =
+          [
+            for (final id in participants)
+              if (tier(id) == 4) id,
+          ]..sort((a, b) {
+            final ra = state.previousRank[a];
+            final rb = state.previousRank[b];
+            if (ra != null && rb != null) return ra.compareTo(rb);
+            if (ra != null) return -1;
+            if (rb != null) return 1;
+            return a.value.compareTo(b.value);
+          });
       final thirdOfRegion = [
         for (final id in participants)
           if (tier(id) == 3) id,
@@ -367,18 +375,13 @@ class SeasonRunner {
     final extraRng = root.fork('pott:extra');
     final losers = List<ClubId>.of(pottLast8Losers);
     extraRng.shuffle(losers);
-    final qualifiers = <ClubId>[
-      ...pottLast8Winners,
-      ...losers,
-    ];
+    final qualifiers = <ClubId>[...pottLast8Winners, ...losers];
 
     final standings = {for (final e in tables.entries) e.key: e.value.standing};
     return SeasonOutcome(
       tables: standings,
       bolzplatz: bolzplatz,
-      pottWinners: {
-        for (final e in pott.entries) e.key: e.value.winner!,
-      },
+      pottWinners: {for (final e in pott.entries) e.key: e.value.winner!},
       pottQualifiers: qualifiers,
       matchesPlayed: matches,
       goalsScored: goals,
@@ -415,12 +418,16 @@ class SeasonRunner {
       final first = _engine.simulate(
         _tempTeam(state, lower),
         _tempTeam(state, higher),
-        seed: SeededRandom(seed).fork('po1:${higher.value}:${lower.value}').seed,
+        seed: SeededRandom(seed)
+            .fork('po1:${higher.value}:${lower.value}')
+            .seed,
       );
       final second = _engine.simulateKnockout(
         _tempTeam(state, higher),
         _tempTeam(state, lower),
-        seed: SeededRandom(seed).fork('po2:${higher.value}:${lower.value}').seed,
+        seed: SeededRandom(seed)
+            .fork('po2:${higher.value}:${lower.value}')
+            .seed,
       );
       final higherTotal = first.awayGoals + second.match.homeGoals;
       final lowerTotal = first.homeGoals + second.match.awayGoals;
@@ -438,9 +445,11 @@ class SeasonRunner {
       pools: state.pools,
       cycleYear: state.cycleYear,
     );
-    return PyramidTransition.run(rules, input, playoff).map(
-      (moved) => _buildNext(state, outcome, moved),
-    );
+    return PyramidTransition.run(
+      rules,
+      input,
+      playoff,
+    ).map((moved) => _buildNext(state, outcome, moved));
   }
 
   MatchTeam _tempTeam(SeasonState state, ClubId club) {

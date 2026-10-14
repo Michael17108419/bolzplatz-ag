@@ -16,9 +16,8 @@ class CupRules {
   });
 
   factory CupRules.fromJson(Map<String, dynamic> m) {
-    List<int> days(String key) => List.unmodifiable([
-      for (final v in m[key] as List<dynamic>) v as int,
-    ]);
+    List<int> days(String key) =>
+        List.unmodifiable([for (final v in m[key] as List<dynamic>) v as int]);
     final rules = CupRules(
       bolzplatzAfterMatchday: days('bolzplatz_after_matchday'),
       pottAfterMatchday: days('pott_after_matchday'),

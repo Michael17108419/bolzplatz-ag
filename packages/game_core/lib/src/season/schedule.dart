@@ -38,14 +38,15 @@ class Schedule {
         final b = ring[n - 1 - i];
         // The fixed club (index 0) alternates, the others by pair position.
         final swap = i == 0 ? round.isOdd : (round + i).isOdd;
-        day.add(swap ? Fixture(order[b], order[a]) : Fixture(order[a], order[b]));
+        day.add(
+          swap ? Fixture(order[b], order[a]) : Fixture(order[a], order[b]),
+        );
       }
       first.add(day);
       ring = [ring[0], ring[n - 1], ...ring.sublist(1, n - 1)];
     }
     final second = [
-      for (final day in first)
-        [for (final f in day) Fixture(f.away, f.home)],
+      for (final day in first) [for (final f in day) Fixture(f.away, f.home)],
     ];
     return [...first, ...second];
   }

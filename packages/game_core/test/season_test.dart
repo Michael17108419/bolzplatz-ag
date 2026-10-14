@@ -36,7 +36,9 @@ void main() {
       var maxRun = 0;
       for (final day in days.take(17)) {
         final home = day.any((f) => f.home == c);
-        homeRun = home ? (homeRun >= 0 ? homeRun + 1 : 1) : (homeRun <= 0 ? homeRun - 1 : -1);
+        homeRun = home
+            ? (homeRun >= 0 ? homeRun + 1 : 1)
+            : (homeRun <= 0 ? homeRun - 1 : -1);
         maxRun = homeRun.abs() > maxRun ? homeRun.abs() : maxRun;
       }
       expect(maxRun <= 3, isTrue, reason: 'club ${c.value}');
@@ -75,7 +77,10 @@ void main() {
     expect(outcome.bolzplatz.rounds.map((r) => r.length), [32, 16, 8, 4, 2, 1]);
     expect(outcome.pottWinners, hasLength(5));
     expect(outcome.pottQualifiers.length >= 24, isTrue);
-    expect(outcome.pottQualifiers.toSet(), hasLength(outcome.pottQualifiers.length));
+    expect(
+      outcome.pottQualifiers.toSet(),
+      hasLength(outcome.pottQualifiers.length),
+    );
     stdout.writeln(
       'SEASON-REPORT one season ${watch.elapsedMilliseconds} ms, '
       'goals/game ${(outcome.goalsScored / outcome.matchesPlayed).toStringAsFixed(2)}, '

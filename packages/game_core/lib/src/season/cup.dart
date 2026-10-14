@@ -48,9 +48,7 @@ class KnockoutCup {
     }
     return KnockoutCup._(
       name: 'bolzplatz',
-      firstRound: [
-        for (final t in ties) _homeFirst(t.$1, t.$2, tier),
-      ],
+      firstRound: [for (final t in ties) _homeFirst(t.$1, t.$2, tier)],
       byes: const [],
       tier: tier,
       rng: rng,
@@ -128,7 +126,9 @@ class KnockoutCup {
   }
 
   /// Plays the next round. [playTie] returns the winner of a tie.
-  List<CupTie> playNextRound(ClubId Function(ClubId home, ClubId away) playTie) {
+  List<CupTie> playNextRound(
+    ClubId Function(ClubId home, ClubId away) playTie,
+  ) {
     if (isFinished) throw StateError('The cup is finished');
     final ties = <CupTie>[];
     final out = <ClubId>[];
