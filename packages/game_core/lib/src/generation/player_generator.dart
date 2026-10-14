@@ -74,13 +74,14 @@ class PlayerGenerator {
     required Position position,
     required int tier,
     ClubId? clubId,
+    int? age,
   }) {
     final tierRules = _g.tiers[tier];
     if (tierRules == null) throw ArgumentError.value(tier, 'tier');
     final rng = world.fork('player:${id.value}');
 
-    final age = _age(rng);
-    final birthDate = _birthDate(rng, age);
+    final playerAge = age ?? _age(rng);
+    final birthDate = _birthDate(rng, playerAge);
     final devType = _developmentType(rng);
 
     // Prime level of this player, before age effects and position profile.
@@ -90,7 +91,7 @@ class PlayerGenerator {
       99,
     );
 
-    final attributes = _attributes(rng, position, level, age, devType);
+    final attributes = _attributes(rng, position, level, playerAge, devType);
     final potentialCore = _round1(
       _clamp(
         level +
@@ -100,7 +101,7 @@ class PlayerGenerator {
         100,
       ),
     );
-    final potentialDynamic = _dynamicPotential(rng, age);
+    final potentialDynamic = _dynamicPotential(rng, playerAge);
 
     return Player(
       id: id,

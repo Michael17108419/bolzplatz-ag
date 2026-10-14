@@ -8,6 +8,8 @@ library;
 
 export 'src/calendar/game_date.dart';
 export 'src/calendar/season.dart';
+export 'src/development/development.dart';
+export 'src/development/squad_turnover.dart';
 export 'src/generation/player_generator.dart';
 export 'src/match/auto_manager.dart';
 export 'src/match/fit.dart';
@@ -19,6 +21,7 @@ export 'src/model/model.dart';
 export 'src/pyramid/pyramid.dart';
 export 'src/result/result.dart';
 export 'src/rng/seeded_random.dart';
+export 'src/rules/development_rules.dart';
 export 'src/rules/generator_rules.dart';
 export 'src/rules/match_rules.dart';
 export 'src/rules/rules.dart';

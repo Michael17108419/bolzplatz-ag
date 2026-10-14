@@ -4,6 +4,7 @@ import '../model/attribute.dart';
 import '../model/region.dart';
 import '../model/special_ability.dart';
 import '../result/result.dart';
+import 'development_rules.dart';
 import 'generator_rules.dart';
 import 'match_rules.dart';
 import 'season_rules.dart';
@@ -73,6 +74,7 @@ class Rules {
     required this.tactics,
     required this.match,
     required this.season,
+    required this.development,
   });
 
   /// The only schema version this code understands.
@@ -104,6 +106,9 @@ class Rules {
 
   /// Numbers for the course of a season and the cups.
   final SeasonRules season;
+
+  /// Numbers for yearly development and squad turnover.
+  final DevelopmentRules development;
 
   /// Parses and validates a rules file given as JSON text.
   static Result<Rules, RulesError> parse(String jsonText) {
@@ -208,6 +213,9 @@ class Rules {
       tactics: TacticsRules.fromJson(root['tactics'] as Map<String, dynamic>),
       match: MatchRules.fromJson(root['match'] as Map<String, dynamic>),
       season: SeasonRules.fromJson(root['season'] as Map<String, dynamic>),
+      development: DevelopmentRules.fromJson(
+        root['development'] as Map<String, dynamic>,
+      ),
     );
   }
 

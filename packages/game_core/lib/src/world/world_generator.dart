@@ -87,10 +87,10 @@ class WorldGenerator {
         clubId: club.id,
       );
       for (final raw in squad) {
-        final named = _uniqueName(raw, names, usedNames, rng);
+        final named = uniqueName(raw, names, usedNames, rng);
         players.add(
           named.copyWith(
-            contract: _contract(rules, named, entry.tier, rng, season),
+            contract: contractFor(rules, named, entry.tier, rng, season),
           ),
         );
       }
@@ -112,7 +112,7 @@ class WorldGenerator {
   }
 
   /// Draws new names until the full name is neither blocked nor taken.
-  static Player _uniqueName(
+  static Player uniqueName(
     Player player,
     NameLists names,
     Set<String> used,
@@ -135,7 +135,7 @@ class WorldGenerator {
     }
   }
 
-  static Contract _contract(
+  static Contract contractFor(
     Rules rules,
     Player player,
     int tier,

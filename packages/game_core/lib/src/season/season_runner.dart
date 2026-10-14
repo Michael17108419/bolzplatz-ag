@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 
+import '../development/squad_turnover.dart';
+import '../generation/player_generator.dart';
 import '../match/auto_manager.dart';
+import '../match/limits.dart';
 import '../match/match_session.dart';
 import '../match/match_types.dart';
 import '../match/team_sheet.dart';
@@ -31,6 +34,7 @@ class SeasonOutcome {
     required this.injuries,
     required this.redCards,
     required this.yellowCards,
+    required this.minutesByPlayer,
   });
 
   final Map<LeagueId, List<TableEntry>> tables;
@@ -48,6 +52,9 @@ class SeasonOutcome {
   final int injuries;
   final int redCards;
   final int yellowCards;
+
+  /// Minutes played per player over all matches of the season.
+  final Map<PlayerId, int> minutesByPlayer;
 
   List<ClubId> standing(LeagueId league) => [
     for (final e in tables[league]!) e.club,
@@ -77,6 +84,7 @@ class SeasonRunner {
   int _reds = 0;
   int _yellows = 0;
   final Map<PlayerId, int> _goals = {};
+  final Map<PlayerId, int> _minutes = {};
   int _seed = 0;
 
   Map<ClubId, int> _tiers(SeasonState state) {
@@ -148,6 +156,9 @@ class SeasonRunner {
       _outUntil[inj.player] = _tick + ticks;
       _injuries++;
     }
+    for (final e in r.minutesPlayed.entries) {
+      _minutes[e.key] = (_minutes[e.key] ?? 0) + e.value;
+    }
     _reds += r.homeStats.redCards + r.awayStats.redCards;
     _yellows += r.homeStats.yellowCards + r.awayStats.yellowCards;
     if (countForm) {
@@ -185,6 +196,7 @@ class SeasonRunner {
     _reds = 0;
     _yellows = 0;
     _goals.clear();
+    _minutes.clear();
     final root = SeededRandom(seed);
     final tiers = _tiers(state);
     int tier(ClubId c) => tiers[c] ?? 5;
@@ -389,6 +401,7 @@ class SeasonRunner {
       injuries: _injuries,
       redCards: _reds,
       yellowCards: _yellows,
+      minutesByPlayer: Map.of(_minutes),
     );
   }
 
@@ -409,6 +422,7 @@ class SeasonRunner {
     SeasonState state,
     SeasonOutcome outcome, {
     required int seed,
+    NameLists? names,
   }) {
     ClubId playoff(ClubId higher, ClubId lower) {
       // Two legs; the lower-league club hosts the first leg.
@@ -446,7 +460,7 @@ class SeasonRunner {
       rules,
       input,
       playoff,
-    ).map((moved) => _buildNext(state, outcome, moved));
+    ).map((moved) => _buildNext(state, outcome, moved, seed, names));
   }
 
   MatchTeam _tempTeam(SeasonState state, ClubId club) {
@@ -464,6 +478,8 @@ class SeasonRunner {
     SeasonState state,
     SeasonOutcome outcome,
     PyramidResult moved,
+    int seed,
+    NameLists? names,
   ) {
     final rank = <ClubId, int>{};
     for (final entries in outcome.tables.values) {
@@ -473,12 +489,47 @@ class SeasonRunner {
     }
     final third = rules.leagues.firstWhere((l) => l.level == 3);
     final thirdTable = outcome.standing(LeagueId(third.id));
+    var squads = state.squads;
+    if (names != null) {
+      final levels = {for (final l in rules.leagues) LeagueId(l.id): l.level};
+      final tiers = <ClubId, int>{};
+      for (final e in moved.leagues.entries) {
+        for (final c in e.value) {
+          tiers[c] = levels[e.key]!;
+        }
+      }
+      final matchesPerPlayer = <ClubId, int>{};
+      for (final e in state.members.entries) {
+        matchesPerPlayer.addAll({
+          for (final c in e.value) c: (e.value.length - 1) * 2,
+        });
+      }
+      final share = <PlayerId, double>{};
+      for (final entry in state.squads.entries) {
+        final league = matchesPerPlayer[entry.key];
+        for (final p in entry.value) {
+          share[p.id] = league == null
+              ? rules.development.poolMinutesShare
+              : ((outcome.minutesByPlayer[p.id] ?? 0) / (90 * league)).limit(
+                  0.0,
+                  1.0,
+                );
+        }
+      }
+      squads = SquadTurnover(rules, names).apply(
+        state.squads,
+        newStartYear: state.startYear + 1,
+        tiers: tiers,
+        minutesShare: share,
+        rng: SeededRandom(seed).fork('turnover'),
+      );
+    }
     return SeasonState(
       startYear: state.startYear + 1,
       members: moved.leagues,
       pools: moved.pools,
       clubs: state.clubs,
-      squads: state.squads,
+      squads: squads,
       cycleYear: (state.cycleYear + 1) % 3,
       pottQualifiers: outcome.pottQualifiers,
       thirdLeagueQualifiers: thirdTable,

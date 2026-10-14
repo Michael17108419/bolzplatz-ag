@@ -2167,5 +2167,95 @@
       "pott_bracket_size": 32,
       "extra_time_half_minutes": 15
     }
+  },
+  "development": {
+    "retire_from_age": 35,
+    "retire_chance_per_year_above": 0.3,
+    "youth_age_min": 17,
+  "youth_age_max": 19,
+    "pool_minutes_share": 0.5,
+    "annual_noise_sd": 0.6,
+    "minutes_effect": 0.5,
+    "potential_headroom": 5.0,
+    "coupling_cap_per_season": 3.0,
+    "dynamic_change_per_year": 1.0,
+    "dynamic_max": 12.0,
+    "contract_extension_years": [
+      1,
+      2,
+      3
+    ],
+    "couplings": [
+      {
+        "driver": "acceleration",
+        "follower": "dribbling",
+        "factor": 0.3
+      },
+      {
+        "driver": "agility",
+        "follower": "dribbling",
+        "factor": 0.2
+      },
+      {
+        "driver": "strength",
+        "follower": "shot_power",
+        "factor": 0.3
+      },
+      {
+        "driver": "shot_power",
+        "follower": "long_shots",
+        "factor": 0.25
+      },
+      {
+        "driver": "strength",
+        "follower": "heading",
+        "factor": 0.25
+      },
+      {
+        "driver": "jumping",
+        "follower": "heading",
+        "factor": 0.2
+      },
+      {
+        "driver": "strength",
+        "follower": "standing_tackle",
+        "factor": 0.25
+      },
+      {
+        "driver": "balance",
+        "follower": "standing_tackle",
+        "factor": 0.2
+      },
+      {
+        "driver": "ball_control",
+        "follower": "short_passing",
+        "factor": 0.25
+      },
+      {
+        "driver": "ball_control",
+        "follower": "finishing",
+        "factor": 0.2
+      },
+      {
+        "driver": "vision",
+        "follower": "goal_instinct",
+        "factor": 0.25
+      },
+      {
+        "driver": "anticipation",
+        "follower": "interceptions",
+        "factor": 0.25
+      },
+      {
+        "driver": "stamina",
+        "follower": "recovery",
+        "factor": 0.25
+      },
+      {
+        "driver": "crossing",
+        "follower": "corners",
+        "factor": 0.25
+      }
+    ]
   }
 }

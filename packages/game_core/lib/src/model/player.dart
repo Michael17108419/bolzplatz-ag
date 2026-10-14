@@ -70,28 +70,35 @@ class Player {
   /// Dynamic part of the potential (moves with development and play).
   final double potentialDynamic;
 
-  /// Role id (from rules) to familiarity. Missing means unfamiliar.
+  /// Role id (from rules) to familiarity. Missing means basic (no bonus, no deduction).
   final Map<String, RoleFamiliarity> roles;
 
   /// Null for free agents without a club.
   final ClubId? clubId;
   final Contract? contract;
 
-  /// Copy with a different name and/or contract. Everything else is kept.
-  Player copyWith({String? firstName, String? lastName, Contract? contract}) {
+  /// Copy with other name, contract, attributes or dynamic potential.
+  /// Everything else is kept.
+  Player copyWith({
+    String? firstName,
+    String? lastName,
+    Contract? contract,
+    AttributeSet? attributes,
+    double? potentialDynamic,
+  }) {
     return Player(
       id: id,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       birthDate: birthDate,
       position: position,
-      attributes: attributes,
+      attributes: attributes ?? this.attributes,
       traits: traits,
       injuryProneness: injuryProneness,
       abilities: abilities,
       developmentType: developmentType,
       potentialCore: potentialCore,
-      potentialDynamic: potentialDynamic,
+      potentialDynamic: potentialDynamic ?? this.potentialDynamic,
       roles: roles,
       clubId: clubId,
       contract: contract ?? this.contract,
