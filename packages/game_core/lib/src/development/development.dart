@@ -71,7 +71,8 @@ class Development {
     final coupled = <Attribute, double>{};
     for (final c in dev.couplings) {
       if (c.follower.isGoalkeeping && !isKeeper) continue;
-      coupled[c.follower] = (coupled[c.follower] ?? 0) + c.factor * own[c.driver]!;
+      coupled[c.follower] =
+          (coupled[c.follower] ?? 0) + c.factor * own[c.driver]!;
     }
 
     final values = <Attribute, double>{};
@@ -79,7 +80,10 @@ class Development {
       var change = own[a]!;
       final extra = coupled[a];
       if (extra != null) {
-        change += extra.limit(-dev.couplingCapPerSeason, dev.couplingCapPerSeason);
+        change += extra.limit(
+          -dev.couplingCapPerSeason,
+          dev.couplingCapPerSeason,
+        );
       }
       final next = p.attributes[a] + change;
       values[a] = (next.limit(Attribute.min, Attribute.max) * 10).round() / 10;

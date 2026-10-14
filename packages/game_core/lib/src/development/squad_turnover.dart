@@ -13,8 +13,7 @@ import 'development.dart';
 /// old players retire and are replaced by youth players of the same
 /// position, expired contracts are extended.
 class SquadTurnover {
-  SquadTurnover(this.rules, this.names)
-    : _development = Development(rules);
+  SquadTurnover(this.rules, this.names) : _development = Development(rules);
 
   final Rules rules;
   final NameLists names;
@@ -60,9 +59,9 @@ class SquadTurnover {
         final age = p.ageOn(season.start);
         final retires =
             age >= dev.retireFromAge &&
-            rng.fork('retire:${p.id.value}').nextBool(
-              dev.retireChancePerYearAbove,
-            );
+            rng
+                .fork('retire:${p.id.value}')
+                .nextBool(dev.retireChancePerYearAbove);
         if (retires) {
           final youth = generator.generate(
             world: rng.fork('youth:$nextId'),
@@ -70,17 +69,14 @@ class SquadTurnover {
             position: p.position,
             tier: tier,
             clubId: club,
-            age: rng.fork('youth-age:$nextId').nextIntInRange(
-              dev.youthAgeMin,
-              dev.youthAgeMax,
-            ),
+            age: rng
+                .fork('youth-age:$nextId')
+                .nextIntInRange(dev.youthAgeMin, dev.youthAgeMax),
           );
           nextId++;
           final named = WorldGenerator.uniqueName(youth, names, used, rng);
           next.add(
-            named.copyWith(
-              contract: _fresh(named, tier, rng, season, club),
-            ),
+            named.copyWith(contract: _fresh(named, tier, rng, season, club)),
           );
           continue;
         }
@@ -108,13 +104,7 @@ class SquadTurnover {
     Season season,
     ClubId club,
   ) {
-    final base = WorldGenerator.contractFor(
-      rules,
-      player,
-      tier,
-      rng,
-      season,
-    );
+    final base = WorldGenerator.contractFor(rules, player, tier, rng, season);
     final years = rng
         .fork('ext:${player.id.value}')
         .pick(rules.development.contractExtensionYears);
