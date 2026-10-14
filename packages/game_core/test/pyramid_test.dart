@@ -119,9 +119,8 @@ void main() {
   test('last four of the third tier go to their own region', () {
     final r = _run(_input());
     // Clubs 317..320 have regions nordost, west, suedwest, bayern.
-    bool inLeague(Region region, int club) => r.leagues[_lid(
-      _regionalLeague(region),
-    )]!.contains(ClubId(club));
+    bool inLeague(Region region, int club) =>
+        r.leagues[_lid(_regionalLeague(region))]!.contains(ClubId(club));
     expect(inLeague(Region.nordost, 317), isTrue);
     expect(inLeague(Region.west, 318), isTrue);
     expect(inLeague(Region.suedwest, 319), isTrue);
@@ -146,15 +145,24 @@ void main() {
         ).leagues[_lid(3)]!.map((c) => c.value).toSet();
 
     // Year 0: Nordost direct, Nord against Bayern (higher argument is Nord).
-    expect(l3(0).containsAll([champ(Region.nordost), champ(Region.nord)]), isTrue);
+    expect(
+      l3(0).containsAll([champ(Region.nordost), champ(Region.nord)]),
+      isTrue,
+    );
     expect(l3(0).contains(champ(Region.bayern)), isFalse);
     expect(l3(0, _lower).contains(champ(Region.bayern)), isTrue);
     expect(l3(0, _lower).contains(champ(Region.nord)), isFalse);
     // Year 1: Nord direct, Nordost against Bayern.
-    expect(l3(1).containsAll([champ(Region.nord), champ(Region.nordost)]), isTrue);
+    expect(
+      l3(1).containsAll([champ(Region.nord), champ(Region.nordost)]),
+      isTrue,
+    );
     expect(l3(1).contains(champ(Region.bayern)), isFalse);
     // Year 2: Bayern direct, Nord against Nordost.
-    expect(l3(2).containsAll([champ(Region.bayern), champ(Region.nord)]), isTrue);
+    expect(
+      l3(2).containsAll([champ(Region.bayern), champ(Region.nord)]),
+      isTrue,
+    );
     expect(l3(2).contains(champ(Region.nordost)), isFalse);
     expect(l3(2, _lower).contains(champ(Region.nordost)), isTrue);
   });
@@ -194,7 +202,10 @@ void main() {
           .map((m) => m.club)
           .toList();
       expect(pulled, before.take(pulled.length).toList());
-      expect(after.take(before.length - pulled.length), before.skip(pulled.length));
+      expect(
+        after.take(before.length - pulled.length),
+        before.skip(pulled.length),
+      );
     }
   });
 
