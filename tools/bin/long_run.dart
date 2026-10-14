@@ -109,6 +109,8 @@ void main(List<String> args) {
       ((diag[decade] ??= {})[key] ??= []).add(v);
   // Lower-tier clubs in the last eight and last four of the Bolzplatzpokal.
   var lowerLast8 = 0;
+  // Bolzplatzpokal ties by pair of tiers: [better tier, worse tier] -> [ties, upsets]
+  final cupPairs = <String, List<int>>{};
   var lowerLast4 = 0;
 
   for (var year = 0; year < seasons; year++) {
@@ -228,6 +230,18 @@ void main(List<String> args) {
       }
     }
     final rounds = outcome.bolzplatz.rounds;
+    for (final round in rounds) {
+      for (final t in round) {
+        final a = tiers[t.home] ?? 5;
+        final c = tiers[t.away] ?? 5;
+        if (a == c) continue;
+        final better = a < c ? t.home : t.away;
+        final key = '${math.min(a, c)}-${math.max(a, c)}';
+        final rec = cupPairs[key] ??= [0, 0];
+        rec[0]++;
+        if (t.winner != better) rec[1]++;
+      }
+    }
     if (rounds.length >= 3) {
       for (final t in rounds[rounds.length - 3]) {
         if ((tiers[t.home] ?? 5) >= 3) lowerLast8++;
@@ -504,6 +518,18 @@ void main(List<String> args) {
     ..writeln();
   b
     ..writeln('## Pokal')
+    ..writeln()
+    ..writeln('| Paarung (besser–schlechter) | Spiele | Außenseitersiege |')
+    ..writeln('| --- | --- | --- |')
+    ..writeln(
+      (cupPairs.keys.toList()..sort())
+          .map(
+            (k) =>
+                '| Liga $k | ${cupPairs[k]![0]} | '
+                '${(100 * cupPairs[k]![1] / cupPairs[k]![0]).round()} % |',
+          )
+          .join('\n'),
+    )
     ..writeln()
     ..writeln(
       'Klubs aus Liga 3 oder 4 im Bolzplatzpokal pro Saison: '

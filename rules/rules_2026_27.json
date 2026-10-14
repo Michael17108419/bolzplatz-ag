@@ -1907,7 +1907,7 @@
       "off_target": 0.27
     },
     "game_state": {
-      "effect": 0.18,
+      "effect": 0.35,
       "from_minute": 30,
       "max_diff": 2
     },
