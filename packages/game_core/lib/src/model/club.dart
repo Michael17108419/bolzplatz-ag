@@ -9,7 +9,7 @@ class Club {
     required this.shortName,
     required this.place,
     required this.region,
-    required this.leagueId,
+    this.leagueId,
   });
 
   final ClubId id;
@@ -17,7 +17,8 @@ class Club {
   final String shortName;
   final String place;
   final Region region;
-  final LeagueId leagueId;
+  /// Null for pool clubs, which play in no league yet.
+  final LeagueId? leagueId;
 
   @override
   bool operator ==(Object other) => other is Club && other.id == id;

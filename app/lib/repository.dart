@@ -51,7 +51,7 @@ class GameRepository {
             shortName: Value(club.shortName),
             place: Value(club.place),
             region: Value(club.region.id),
-            leagueId: Value(club.leagueId.value),
+            leagueId: Value(club.leagueId?.value),
           ),
         );
   }
@@ -60,14 +60,14 @@ class GameRepository {
     final row = await (_db.select(
       _db.clubs,
     )..where((t) => t.id.equals(id.value))).getSingleOrNull();
-    if (row == null || row.leagueId == null) return null;
+    if (row == null) return null;
     return Club(
       id: ClubId(row.id),
       name: row.name,
       shortName: row.shortName,
       place: row.place,
       region: _region(row.region),
-      leagueId: LeagueId(row.leagueId!),
+      leagueId: row.leagueId == null ? null : LeagueId(row.leagueId!),
     );
   }
 
