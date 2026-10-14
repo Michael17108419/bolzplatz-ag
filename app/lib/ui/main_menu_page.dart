@@ -65,10 +65,7 @@ class MainMenuPage extends ConsumerWidget {
                   child: Text(s.menuSettings),
                 ),
                 const SizedBox(height: Tokens.gapM),
-                TextButton(
-                  onPressed: () => exit(0),
-                  child: Text(s.menuQuit),
-                ),
+                TextButton(onPressed: () => exit(0), child: Text(s.menuQuit)),
               ],
             ),
           ),

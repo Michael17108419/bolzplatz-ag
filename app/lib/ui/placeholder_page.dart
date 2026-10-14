@@ -7,11 +7,7 @@ import 'screen_frame.dart';
 
 /// Stands in for a screen that a later building step delivers.
 class PlaceholderPage extends ConsumerWidget {
-  const PlaceholderPage({
-    required this.title,
-    required this.step,
-    super.key,
-  });
+  const PlaceholderPage({required this.title, required this.step, super.key});
 
   final String title;
   final int step;

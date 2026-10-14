@@ -51,11 +51,7 @@ ThemeData buildAppTheme() {
       foregroundColor: Tokens.text,
       elevation: 0,
     ),
-    cardTheme: CardThemeData(
-      color: Tokens.panel,
-      elevation: 0,
-      shape: shape,
-    ),
+    cardTheme: CardThemeData(color: Tokens.panel, elevation: 0, shape: shape),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         shape: shape,
