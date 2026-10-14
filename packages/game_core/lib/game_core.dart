@@ -9,6 +9,7 @@ library;
 export 'src/calendar/game_date.dart';
 export 'src/calendar/season.dart';
 export 'src/model/model.dart';
+export 'src/pyramid/pyramid.dart';
 export 'src/result/result.dart';
 export 'src/rng/seeded_random.dart';
 export 'src/rules/rules.dart';

@@ -63,6 +63,7 @@ class Rules {
     required this.maxGoldAbilitiesPerPlayer,
     required this.tierMultiplier,
     required this.ageCurves,
+    required this.fourthLeagueRelegatedToPool,
   });
 
   /// The only schema version this code understands.
@@ -75,6 +76,10 @@ class Rules {
   final int maxGoldAbilitiesPerPlayer;
   final Map<AbilityTier, double> tierMultiplier;
   final Map<Attribute, AgeCurve> ageCurves;
+
+  /// Minimum number of last-placed clubs per fourth-tier league that move
+  /// into the pool (more if needed to keep the league at its size).
+  final int fourthLeagueRelegatedToPool;
 
   /// Parses and validates a rules file given as JSON text.
   static Result<Rules, RulesError> parse(String jsonText) {
@@ -157,6 +162,12 @@ class Rules {
       curves[attribute] = curve;
     }
 
+    final pyramid = root['pyramid'] as Map<String, dynamic>;
+    final toPool = pyramid['fourth_league_relegated_to_pool'] as int;
+    if (toPool < 0) {
+      throw const RulesError('fourth_league_relegated_to_pool must be >= 0');
+    }
+
     return Rules._(
       schemaVersion: version as int,
       seasonStartYear: root['season_start_year'] as int,
@@ -165,6 +176,7 @@ class Rules {
       maxGoldAbilitiesPerPlayer: abilities['max_gold_per_player'] as int,
       tierMultiplier: Map.unmodifiable(tierMultiplier),
       ageCurves: Map.unmodifiable(curves),
+      fourthLeagueRelegatedToPool: toPool,
     );
   }
 

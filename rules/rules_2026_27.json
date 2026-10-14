@@ -346,5 +346,8 @@
       "plateau_to": 34,
       "declines_from": 35
     }
+  },
+  "pyramid": {
+    "fourth_league_relegated_to_pool": 3
   }
 }
