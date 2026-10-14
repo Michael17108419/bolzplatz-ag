@@ -215,7 +215,9 @@ class TacticsRules {
   static SystemRule _system(Map<String, dynamic> m) {
     final abilities = <SpecialAbilityType>[];
     for (final id in m['abilities'] as List<dynamic>) {
-      final matches = SpecialAbilityType.values.where((SpecialAbilityType a) => a.id == id);
+      final matches = SpecialAbilityType.values.where(
+        (SpecialAbilityType a) => a.id == id,
+      );
       if (matches.isEmpty) throw RulesError('Unknown ability $id');
       abilities.add(matches.first);
     }
