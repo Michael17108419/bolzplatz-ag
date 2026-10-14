@@ -154,4 +154,21 @@ void main() {
     );
     expect(result.errorOrNull, isNull);
   });
+
+  test('the shipped start world file is valid and complete', () {
+    final text = File('../../data/world_2026_27.json').readAsStringSync();
+    final world = WorldJson.decode(text);
+    expect(world.clubs, hasLength(206));
+    expect(world.players, hasLength(4738));
+    expect(world.coaches, hasLength(206));
+    expect(world.players.map((p) => p.id).toSet(), hasLength(4738));
+    expect(
+      world.players.map((p) => p.displayName).toSet(),
+      hasLength(4738),
+    );
+    expect(world.players.every((p) => p.contract != null), isTrue);
+    for (final ls in world.leagueSeasons) {
+      expect(ls.clubIds, hasLength(ls.league.teamCount));
+    }
+  });
 }
