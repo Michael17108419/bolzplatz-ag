@@ -32,6 +32,12 @@ flutter:
     - family: SpaceGrotesk
       fonts:
         - asset: assets/fonts/SpaceGrotesk.ttf
+          weight: 400
+        - asset: assets/fonts/SpaceGrotesk.ttf
+          weight: 700
     - family: Figtree
       fonts:
         - asset: assets/fonts/Figtree.ttf
+          weight: 400
+        - asset: assets/fonts/Figtree.ttf
+          weight: 700

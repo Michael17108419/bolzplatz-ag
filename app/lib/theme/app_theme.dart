@@ -13,6 +13,8 @@ ThemeData buildAppTheme() {
     onTertiary: Tokens.ink,
     surface: Tokens.panel,
     onSurface: Tokens.text,
+    secondaryContainer: Tokens.panel,
+    onSecondaryContainer: Tokens.text,
     error: Tokens.orange,
     onError: Tokens.ink,
   );
@@ -27,8 +29,13 @@ ThemeData buildAppTheme() {
     bodyColor: Tokens.text,
     displayColor: Tokens.text,
   );
-  TextStyle? head(TextStyle? s) =>
-      s?.copyWith(fontFamily: Tokens.headlineFont, fontWeight: FontWeight.w700);
+  // The fonts are variable fonts: the weight axis is set explicitly, so
+  // bold is drawn by the font and not faked by the engine.
+  TextStyle? head(TextStyle? s) => s?.copyWith(
+    fontFamily: Tokens.headlineFont,
+    fontWeight: FontWeight.w700,
+    fontVariations: const [FontVariation.weight(700)],
+  );
   final textTheme = text.copyWith(
     displayLarge: head(text.displayLarge),
     displayMedium: head(text.displayMedium),
