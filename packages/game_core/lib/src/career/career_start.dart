@@ -245,7 +245,7 @@ class OfferGenerator {
     final rng = SeededRandom(seed).fork('club:${club.id.value}');
 
     final quarter = ((rank - 1) * 4 ~/ size).limit(0, 3);
-    final situations = Situation.values;
+    const situations = Situation.values;
     final situation =
         situations[rng.fork('situation').weightedIndex([
           for (final s in situations) _o.situationWeights[s]![quarter],
@@ -300,7 +300,7 @@ class OfferGenerator {
   }
 
   ClubQuirk _quirk(SeededRandom rng) {
-    final quirks = ClubQuirk.values;
+    const quirks = ClubQuirk.values;
     return quirks[rng.weightedIndex([
       for (final q in quirks) _o.quirkWeights[q] ?? 0,
     ])];
