@@ -20,7 +20,7 @@ class _Slot {
   Position position;
   String? role;
   double energy;
-  final int since;
+  int since;
 }
 
 class _Ratings {
@@ -71,6 +71,7 @@ class MatchSession {
        _fit = Fit(rules),
        _systemFit = SystemFit(rules),
        _sides = [_Side(home), _Side(away)] {
+    _totalMinutes = rules.match.minutes;
     _sides[0].homeFactor = rules.match.homeAdvantage;
     for (final side in _sides) {
       _setUp(side);
@@ -100,6 +101,7 @@ class MatchSession {
   int _goalsHome = 0;
   int _goalsAway = 0;
   bool _finished = false;
+  int _totalMinutes = 0;
 
   MatchRules get _m => rules.match;
 
@@ -282,14 +284,14 @@ class MatchSession {
 
   /// Plays all minutes up to and including [target] (at most the full time).
   void advanceTo(int target) {
-    final end = math.min(target, _m.minutes);
+    final end = math.min(target, _totalMinutes);
     while (_minute < end && !_finished) {
       _minute++;
       _playMinute(_minute);
       if (_minute == _m.halfTimeMinute) {
         _add(MatchEventType.halfTime, -1);
       }
-      if (_minute == _m.minutes) {
+      if (_minute == _totalMinutes) {
         _add(MatchEventType.fullTime, -1);
         _closeBooks();
         _finished = true;
@@ -297,9 +299,94 @@ class MatchSession {
     }
   }
 
+  /// Adds extra time to a finished match (two halves of [halfMinutes]).
+  /// Sets the clock back so that [advanceTo] plays on.
+  void startExtraTime({int halfMinutes = 15}) {
+    if (!_finished) return;
+    for (final side in _sides) {
+      for (final s in side.pitch) {
+        s.since = _minute;
+      }
+    }
+    _totalMinutes = _minute + 2 * halfMinutes;
+    _finished = false;
+    _add(MatchEventType.extraTime, -1);
+  }
+
+  /// Plays a penalty shoot-out and returns the winning side (0 or 1).
+  /// Kicks are events but do not count as goals of the match.
+  int playShootout() {
+    final taken = [0, 0];
+    final scored = [0, 0];
+    final order = [
+      for (final side in _sides)
+        [
+          for (final s in side.pitch)
+            if (!s.position.isGoalkeeper) s,
+        ]..sort(
+            (a, b) => _fit
+                .slotScore(b.player, b.position)
+                .compareTo(_fit.slotScore(a.player, a.position)),
+          ),
+    ];
+    bool kick(int t) {
+      final takers = order[t];
+      final slot = takers.isEmpty ? _sides[t].pitch.first : takers[taken[t] % takers.length];
+      final side = _sides[t];
+      final defender = _sides[1 - t];
+      final score = _slotMean(side, slot, _m.penaltyAttributes);
+      final keeper = math.max(20.0, defender.ratings.keeper);
+      final p = (_m.penaltyGoal * math.pow(score / keeper, 0.5))
+          .limit(0.2, 0.95);
+      final goal = _rng.nextDouble() < p;
+      taken[t]++;
+      if (goal) scored[t]++;
+      _events.add(
+        MatchEvent(
+          minute: _minute,
+          type: MatchEventType.shootoutKick,
+          side: t,
+          homeGoals: _goalsHome,
+          awayGoals: _goalsAway,
+          player: slot.player.id,
+          outcome: goal ? ShotOutcome.goal : ShotOutcome.saved,
+        ),
+      );
+      return goal;
+    }
+
+    for (var round = 0; round < 5; round++) {
+      kick(0);
+      if (_decided(taken, scored)) return scored[0] > scored[1] ? 0 : 1;
+      kick(1);
+      if (_decided(taken, scored)) return scored[0] > scored[1] ? 0 : 1;
+    }
+    while (true) {
+      final a = kick(0);
+      final b = kick(1);
+      if (a != b) return a ? 0 : 1;
+    }
+  }
+
+  bool _decided(List<int> taken, List<int> scored) {
+    final leftHome = 5 - taken[0];
+    final leftAway = 5 - taken[1];
+    if (leftHome < 0 || leftAway < 0) return false;
+    return scored[0] > scored[1] + leftAway || scored[1] > scored[0] + leftHome;
+  }
+
+  /// Number of kicks each team scored is in the events; helper for callers.
+  List<int> shootoutScore() {
+    final score = [0, 0];
+    for (final e in _events) {
+      if (e.type == MatchEventType.shootoutKick && e.isGoal) score[e.side]++;
+    }
+    return score;
+  }
+
   /// Plays the rest of the match and returns the result.
   MatchResult finish() {
-    advanceTo(_m.minutes);
+    advanceTo(_totalMinutes);
     return MatchResult(
       homeGoals: _goalsHome,
       awayGoals: _goalsAway,
@@ -983,5 +1070,48 @@ class MatchEngine {
       away: away,
       seed: seed,
     ).finish();
+  }
+
+  /// A cup tie in one match: extra time and shoot-out when it is level.
+  KnockoutResult simulateKnockout(
+    MatchTeam home,
+    MatchTeam away, {
+    required int seed,
+  }) {
+    final session = MatchSession(
+      rules: rules,
+      home: home,
+      away: away,
+      seed: seed,
+    )..advanceTo(rules.match.minutes);
+    if (session.homeGoals != session.awayGoals) {
+      final result = session.finish();
+      return KnockoutResult(
+        match: result,
+        winnerSide: result.homeGoals > result.awayGoals ? 0 : 1,
+        extraTime: false,
+      );
+    }
+    final half = rules.season.cups.extraTimeHalfMinutes;
+    session.startExtraTime(halfMinutes: half);
+    session.advanceTo(rules.match.minutes + 2 * half);
+    if (session.homeGoals != session.awayGoals) {
+      final result = session.finish();
+      return KnockoutResult(
+        match: result,
+        winnerSide: result.homeGoals > result.awayGoals ? 0 : 1,
+        extraTime: true,
+      );
+    }
+    final winner = session.playShootout();
+    final score = session.shootoutScore();
+    final result = session.finish();
+    return KnockoutResult(
+      match: result,
+      winnerSide: winner,
+      extraTime: true,
+      shootoutHome: score[0],
+      shootoutAway: score[1],
+    );
   }
 }

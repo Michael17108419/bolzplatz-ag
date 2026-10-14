@@ -13,6 +13,8 @@ enum MatchEventType {
   substitution,
   tacticChange,
   halfTime,
+  extraTime,
+  shootoutKick,
   fullTime,
 }
 
@@ -110,4 +112,27 @@ class MatchResult {
   final Map<PlayerId, int> minutesPlayed;
 
   bool get isDraw => homeGoals == awayGoals;
+}
+
+/// Result of a cup tie played in one match: with extra time and a penalty
+/// shoot-out if needed.
+class KnockoutResult {
+  const KnockoutResult({
+    required this.match,
+    required this.winnerSide,
+    required this.extraTime,
+    this.shootoutHome,
+    this.shootoutAway,
+  });
+
+  /// The match including extra time. Shoot-out kicks are not in the goals.
+  final MatchResult match;
+
+  /// 0 if the home team went through, 1 for the away team.
+  final int winnerSide;
+  final bool extraTime;
+  final int? shootoutHome;
+  final int? shootoutAway;
+
+  bool get decidedByShootout => shootoutHome != null;
 }

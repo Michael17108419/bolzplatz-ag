@@ -2135,5 +2135,37 @@
         ]
       }
     }
+  },
+  "season": {
+    "injury_days_per_matchday": 7,
+    "suspension_yellow_cards": 5,
+    "form_win": 2.0,
+    "form_loss": -2.0,
+    "form_drift": 0.08,
+    "cups": {
+      "bolzplatz_after_matchday": [
+        4,
+        10,
+        16,
+        22,
+        28,
+        34
+      ],
+      "pott_after_matchday": [
+        6,
+        12,
+        18,
+        24,
+        29
+      ],
+      "bolzplatz_field_size": 64,
+      "bolzplatz_lower_group_size": 28,
+      "bolzplatz_year_one_fourth_league_places": 8,
+      "bolzplatz_third_league_places": 4,
+      "pott_places_per_region": 4,
+      "pott_extra_places": 4,
+      "pott_bracket_size": 32,
+      "extra_time_half_minutes": 15
+    }
   }
 }
