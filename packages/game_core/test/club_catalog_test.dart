@@ -68,14 +68,20 @@ void main() {
     final byId = {for (final c in clubs) c.id: c};
     final level = {for (final l in _rules.leagues) LeagueId(l.id): l.level};
     final second = clubs.where((c) => c.isSecondTeam).toList();
-    expect(second, hasLength(catalog.entries.where((e) => e.secondTeam).length));
+    expect(
+      second,
+      hasLength(catalog.entries.where((e) => e.secondTeam).length),
+    );
     expect(second, isNotEmpty);
     for (final c in second) {
       final first = byId[c.parentClubId]!;
       expect(c.name, '${first.name} II');
       expect(first.isSecondTeam, isFalse);
       // At least one league lies between a first team and its second team.
-      expect(level[c.leagueId]! - level[first.leagueId]!, greaterThanOrEqualTo(2));
+      expect(
+        level[c.leagueId]! - level[first.leagueId]!,
+        greaterThanOrEqualTo(2),
+      );
     }
   });
 

@@ -165,14 +165,15 @@ class PyramidTransition {
     PyramidResult result,
     Map<int, int> levelOfLeague,
   ) {
-    final leaving = _tooClose(input, result, levelOfLeague)
-        .where(
-          (c) => result.leagues.entries.any(
-            (e) => levelOfLeague[e.key.value] == 4 && e.value.contains(c),
-          ),
-        )
-        .toList()
-      ..sort((a, b) => a.value.compareTo(b.value));
+    final leaving =
+        _tooClose(input, result, levelOfLeague)
+            .where(
+              (c) => result.leagues.entries.any(
+                (e) => levelOfLeague[e.key.value] == 4 && e.value.contains(c),
+              ),
+            )
+            .toList()
+          ..sort((a, b) => a.value.compareTo(b.value));
     if (leaving.isEmpty) return result;
     final leagues = {
       for (final e in result.leagues.entries) e.key: [...e.value],
@@ -399,9 +400,7 @@ class PyramidTransition {
     playoff(s2[15], e3[2], l2.id, l3.id);
 
     // Fourth tier to third tier: champions per fixed cycle.
-    final champion = {
-      for (final r in Region.values) r: eligible(s4[r]!).first,
-    };
+    final champion = {for (final r in Region.values) r: eligible(s4[r]!).first};
     final promoted = <Region>{Region.west, Region.suedwest};
     switch (input.cycleYear) {
       case 0:

@@ -217,7 +217,10 @@ void main() {
           if (!pulled.contains(c)) c,
       ];
       expect(after.take(stayed.length), stayed);
-      if (pulled.toSet().difference(before.take(pulled.length).toSet()).isNotEmpty) {
+      if (pulled
+          .toSet()
+          .difference(before.take(pulled.length).toSet())
+          .isNotEmpty) {
         anyNotOldest = true;
       }
     }
@@ -262,7 +265,10 @@ void main() {
             m.kind == MovementKind.toPool &&
             m.from == _lid(_regionalLeague(region)),
       );
-      expect(down.length, greaterThanOrEqualTo(_rules.fourthLeagueRelegatedToPool));
+      expect(
+        down.length,
+        greaterThanOrEqualTo(_rules.fourthLeagueRelegatedToPool),
+      );
     }
     expect(_rules.fourthLeagueRelegatedToPool, 4);
   });

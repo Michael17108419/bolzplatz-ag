@@ -272,7 +272,9 @@ class SeasonRunner {
       lower = [
         ...thirdEligible,
         ...draw.take(
-          cups.yearOneFourthLeaguePlaces + league3.length - thirdEligible.length,
+          cups.yearOneFourthLeaguePlaces +
+              league3.length -
+              thirdEligible.length,
         ),
       ];
     } else {
