@@ -147,6 +147,49 @@ void main() {
       ),
       findsOneWidget,
     );
+    // The tactics board: pitch, role, swap, formation, "Passt so".
+    expect(find.byKey(const ValueKey('badge-tactics')), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit3);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('lineup-pitch')), findsOneWidget);
+    expect(find.byKey(const ValueKey('lineup-strength')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('slot-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('lineup-slotcard')), findsOneWidget);
+    final noRole = find.byKey(const ValueKey('lineup-role-none'));
+    await tester.ensureVisible(noRole);
+    await tester.tap(noRole);
+    await tester.pumpAndSettle();
+    final candidate = find
+        .byWidgetPredicate(
+          (w) =>
+              w.key is ValueKey<String> &&
+              (w.key! as ValueKey<String>).value.startsWith('lineup-player-'),
+        )
+        .at(2);
+    await tester.ensureVisible(candidate);
+    await tester.tap(candidate);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('lineup-slotcard')), findsNothing);
+    final tactics = find.byKey(const ValueKey('lineup-tab-0'));
+    await tester.ensureVisible(tactics);
+    await tester.tap(tactics);
+    await tester.pumpAndSettle();
+    final formation = find.byKey(const ValueKey('lineup-formation-3-5-2'));
+    await tester.ensureVisible(formation);
+    await tester.tap(formation);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('slot-10')), findsOneWidget);
+    final confirm = find.byKey(const ValueKey('lineup-confirm'));
+    if (confirm.evaluate().isNotEmpty) {
+      await tester.ensureVisible(confirm);
+      await tester.tap(confirm);
+      await tester.pumpAndSettle();
+    }
+    expect(find.byKey(const ValueKey('lineup-confirmed')), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('badge-tactics')), findsNothing);
     // The player files: squad list, filter, sort and a profile with tabs.
     await tester.sendKeyEvent(LogicalKeyboardKey.digit4);
     await tester.pumpAndSettle();

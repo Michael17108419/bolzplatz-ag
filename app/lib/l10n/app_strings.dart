@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
 import '../game/desk.dart';
+import '../game/lineup.dart';
 import '../game/squad.dart';
 
 /// All texts of the user interface. A screen asks this interface and never
@@ -233,7 +234,46 @@ abstract interface class AppStrings {
   String roleName(String id);
   String roleFamiliaritySymbol(RoleFamiliarity f);
   String roleFamiliarityName(RoleFamiliarity f);
-  String nationName(String code);
+    String nationName(String code);
+
+  // --- line-up (Bauabschnitt 5) ---
+  String get lineupTabTactics;
+  String get lineupTabSquad;
+  String get lineupFormation;
+  String get infoLineupFormation;
+  String get lineupSystem;
+  String get infoLineupSystem;
+  String systemName(String id);
+  String systemHint(String id);
+  String get lineupSliders;
+  String get infoLineupSliders;
+  String sliderName(String id);
+  String sliderLevelName(String id, int level);
+  String get lineupPreview;
+  String get infoLineupPreview;
+  String get lineupStrength;
+  String get lineupRoleFit;
+  String get lineupSystemFit;
+  String lineupSystemFitName(double fit);
+  String lineupOutOfPosition(int n);
+  String get lineupAuto;
+  String get lineupConfirm;
+  String get lineupConfirmed;
+  String get lineupHint;
+  String get infoLineupPitch;
+  String get lineupBenchTitle;
+  String get lineupStartXi;
+  String get lineupBench;
+  String get lineupStand;
+  String get lineupBenchFull;
+  String get lineupSlotRole;
+  String get infoLineupSlot;
+  String get lineupNoRole;
+  String lineupRoleFit(int percent);
+  String lineupOutOfPositionHint(String own, String slot, int percent);
+  String get lineupNoSheet;
+  String lineupProblemText(LineupProblem problem);
+  String get lineupPickSlotFirst;
 }
 
 /// German, the only language for now.
@@ -1243,6 +1283,163 @@ class AppStringsDe implements AppStrings {
     'BR' => 'Brasilien',
     _ => code,
   };
+
+  // --- line-up ---
+  @override
+  String get lineupTabTactics => 'Taktik';
+  @override
+  String get lineupTabSquad => 'Kader';
+  @override
+  String get lineupFormation => 'Formation';
+  @override
+  String get infoLineupFormation =>
+      'Die Zahlen sind die Spieler pro Reihe, von hinten nach vorn. Der '
+      'Torwart zählt nicht mit, er steht ja ohnehin im Weg. Wer die '
+      'Formation wechselt, lässt den Assistenten neu aufstellen; danach '
+      'dürfen Sie wieder alles besser wissen.';
+  @override
+  String get lineupSystem => 'Spielsystem';
+  @override
+  String get infoLineupSystem =>
+      'Das System ist die Spielidee der ganzen Mannschaft. Die Zahl dahinter '
+      'zeigt, wie gut Ihre Elf dazu passt: plus ist gut, minus ist Mut. '
+      'Ein System, das nicht zu den Spielern passt, wirkt kaum und kostet '
+      'trotzdem Kraft.';
+  @override
+  String systemName(String id) => switch (id) {
+    'possession' => 'Ballbesitz',
+    'counter' => 'Konter',
+    'gegenpressing' => 'Gegenpressing',
+    'wings' => 'Flügelspiel',
+    'wall' => 'Mauer',
+    _ => id,
+  };
+  @override
+  String systemHint(String id) => switch (id) {
+    'possession' =>
+      'Der Ball gehört uns. Die Gegner dürfen zuschauen, das ist sehr '
+          'höflich.',
+    'counter' =>
+      'Hinten stehen, vorne zuschlagen. Geduld ist die Kunst der '
+          'Bequemen.',
+    'gegenpressing' =>
+      'Ball verloren? Sofort zurückholen. Kostet Kraft und Nerven.',
+    'wings' =>
+      'Über außen bis zur Grundlinie, dann hoch hinein. Der Kopfball '
+          'bedankt sich.',
+    'wall' =>
+      'Kompakt, tief, hässlich. Wer nie verliert, steigt selten ab.',
+    _ => '',
+  };
+  @override
+  String get lineupSliders => 'Regler';
+  @override
+  String get infoLineupSliders =>
+      'Drei Regler, drei Stufen. Hohes Pressing und hohes Tempo kosten '
+      'Kraft, eine hohe Abwehrlinie kostet Nerven. Welche Spieler dazu '
+      'taugen, steht in den Schlüsselwerten: Ausdauer, Antritt, '
+      'Antizipation.';
+  @override
+  String sliderName(String id) => switch (id) {
+    'pressing' => 'Pressing',
+    'tempo' => 'Tempo',
+    'defensive_line' => 'Abwehrlinie',
+    _ => id,
+  };
+  @override
+  String sliderLevelName(String id, int level) => switch (id) {
+    'pressing' => const ['niedrig', 'normal', 'hoch'][level],
+    'tempo' => const ['geduldig', 'normal', 'schnell'][level],
+    _ => const ['tief', 'normal', 'hoch'][level],
+  };
+  @override
+  String get lineupPreview => 'Mannschaftsvorschau';
+  @override
+  String get infoLineupPreview =>
+      'Stärke: der Durchschnitt Ihrer Elf auf den Plätzen, auf denen sie '
+      'steht (100 wäre Weltklasse). Rollenpassung: wie gut jeder in seiner '
+      'Rolle ist, von 0 bis 100 Prozent. Systempassung: wie gut die Elf zur '
+      'Spielidee passt. Alles nur Vorschau, gespielt wird auf dem Platz.';
+  @override
+  String get lineupStrength => 'Stärke';
+  @override
+  String get lineupRoleFit => 'Rollenpassung';
+  @override
+  String get lineupSystemFit => 'Systempassung';
+  @override
+  String lineupSystemFitName(double fit) {
+    if (fit >= 0.3) return 'sehr gut';
+    if (fit >= 0.05) return 'gut';
+    if (fit > -0.05) return 'mittel';
+    if (fit > -0.3) return 'dürftig';
+    return 'Wagnis';
+  }
+
+  @override
+  String lineupOutOfPosition(int n) => n == 0
+      ? 'Alle auf ihrer Position.'
+      : n == 1
+      ? 'Ein Spieler steht nicht auf seiner Position.'
+      : '$n Spieler stehen nicht auf ihrer Position.';
+  @override
+  String get lineupAuto => 'Assistent stellt auf';
+  @override
+  String get lineupConfirm => 'Passt so';
+  @override
+  String get lineupConfirmed => 'Aufstellung steht.';
+  @override
+  String get lineupHint =>
+      'Tippen Sie auf einen Platz auf dem Feld und dann auf den Spieler, '
+      'der dort spielen soll. Ohne Platz setzt ein Tipp auf einen Spieler '
+      'ihn auf die Bank oder wieder herunter.';
+  @override
+  String get infoLineupPitch =>
+      'So steht Ihre Elf auf dem Feld, der Torwart unten. Die Farbe des '
+      'Punktes zeigt, wie gut der Spieler in seiner Rolle ist: gelb top, '
+      'grün gut, beige mittel, orange schwach.';
+  @override
+  String get lineupBenchTitle => 'Bank';
+  @override
+  String get lineupStartXi => 'Startelf';
+  @override
+  String get lineupBench => 'Bank';
+  @override
+  String get lineupStand => 'Tribüne';
+  @override
+  String get lineupBenchFull => 'Die Bank ist voll. Sieben Plätze, kein '
+      'achter.';
+  @override
+  String get lineupSlotRole => 'Rolle auf diesem Platz';
+  @override
+  String get infoLineupSlot =>
+      'Die Rolle sagt, was der Spieler auf seiner Position tut. Die Prozent '
+      'zeigen, wie gut er sie ausfüllt (Position, Fuß, Vertrautheit und '
+      'Schlüsselwerte zusammen). Eine Rolle nur für Dreier- oder '
+      'Fünferkette gibt es bei Viererkette nicht.';
+  @override
+  String get lineupNoRole => 'keine besondere Rolle';
+  @override
+  String lineupRoleFit(int percent) => '$percent %';
+  @override
+  String lineupOutOfPositionHint(String own, String slot, int percent) =>
+      'Von Haus aus $own, hier als $slot: er spielt mit $percent % seiner '
+      'Werte.';
+  @override
+  String get lineupNoSheet =>
+      'Aus diesem Kader lässt sich keine Elf stellen. Es fehlen Spieler '
+      'oder ein Torwart.';
+  @override
+  String lineupProblemText(LineupProblem problem) => switch (problem) {
+    LineupProblem.none => '',
+    LineupProblem.missing =>
+      'Es gibt keine Aufstellung. Ohne Elf wird nicht gespielt.',
+    LineupProblem.wrongCount => 'Die Aufstellung hat nicht elf Spieler.',
+    LineupProblem.keeper => 'Auf dem Torwartplatz steht kein Torwart.',
+    LineupProblem.duplicate => 'Ein Spieler steht doppelt in der Aufstellung.',
+    LineupProblem.foreign => 'Ein Spieler gehört nicht zu Ihrem Verein.',
+  };
+  @override
+  String get lineupPickSlotFirst => 'Wählen Sie zuerst einen Platz.';
 }
 
 /// The strings in use. Later this follows a setting in the settings screen.

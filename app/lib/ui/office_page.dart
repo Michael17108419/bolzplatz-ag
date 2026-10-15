@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../game/career.dart';
 import '../game/desk.dart';
+import '../game/lineup.dart';
 import '../game/mail_state.dart';
 import '../game/office.dart';
 import '../game/office_provider.dart';
@@ -56,6 +57,7 @@ class _Office extends ConsumerWidget {
     final theme = Theme.of(context);
     final offer = career.offer;
     final read = ref.watch(mailReadProvider);
+    final lineup = ref.watch(lineupProvider);
     final unread = officeMailIds.where((id) => !read.contains(id)).length;
 
     final labels = {
@@ -126,7 +128,7 @@ class _Office extends ConsumerWidget {
             labels: labels,
             badges: {
               if (unread > 0) DeskItem.post: '$unread',
-              DeskItem.tactics: '!',
+              if (lineup == null || !lineup.reviewed) DeskItem.tactics: '!',
             },
             onOpen: (item) => openDesk(context, ref, item),
             portrait: (size) =>

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../game/career.dart';
 import '../game/desk.dart';
+import '../game/lineup.dart';
 import '../game/loaded_world.dart';
 import '../game/mail_state.dart';
 import '../game/office.dart';
@@ -16,6 +17,7 @@ import 'office_mail.dart';
 import 'placeholder_page.dart';
 import 'screen_frame.dart';
 import 'settings_page.dart';
+import 'lineup_page.dart';
 import 'squad_page.dart';
 
 const List<LogicalKeyboardKey> _digitKeys = [
@@ -74,6 +76,13 @@ void openDesk(
 void goNext(BuildContext context, WidgetRef ref) {
   final s = ref.read(stringsProvider);
   final view = ref.read(officeViewProvider);
+  final problem = lineupProblemOf(ref);
+  if (problem != LineupProblem.none) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(s.lineupProblemText(problem))));
+    return;
+  }
   Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) => PlaceholderPage(
@@ -90,7 +99,7 @@ Widget _pageFor(DeskItem item) => switch (item) {
   DeskItem.stats => const StatsPage(),
   DeskItem.finance => const FinancePage(),
   DeskItem.saves => const SettingsPage(),
-  DeskItem.tactics => const _LaterPage(DeskItem.tactics, step: 5),
+  DeskItem.tactics => const LineupPage(),
   DeskItem.files => const SquadPage(),
   _ => _LaterPage(item),
 };
