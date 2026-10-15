@@ -201,12 +201,7 @@ class _OfficeSceneState extends State<OfficeScene> {
                                 color: Tokens.yellow,
                                 width: 3,
                               ),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x66FFC400),
-                                  blurRadius: 14,
-                                ),
-                              ],
+                              color: const Color(0x1FFFC400),
                             )
                           : const BoxDecoration(),
                     ),
