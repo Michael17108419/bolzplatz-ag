@@ -102,7 +102,8 @@ TickerLine? tickerLineOf(
   if (kind == null) return null;
   final options = templates(kind);
   if (options.isEmpty) return null;
-  final pick = options[(index * 7 + e.minute * 3 + e.homeGoals) % options.length];
+  final pick =
+      options[(index * 7 + e.minute * 3 + e.homeGoals) % options.length];
   final team = e.side == 1 ? away : home;
   final other = e.side == 1 ? home : away;
   final text = pick

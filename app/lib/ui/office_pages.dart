@@ -93,9 +93,8 @@ void goNext(BuildContext context, WidgetRef ref) {
   }
   final own = ref.read(seasonProvider.notifier).openNext();
   if (own == null) return;
-  Navigator.of(context).push(
-    MaterialPageRoute<void>(builder: (_) => const MatchPreviewPage()),
-  );
+  Navigator.of(context)
+      .push(MaterialPageRoute<void>(builder: (_) => const MatchPreviewPage()));
 }
 
 Widget _pageFor(DeskItem item) => switch (item) {

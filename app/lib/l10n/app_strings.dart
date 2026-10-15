@@ -631,8 +631,7 @@ class AppStringsDe implements AppStrings {
   @override
   String get matchPaused => 'Unterbrechung';
   @override
-  String matchSubsLeft(int n) =>
-      n == 1 ? 'Noch 1 Wechsel' : 'Noch $n Wechsel';
+  String matchSubsLeft(int n) => n == 1 ? 'Noch 1 Wechsel' : 'Noch $n Wechsel';
   @override
   String get matchSubPickOff => 'Wer geht raus?';
   @override

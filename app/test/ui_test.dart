@@ -256,7 +256,10 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('desk-door')));
     await tester.pumpAndSettle();
     // Preview before the match.
-    expect(find.byKey(const ValueKey('match-preview-strength')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('match-preview-strength')),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('match-preview-lineup')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('step-next')));
     await tester.pump();

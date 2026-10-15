@@ -609,7 +609,9 @@ class _SubsDialogState extends ConsumerState<_SubsDialog> {
       body = [Text(s.matchSubNone)];
     } else if (_off == null) {
       title = s.matchSubPickOff;
-      body = [for (final id in pitch) row(id, onTap: () => setState(() => _off = id))];
+      body = [
+        for (final id in pitch) row(id, onTap: () => setState(() => _off = id)),
+      ];
     } else if (bench.isEmpty) {
       title = s.matchSubPickOn;
       body = [Text(s.matchSubBenchEmpty)];
@@ -717,7 +719,10 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(s.lineupSystem, style: Theme.of(context).textTheme.titleSmall),
+              Text(
+                s.lineupSystem,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
