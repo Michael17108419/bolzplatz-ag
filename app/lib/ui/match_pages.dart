@@ -98,7 +98,7 @@ class MatchPreviewPage extends ConsumerWidget {
               Flexible(
                 child: Text(
                   '${view.atHome ? s.officeHome : s.officeAway} · '
-                  s.leagueName(ref.watch(careerProvider)!.offer.league.name),
+                  '${s.leagueName(ref.watch(careerProvider)!.offer.league.name)}',
                   key: const ValueKey('match-preview-kind'),
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium,
