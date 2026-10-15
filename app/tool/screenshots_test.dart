@@ -166,6 +166,20 @@ void main() {
       find.byType(BolzplatzApp),
       matchesGoldenFile('out/11_post.png'),
     );
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit3);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('lineup-tab-0')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/14_aufstellung.png'),
+    );
+    await tester.tap(find.byKey(const ValueKey('slot-9')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/14b_aufstellung_platz.png'),
+    );
     await tester.sendKeyEvent(LogicalKeyboardKey.digit4);
     await tester.pumpAndSettle();
     await expectLater(
