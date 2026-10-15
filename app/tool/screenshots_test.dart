@@ -1,6 +1,8 @@
 // Not part of the normal test run (it lives outside `test/`). The workflow
 // `screenshots` runs it with `--update-goldens` to write PNG pictures of the
 // screens into `tool/out/`, so the screens can be looked at without Windows.
+import 'dart:ui' show PointerDeviceKind;
+
 import 'package:bolzplatz_app/main.dart';
 import 'package:bolzplatz_app/ui/info_button.dart';
 import 'package:bolzplatz_app/ui/person_avatar.dart';
