@@ -263,6 +263,7 @@ void main() {
     expect(find.byKey(const ValueKey('match-preview-lineup')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('step-next')));
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
     // Live: the minutes run, the speed can be changed, the match paused.
     expect(find.byKey(const ValueKey('match-score')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('match-speed-2')));
