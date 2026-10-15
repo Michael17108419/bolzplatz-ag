@@ -116,6 +116,18 @@ class SeasonRunner {
     return tiers;
   }
 
+  SeasonState? _tierState;
+  Map<ClubId, int> _tierMap = const {};
+
+  /// The league level of a club in the current season state.
+  int _tierOf(SeasonState state, ClubId club) {
+    if (!identical(_tierState, state)) {
+      _tierMap = _tiers(state);
+      _tierState = state;
+    }
+    return _tierMap[club] ?? 4;
+  }
+
   MatchTeam _team(ClubId club) {
     final squad = _state.squads[club]!;
     final out = <PlayerId>{
@@ -128,8 +140,17 @@ class SeasonRunner {
     var sheet = _sheets[club];
     if (sheet == null || _sheetKey[club] != key) {
       sheet =
-          _auto.build(squad, exclude: out, formationId: forcedFormation) ??
-          _auto.build(squad, formationId: forcedFormation)!;
+          _auto.build(
+            squad,
+            exclude: out,
+            formationId: forcedFormation,
+            benchSize: rules.tactics.benchSize(_tierOf(_state, club)),
+          ) ??
+          _auto.build(
+            squad,
+            formationId: forcedFormation,
+            benchSize: rules.tactics.benchSize(_tierOf(_state, club)),
+          )!;
       _sheets[club] = sheet;
       _sheetKey[club] = key;
     }
@@ -590,7 +611,11 @@ class SeasonRunner {
 
   MatchTeam _tempTeam(SeasonState state, ClubId club) {
     final squad = state.squads[club]!;
-    final sheet = _auto.build(squad, formationId: forcedFormation)!;
+    final sheet = _auto.build(
+      squad,
+      formationId: forcedFormation,
+      benchSize: rules.tactics.benchSize(_tierOf(state, club)),
+    )!;
     return MatchTeam(
       clubId: club,
       name: state.clubs[club]!.name,

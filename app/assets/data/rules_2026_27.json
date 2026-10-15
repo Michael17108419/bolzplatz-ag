@@ -1821,7 +1821,8 @@
       "low": 40.0,
       "high": 80.0
     },
-    "max_substitutions": 5
+    "max_substitutions": 5,
+    "bench_size_by_level": {"1": 9, "2": 9, "3": 9, "4": 7}
   },
   "match": {
     "minutes": 90,

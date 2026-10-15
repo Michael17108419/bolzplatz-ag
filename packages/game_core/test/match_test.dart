@@ -44,6 +44,19 @@ void main() {
       if (tierOf[e.key] == tier) e.value,
   ];
 
+  test('the bench size follows the league level from the rules', () {
+    expect(rules.tactics.benchSize(1), 9);
+    expect(rules.tactics.benchSize(3), 9);
+    expect(rules.tactics.benchSize(4), 7);
+    final squad = teams.values.first.squad;
+    for (final size in [7, 9]) {
+      final sheet = AutoManager(rules).build(squad, benchSize: size)!;
+      expect(sheet.bench, hasLength(size));
+      expect(sheet.bench.toSet().length, size);
+      expect(sheet.bench.any(sheet.startingXi.contains), isFalse);
+    }
+  });
+
   test('every club gets a valid sheet with eleven players and a bench', () {
     for (final t in teams.values) {
       final formation = rules.tactics.formation(t.sheet.formationId);

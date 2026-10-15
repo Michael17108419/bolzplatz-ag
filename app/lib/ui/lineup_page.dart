@@ -902,7 +902,7 @@ class _SquadTab extends ConsumerWidget {
       }
       if (!notifier.toggleBench(p.id)) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(s.lineupBenchFull)));
+            .showSnackBar(SnackBar(content: Text(s.lineupBenchFull(sheet.bench.length))));
       }
     }
 

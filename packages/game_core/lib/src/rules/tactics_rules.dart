@@ -22,6 +22,21 @@ Map<String, double> _numbers(Object? raw) => Map.unmodifiable({
     e.key: (e.value as num).toDouble(),
 });
 
+Map<int, int> _benchSizes(Object? raw) {
+  final map = <int, int>{};
+  for (final e in (raw! as Map<String, dynamic>).entries) {
+    final size = e.value as int;
+    if (size < 1 || size > 20) throw const RulesError('Bad bench size');
+    map[int.parse(e.key)] = size;
+  }
+  for (var level = 1; level <= 4; level++) {
+    if (!map.containsKey(level)) {
+      throw RulesError('No bench size for level $level');
+    }
+  }
+  return Map.unmodifiable(map);
+}
+
 List<Attribute> _attributes(Object? raw) => List.unmodifiable([
   for (final id in raw! as List<dynamic>) _attribute(id as String),
 ]);
@@ -130,6 +145,7 @@ class TacticsRules {
     required this.playerFitLow,
     required this.playerFitHigh,
     required this.maxSubstitutions,
+    required this.benchSizeByLevel,
   });
 
   factory TacticsRules.fromJson(Map<String, dynamic> m) {
@@ -246,6 +262,7 @@ class TacticsRules {
       playerFitHigh: ((m['player_fit'] as Map<String, dynamic>)['high'] as num)
           .toDouble(),
       maxSubstitutions: m['max_substitutions'] as int,
+      benchSizeByLevel: _benchSizes(m['bench_size_by_level']),
       talks: List.unmodifiable((m['talks'] as List<dynamic>).cast<String>()),
     );
   }
@@ -385,6 +402,12 @@ class TacticsRules {
   final double playerFitLow;
   final double playerFitHigh;
   final int maxSubstitutions;
+
+  /// Number of substitutes in the match squad per league level (1 to 4).
+  final Map<int, int> benchSizeByLevel;
+
+  /// Bench places for a club in a league of [level].
+  int benchSize(int level) => benchSizeByLevel[level]!;
 
   /// Ids of the half-time talks.
   final List<String> talks;

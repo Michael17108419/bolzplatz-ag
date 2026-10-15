@@ -22,8 +22,10 @@ class LineupState {
   );
 }
 
-/// The bench has at most this many places.
-const int benchSize = 7;
+/// The number of bench places of the own club: it depends on the league
+/// level and comes from the rules.
+int benchPlaces(Rules rules, Career career) =>
+    rules.tactics.benchSize(career.offer.league.level);
 
 /// Checks a sheet against the squad.
 LineupProblem checkLineup(
@@ -120,15 +122,21 @@ class LineupNotifier extends Notifier<LineupState?> {
     final loaded = ref.watch(loadedWorldProvider).value;
     if (career == null || loaded == null) return null;
     final squad = clubPlayers(loaded, career.clubId).values.toList();
-    final sheet = AutoManager(loaded.rules).build(squad);
+    final sheet = AutoManager(
+      loaded.rules,
+    ).build(squad, benchSize: benchPlaces(loaded.rules, career));
     return sheet == null ? null : LineupState(sheet: sheet);
   }
 
-  ({Rules rules, Map<PlayerId, Player> squad})? _context() {
+  ({Rules rules, Map<PlayerId, Player> squad, int bench})? _context() {
     final career = ref.read(careerProvider);
     final loaded = ref.read(loadedWorldProvider).value;
     if (career == null || loaded == null) return null;
-    return (rules: loaded.rules, squad: clubPlayers(loaded, career.clubId));
+    return (
+      rules: loaded.rules,
+      squad: clubPlayers(loaded, career.clubId),
+      bench: benchPlaces(loaded.rules, career),
+    );
   }
 
   void _set(TeamSheet sheet) {
@@ -144,7 +152,7 @@ class LineupNotifier extends Notifier<LineupState?> {
     final c = _context();
     if (now == null || c == null) return;
     final built = AutoManager(c.rules)
-        .build(c.squad.values.toList(), formationId: id);
+        .build(c.squad.values.toList(), formationId: id, benchSize: c.bench);
     if (built == null) return;
     _set(
       built.copyWith(
@@ -211,7 +219,7 @@ class LineupNotifier extends Notifier<LineupState?> {
       final at = bench.indexOf(playerId);
       if (at >= 0) {
         bench[at] = old;
-      } else if (bench.length < benchSize) {
+      } else if (bench.length < c.bench) {
         bench.add(old);
       }
     }
@@ -225,7 +233,8 @@ class LineupNotifier extends Notifier<LineupState?> {
   /// false if the bench is full.
   bool toggleBench(PlayerId playerId) {
     final now = state;
-    if (now == null) return false;
+    final c = _context();
+    if (now == null || c == null) return false;
     final sheet = now.sheet;
     if (sheet.startingXi.contains(playerId)) return false;
     final bench = [...sheet.bench];
@@ -233,7 +242,7 @@ class LineupNotifier extends Notifier<LineupState?> {
       _set(sheet.copyWith(bench: bench));
       return true;
     }
-    if (bench.length >= benchSize) return false;
+    if (bench.length >= c.bench) return false;
     bench.add(playerId);
     _set(sheet.copyWith(bench: bench));
     return true;

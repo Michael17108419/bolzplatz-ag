@@ -76,7 +76,9 @@ class AutoManager {
     List<Player> squad, {
     Set<PlayerId> exclude = const {},
     String? formationId,
+    int? benchSize,
   }) {
+    final places = benchSize ?? rules.tactics.benchSize(4);
     final available = [
       for (final p in squad)
         if (!exclude.contains(p.id)) p,
@@ -111,7 +113,7 @@ class AutoManager {
     final keeper = rest.where((p) => p.position.isGoalkeeper).firstOrNull;
     if (keeper != null) bench.add(keeper);
     for (final p in rest) {
-      if (bench.length >= 7) break;
+      if (bench.length >= places) break;
       if (p.position.isGoalkeeper) continue;
       if (!bench.contains(p)) bench.add(p);
     }
