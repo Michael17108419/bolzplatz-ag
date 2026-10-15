@@ -234,7 +234,7 @@ abstract interface class AppStrings {
   String roleName(String id);
   String roleFamiliaritySymbol(RoleFamiliarity f);
   String roleFamiliarityName(RoleFamiliarity f);
-    String nationName(String code);
+  String nationName(String code);
 
   // --- line-up (Bauabschnitt 5) ---
   String get lineupTabTactics;
@@ -1327,8 +1327,7 @@ class AppStringsDe implements AppStrings {
     'wings' =>
       'Über außen bis zur Grundlinie, dann hoch hinein. Der Kopfball '
           'bedankt sich.',
-    'wall' =>
-      'Kompakt, tief, hässlich. Wer nie verliert, steigt selten ab.',
+    'wall' => 'Kompakt, tief, hässlich. Wer nie verliert, steigt selten ab.',
     _ => '',
   };
   @override
@@ -1406,7 +1405,8 @@ class AppStringsDe implements AppStrings {
   @override
   String get lineupStand => 'Tribüne';
   @override
-  String get lineupBenchFull => 'Die Bank ist voll. Sieben Plätze, kein '
+  String get lineupBenchFull =>
+      'Die Bank ist voll. Sieben Plätze, kein '
       'achter.';
   @override
   String get lineupSlotRole => 'Rolle auf diesem Platz';

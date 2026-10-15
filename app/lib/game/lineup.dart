@@ -42,7 +42,8 @@ LineupProblem checkLineup(
     if (!squad.containsKey(id)) return LineupProblem.foreign;
   }
   for (var i = 0; i < xi.length; i++) {
-    if (squad[xi[i]]!.position.isGoalkeeper != formation.slots[i].isGoalkeeper) {
+    if (squad[xi[i]]!.position.isGoalkeeper !=
+        formation.slots[i].isGoalkeeper) {
       return LineupProblem.keeper;
     }
   }
@@ -142,9 +143,8 @@ class LineupNotifier extends Notifier<LineupState?> {
     final now = state;
     final c = _context();
     if (now == null || c == null) return;
-    final built = AutoManager(
-      c.rules,
-    ).build(c.squad.values.toList(), formationId: id);
+    final built = AutoManager(c.rules)
+        .build(c.squad.values.toList(), formationId: id);
     if (built == null) return;
     _set(
       built.copyWith(
@@ -162,10 +162,8 @@ class LineupNotifier extends Notifier<LineupState?> {
     final now = state;
     final c = _context();
     if (now == null || c == null) return;
-    final built = AutoManager(c.rules).build(
-      c.squad.values.toList(),
-      formationId: now.sheet.formationId,
-    );
+    final built = AutoManager(c.rules)
+        .build(c.squad.values.toList(), formationId: now.sheet.formationId);
     if (built == null) return;
     _set(
       built.copyWith(
@@ -204,7 +202,11 @@ class LineupNotifier extends Notifier<LineupState?> {
         return false;
       }
       xi[other] = old;
-      roles[other] = auto.bestRole(oldPlayer, formation.slots[other], formation);
+      roles[other] = auto.bestRole(
+        oldPlayer,
+        formation.slots[other],
+        formation,
+      );
     } else {
       final at = bench.indexOf(playerId);
       if (at >= 0) {
@@ -256,13 +258,11 @@ class LineupNotifier extends Notifier<LineupState?> {
     final now = state;
     if (now == null) return;
     final s = now.sheet;
-    _set(
-      switch (slider) {
-        'pressing' => s.copyWith(pressing: level),
-        'tempo' => s.copyWith(tempo: level),
-        _ => s.copyWith(defensiveLine: level),
-      },
-    );
+    _set(switch (slider) {
+      'pressing' => s.copyWith(pressing: level),
+      'tempo' => s.copyWith(tempo: level),
+      _ => s.copyWith(defensiveLine: level),
+    });
   }
 
   /// "Passt so": the manager has looked at the line-up.

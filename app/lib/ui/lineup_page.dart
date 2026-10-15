@@ -377,7 +377,10 @@ class _PitchPainter extends CustomPainter {
     for (var i = 0; i < stripes; i++) {
       canvas.drawRect(
         Rect.fromLTWH(0, h / stripes * i, w, h / stripes + 1),
-        Paint()..color = i.isEven ? const Color(0xFF2A6B3E) : const Color(0xFF256238),
+        Paint()
+          ..color = i.isEven
+              ? const Color(0xFF2A6B3E)
+              : const Color(0xFF256238),
       );
     }
     final line = Paint()
@@ -535,10 +538,10 @@ class _PreviewCard extends ConsumerWidget {
           ),
           Expanded(flex: 4, child: bar ?? const SizedBox.shrink()),
           const SizedBox(width: 8),
-          SizedBox(width: 72, child: Align(
-            alignment: Alignment.centerRight,
-            child: value,
-          )),
+          SizedBox(
+            width: 72,
+            child: Align(alignment: Alignment.centerRight, child: value),
+          ),
         ],
       ),
     );
@@ -871,12 +874,14 @@ class _SquadTab extends ConsumerWidget {
     var players = squad.values.toList();
     if (slot != null) {
       final target = formation.slots[slot!];
-      players = [
-        for (final p in players)
-          if (p.position.isGoalkeeper == target.isGoalkeeper) p,
-      ]..sort(
-          (a, b) => fit.slotScore(b, target).compareTo(fit.slotScore(a, target)),
-        );
+      players =
+          [
+            for (final p in players)
+              if (p.position.isGoalkeeper == target.isGoalkeeper) p,
+          ]..sort(
+            (a, b) =>
+                fit.slotScore(b, target).compareTo(fit.slotScore(a, target)),
+          );
     } else {
       players.sort((a, b) {
         final c = order(a).compareTo(order(b));
@@ -896,9 +901,8 @@ class _SquadTab extends ConsumerWidget {
         return;
       }
       if (!notifier.toggleBench(p.id)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(s.lineupBenchFull)),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(s.lineupBenchFull)));
       }
     }
 

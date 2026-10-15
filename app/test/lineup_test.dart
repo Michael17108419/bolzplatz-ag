@@ -52,10 +52,16 @@ void main() {
       startingXi: [...sheet.startingXi.take(10), sheet.startingXi[3]],
     );
     expect(checkLineup(twice, formation, squad), LineupProblem.duplicate);
-    final short = sheet.copyWith(startingXi: sheet.startingXi.take(10).toList());
+    final short = sheet.copyWith(
+      startingXi: sheet.startingXi.take(10).toList(),
+    );
     expect(checkLineup(short, formation, squad), LineupProblem.wrongCount);
     final fieldInGoal = sheet.copyWith(
-      startingXi: [sheet.startingXi[1], sheet.startingXi[0], ...sheet.startingXi.skip(2)],
+      startingXi: [
+        sheet.startingXi[1],
+        sheet.startingXi[0],
+        ...sheet.startingXi.skip(2),
+      ],
     );
     expect(checkLineup(fieldInGoal, formation, squad), LineupProblem.keeper);
   });
