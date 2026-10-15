@@ -166,6 +166,32 @@ void main() {
       find.byType(BolzplatzApp),
       matchesGoldenFile('out/11_post.png'),
     );
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit4);
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/12_kader.png'),
+    );
+    await tester.tap(find.byKey(const ValueKey('squad-sort-strength')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find
+          .byWidgetPredicate(
+            (w) =>
+                w.key is ValueKey<String> &&
+                RegExp(r'^squad-\d+$').hasMatch((w.key! as ValueKey<String>).value),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 5; i++) {
+      await tester.tap(find.byKey(ValueKey('profile-tab-$i')));
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(BolzplatzApp),
+        matchesGoldenFile('out/13_profil_$i.png'),
+      );
+    }
   });
 
   testWidgets('trainer portraits', (tester) async {

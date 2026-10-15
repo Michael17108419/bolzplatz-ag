@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
 import '../game/desk.dart';
+import '../game/squad.dart';
 
 /// All texts of the user interface. A screen asks this interface and never
 /// holds a literal; another language is one more implementation.
@@ -156,6 +157,83 @@ abstract interface class AppStrings {
   String get jourFixToPost;
   String get jourFixToTactics;
   String get jourFixToCalendar;
+
+  // --- squad and player profile (document 08) ---
+  String get squadCount0;
+  String squadCount(int n);
+  String squadFilterName(SquadFilter filter);
+  String squadSortName(SquadSort sort);
+  String get squadEmpty;
+  String get squadColName;
+  String get squadColPos;
+  String get squadColStrength;
+  String get squadColAge;
+  String get squadColContract;
+  String get infoSquad;
+  String get infoSquadStrength;
+  String get infoSquadPos;
+  String get infoSquadContract;
+  String get infoSquadSort;
+  String profileTab(int index);
+  String get profileBack;
+  String profileAgeNation(int age, String nation);
+  String get profileOverall;
+  String get profileMainRole;
+  String get profileNoRole;
+  String get profileAbilities;
+  String get profileNoAbilities;
+  String get profileContract;
+  String profileContractUntil(String date);
+  String profileSalary(String perYear);
+  String get profileNoContract;
+  String get profileForm;
+  String get profileFormNone;
+  String get infoProfileOverall;
+  String get infoProfileRole;
+  String get infoProfileAbilities;
+  String get infoProfileForm;
+  String get valuesHint;
+  String get infoValues;
+  String get infoValuesBar;
+  String attributeGroupName(AttributeGroup group);
+  String attributeName(Attribute attribute);
+  String get rolesPositions;
+  String get rolesMainPosition;
+  String get rolesSecondaryNone;
+  String positionFamiliarityName(PositionFamiliarity f);
+  String get rolesFoot;
+  String get rolesWeakFoot;
+  String footName(Foot foot);
+  String get rolesList;
+  String get rolesBackThree;
+  String roleSideHint(bool fits);
+  String get infoRoles;
+  String get infoRolesSymbols;
+  String get infoPositions;
+  String get headTraits;
+  String get headInjury;
+  String get headPotential;
+  String get headDevelopment;
+  String get headCircumstances;
+  String get headCircumstancesText;
+  String get infoTraits;
+  String get infoPotential;
+  String get infoDevelopment;
+  String get infoCircumstances;
+  String traitName(CharacterTrait trait);
+  String traitLevelName(int level);
+  String developmentTypeName(DevelopmentType type);
+  String get careerNoSeason;
+  String careerSince(String date);
+  String get infoCareer;
+  String positionName(Position position);
+  String abilityName(SpecialAbilityType type);
+  String abilityInfo(SpecialAbilityType type);
+  String abilityTierName(AbilityTier tier);
+  String roleName(String id);
+  String roleFamiliaritySymbol(RoleFamiliarity f);
+  String roleFamiliarityName(RoleFamiliarity f);
+  String nationName(String code);
 }
 
 /// German, the only language for now.
@@ -756,6 +834,403 @@ class AppStringsDe implements AppStrings {
   String get jourFixToTactics => 'Zur Taktiktafel';
   @override
   String get jourFixToCalendar => 'Zum Kalender';
+
+  // --- squad and player profile ---
+  @override
+  String get squadCount0 => 'Keine Spieler';
+  @override
+  String squadCount(int n) => n == 1 ? '1 Spieler' : '$n Spieler';
+  @override
+  String squadFilterName(SquadFilter filter) => switch (filter) {
+    SquadFilter.all => 'Alle',
+    SquadFilter.goalkeepers => 'Tor',
+    SquadFilter.defenders => 'Abwehr',
+    SquadFilter.midfielders => 'Mittelfeld',
+    SquadFilter.attackers => 'Angriff',
+  };
+  @override
+  String squadSortName(SquadSort sort) => switch (sort) {
+    SquadSort.position => 'Position',
+    SquadSort.strength => 'Stärke',
+    SquadSort.age => 'Alter',
+    SquadSort.name => 'Name',
+    SquadSort.contract => 'Vertrag',
+  };
+  @override
+  String get squadEmpty => 'Auf dieser Position hat Ihr Verein niemanden.';
+  @override
+  String get squadColName => 'Spieler';
+  @override
+  String get squadColPos => 'Pos.';
+  @override
+  String get squadColStrength => 'Stärke';
+  @override
+  String get squadColAge => 'Alter';
+  @override
+  String get squadColContract => 'Vertrag';
+  @override
+  String get infoSquad =>
+      'Ihr Kader in der Reihenfolge, die Sie wählen. Klicken Sie auf eine '
+      'Überschrift, um zu sortieren (nochmal klicken dreht um), oder auf '
+      'einen Spieler, um alles über ihn zu erfahren. Auch das, was er '
+      'lieber nicht verraten hätte.';
+  @override
+  String get infoSquadStrength =>
+      'Die Gesamtstärke auf der Stammposition: der Durchschnitt aller Werte, '
+      'die dort zählen. 100 wäre Weltklasse, in den unteren Ligen liegen die '
+      'meisten zwischen 40 und 60.';
+  @override
+  String get infoSquadPos =>
+      'Die Stammposition: TW Torwart, IV Innenverteidiger, LV und RV '
+      'Außenverteidiger, ZDM defensives, ZM zentrales und ZOM offensives '
+      'Mittelfeld, LA und RA Außen, ST Stürmer.';
+  @override
+  String get infoSquadContract =>
+      'Das Jahr, in dem der Vertrag ausläuft. Danach kostet er Sie keinen '
+      'Cent mehr, den Spieler aber vielleicht den Verein.';
+  @override
+  String get infoSquadSort =>
+      'Sortierung: Position, Stärke (stärkste zuerst), Alter (jüngste '
+      'zuerst), Name (A bis Z) oder Vertrag (läuft zuerst aus).';
+  @override
+  String profileTab(int index) =>
+      const ['Übersicht', 'Werte', 'Rollen', 'Kopf', 'Karriere'][index];
+  @override
+  String get profileBack => 'Zum Kader';
+  @override
+  String profileAgeNation(int age, String nation) => '$age Jahre · $nation';
+  @override
+  String get profileOverall => 'Gesamtstärke';
+  @override
+  String get profileMainRole => 'Hauptrolle';
+  @override
+  String get profileNoRole => 'keine';
+  @override
+  String get profileAbilities => 'Spezialfähigkeiten';
+  @override
+  String get profileNoAbilities => 'Keine. Er ist ein ehrlicher Arbeiter.';
+  @override
+  String get profileContract => 'Vertrag';
+  @override
+  String profileContractUntil(String date) => 'bis $date';
+  @override
+  String profileSalary(String perYear) => '$perYear pro Jahr';
+  @override
+  String get profileNoContract => 'vereinslos';
+  @override
+  String get profileForm => 'Form und Stimmung';
+  @override
+  String get profileFormNone =>
+      'Noch kein Spiel gespielt. Gute Laune ist also reine Theorie.';
+  @override
+  String get infoProfileOverall =>
+      'Der Durchschnitt aller Werte, die auf der Stammposition des Spielers '
+      'zählen. Mehr als 60 ist für diese Ligen schon richtig gut.';
+  @override
+  String get infoProfileRole =>
+      'Was der Spieler auf seiner Position tut. Die Hauptrolle ist die, in '
+      'der er sich am wohlsten fühlt. Die Zeichen zeigen, wie gut er sie '
+      'kennt: Minus fremd, Null normal, Plus gut, Doppelplus Experte.';
+  @override
+  String get infoProfileAbilities =>
+      'Besondere Stärken. Bronze, Silber und Gold zeigen, wie ausgeprägt '
+      'sie sind. Mehr als vier hat niemand, und höchstens eine ist Gold.';
+  @override
+  String get infoProfileForm =>
+      'Wie gut es ihm gerade läuft und wie er drauf ist. Kommt, sobald Sie '
+      'das erste Spiel hinter sich haben.';
+  @override
+  String get valuesHint => 'Alle Werte von 1 bis 100';
+  @override
+  String get infoValues =>
+      'Alle 34 Werte eines Feldspielers in sieben Blöcken, bei Torhütern '
+      'dazu der Torwartblock. Klicken Sie auf einen Block, um ihn ein- oder '
+      'auszuklappen.';
+  @override
+  String get infoValuesBar =>
+      'Die Farbe zeigt die Klasse: Orange schwach (unter 40), Beige '
+      'durchschnittlich, Grün gut (ab 60), Gelb Spitze (ab 80).';
+  @override
+  String attributeGroupName(AttributeGroup group) => switch (group) {
+    AttributeGroup.physique => 'Physis',
+    AttributeGroup.shooting => 'Schuss',
+    AttributeGroup.setPieces => 'Standards',
+    AttributeGroup.passing => 'Pass',
+    AttributeGroup.intelligence => 'Spielintelligenz',
+    AttributeGroup.dribbling => 'Dribbling',
+    AttributeGroup.defending => 'Defensive',
+    AttributeGroup.goalkeeping => 'Torwart',
+  };
+  @override
+  String attributeName(Attribute attribute) => switch (attribute) {
+    Attribute.acceleration => 'Antritt',
+    Attribute.sprintSpeed => 'Endgeschwindigkeit',
+    Attribute.stamina => 'Ausdauer',
+    Attribute.strength => 'Kraft',
+    Attribute.jumping => 'Sprungkraft',
+    Attribute.recovery => 'Erholung',
+    Attribute.goalInstinct => 'Torinstinkt',
+    Attribute.finishing => 'Abschluss',
+    Attribute.shotPower => 'Schusskraft',
+    Attribute.longShots => 'Fernschuss',
+    Attribute.volleys => 'Volleyschuss',
+    Attribute.penalties => 'Elfmeter',
+    Attribute.freeKicks => 'Freistöße',
+    Attribute.corners => 'Eckbälle',
+    Attribute.shortPassing => 'Kurzpass',
+    Attribute.longPassing => 'Langpass',
+    Attribute.crossing => 'Flanken',
+    Attribute.curve => 'Effet',
+    Attribute.vision => 'Spielübersicht',
+    Attribute.composure => 'Ruhe am Ball',
+    Attribute.reactions => 'Reaktion',
+    Attribute.anticipation => 'Vorausahnen',
+    Attribute.decisionMaking => 'Entscheidungen',
+    Attribute.tacticalSense => 'Taktikverständnis',
+    Attribute.concentration => 'Konzentration',
+    Attribute.agility => 'Wendigkeit',
+    Attribute.balance => 'Balance',
+    Attribute.ballControl => 'Ballkontrolle',
+    Attribute.dribbling => 'Dribbling',
+    Attribute.interceptions => 'Abfangen',
+    Attribute.heading => 'Kopfball',
+    Attribute.defensiveAwareness => 'Defensivverhalten',
+    Attribute.standingTackle => 'Zweikampf',
+    Attribute.slidingTackle => 'Grätsche',
+    Attribute.gkReflexes => 'Reflexe',
+    Attribute.gkDiving => 'Hechten',
+    Attribute.gkHandling => 'Fangsicherheit',
+    Attribute.gkPositioning => 'Stellungsspiel',
+    Attribute.gkKicking => 'Abschlag',
+    Attribute.gkCommandOfArea => 'Strafraumbeherrschung',
+    Attribute.gkDistribution => 'Spieleröffnung',
+    Attribute.gkOneOnOne => 'Eins gegen eins',
+  };
+  @override
+  String get rolesPositions => 'Positionen';
+  @override
+  String get rolesMainPosition => 'Stammposition';
+  @override
+  String get rolesSecondaryNone => 'Keine Nebenposition';
+  @override
+  String positionFamiliarityName(PositionFamiliarity f) => switch (f) {
+    PositionFamiliarity.trained => 'eingespielt',
+    PositionFamiliarity.practised => 'geübt',
+  };
+  @override
+  String get rolesFoot => 'Fuß';
+  @override
+  String get rolesWeakFoot => 'Schwacher Fuß';
+  @override
+  String footName(Foot foot) => foot == Foot.left ? 'links' : 'rechts';
+  @override
+  String get rolesList => 'Rollen auf seinen Positionen';
+  @override
+  String get rolesBackThree => 'nur bei Dreier- oder Fünferkette';
+  @override
+  String roleSideHint(bool fits) =>
+      fits ? 'Fuß passt zur Seite' : 'Falscher Fuß für diese Seite';
+  @override
+  String get infoRoles =>
+      'Jede Rolle hat Schlüsselwerte. Das Zeichen daneben zeigt, wie gut der '
+      'Spieler die Rolle kennt. Auf der falschen Seite für seinen Fuß gibt '
+      'es Abzüge.';
+  @override
+  String get infoRolesSymbols =>
+      'Minus: fremd (Abzug). Null: normal. Plus: gut (kleiner Bonus). '
+      'Doppelplus: Experte (großer Bonus). Mehr als drei Plus und ein '
+      'Doppelplus hat keiner.';
+  @override
+  String get infoPositions =>
+      'Auf der Stammposition spielt er am besten. Auf Nebenpositionen ist er '
+      'eingespielt (kaum Abzug) oder geübt (halber Abzug). Überall sonst '
+      'zahlt er voll drauf.';
+  @override
+  String get headTraits => 'Charakter';
+  @override
+  String get headInjury => 'Verletzungsanfälligkeit';
+  @override
+  String get headPotential => 'Potenzial';
+  @override
+  String get headDevelopment => 'Entwicklung';
+  @override
+  String get headCircumstances => 'Umstände';
+  @override
+  String get headCircumstancesText =>
+      'Rolle im Verein, Kabine, Medien, Berater und Finanzen erscheinen hier, '
+      'sobald das Spiel läuft.';
+  @override
+  String get infoTraits =>
+      'Wie er tickt. Die Werte sind in vier Stufen sichtbar (niedrig, mittel, '
+      'hoch, extrem). Die genauen Zahlen bleiben geheim, wie im richtigen '
+      'Leben.';
+  @override
+  String get infoPotential =>
+      'Wie gut er höchstens werden kann, grob in fünf Punkten. Ob er es '
+      'schafft, hängt von Alter, Training und Spielzeit ab.';
+  @override
+  String get infoDevelopment =>
+      'Frühentwickler sind früh gut und lassen früher nach. Spätzünder '
+      'brauchen länger, halten dafür länger durch.';
+  @override
+  String get infoCircumstances =>
+      'Alles, was um einen Spieler herum passiert und seine Laune, Leistung '
+      'und Wechselwünsche verändert.';
+  @override
+  String traitName(CharacterTrait trait) => switch (trait) {
+    CharacterTrait.professionalism => 'Professionalität',
+    CharacterTrait.temper => 'Hitzköpfigkeit',
+    CharacterTrait.aggression => 'Aggressivität',
+    CharacterTrait.egoism => 'Egoismus',
+    CharacterTrait.leadership => 'Führungsstärke',
+    CharacterTrait.pressureResistance => 'Nervenstärke',
+    CharacterTrait.creativity => 'Kreativität',
+    CharacterTrait.mediaHunger => 'Medienhunger',
+    CharacterTrait.partyFactor => 'Partyfaktor',
+    CharacterTrait.greed => 'Geldgier',
+    CharacterTrait.ambition => 'Ehrgeiz',
+    CharacterTrait.loyalty => 'Treue',
+    CharacterTrait.consistency => 'Konstanz',
+  };
+  @override
+  String traitLevelName(int level) =>
+      const ['niedrig', 'mittel', 'hoch', 'extrem'][level];
+  @override
+  String developmentTypeName(DevelopmentType type) => switch (type) {
+    DevelopmentType.earlyBloomer => 'Frühentwickler',
+    DevelopmentType.normal => 'Normal',
+    DevelopmentType.lateBloomer => 'Spätzünder',
+  };
+  @override
+  String get careerNoSeason =>
+      'Noch keine Saison gespielt. Statistik, Entwicklungskurve, '
+      'Verletzungen und Meldungen aus der Presse erscheinen hier später.';
+  @override
+  String careerSince(String date) => 'Beim Verein seit $date';
+  @override
+  String get infoCareer =>
+      'Der Lebenslauf des Spielers: Spiele, Tore, Verletzungen und was die '
+      'Zeitungen über ihn geschrieben haben.';
+  @override
+  String positionName(Position position) => switch (position) {
+    Position.tw => 'Torwart',
+    Position.iv => 'Innenverteidiger',
+    Position.lv => 'Linker Verteidiger',
+    Position.rv => 'Rechter Verteidiger',
+    Position.zdm => 'Defensives Mittelfeld',
+    Position.zm => 'Zentrales Mittelfeld',
+    Position.zom => 'Offensives Mittelfeld',
+    Position.la => 'Linksaußen',
+    Position.ra => 'Rechtsaußen',
+    Position.st => 'Stürmer',
+  };
+  @override
+  String abilityName(SpecialAbilityType type) => switch (type) {
+    SpecialAbilityType.dribbler => 'Dribbelkönig',
+    SpecialAbilityType.longShooter => 'Fernschütze',
+    SpecialAbilityType.volleySpecialist => 'Volleyspezialist',
+    SpecialAbilityType.goalPoacher => 'Abstauber',
+    SpecialAbilityType.headerMonster => 'Kopfballungeheuer',
+    SpecialAbilityType.playmaker => 'Spielmacher',
+    SpecialAbilityType.targetMan => 'Zielspieler',
+    SpecialAbilityType.counterPlayer => 'Konterspieler',
+    SpecialAbilityType.setPieceSpecialist => 'Standardspezialist',
+    SpecialAbilityType.ballShield => 'Ballschirm',
+    SpecialAbilityType.firstTouch => 'Erstberührung',
+    SpecialAbilityType.vacuumCleaner => 'Staubsauger',
+    SpecialAbilityType.pressingMachine => 'Pressingmaschine',
+    SpecialAbilityType.passReader => 'Passleser',
+    SpecialAbilityType.penaltyKiller => 'Elfmetertöter',
+    SpecialAbilityType.allrounder => 'Allrounder',
+  };
+  @override
+  String abilityInfo(SpecialAbilityType type) => switch (type) {
+    SpecialAbilityType.dribbler => 'Lässt Gegner stehen und freut sich darüber.',
+    SpecialAbilityType.longShooter => 'Schießt aus 30 Metern. Trifft manchmal sogar das Tor.',
+    SpecialAbilityType.volleySpecialist => 'Mag den Ball lieber in der Luft als am Boden.',
+    SpecialAbilityType.goalPoacher => 'Steht immer genau dort, wo der Ball hinfällt.',
+    SpecialAbilityType.headerMonster => 'Köpft alles, was fliegt, und manches, was nicht fliegt.',
+    SpecialAbilityType.playmaker => 'Sieht Pässe, bevor andere wissen, dass es einen Ball gibt.',
+    SpecialAbilityType.targetMan => 'Ein Hüne, an dem sich Verteidiger die Zähne ausbeißen.',
+    SpecialAbilityType.counterPlayer => 'Rennt los, bevor der Gegner den Ball verloren hat.',
+    SpecialAbilityType.setPieceSpecialist => 'Freistöße und Ecken sind sein Wohnzimmer.',
+    SpecialAbilityType.ballShield => 'Den Ball bekommt man nur mit Gewalt.',
+    SpecialAbilityType.firstTouch => 'Der Ball klebt schon beim Annehmen.',
+    SpecialAbilityType.vacuumCleaner => 'Saugt jeden Ball im Mittelfeld ein.',
+    SpecialAbilityType.pressingMachine => 'Läuft Gegner an, bis sie weinen.',
+    SpecialAbilityType.passReader => 'Weiß vorher, wohin der Gegner passen will.',
+    SpecialAbilityType.penaltyKiller => 'Hält Elfmeter, weil er einfach besser rät.',
+    SpecialAbilityType.allrounder => 'Kann alles ein bisschen. Zählt als Fähigkeit.',
+  };
+  @override
+  String abilityTierName(AbilityTier tier) => switch (tier) {
+    AbilityTier.bronze => 'Bronze',
+    AbilityTier.silver => 'Silber',
+    AbilityTier.gold => 'Gold',
+  };
+  @override
+  String roleName(String id) => switch (id) {
+    'line_keeper' => 'Linientorwart',
+    'sweeper_keeper' => 'Mitspielender Torwart',
+    'playmaking_keeper' => 'Spielmacher im Tor',
+    'box_keeper' => 'Strafraumtorwart',
+    'anchor_defender' => 'Ankerverteidiger',
+    'stopper' => 'Vorstopper',
+    'ball_playing_defender' => 'Spielaufbauender Verteidiger',
+    'libero' => 'Libero',
+    'wide_centre_back' => 'Breiter Innenverteidiger',
+    'full_back' => 'Außenverteidiger',
+    'inverted_full_back' => 'Einrückender Außenverteidiger',
+    'wing_back' => 'Schienenspieler',
+    'attacking_wing_back' => 'Offensiver Schienenspieler',
+    'inside_wing_back' => 'Einrückender Schienenspieler',
+    'ball_winner' => 'Balleroberer',
+    'anchor_midfielder' => 'Sechser',
+    'deep_playmaker' => 'Tiefer Spielmacher',
+    'box_to_box' => 'Box-zu-Box-Spieler',
+    'playmaker' => 'Spielmacher',
+    'half_winger' => 'Halbaußen',
+    'classic_ten' => 'Klassische Zehn',
+    'shadow_striker' => 'Schattenstürmer',
+    'winger' => 'Flügelspieler',
+    'inside_forward' => 'Einrückender Flügel',
+    'wide_playmaker' => 'Spielmachender Flügel',
+    'wide_midfielder' => 'Äußerer Mittelfeldspieler',
+    'advanced_forward' => 'Vorgeschobener Stürmer',
+    'poacher' => 'Strafraumjäger',
+    'false_nine' => 'Falsche Neun',
+    'target_man' => 'Wandspieler',
+    _ => id,
+  };
+  @override
+  String roleFamiliaritySymbol(RoleFamiliarity f) => switch (f) {
+    RoleFamiliarity.unfamiliar => '−',
+    RoleFamiliarity.basic => '0',
+    RoleFamiliarity.comfortable => '+',
+    RoleFamiliarity.expert => '++',
+  };
+  @override
+  String roleFamiliarityName(RoleFamiliarity f) => switch (f) {
+    RoleFamiliarity.unfamiliar => 'fremd',
+    RoleFamiliarity.basic => 'normal',
+    RoleFamiliarity.comfortable => 'gut',
+    RoleFamiliarity.expert => 'Experte',
+  };
+  @override
+  String nationName(String code) => switch (code) {
+    'DE' => 'Deutschland',
+    'TR' => 'Türkei',
+    'PL' => 'Polen',
+    'GH' => 'Ghana',
+    'NG' => 'Nigeria',
+    'HR' => 'Kroatien',
+    'IT' => 'Italien',
+    'NL' => 'Niederlande',
+    'FR' => 'Frankreich',
+    'ES' => 'Spanien',
+    'BR' => 'Brasilien',
+    _ => code,
+  };
 }
 
 /// The strings in use. Later this follows a setting in the settings screen.

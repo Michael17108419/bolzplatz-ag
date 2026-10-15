@@ -44,6 +44,19 @@ class LoadedWorld {
 
   Club club(ClubId id) => world.clubs.firstWhere((c) => c.id == id);
 
+  late final Map<PlayerId, Player> _playersById = {
+    for (final p in world.players) p.id: p,
+  };
+
+  /// A player of the start world by id, null if there is none.
+  Player? player(PlayerId id) => _playersById[id];
+
+  /// The overall strength of a player on his position (0 to 100).
+  double overall(Player p) => WorldReport.overall(p, rules);
+
+  /// The date the screens show the world at (the start of the season).
+  GameDate get today => world.season.start;
+
   /// The clubs of a league in the start season, strongest first.
   List<Club> clubsOf(League league) {
     final season = world.leagueSeasons.firstWhere(

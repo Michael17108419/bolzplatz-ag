@@ -147,6 +147,35 @@ void main() {
       ),
       findsOneWidget,
     );
+    // The player files: squad list, filter, sort and a profile with tabs.
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit4);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('squad-count')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('squad-filter-goalkeepers')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('squad-sort-age')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('squad-filter-all')));
+    await tester.pumpAndSettle();
+    final firstRow = find
+        .byWidgetPredicate(
+          (w) =>
+              w.key is ValueKey<String> &&
+              (w.key! as ValueKey<String>).value.startsWith('squad-') &&
+              RegExp(r'^squad-\d+$').hasMatch((w.key! as ValueKey<String>).value),
+        )
+        .first;
+    await tester.tap(firstRow);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('profile-overall')), findsOneWidget);
+    for (var i = 1; i < 5; i++) {
+      await tester.tap(find.byKey(ValueKey('profile-tab-$i')));
+      await tester.pumpAndSettle();
+    }
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
     // The door is "Weiter".
     await tester.tap(find.byKey(const ValueKey('desk-door')));
     await tester.pumpAndSettle();

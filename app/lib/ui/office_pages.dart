@@ -16,6 +16,7 @@ import 'office_mail.dart';
 import 'placeholder_page.dart';
 import 'screen_frame.dart';
 import 'settings_page.dart';
+import 'squad_page.dart';
 
 const List<LogicalKeyboardKey> _digitKeys = [
   LogicalKeyboardKey.digit0,
@@ -90,23 +91,31 @@ Widget _pageFor(DeskItem item) => switch (item) {
   DeskItem.finance => const FinancePage(),
   DeskItem.saves => const SettingsPage(),
   DeskItem.tactics => const _LaterPage(DeskItem.tactics, step: 5),
-  DeskItem.files => const _LaterPage(DeskItem.files, step: 4),
+  DeskItem.files => const SquadPage(),
   _ => _LaterPage(item),
 };
 
 /// The frame of every screen behind a desk item: title, the number keys and
 /// the quick bar at the bottom.
 class DeskFrame extends ConsumerWidget {
-  const DeskFrame({required this.item, required this.child, super.key});
+  const DeskFrame({
+    required this.item,
+    required this.child,
+    this.title,
+    super.key,
+  });
 
   final DeskItem item;
   final Widget child;
+
+  /// The title of the screen; the name of the desk item when null.
+  final String? title;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
     return ScreenFrame(
-      title: s.deskName(item),
+      title: title ?? s.deskName(item),
       maxWidth: 1100,
       extraBindings: deskBindings(context, ref, current: item, replace: true),
       child: Column(
@@ -269,8 +278,8 @@ class _LaterPage extends ConsumerWidget {
 }
 
 /// Builds a page body once the career and the world are there.
-class _WithCareer extends ConsumerWidget {
-  const _WithCareer({required this.builder});
+class WithCareer extends ConsumerWidget {
+  const WithCareer({required this.builder});
 
   final Widget Function(
     BuildContext context,
@@ -341,7 +350,7 @@ class _PostPageState extends ConsumerState<PostPage> {
     final read = ref.watch(mailReadProvider);
     return DeskFrame(
       item: DeskItem.post,
-      child: _WithCareer(
+      child: WithCareer(
         builder: (context, career, loaded, view) {
           final mails = buildMails(s, career, loaded, view);
           final opened = mails.where((m) => m.id == _open).firstOrNull;
@@ -477,7 +486,7 @@ class CalendarPage extends ConsumerWidget {
     final theme = Theme.of(context);
     return DeskFrame(
       item: DeskItem.calendar,
-      child: _WithCareer(
+      child: WithCareer(
         builder: (context, career, loaded, view) => _single(
           _card(
             Column(
@@ -543,7 +552,7 @@ class StatsPage extends ConsumerWidget {
     final theme = Theme.of(context);
     return DeskFrame(
       item: DeskItem.stats,
-      child: _WithCareer(
+      child: WithCareer(
         builder: (context, career, loaded, view) => _single(
           _card(
             Column(
@@ -607,7 +616,7 @@ class FinancePage extends ConsumerWidget {
     );
     return DeskFrame(
       item: DeskItem.finance,
-      child: _WithCareer(
+      child: WithCareer(
         builder: (context, career, loaded, view) {
           final offer = career.offer;
           return _single(
