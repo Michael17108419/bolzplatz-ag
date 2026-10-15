@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
-import '../game/career.dart';
 import '../game/desk.dart';
 import '../game/loaded_world.dart';
 import '../game/squad.dart';
@@ -136,7 +135,7 @@ class _Toolbar extends ConsumerWidget {
           key: const ValueKey('squad-count'),
           style: theme.textTheme.bodyMedium,
         ),
-        InfoButton(message: s.infoSquad),
+        InfoButton(message: s.infoSquadList),
       ],
     );
   }

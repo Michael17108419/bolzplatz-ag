@@ -279,7 +279,7 @@ class _LaterPage extends ConsumerWidget {
 
 /// Builds a page body once the career and the world are there.
 class WithCareer extends ConsumerWidget {
-  const WithCareer({required this.builder});
+  const WithCareer({required this.builder, super.key});
 
   final Widget Function(
     BuildContext context,

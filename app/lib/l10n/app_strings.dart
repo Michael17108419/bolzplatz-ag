@@ -169,7 +169,7 @@ abstract interface class AppStrings {
   String get squadColStrength;
   String get squadColAge;
   String get squadColContract;
-  String get infoSquad;
+  String get infoSquadList;
   String get infoSquadStrength;
   String get infoSquadPos;
   String get infoSquadContract;
@@ -869,7 +869,7 @@ class AppStringsDe implements AppStrings {
   @override
   String get squadColContract => 'Vertrag';
   @override
-  String get infoSquad =>
+  String get infoSquadList =>
       'Ihr Kader in der Reihenfolge, die Sie wählen. Klicken Sie auf eine '
       'Überschrift, um zu sortieren (nochmal klicken dreht um), oder auf '
       'einen Spieler, um alles über ihn zu erfahren. Auch das, was er '
