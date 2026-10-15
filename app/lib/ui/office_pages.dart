@@ -44,10 +44,8 @@ Map<ShortcutActivator, VoidCallback> deskBindings(
       if (item != current)
         SingleActivator(_digitKeys[item.digit!]): () =>
             openDesk(context, ref, item, replace: replace),
-    const SingleActivator(LogicalKeyboardKey.space): () =>
-        goNext(context, ref),
-    const SingleActivator(LogicalKeyboardKey.enter): () =>
-        goNext(context, ref),
+    const SingleActivator(LogicalKeyboardKey.space): () => goNext(context, ref),
+    const SingleActivator(LogicalKeyboardKey.enter): () => goNext(context, ref),
   };
 }
 
@@ -77,8 +75,10 @@ void goNext(BuildContext context, WidgetRef ref) {
   final view = ref.read(officeViewProvider);
   Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) =>
-          PlaceholderPage(title: s.officeMatchday(view?.matchday ?? 1), step: 7),
+      builder: (_) => PlaceholderPage(
+        title: s.officeMatchday(view?.matchday ?? 1),
+        step: 7,
+      ),
     ),
   );
 }
@@ -382,12 +382,8 @@ class _PostPageState extends ConsumerState<PostPage> {
                           for (final (label, item) in opened.actions)
                             OutlinedButton(
                               key: ValueKey('mail-go-${item.name}'),
-                              onPressed: () => openDesk(
-                                context,
-                                ref,
-                                item,
-                                replace: true,
-                              ),
+                              onPressed: () =>
+                                  openDesk(context, ref, item, replace: true),
                               child: Text(label),
                             ),
                         ],

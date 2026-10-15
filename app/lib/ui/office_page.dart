@@ -70,9 +70,7 @@ class _Office extends ConsumerWidget {
               : item == DeskItem.post && unread > 0
               ? '${s.deskHint(item)}\n\n${s.deskBadgePost(unread)}.'
               : s.deskHint(item),
-          keyText: item.digit == null
-              ? s.deskKeyDoor
-              : s.deskKey(item.digit!),
+          keyText: item.digit == null ? s.deskKeyDoor : s.deskKey(item.digit!),
         ),
     };
 
@@ -129,10 +127,8 @@ class _Office extends ConsumerWidget {
               DeskItem.tactics: '!',
             },
             onOpen: (item) => openDesk(context, ref, item),
-            portrait: (size) => PersonAvatar(
-              appearance: career.trainer.appearance,
-              size: size,
-            ),
+            portrait: (size) =>
+                PersonAvatar(appearance: career.trainer.appearance, size: size),
             leagueLabel: s.leagueName(offer.league.name),
           ),
         ),

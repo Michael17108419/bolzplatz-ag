@@ -197,7 +197,10 @@ class _OfficeSceneState extends State<OfficeScene> {
                       decoration: hover == item
                           ? BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Tokens.yellow, width: 3),
+                              border: Border.all(
+                                color: Tokens.yellow,
+                                width: 3,
+                              ),
                               boxShadow: const [
                                 BoxShadow(
                                   color: Color(0x66FFC400),

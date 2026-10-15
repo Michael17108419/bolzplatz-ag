@@ -749,6 +749,7 @@ class AppStringsDe implements AppStrings {
     ];
     return lines.join('\n');
   }
+
   @override
   String get jourFixToPost => 'Zur Post';
   @override

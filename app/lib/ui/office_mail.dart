@@ -115,9 +115,8 @@ class _Initial extends StatelessWidget {
       backgroundColor: Tokens.panel,
       child: Text(
         letter,
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(color: Tokens.yellow),
+        style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(color: Tokens.yellow),
       ),
     );
   }
