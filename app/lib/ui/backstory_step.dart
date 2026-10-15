@@ -210,9 +210,20 @@ class _LevelRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
-          Text(label, style: theme.textTheme.bodyMedium),
-          InfoButton(message: info, size: 16),
-          const Spacer(),
+          Expanded(
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+                InfoButton(message: info),
+              ],
+            ),
+          ),
           for (var i = 0; i < 4; i++)
             Container(
               width: 14,
