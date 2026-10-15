@@ -596,7 +596,7 @@ class SeasonRunner {
     final pott = run.pott;
     final tables = run.tables;
     var bolzRound = run.bolzRound;
-    var pottRound = run.pottRound;
+    final pottRound = run.pottRound;
     final matches = run.matches;
     final goals = run.goals;
     final hw = run.homeWins;
