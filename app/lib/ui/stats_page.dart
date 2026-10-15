@@ -197,7 +197,10 @@ class _TablesTab extends ConsumerWidget {
                     children: [
                       Container(width: 12, height: 12, color: zoneColor(z)),
                       const SizedBox(width: 6),
-                      Text(s.statsZoneName(z), style: theme.textTheme.bodySmall),
+                      Text(
+                        s.statsZoneName(z),
+                        style: theme.textTheme.bodySmall,
+                      ),
                     ],
                   ),
                 InfoButton(message: s.infoStatsZones),
@@ -217,9 +220,8 @@ class _TableHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
-    final style = Theme.of(
-      context,
-    ).textTheme.labelLarge?.copyWith(color: Tokens.beige);
+    final style = Theme.of(context).textTheme.labelLarge
+        ?.copyWith(color: Tokens.beige);
     Widget cell(String text, double width) => SizedBox(
       width: width,
       child: Text(text, textAlign: TextAlign.center, style: style),
@@ -435,7 +437,9 @@ class _CupsTab extends ConsumerWidget {
                           child: Text(
                             stats.pottWinners[region] != null
                                 ? s.statsCupWinner(
-                                    loaded.club(stats.pottWinners[region]!).name,
+                                    loaded
+                                        .club(stats.pottWinners[region]!)
+                                        .name,
                                   )
                                 : s.statsCupNoWinner,
                             overflow: TextOverflow.ellipsis,

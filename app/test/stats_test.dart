@@ -72,10 +72,8 @@ void main() {
       }
       tables[ls.league.id] = t.standing;
     }
-    int tierOf(ClubId c) => seasons
-        .firstWhere((ls) => ls.clubIds.contains(c))
-        .league
-        .level;
+    int tierOf(ClubId c) =>
+        seasons.firstWhere((ls) => ls.clubIds.contains(c)).league.level;
     final top = [
       for (final ls in seasons.where((ls) => ls.league.level <= 2))
         ...ls.clubIds,
