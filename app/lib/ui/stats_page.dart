@@ -605,7 +605,8 @@ class _ScorersTab extends ConsumerWidget {
                   itemCount: rows.length,
                   itemBuilder: (context, i) {
                     final r = rows[i];
-                    final club = loaded.club(r.player.clubId);
+                    final clubId = r.player.clubId;
+                    final club = clubId == null ? null : loaded.club(clubId);
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 3),
                       child: Material(
@@ -635,7 +636,7 @@ class _ScorersTab extends ConsumerWidget {
                                     style: theme.textTheme.titleSmall,
                                   ),
                                 ),
-                                ClubCrest(clubId: club.id.value, size: 24),
+                                if (club != null) ClubCrest(clubId: club.id.value, size: 24),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
@@ -649,7 +650,7 @@ class _ScorersTab extends ConsumerWidget {
                                         style: theme.textTheme.titleSmall,
                                       ),
                                       Text(
-                                        club.name,
+                                        club?.name ?? '',
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: theme.textTheme.bodySmall,
