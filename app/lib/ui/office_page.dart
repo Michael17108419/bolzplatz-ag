@@ -75,10 +75,7 @@ class _OfficeState extends ConsumerState<_Office> {
         id: 'president',
         sender: '${s.officeSenderPresident} ${offer.president.name}',
         subject: s.officeMailSubjectPresident(offer.club.name),
-        body: s.officeMailBodyPresident(
-          offer.president.typeId,
-          trainer.name,
-        ),
+        body: s.officeMailBodyPresident(offer.president.typeId, trainer.name),
         portrait: PersonAvatar(
           appearance: look.appearance,
           extras: look.extras,
@@ -132,9 +129,7 @@ class _OfficeState extends ConsumerState<_Office> {
           child: Text(
             text,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: Tokens.orange,
-            ),
+            style: theme.textTheme.titleMedium?.copyWith(color: Tokens.orange),
           ),
         ),
         InfoButton(message: info),
@@ -259,9 +254,7 @@ class _OfficeState extends ConsumerState<_Office> {
           const SizedBox(height: Tokens.gapS),
           Text(
             s.officeTableForecast(offer.strengthRank, view.leagueSize),
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: Tokens.yellow,
-            ),
+            style: theme.textTheme.titleMedium?.copyWith(color: Tokens.yellow),
           ),
         ],
       ),
@@ -475,9 +468,8 @@ class _Initial extends StatelessWidget {
       backgroundColor: Tokens.panel,
       child: Text(
         letter,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: Tokens.yellow,
-        ),
+        style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(color: Tokens.yellow),
       ),
     );
   }

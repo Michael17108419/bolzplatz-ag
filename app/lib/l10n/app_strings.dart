@@ -380,7 +380,10 @@ class AppStringsDe implements AppStrings {
   @override
   String officeMailSubjectPresident(String club) => 'Willkommen bei $club!';
   @override
-  String officeMailBodyPresident(String typeId, String name) => switch (typeId) {
+  String officeMailBodyPresident(
+    String typeId,
+    String name,
+  ) => switch (typeId) {
     'construction_tycoon' =>
       'Willkommen, $name! Ich baue gerade ein Stadion für 80.000 Zuschauer, auch wenn wir im Schnitt 212 haben. Man muss groß denken, der Rest kommt von selbst. Bitte nicht am Fundament rütteln.',
     'thrifty_butcher' =>

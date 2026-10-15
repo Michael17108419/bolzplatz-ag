@@ -23,9 +23,9 @@ class OfficeView {
     final season = loaded.world.leagueSeasons.firstWhere(
       (ls) => ls.league.id == offer.league.id,
     );
-    final seasonSeed = SeededRandom(
-      career.seed,
-    ).fork('season:${loaded.world.season.startYear}').seed;
+    final seasonSeed = SeededRandom(career.seed)
+        .fork('season:${loaded.world.season.startYear}')
+        .seed;
     final schedule = SeasonRunner.leagueSchedule(
       season.clubIds,
       offer.league.id,
