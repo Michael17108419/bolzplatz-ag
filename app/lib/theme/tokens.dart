@@ -27,6 +27,9 @@ abstract final class Tokens {
   /// Cream used for crest outlines.
   static const Color cream = Color(0xFFF4EFE2);
 
+  /// Neutral middle value (for example the middle level of a bar).
+  static const Color beige = Color(0xFFE2CFA0);
+
   static const String headlineFont = 'SpaceGrotesk';
   static const String bodyFont = 'Figtree';
 

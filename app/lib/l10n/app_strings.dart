@@ -48,6 +48,8 @@ abstract interface class AppStrings {
   String backstoryHook(String hookId);
   String get hookLabel;
   String managerValueName(ManagerValue value);
+  String managerValueInfo(ManagerValue value);
+  String get hookInfo;
   String levelName(TraitLevel level);
   String get wishHeading;
   String get wishHint;
@@ -248,6 +250,30 @@ class AppStringsDe implements AppStrings {
   };
   @override
   String get hookLabel => 'Der Haken';
+  @override
+  String managerValueInfo(ManagerValue value) => switch (value) {
+    ManagerValue.standing =>
+      'Dein Ruf in der Branche. Er entscheidet, welche Vereine überhaupt anrufen.',
+    ManagerValue.charisma =>
+      'Wie gut du Menschen führst. Wirkt auf Stimmung, Ansprachen und Beziehungen. Wächst mit der Zeit.',
+    ManagerValue.stress =>
+      'Wie sehr dich der Druck mitnimmt. Hier ist niedrig gut und hoch schlecht.',
+    ManagerValue.presidentTrust =>
+      'Wie sehr der Präsident dir vertraut. Davon hängen Budget und deine Zukunft im Verein ab.',
+    ManagerValue.pressImage =>
+      'Was die Zeitungen über dich schreiben. Gutes Bild bringt Rückenwind, schlechtes Gegenwind.',
+    ManagerValue.contacts =>
+      'Dein Netzwerk im Fußball. Hilft bei Transfers und bei der Suche nach Personal.',
+    ManagerValue.tacticalKnowledge =>
+      'Wie gut du Taktik verstehst. Bestimmt, wie viele und wie gute Aufstellungshinweise du bekommst. Wächst mit der Zeit.',
+    ManagerValue.negotiation =>
+      'Wie hart du verhandelst. Bessere Preise bei Transfers und Verträgen. Wächst mit der Zeit.',
+    ManagerValue.talentEye =>
+      'Wie gut du Talente erkennst. Macht dein Scouting genauer. Wächst mit der Zeit.',
+  };
+  @override
+  String get hookInfo =>
+      'Jede Vorgeschichte hat eine Schwäche, die dir im Spiel immer wieder Ärger macht.';
   @override
   String managerValueName(ManagerValue value) => switch (value) {
     ManagerValue.standing => 'Ansehen',

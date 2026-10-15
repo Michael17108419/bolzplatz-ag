@@ -6,6 +6,7 @@ import '../game/career.dart';
 import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'info_button.dart';
 import 'step_buttons.dart';
 
 /// Step 2: choose one of the twelve backstories.
@@ -155,11 +156,19 @@ class _StoryDetail extends ConsumerWidget {
             level: story.levels[v]!,
             goodWhenHigh: v != ManagerValue.stress,
             levelText: s.levelName(story.levels[v]!),
+            info: s.managerValueInfo(v),
           ),
         const SizedBox(height: Tokens.gapM),
-        Text(
-          s.hookLabel,
-          style: theme.textTheme.titleMedium?.copyWith(color: Tokens.orange),
+        Row(
+          children: [
+            Text(
+              s.hookLabel,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: Tokens.orange,
+              ),
+            ),
+            InfoButton(message: s.hookInfo),
+          ],
         ),
         const SizedBox(height: 4),
         Text(s.backstoryHook(story.hook), style: theme.textTheme.bodyLarge),
@@ -174,12 +183,14 @@ class _LevelRow extends StatelessWidget {
     required this.level,
     required this.goodWhenHigh,
     required this.levelText,
+    required this.info,
   });
 
   final String label;
   final TraitLevel level;
   final bool goodWhenHigh;
   final String levelText;
+  final String info;
 
   @override
   Widget build(BuildContext context) {
@@ -193,13 +204,15 @@ class _LevelRow extends StatelessWidget {
     } else if (low) {
       color = goodWhenHigh ? Tokens.orange : Tokens.green;
     } else {
-      color = Tokens.text;
+      color = Tokens.beige;
     }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
+          Text(label, style: theme.textTheme.bodyMedium),
+          InfoButton(message: info, size: 16),
+          const Spacer(),
           for (var i = 0; i < 4; i++)
             Container(
               width: 14,
