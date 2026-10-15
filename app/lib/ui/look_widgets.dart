@@ -8,7 +8,7 @@ import '../game/career.dart';
 import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
-import 'trainer_avatar.dart';
+import 'person_avatar.dart';
 
 /// One row of the looks pages: a label and the choices.
 class LookRow extends StatelessWidget {
@@ -156,7 +156,7 @@ class AvatarPanel extends ConsumerWidget {
       width: 240,
       child: Column(
         children: [
-          TrainerAvatar(appearance: a, size: 220),
+          PersonAvatar(appearance: a, size: 220),
           const SizedBox(height: Tokens.gapM),
           TextButton.icon(
             key: const ValueKey('random-look'),

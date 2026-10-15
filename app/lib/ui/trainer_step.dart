@@ -7,7 +7,7 @@ import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'look_widgets.dart';
 import 'step_buttons.dart';
-import 'trainer_avatar.dart';
+import 'person_avatar.dart';
 
 /// Step 1: name, gender, skin, hair and beard of the trainer.
 class TrainerStep extends ConsumerStatefulWidget {
@@ -95,7 +95,7 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                     ),
                     LookSwatches(
                       optionKey: 'skin',
-                      colors: TrainerLooks.skin,
+                      colors: PersonLooks.skin,
                       value: a.skin,
                       change: (a, i) => a.copyWith(skin: i),
                     ),
@@ -110,7 +110,7 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                     ),
                     LookSwatches(
                       optionKey: 'hair_colour',
-                      colors: TrainerLooks.hair,
+                      colors: PersonLooks.hair,
                       value: a.hairColour,
                       change: (a, i) => a.copyWith(hairColour: i),
                     ),

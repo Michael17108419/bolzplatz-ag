@@ -8,7 +8,7 @@ import '../theme/tokens.dart';
 /// Colours of the looks options. The index is the value in
 /// [TrainerAppearance]; the counts match `career.appearance_options` in the
 /// rules file.
-abstract final class TrainerLooks {
+abstract final class PersonLooks {
   static const List<Color> skin = [
     Color(0xFFF3D2B3),
     Color(0xFFE3B38A),
@@ -37,12 +37,79 @@ abstract final class TrainerLooks {
   ];
 }
 
-/// The trainer as a comic portrait: thick ink outlines, a big head, big eyes
+/// Extra things worn or carried (president types and staff).
+enum Prop {
+  goldChain,
+  hardHat,
+  apron,
+  cigar,
+  scarf,
+  flatCap,
+  monocle,
+  sweaterOnShoulders,
+}
+
+/// Mouth shapes: a grin, a smirk, pursed lips, a frown.
+enum Mouth { grin, smirk, pursed, frown }
+
+/// Eyebrow shapes: the usual cheeky pair, angry, calm.
+enum Brows { cheeky, angry, calm }
+
+/// What a portrait shows beyond the looks: character, props and age.
+class PortraitExtras {
+  const PortraitExtras({
+    this.props = const {},
+    this.mouth = Mouth.grin,
+    this.brows = Brows.cheeky,
+    this.ageStage = 0,
+    this.whistle = true,
+  });
+
+  final Set<Prop> props;
+  final Mouth mouth;
+  final Brows brows;
+
+  /// 0 young, 1 from 32 (fine lines, a little grey), 2 from 35 (nearly grey,
+  /// more lines), 3 from 40 (white hair, deep lines).
+  final int ageStage;
+
+  /// The trainer's whistle on a cord.
+  final bool whistle;
+
+  /// The stage for an age in years.
+  static int stageForAge(int age) {
+    if (age >= 40) return 3;
+    if (age >= 35) return 2;
+    if (age >= 32) return 1;
+    return 0;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is PortraitExtras &&
+      other.mouth == mouth &&
+      other.brows == brows &&
+      other.ageStage == ageStage &&
+      other.whistle == whistle &&
+      other.props.length == props.length &&
+      other.props.containsAll(props);
+
+  @override
+  int get hashCode => Object.hash(mouth, brows, ageStage, whistle, props.length);
+}
+
+/// A person as a comic portrait: thick ink outlines, a big head, big eyes
 /// and a wide grin.
-class TrainerAvatar extends StatelessWidget {
-  const TrainerAvatar({required this.appearance, this.size = 160, super.key});
+class PersonAvatar extends StatelessWidget {
+  const PersonAvatar({
+    required this.appearance,
+    this.extras = const PortraitExtras(),
+    this.size = 160,
+    super.key,
+  });
 
   final TrainerAppearance appearance;
+  final PortraitExtras extras;
   final double size;
 
   @override
@@ -50,15 +117,16 @@ class TrainerAvatar extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(painter: _AvatarPainter(appearance)),
+      child: CustomPaint(painter: _AvatarPainter(appearance, extras)),
     );
   }
 }
 
 class _AvatarPainter extends CustomPainter {
-  _AvatarPainter(this.a);
+  _AvatarPainter(this.a, this.x);
 
   final TrainerAppearance a;
+  final PortraitExtras x;
 
   static const Color _ink = Color(0xFF14100A);
   static const double _line = 2.2;
@@ -92,17 +160,28 @@ class _AvatarPainter extends CustomPainter {
 
   Paint _fill(Color c) => Paint()..color = c;
 
+  Paint _stroke(Color c, double width) => Paint()
+    ..color = c
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = width
+    ..strokeCap = StrokeCap.round;
+
   @override
   void paint(Canvas canvas, Size size) {
     canvas.save();
     canvas.scale(size.width / 100, size.height / 100);
     final woman = a.gender == 1;
-    final skin = TrainerLooks.skin[a.skin];
+    final skin = PersonLooks.skin[a.skin];
     final skinDeep = Color.lerp(skin, const Color(0xFF000000), 0.16)!;
-    final hair = TrainerLooks.hair[a.hairColour];
+    final greying = const [0.0, 0.25, 0.7, 1.0][x.ageStage];
+    final hair = Color.lerp(
+      PersonLooks.hair[a.hairColour],
+      x.ageStage == 3 ? const Color(0xFFEDEDED) : const Color(0xFFBDBDBD),
+      greying,
+    )!;
     final hairDeep = Color.lerp(hair, const Color(0xFF000000), 0.2)!;
-    final cloth = TrainerLooks.outfit[a.outfitColour];
-    final cloth2 = TrainerLooks.outfit[a.outfitColour2];
+    final cloth = PersonLooks.outfit[a.outfitColour];
+    final cloth2 = PersonLooks.outfit[a.outfitColour2];
     final clothDeep = Color.lerp(cloth, const Color(0xFF000000), 0.22)!;
     final clothLight = Color.lerp(cloth, const Color(0xFFFFFFFF), 0.28)!;
     const white = Color(0xFFFFFFFF);
@@ -298,6 +377,47 @@ class _AvatarPainter extends CustomPainter {
         }
     }
 
+    // Props worn on the body.
+    if (x.props.contains(Prop.apron)) {
+      _shape(
+        canvas,
+        Path()
+          ..moveTo(36, 76)
+          ..lineTo(64, 76)
+          ..lineTo(72, 104)
+          ..lineTo(28, 104)
+          ..close(),
+        const Color(0xFFF4EFE2),
+      );
+      for (final sx in const [38.0, 46.0, 54.0, 62.0]) {
+        canvas.drawLine(Offset(sx, 80), Offset(sx + (sx - 50) * 0.35, 104), _stroke(const Color(0xFFC0392B), 3));
+      }
+      canvas.drawLine(const Offset(40, 70), const Offset(37, 77), _outline);
+      canvas.drawLine(const Offset(60, 70), const Offset(63, 77), _outline);
+    }
+    if (x.props.contains(Prop.sweaterOnShoulders)) {
+      final sweater = Path()
+        ..moveTo(26, 74)
+        ..quadraticBezierTo(50, 90, 74, 74);
+      canvas.drawPath(
+        sweater,
+        Paint()
+          ..color = _ink
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 9
+          ..strokeCap = StrokeCap.round,
+      );
+      canvas.drawPath(
+        sweater,
+        Paint()
+          ..color = const Color(0xFFE3B2B8)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 6
+          ..strokeCap = StrokeCap.round,
+      );
+      _shape(canvas, _oval(50, 83, 7, 5), const Color(0xFFE3B2B8));
+    }
+
     // Long hair and the mullet's tail fall over the shoulders.
     if (a.hairStyle == 4) {
       _shape(canvas, _rrect(21, 24, 58, 70, 24), hair);
@@ -307,10 +427,42 @@ class _AvatarPainter extends CustomPainter {
 
     // Neck (not for the hood and the tie, they cover it) and a whistle.
     _shape(canvas, _rrect(42, 60, 16, 14, 4), skinDeep);
-    if (a.outfit != 4 && a.outfit != 7 && a.outfit != 8) {
+    if (x.whistle && a.outfit != 4 && a.outfit != 7 && a.outfit != 8) {
       canvas.drawLine(const Offset(43, 72), const Offset(50, 90), _outline);
       canvas.drawLine(const Offset(57, 72), const Offset(50, 90), _outline);
       _shape(canvas, _rrect(46, 88, 9, 6, 3), Tokens.yellow);
+    }
+
+    if (x.props.contains(Prop.goldChain)) {
+      final chain = Path()
+        ..moveTo(40, 71)
+        ..quadraticBezierTo(50, 92, 60, 71);
+      canvas.drawPath(
+        chain,
+        Paint()
+          ..color = _ink
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4.2
+          ..strokeCap = StrokeCap.round,
+      );
+      canvas.drawPath(
+        chain,
+        Paint()
+          ..color = const Color(0xFFFFD34D)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.4
+          ..strokeCap = StrokeCap.round,
+      );
+      _shape(canvas, _oval(50, 85.5, 8, 8), const Color(0xFFFFD34D));
+    }
+    if (x.props.contains(Prop.scarf)) {
+      _shape(canvas, _rrect(35, 65, 30, 9, 4), const Color(0xFF2E8B57));
+      for (final sx in const [41.0, 49.0, 57.0]) {
+        canvas.drawLine(Offset(sx, 65.5), Offset(sx, 73.5), _stroke(const Color(0xFFF4EFE2), 2.4));
+      }
+      _shape(canvas, _rrect(55, 70, 9, 24, 3), const Color(0xFF2E8B57));
+      canvas.drawLine(const Offset(55.5, 78), const Offset(63.5, 78), _stroke(const Color(0xFFF4EFE2), 2.4));
+      canvas.drawLine(const Offset(55.5, 86), const Offset(63.5, 86), _stroke(const Color(0xFFF4EFE2), 2.4));
     }
 
     // Ears and head.
@@ -365,48 +517,142 @@ class _AvatarPainter extends CustomPainter {
       );
       canvas.drawLine(const Offset(66, 41), const Offset(69.5, 40), _outline);
     }
-    // Eyebrows: one raised.
+    // Eyebrows: cheeky (one raised), angry or calm. Old men get bushy ones.
+    final oldBrows = x.ageStage == 3;
     final brow = Paint()
-      ..color = a.beard == 0 && a.hairStyle == 0 ? _ink : hairDeep
+      ..color = oldBrows
+          ? const Color(0xFFEDEDED)
+          : (a.beard == 0 && a.hairStyle == 0 ? _ink : hairDeep)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = woman ? 2.2 : 3.2
+      ..strokeWidth = (woman ? 2.2 : 3.2) + (oldBrows ? 1.6 : 0)
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(const Offset(34, 32), const Offset(45, 30.5), brow);
-    canvas.drawLine(const Offset(55, 29), const Offset(66, 31.5), brow);
+    final (browL1, browL2, browR1, browR2) = switch (x.brows) {
+      Brows.cheeky => (
+        const Offset(34, 32),
+        const Offset(45, 30.5),
+        const Offset(55, 29),
+        const Offset(66, 31.5),
+      ),
+      Brows.angry => (
+        const Offset(33, 29),
+        const Offset(46, 33.5),
+        const Offset(54, 33.5),
+        const Offset(67, 29),
+      ),
+      Brows.calm => (
+        const Offset(34, 31),
+        const Offset(45, 31),
+        const Offset(55, 31),
+        const Offset(66, 31),
+      ),
+    };
+    if (oldBrows) {
+      canvas.drawLine(browL1, browL2, _stroke(_ink, 6.6));
+      canvas.drawLine(browR1, browR2, _stroke(_ink, 6.6));
+    }
+    canvas.drawLine(browL1, browL2, brow);
+    canvas.drawLine(browR1, browR2, brow);
 
     // Nose.
     _shape(canvas, _oval(50, 52, 8, 7), skinDeep);
 
-    // Smile: dark mouth, a row of upper teeth, a tongue.
-    final mouth = Path()
-      ..moveTo(40.5, 59.5)
-      ..quadraticBezierTo(50, 62.5, 59.5, 59.5)
-      ..quadraticBezierTo(58, 69.5, 50, 69.5)
-      ..quadraticBezierTo(42, 69.5, 40.5, 59.5)
-      ..close();
-    canvas.drawPath(mouth, _fill(const Color(0xFF4A1B1B)));
-    canvas.save();
-    canvas.clipPath(mouth);
-    canvas.drawPath(
-      Path()
-        ..moveTo(38, 56)
-        ..lineTo(62, 56)
-        ..lineTo(62, 63.2)
-        ..quadraticBezierTo(50, 65.8, 38, 63.2)
-        ..close(),
-      _fill(const Color(0xFFFFF8E6)),
-    );
-    canvas.drawOval(
-      Rect.fromCenter(center: const Offset(50, 69.5), width: 11, height: 6),
-      _fill(const Color(0xFFE8707A)),
-    );
-    canvas.restore();
+    // Mouth: a grin with teeth and a tongue, or another shape.
     final lip = Paint()
       ..color = woman ? const Color(0xFFC2304A) : _ink
       ..style = PaintingStyle.stroke
       ..strokeWidth = woman ? 2.8 : _line
-      ..strokeJoin = StrokeJoin.round;
-    canvas.drawPath(mouth, lip);
+      ..strokeJoin = StrokeJoin.round
+      ..strokeCap = StrokeCap.round;
+    switch (x.mouth) {
+      case Mouth.smirk:
+        canvas.drawPath(
+          Path()
+            ..moveTo(41, 62)
+            ..quadraticBezierTo(52, 68, 60, 57.5),
+          lip,
+        );
+      case Mouth.pursed:
+        _shape(canvas, _oval(50, 63.5, 7, 5), const Color(0xFF4A1B1B));
+      case Mouth.frown:
+        canvas.drawPath(
+          Path()
+            ..moveTo(41, 65.5)
+            ..quadraticBezierTo(50, 58, 59, 65.5),
+          lip,
+        );
+      case Mouth.grin:
+        final mouth = Path()
+          ..moveTo(40.5, 59.5)
+          ..quadraticBezierTo(50, 62.5, 59.5, 59.5)
+          ..quadraticBezierTo(58, 69.5, 50, 69.5)
+          ..quadraticBezierTo(42, 69.5, 40.5, 59.5)
+          ..close();
+        canvas.drawPath(mouth, _fill(const Color(0xFF4A1B1B)));
+        canvas.save();
+        canvas.clipPath(mouth);
+        canvas.drawPath(
+          Path()
+            ..moveTo(38, 56)
+            ..lineTo(62, 56)
+            ..lineTo(62, 63.2)
+            ..quadraticBezierTo(50, 65.8, 38, 63.2)
+            ..close(),
+          _fill(const Color(0xFFFFF8E6)),
+        );
+        canvas.drawOval(
+          Rect.fromCenter(center: const Offset(50, 69.5), width: 11, height: 6),
+          _fill(const Color(0xFFE8707A)),
+        );
+        canvas.restore();
+        canvas.drawPath(mouth, lip);
+    }
+
+    // Cigar in the corner of the mouth.
+    if (x.props.contains(Prop.cigar)) {
+      canvas.drawLine(const Offset(55, 64), const Offset(72, 58), _stroke(_ink, 5.6));
+      canvas.drawLine(const Offset(55, 64), const Offset(72, 58), _stroke(const Color(0xFF8A5A2B), 3.4));
+      canvas.drawCircle(const Offset(72.5, 57.8), 2.2, _fill(const Color(0xFFFF7A1A)));
+      for (final (cx, cy, r) in const [
+        (76.0, 52.0, 2.6),
+        (79.0, 46.0, 3.2),
+        (76.5, 39.5, 3.8),
+      ]) {
+        canvas.drawCircle(Offset(cx, cy), r, _fill(const Color(0x66FFFFFF)));
+      }
+    }
+
+    // Age lines.
+    if (x.ageStage >= 1) {
+      final fine = _stroke(
+        Color.lerp(skinDeep, _ink, 0.35)!,
+        x.ageStage == 3 ? 1.5 : 1.1,
+      );
+      for (final sx in const [-1.0, 1.0]) {
+        // Crow's feet at the outer corners of the eyes.
+        final ex = 50 + sx * 17;
+        canvas.drawLine(Offset(ex, 41), Offset(ex + sx * 4, 39), fine);
+        canvas.drawLine(Offset(ex, 44), Offset(ex + sx * 4.5, 44.5), fine);
+      }
+      if (x.ageStage >= 2) {
+        // Forehead and laugh lines.
+        for (final fy in const [23.0, 26.5]) {
+          canvas.drawPath(
+            Path()
+              ..moveTo(40, fy)
+              ..quadraticBezierTo(50, fy - 2, 60, fy),
+            fine,
+          );
+        }
+        for (final sx in const [-1.0, 1.0]) {
+          canvas.drawPath(
+            Path()
+              ..moveTo(50 + sx * 6, 53)
+              ..quadraticBezierTo(50 + sx * 10, 58, 50 + sx * 9, 63),
+            fine,
+          );
+        }
+      }
+    }
 
     // Moustache.
     if (beardOn && a.beard == 3) {
@@ -574,6 +820,45 @@ class _AvatarPainter extends CustomPainter {
       canvas.drawLine(const Offset(48.5, 42), const Offset(51.5, 42), frame);
     }
 
+    // Head props.
+    if (x.props.contains(Prop.monocle)) {
+      final gold = _stroke(const Color(0xFFD9B35A), 2);
+      canvas.drawCircle(const Offset(60, 43), 8.5, _fill(white.withValues(alpha: 0.25)));
+      canvas.drawCircle(const Offset(60, 43), 8.5, gold);
+      canvas.drawPath(
+        Path()
+          ..moveTo(66, 50)
+          ..quadraticBezierTo(70, 62, 66, 74),
+        _stroke(const Color(0xFFD9B35A), 1.2),
+      );
+    }
+    if (x.props.contains(Prop.hardHat)) {
+      _shape(
+        canvas,
+        Path()
+          ..moveTo(25, 31)
+          ..quadraticBezierTo(24, 7, 50, 7)
+          ..quadraticBezierTo(76, 7, 75, 31)
+          ..close(),
+        const Color(0xFFFFC400),
+      );
+      _shape(canvas, _rrect(20, 28, 60, 6.5, 3), const Color(0xFFE5A800));
+      canvas.drawLine(const Offset(50, 8), const Offset(50, 28), _outline);
+    }
+    if (x.props.contains(Prop.flatCap)) {
+      _shape(
+        canvas,
+        Path()
+          ..moveTo(25, 31)
+          ..quadraticBezierTo(28, 11, 52, 12)
+          ..quadraticBezierTo(76, 13, 76, 31)
+          ..quadraticBezierTo(50, 25, 25, 31)
+          ..close(),
+        const Color(0xFF6E6A58),
+      );
+      _shape(canvas, _oval(70, 30.5, 22, 6), const Color(0xFF55513F));
+    }
+
     // Diverse: a small rainbow pin on the chest.
     if (a.gender == 2 && a.outfit != 6) {
       const colours = [
@@ -635,5 +920,5 @@ class _AvatarPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_AvatarPainter old) => old.a != a;
+  bool shouldRepaint(_AvatarPainter old) => old.a != a || old.x != x;
 }

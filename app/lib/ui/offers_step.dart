@@ -7,6 +7,8 @@ import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'crest.dart';
+import 'person_avatar.dart';
+import 'president_look.dart';
 
 /// Step 4: the random job offers; the player takes one.
 class OffersStep extends ConsumerStatefulWidget {
@@ -216,6 +218,7 @@ class _OfferDetail extends ConsumerWidget {
       for (final t in traits.take(2))
         s.presidentTraitWord(t, offer.president[t] >= 50),
     ];
+    final look = PresidentLook.of(offer.president);
     Widget row(String label, String value) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -235,7 +238,34 @@ class _OfferDetail extends ConsumerWidget {
     return ListView(
       children: [
         Text(offer.club.name, style: theme.textTheme.headlineSmall),
-        const SizedBox(height: Tokens.gapS),
+        const SizedBox(height: Tokens.gapM),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            PersonAvatar(
+              key: const ValueKey('president-portrait'),
+              appearance: look.appearance,
+              extras: look.extras,
+              size: 104,
+            ),
+            const SizedBox(width: Tokens.gapM),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(s.offerPresident, style: theme.textTheme.bodyMedium?.copyWith(color: Tokens.orange)),
+                  Text(offer.president.name, style: theme.textTheme.titleMedium),
+                  Text(
+                    s.presidentTypeName(offer.president.typeId),
+                    style: theme.textTheme.bodyMedium?.copyWith(color: Tokens.yellow),
+                  ),
+                  Text(words.join(', '), style: theme.textTheme.bodyMedium),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: Tokens.gapM),
         row(s.offerGoal, s.seasonGoalText(offer.goal)),
         row(s.offerBudget, s.money(offer.budget)),
         row(s.offerLastSeason, s.lastSeasonRank(offer.lastSeasonRank)),
@@ -246,12 +276,6 @@ class _OfferDetail extends ConsumerWidget {
             offer.strengthRank,
             total,
           ),
-        ),
-        row(
-          s.offerPresident,
-          '${offer.president.name} '
-          '(${s.presidentTypeName(offer.president.typeId)}, '
-          '${words.join(', ')})',
         ),
         row(s.offerQuirk, s.quirkName(offer.quirk)),
       ],

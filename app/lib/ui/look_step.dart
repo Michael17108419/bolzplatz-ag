@@ -7,7 +7,7 @@ import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'look_widgets.dart';
 import 'step_buttons.dart';
-import 'trainer_avatar.dart';
+import 'person_avatar.dart';
 
 /// Step 2: glasses and clothes of the trainer.
 class LookStep extends ConsumerWidget {
@@ -61,7 +61,7 @@ class LookStep extends ConsumerWidget {
                     ),
                     LookSwatches(
                       optionKey: 'outfit_colour',
-                      colors: TrainerLooks.outfit,
+                      colors: PersonLooks.outfit,
                       value: a.outfitColour,
                       change: (a, i) => a.copyWith(outfitColour: i),
                     ),
@@ -69,7 +69,7 @@ class LookStep extends ConsumerWidget {
                       LookSwatches(
                         label: s.secondColourLabel(a.outfit),
                         optionKey: 'outfit_colour2',
-                        colors: TrainerLooks.outfit,
+                        colors: PersonLooks.outfit,
                         value: a.outfitColour2,
                         change: (a, i) => a.copyWith(outfitColour2: i),
                       ),

@@ -2,7 +2,8 @@
 // `screenshots` runs it with `--update-goldens` to write PNG pictures of the
 // screens into `tool/out/`, so the screens can be looked at without Windows.
 import 'package:bolzplatz_app/main.dart';
-import 'package:bolzplatz_app/ui/trainer_avatar.dart';
+import 'package:bolzplatz_app/ui/person_avatar.dart';
+import 'package:bolzplatz_app/ui/president_look.dart';
 import 'package:game_core/game_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -136,7 +137,7 @@ void main() {
               spacing: 16,
               runSpacing: 16,
               children: [
-                for (final l in looks) TrainerAvatar(appearance: l, size: 150),
+                for (final l in looks) PersonAvatar(appearance: l, size: 150),
               ],
             ),
           ),
@@ -147,6 +148,64 @@ void main() {
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile('out/08_trainer_koepfe.png'),
+    );
+  });
+
+  testWidgets('president portraits', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const types = [
+      'construction_tycoon',
+      'thrifty_butcher',
+      'car_dealer',
+      'savings_bank_director',
+      'ex_pro',
+      'rich_heir',
+      'patron',
+      'club_fixture',
+    ];
+    final looks = <PersonLook>[];
+    for (var i = 0; i < 16; i++) {
+      final type = types[i % 8];
+      looks.add(
+        PresidentLook.of(
+          President(
+            typeId: type,
+            name: 'Person $i',
+            traits: {
+              for (final t in PresidentTrait.values)
+                t: (i < 8 ? 50.0 : (i * 37 % 100) + 1.0),
+            },
+          ),
+        ),
+      );
+    }
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          backgroundColor: const Color(0xFF12261A),
+          body: Center(
+            child: Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: [
+                for (final l in looks)
+                  PersonAvatar(
+                    appearance: l.appearance,
+                    extras: l.extras,
+                    size: 140,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('out/09_praesidenten.png'),
     );
   });
 }

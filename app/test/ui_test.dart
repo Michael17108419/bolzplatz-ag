@@ -78,6 +78,7 @@ void main() {
     expect(find.byKey(const ValueKey('offer-0')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('offer-0')));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('president-portrait')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('offer-accept')));
     await tester.pumpAndSettle();
     expect(find.text('Kommt in Bauabschnitt 3.'), findsOneWidget);
