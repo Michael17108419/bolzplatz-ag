@@ -34,7 +34,12 @@ class BackstoryStep extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(s.backstoryHeading, style: theme.textTheme.headlineSmall),
+        Row(
+          children: [
+            Text(s.backstoryHeading, style: theme.textTheme.headlineSmall),
+            InfoButton(message: s.infoBackstory),
+          ],
+        ),
         const SizedBox(height: Tokens.gapM),
         Expanded(
           child: Row(
@@ -146,7 +151,17 @@ class _StoryDetail extends ConsumerWidget {
     final theme = Theme.of(context);
     return ListView(
       children: [
-        Text(s.backstoryName(story.id), style: theme.textTheme.headlineSmall),
+        Row(
+          children: [
+            Flexible(
+              child: Text(
+                s.backstoryName(story.id),
+                style: theme.textTheme.headlineSmall,
+              ),
+            ),
+            InfoButton(message: s.backstoryPast(story.id)),
+          ],
+        ),
         const SizedBox(height: Tokens.gapS),
         Text(s.backstoryStrengths(story.id), style: theme.textTheme.bodyMedium),
         const SizedBox(height: Tokens.gapM),
