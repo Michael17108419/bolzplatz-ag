@@ -2,6 +2,7 @@
 // `screenshots` runs it with `--update-goldens` to write PNG pictures of the
 // screens into `tool/out/`, so the screens can be looked at without Windows.
 import 'package:bolzplatz_app/main.dart';
+import 'package:bolzplatz_app/ui/info_button.dart';
 import 'package:bolzplatz_app/ui/person_avatar.dart';
 import 'package:bolzplatz_app/ui/president_look.dart';
 import 'package:game_core/game_core.dart';
@@ -82,6 +83,14 @@ void main() {
       find.byType(BolzplatzApp),
       matchesGoldenFile('out/05_werdegang.png'),
     );
+    await tester.tap(find.byType(InfoButton).at(6));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/05b_werdegang_info.png'),
+    );
+    await tester.tapAt(const Offset(10, 700));
+    await tester.pumpAndSettle();
     await tester.tap(next);
     await tester.pumpAndSettle();
     await tester.tap(
