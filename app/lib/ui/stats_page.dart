@@ -636,7 +636,8 @@ class _ScorersTab extends ConsumerWidget {
                                     style: theme.textTheme.titleSmall,
                                   ),
                                 ),
-                                if (club != null) ClubCrest(clubId: club.id.value, size: 24),
+                                if (club != null)
+                                  ClubCrest(clubId: club.id.value, size: 24),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Column(
