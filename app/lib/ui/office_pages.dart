@@ -268,10 +268,7 @@ class _LaterPage extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              s.comingLater,
-              style: theme.textTheme.titleMedium,
-            ),
+            Text(s.comingLater, style: theme.textTheme.titleMedium),
             const SizedBox(height: Tokens.gapS),
             Text(
               s.deskHint(item),
