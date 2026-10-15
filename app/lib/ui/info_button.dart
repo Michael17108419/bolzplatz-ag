@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../game/settings.dart';
 import '../theme/tokens.dart';
 
-/// A small "i" that explains a term: the explanation appears when the mouse
+/// A small "i" that explains a term (hidden when the helps are off): the explanation appears when the mouse
 /// rests on it and also on a click or tap (and stays long enough to read).
-class InfoButton extends StatelessWidget {
-  const InfoButton({required this.message, this.size = 18, super.key});
+class InfoButton extends ConsumerWidget {
+  const InfoButton({required this.message, this.size = 14, super.key});
 
   final String message;
   final double size;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(helpProvider)) return const SizedBox.shrink();
     return Tooltip(
       message: message,
       triggerMode: TooltipTriggerMode.tap,
@@ -34,7 +37,7 @@ class InfoButton extends StatelessWidget {
         child: Container(
           width: size,
           height: size,
-          margin: const EdgeInsets.symmetric(horizontal: 6),
+          margin: const EdgeInsets.symmetric(horizontal: 5),
           alignment: Alignment.center,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,

@@ -7,6 +7,7 @@ import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'crest.dart';
+import 'info_button.dart';
 import 'person_avatar.dart';
 import 'president_look.dart';
 
@@ -219,16 +220,23 @@ class _OfferDetail extends ConsumerWidget {
         s.presidentTraitWord(t, offer.president[t] >= 50),
     ];
     final look = PresidentLook.of(offer.president);
-    Widget row(String label, String value) => Padding(
+    Widget row(String label, String value, {String? info}) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 110,
-            child: Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(color: Tokens.orange),
+            width: 120,
+            child: Row(
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Tokens.orange,
+                  ),
+                ),
+                if (info != null) InfoButton(message: info),
+              ],
             ),
           ),
           Expanded(child: Text(value, style: theme.textTheme.bodyLarge)),
@@ -253,11 +261,16 @@ class _OfferDetail extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    s.offerPresident,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Tokens.orange,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        s.offerPresident,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Tokens.orange,
+                        ),
+                      ),
+                      InfoButton(message: s.infoPresident),
+                    ],
                   ),
                   Text(
                     offer.president.name,
@@ -276,9 +289,18 @@ class _OfferDetail extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: Tokens.gapM),
-        row(s.offerGoal, s.seasonGoalText(offer.goal)),
-        row(s.offerBudget, s.money(offer.budget)),
-        row(s.offerLastSeason, s.lastSeasonRank(offer.lastSeasonRank)),
+        row(
+          s.offerSituation,
+          s.situationName(offer.situation),
+          info: s.infoSituation,
+        ),
+        row(s.offerGoal, s.seasonGoalText(offer.goal), info: s.infoGoal),
+        row(s.offerBudget, s.money(offer.budget), info: s.infoBudget),
+        row(
+          s.offerLastSeason,
+          s.lastSeasonRank(offer.lastSeasonRank),
+          info: s.infoLastSeason,
+        ),
         row(
           s.offerSquad,
           s.squadText(
@@ -286,8 +308,13 @@ class _OfferDetail extends ConsumerWidget {
             offer.strengthRank,
             total,
           ),
+          info: s.infoSquad,
         ),
-        row(s.offerQuirk, s.quirkName(offer.quirk)),
+        row(
+          s.offerQuirk,
+          s.quirkName(offer.quirk),
+          info: s.infoQuirkKind(offer.quirk),
+        ),
       ],
     );
   }

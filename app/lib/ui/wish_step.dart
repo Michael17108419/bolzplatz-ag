@@ -7,6 +7,7 @@ import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'crest.dart';
+import 'info_button.dart';
 import 'step_buttons.dart';
 
 /// Step 3: an optional wish club.
@@ -52,7 +53,12 @@ class _WishStepState extends ConsumerState<WishStep> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(s.wishHeading, style: theme.textTheme.headlineSmall),
+        Row(
+          children: [
+            Text(s.wishHeading, style: theme.textTheme.headlineSmall),
+            InfoButton(message: s.infoWish),
+          ],
+        ),
         const SizedBox(height: 4),
         Text(s.wishHint, style: theme.textTheme.bodyMedium),
         const SizedBox(height: Tokens.gapM),

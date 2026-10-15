@@ -50,6 +50,18 @@ abstract interface class AppStrings {
   String managerValueName(ManagerValue value);
   String managerValueInfo(ManagerValue value);
   String get hookInfo;
+  String get helpSettingTitle;
+  String get helpSettingText;
+  String get infoWish;
+  String get infoSituation;
+  String get infoGoal;
+  String get infoBudget;
+  String get infoLastSeason;
+  String get infoSquad;
+  String get infoPresident;
+  String get infoQuirk;
+  String infoQuirkKind(ClubQuirk quirk);
+  String get offerSituation;
   String levelName(TraitLevel level);
   String get wishHeading;
   String get wishHint;
@@ -253,27 +265,72 @@ class AppStringsDe implements AppStrings {
   @override
   String managerValueInfo(ManagerValue value) => switch (value) {
     ManagerValue.standing =>
-      'Dein Ruf in der Branche. Er entscheidet, welche Vereine überhaupt anrufen.',
+      'Dein Ruf in der Branche. Hoch: Vereine rufen dich an. Niedrig: Du rufst an, und die Sekretärin legt auf.',
     ManagerValue.charisma =>
-      'Wie gut du Menschen führst. Wirkt auf Stimmung, Ansprachen und Beziehungen. Wächst mit der Zeit.',
+      'Wie gut du Menschen um den Finger wickelst. Wirkt auf Stimmung, Ansprachen und Beziehungen. Wächst, wenn du es übst.',
     ManagerValue.stress =>
-      'Wie sehr dich der Druck mitnimmt. Hier ist niedrig gut und hoch schlecht.',
+      'Wie sehr dich der Job auffrisst. Niedrig ist gut. Hoch heißt: Kaffee, Kopfschmerzen und kurze Nerven.',
     ManagerValue.presidentTrust =>
-      'Wie sehr der Präsident dir vertraut. Davon hängen Budget und deine Zukunft im Verein ab.',
+      'Wie fest der Präsident an dich glaubt. Davon hängen dein Budget und deine Zukunft ab. Vertrauen gewinnt man in Jahren und verliert es in einer Halbzeit.',
     ManagerValue.pressImage =>
-      'Was die Zeitungen über dich schreiben. Gutes Bild bringt Rückenwind, schlechtes Gegenwind.',
+      'Was die Zeitung über dich schreibt. Ein gutes Bild gibt Rückenwind, ein schlechtes Schlagzeilen, die man nicht rahmen will.',
     ManagerValue.contacts =>
-      'Dein Netzwerk im Fußball. Hilft bei Transfers und bei der Suche nach Personal.',
+      'Wen du anrufen kannst. Hilft bei Transfers und beim Personal. Fußball ist ein Dorf mit Telefonnummern.',
     ManagerValue.tacticalKnowledge =>
-      'Wie gut du Taktik verstehst. Bestimmt, wie viele und wie gute Aufstellungshinweise du bekommst. Wächst mit der Zeit.',
+      'Wie gut du Taktik verstehst. Davon hängt ab, wie viele und wie schlaue Hinweise du zur Aufstellung bekommst. Wächst mit der Zeit.',
     ManagerValue.negotiation =>
-      'Wie hart du verhandelst. Bessere Preise bei Transfers und Verträgen. Wächst mit der Zeit.',
+      'Wie hart du feilschst. Bessere Preise bei Transfers und Verträgen. Wächst mit der Erfahrung.',
     ManagerValue.talentEye =>
-      'Wie gut du Talente erkennst. Macht dein Scouting genauer. Wächst mit der Zeit.',
+      'Wie gut du Talente erkennst, bevor es alle anderen tun. Macht dein Scouting genauer. Wächst mit der Zeit.',
   };
   @override
   String get hookInfo =>
-      'Jede Vorgeschichte hat eine Schwäche, die dir im Spiel immer wieder Ärger macht.';
+      'Jede Vorgeschichte hat eine Macke, die dir im Spiel immer wieder dazwischenfunkt. Rechne damit.';
+  @override
+  String get helpSettingTitle => 'Hilfen';
+  @override
+  String get helpSettingText =>
+      'Zeigt die kleinen gelben „i“ mit Erklärungen. Für alte Hasen abschaltbar.';
+  @override
+  String get infoWish =>
+      'Dein Ansehen entscheidet, welche Ligen sich melden. Dein Traumverein ruft nur an, wenn du es dir verdient hast. Sonst sagen wir dir ehrlich, was fehlt.';
+  @override
+  String get infoSituation =>
+      'Wie es dem Verein gerade geht. Das entscheidet über Ziel und Budget. „Pleite“ ist die Königsklasse der Probleme.';
+  @override
+  String get infoGoal =>
+      'Was der Präsident von dir erwartet. Wer es verfehlt, lernt den Präsidenten besser kennen.';
+  @override
+  String get infoBudget =>
+      'Dein Geld für Transfers. Der Rest des Vereins ist meist schon ausgegeben.';
+  @override
+  String get infoLastSeason =>
+      'Platz in der Abschlusstabelle der letzten Saison. Verrät, ob du ein Erbe oder eine Baustelle übernimmst.';
+  @override
+  String get infoSquad =>
+      'Stärke ist der Schnitt der 14 besten Spieler, dazu der Platz in der Liga nach Stärke. Zahlen lügen nicht. Trainer schon.';
+  @override
+  String get infoPresident =>
+      'Dein Chef. Typ und Eigenschaften verraten, wie er tickt: geduldig oder ungeduldig, großzügig oder geizig, einmischend oder gelassen.';
+  @override
+  String get infoQuirk =>
+      'Jeder Verein hat seine Eigenheit. Manche sind ein Geschenk, die meisten eine Prüfung.';
+  @override
+  String infoQuirkKind(ClubQuirk quirk) => switch (quirk) {
+    ClubQuirk.none => 'Keine Besonderheit. Fast schon verdächtig.',
+    ClubQuirk.debtMountain =>
+      'Der Verein hat mehr Schulden als Spieler Beine. Das Geld ist knapp, die Gläubiger sind geduldig. Noch.',
+    ClubQuirk.talentFactory =>
+      'Aus der Jugend kommen laufend Talente. Du musst sie nur spielen lassen und den Verkaufsdrang des Präsidenten bremsen.',
+    ClubQuirk.feudingSquad =>
+      'In der Kabine fliegen mehr als Sprüche. Die Stimmung ist von Anfang an im Keller, da hilft nur Charisma.',
+    ClubQuirk.loyalFans =>
+      'Die Fans stehen hinter dir, auch wenn du es nicht verdient hast. Wie lange, hängt von den Ergebnissen ab.',
+    ClubQuirk.crumblingStadium =>
+      'Beim Heimspiel fällt gelegentlich ein Stück Tribüne ab. Das drückt Stimmung und Einnahmen, und die Reparatur kostet.',
+  };
+  @override
+  String get offerSituation => 'Lage';
   @override
   String managerValueName(ManagerValue value) => switch (value) {
     ManagerValue.standing => 'Ansehen',

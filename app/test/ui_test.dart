@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:bolzplatz_app/game/loaded_world.dart';
+import 'package:bolzplatz_app/game/settings.dart';
+import 'package:bolzplatz_app/ui/info_button.dart';
 import 'package:bolzplatz_app/main.dart';
 import 'package:bolzplatz_app/ui/logo.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +46,31 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
     expect(find.text('Neues Spiel'), findsOneWidget);
+  });
+
+  testWidgets('the helps can be switched off in the settings', (tester) async {
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await _start(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(BolzplatzApp)),
+    );
+    expect(container.read(helpProvider), isTrue);
+    await tester.tap(find.text('Einstellungen'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('help-switch')));
+    await tester.pumpAndSettle();
+    expect(container.read(helpProvider), isFalse);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: Scaffold(body: InfoButton(message: 'Test')),
+        ),
+      ),
+    );
+    expect(find.byType(Tooltip), findsNothing);
   });
 
   testWidgets('a career is started through the five steps', (tester) async {
