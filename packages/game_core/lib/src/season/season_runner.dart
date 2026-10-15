@@ -78,7 +78,11 @@ enum Absence { injured, suspended }
 
 /// The own match of a matchday: the fixture and its live session.
 class OwnMatch {
-  OwnMatch({required this.league, required this.fixture, required this.session});
+  OwnMatch({
+    required this.league,
+    required this.fixture,
+    required this.session,
+  });
 
   final LeagueId league;
   final Fixture fixture;
@@ -528,7 +532,8 @@ class SeasonRunner {
         final schedule = run.schedules[e.key]!;
         if (day > schedule.length) continue;
         for (final f in schedule[day - 1]) {
-          final r = (own != null && ownResult != null && identical(f, own.fixture))
+          final r =
+              (own != null && ownResult != null && identical(f, own.fixture))
               ? ownResult
               : _engine.simulate(
                   _team(f.home),

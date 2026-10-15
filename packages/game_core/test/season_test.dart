@@ -148,10 +148,8 @@ void main() {
     final runner = SeasonRunner(rules);
     final league1 = LeagueId(rules.leagues.firstWhere((l) => l.level == 1).id);
     final club = state.members[league1]!.first;
-    final sheet = AutoManager(rules).build(
-      state.squads[club]!,
-      benchSize: rules.tactics.benchSize(1),
-    )!;
+    final sheet = AutoManager(rules)
+        .build(state.squads[club]!, benchSize: rules.tactics.benchSize(1))!;
     final run = runner.begin(state, seed: 5, userSheets: {club: sheet});
     final own = runner.openOwnMatch(run, club, sheet)!;
     expect(own.league, league1);
@@ -161,9 +159,7 @@ void main() {
     expect(run.day, 1);
     final entry = run.tables[league1]!.entryOf(club);
     expect(entry.played, 1);
-    final mine = own.fixture.home == club
-        ? result.homeGoals
-        : result.awayGoals;
+    final mine = own.fixture.home == club ? result.homeGoals : result.awayGoals;
     expect(entry.goalsFor, mine);
     // All matches of the day were played, the own one only once.
     expect(run.matches, 9 + 9 + 10 + 5 * 9);
