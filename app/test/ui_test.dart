@@ -158,6 +158,7 @@ void main() {
     expect(find.byKey(const ValueKey('lineup-slotcard')), findsOneWidget);
     final noRole = find.byKey(const ValueKey('lineup-role-none'));
     await tester.ensureVisible(noRole);
+    await tester.pumpAndSettle();
     await tester.tap(noRole);
     await tester.pumpAndSettle();
     final candidate = find
@@ -168,21 +169,25 @@ void main() {
         )
         .at(2);
     await tester.ensureVisible(candidate);
+    await tester.pumpAndSettle();
     await tester.tap(candidate);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('lineup-slotcard')), findsNothing);
     final tactics = find.byKey(const ValueKey('lineup-tab-0'));
     await tester.ensureVisible(tactics);
+    await tester.pumpAndSettle();
     await tester.tap(tactics);
     await tester.pumpAndSettle();
     final formation = find.byKey(const ValueKey('lineup-formation-3-5-2'));
     await tester.ensureVisible(formation);
+    await tester.pumpAndSettle();
     await tester.tap(formation);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('slot-10')), findsOneWidget);
     final confirm = find.byKey(const ValueKey('lineup-confirm'));
     if (confirm.evaluate().isNotEmpty) {
       await tester.ensureVisible(confirm);
+    await tester.pumpAndSettle();
       await tester.tap(confirm);
       await tester.pumpAndSettle();
     }
