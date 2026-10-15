@@ -66,7 +66,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     final run = runner.begin(
       SeasonState.fromWorld(loaded.world),
       seed: seed,
-      userSheets: {if (sheet != null) career.clubId: sheet},
+      userSheets: {career.clubId: ?sheet},
     );
     return SeasonGame(
       runner: runner,

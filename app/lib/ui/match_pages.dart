@@ -57,7 +57,6 @@ class MatchPreviewPage extends ConsumerWidget {
     final away = fixture.away;
     final absent = game.runner.absences(game.run, game.clubId);
     final sheet = lineup?.sheet;
-    final rules = loaded.rules;
 
     Widget team(ClubId id) => Expanded(
       child: Column(
