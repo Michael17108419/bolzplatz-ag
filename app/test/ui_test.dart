@@ -108,7 +108,17 @@ void main() {
     expect(find.byKey(const ValueKey('president-portrait')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('offer-accept')));
     await tester.pumpAndSettle();
-    expect(find.text('Kommt in Bauabschnitt 3.'), findsOneWidget);
+    // The office: club, next match, and a mail that can be opened.
+    expect(find.byKey(const ValueKey('office-club')), findsOneWidget);
+    expect(find.byKey(const ValueKey('office-opponent')), findsOneWidget);
+    expect(find.byKey(const ValueKey('office-trainer')), findsOneWidget);
+    expect(find.byKey(const ValueKey('mail-subject')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('mail-president')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('mail-subject')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('step-next')));
+    await tester.pumpAndSettle();
+    expect(find.text('Kommt in Bauabschnitt 7.'), findsOneWidget);
   });
 
   test('the app copies of world, rules and names equal the originals', () {

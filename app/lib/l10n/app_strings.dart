@@ -51,6 +51,45 @@ abstract interface class AppStrings {
   String managerValueInfo(ManagerValue value);
   String get hookInfo;
   String get infoBackstory;
+  String officeSeason(int startYear);
+  String get officeToMenu;
+  String get officeGo;
+  String get officeNextTitle;
+  String officeMatchday(int day);
+  String get officeHome;
+  String get officeAway;
+  String officeStrengthCompare(String mine, String theirs);
+  String get officeTableTitle;
+  String get officeTableEmpty;
+  String officeTableForecast(int rank, int count);
+  String get officeCashTitle;
+  String officeSquad(int count);
+  String get officeMailTitle;
+  String get officeMailPick;
+  String get officeSenderPresident;
+  String get officeSenderAdvisor;
+  String get officeSenderNews;
+  String officeMailSubjectPresident(String club);
+  String officeMailBodyPresident(String typeId, String name);
+  String get officeMailSubjectAdvisor;
+  String officeMailBodyAdvisor({
+    required String goal,
+    required String budget,
+    required int squad,
+    required String opponent,
+    required bool home,
+  });
+  String officeMailSubjectNews(Situation situation);
+  String officeMailBodyNews({
+    required String name,
+    required String club,
+    required String backstory,
+    required String hook,
+  });
+  String get infoOfficeNext;
+  String get infoOfficeTable;
+  String get infoOfficeMail;
+  String get infoStrength;
   String backstoryPast(String id);
   String get helpSettingTitle;
   String get helpSettingText;
@@ -298,6 +337,109 @@ class AppStringsDe implements AppStrings {
     'motivation_guru' => 'Du hast Bücher geschrieben, Seminare gegeben und Menschen über Glasscherben laufen lassen. Ein Fußballplatz ist ähnlich, nur mit mehr Rasen und weniger Räucherstäbchen.',
     _ => id,
   };
+  @override
+  String officeSeason(int startYear) =>
+      'Saison $startYear/${((startYear + 1) % 100).toString().padLeft(2, '0')}';
+  @override
+  String get officeToMenu => 'Hauptmenü';
+  @override
+  String get officeGo => 'Zum Spieltag';
+  @override
+  String get officeNextTitle => 'Nächstes Spiel';
+  @override
+  String officeMatchday(int day) => 'Spieltag $day';
+  @override
+  String get officeHome => 'Heimspiel';
+  @override
+  String get officeAway => 'Auswärtsspiel';
+  @override
+  String officeStrengthCompare(String mine, String theirs) =>
+      'Stärke $mine gegen $theirs';
+  @override
+  String get officeTableTitle => 'Tabelle';
+  @override
+  String get officeTableEmpty =>
+      'Noch nichts gespielt. Alle sind Erster, und alle sind es gern.';
+  @override
+  String officeTableForecast(int rank, int count) =>
+      'Nach Stärke: Platz $rank von $count';
+  @override
+  String get officeCashTitle => 'Kasse';
+  @override
+  String officeSquad(int count) => 'Kader: $count Spieler';
+  @override
+  String get officeMailTitle => 'Postfach';
+  @override
+  String get officeMailPick => 'Such dir eine Nachricht aus.';
+  @override
+  String get officeSenderPresident => 'Präsident';
+  @override
+  String get officeSenderAdvisor => 'Berater';
+  @override
+  String get officeSenderNews => 'Earth News';
+  @override
+  String officeMailSubjectPresident(String club) => 'Willkommen bei $club!';
+  @override
+  String officeMailBodyPresident(String typeId, String name) => switch (typeId) {
+    'construction_tycoon' =>
+      'Willkommen, $name! Ich baue gerade ein Stadion für 80.000 Zuschauer, auch wenn wir im Schnitt 212 haben. Man muss groß denken, der Rest kommt von selbst. Bitte nicht am Fundament rütteln.',
+    'thrifty_butcher' =>
+      'Hallo $name, schön, dass Sie da sind. Das Budget liegt im Kühlfach, bitte nur im Notfall öffnen. Das Mittagessen in der Kantine ist ein Wurstbrot, selbstverständlich auf eigene Rechnung.',
+    'car_dealer' =>
+      '$name, Sie sind der Richtige! Ich habe ein Auge für Talente wie für Gebrauchtwagen: viel Politur, wenig Kilometer. Falls Sie ein Auto brauchen, ich hätte da was. Sofort verfügbar, Vorbesitzer unbekannt.',
+    'savings_bank_director' =>
+      'Guten Tag, $name. Wir freuen uns auf eine solide, risikoarme Zusammenarbeit. Spektakuläre Transfers prüfen wir gern. Im Ausschuss. Im Frühjahr.',
+    'ex_pro' =>
+      'Moin $name! Früher, als ich noch gespielt habe, gab es so etwas nicht. Ich schaue mal in der Kabine vorbei, nur zum Zuhören, versprochen. Zur Aufstellung sage ich dann nur ein paar Sätze. Oder zehn.',
+    'rich_heir' =>
+      'Hi $name, mega, dass es geklappt hat! Papa meint, der Verein ist gut für die Steuer, ich finde ihn auch ganz nett. Mach einfach, ich muss gleich zum Segeln.',
+    'patron' =>
+      'Verehrte(r) $name, es ist mir eine Freude. Ich unterstütze den Verein aus reiner Güte und erwarte dafür nur Dankbarkeit, Respekt und einen Stehplatz mit meinem Namen darauf.',
+    'club_fixture' =>
+      'Servus $name, ich bin seit 41 Jahren hier und habe jeden Trainer kommen und gehen sehen. Nur der Platzwart ist geblieben. Frag ihn, wenn du etwas wissen willst, und frag mich, wenn du etwas willst.',
+    _ => 'Willkommen, $name! Möge die Saison kurz und der Gewinn lang sein.',
+  };
+  @override
+  String get officeMailSubjectAdvisor => 'Kurzer Lagebericht';
+  @override
+  String officeMailBodyAdvisor({
+    required String goal,
+    required String budget,
+    required int squad,
+    required String opponent,
+    required bool home,
+  }) =>
+      'Saisonziel: $goal. Transferbudget: $budget. Kader: $squad Spieler. '
+      '${home ? 'Das erste Spiel ist zu Hause' : 'Das erste Spiel ist auswärts'}, Gegner: $opponent. '
+      'Alles Weitere in den nächsten Wochen.';
+  @override
+  String officeMailSubjectNews(Situation situation) => switch (situation) {
+    Situation.favourite => 'Jetzt oder nie: Neuer Trainer unter Druck',
+    Situation.midTable => 'Dienst nach Vorschrift: Neuer Trainer im Mittelfeld',
+    Situation.relegation => 'Feuerwehr gerufen, Streichhölzer geliefert',
+    Situation.bankrupt => 'Kapitän der Titanic: Neuer Trainer an Bord',
+  };
+  @override
+  String officeMailBodyNews({
+    required String name,
+    required String club,
+    required String backstory,
+    required String hook,
+  }) =>
+      '$name übernimmt $club. Der neue Mann ist, so heißt es: $backstory. $hook '
+      'Wir beobachten das mit Interesse und einem Notizblock.';
+  @override
+  String get infoOfficeNext =>
+      'Dein nächster Gegner und wo gespielt wird. Heimspiel heißt: Die eigenen Fans pöbeln mit dir. Auswärts pöbeln die anderen.';
+  @override
+  String get infoOfficeTable =>
+      'Die Tabelle deiner Liga. Vor dem ersten Spiel steht noch nichts darin, deshalb zeigen wir, wo dich dein Kader der Stärke nach einordnet. Das ist eine Schätzung, kein Versprechen.';
+  @override
+  String get infoOfficeMail =>
+      'Dein Posteingang. Hier melden sich Präsident, Berater und Presse, manchmal hilfreich, meist nicht. Ungelesenes bleibt gelb markiert.';
+  @override
+  String get infoStrength =>
+      'Der Durchschnitt der 14 besten Spieler eines Vereins, grob gesagt: wie gut die Mannschaft auf dem Papier ist. Aufs Papier schießt aber keiner Tore.';
   @override
   String get helpSettingTitle => 'Hilfen';
   @override

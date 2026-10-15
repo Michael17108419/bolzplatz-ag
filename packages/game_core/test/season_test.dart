@@ -16,6 +16,25 @@ void main() {
     );
   });
 
+  test('leagueSchedule is the schedule the season is played with', () {
+    final clubs = [for (var i = 1; i <= 18; i++) ClubId(i)];
+    final a = SeasonRunner.leagueSchedule(clubs, const LeagueId(3), 77);
+    final b = SeasonRunner.leagueSchedule(clubs, const LeagueId(3), 77);
+    final other = SeasonRunner.leagueSchedule(clubs, const LeagueId(4), 77);
+    expect(a, hasLength(34));
+    for (var d = 0; d < a.length; d++) {
+      for (var i = 0; i < a[d].length; i++) {
+        expect(a[d][i].home, b[d][i].home);
+        expect(a[d][i].away, b[d][i].away);
+      }
+    }
+    final same = [
+      for (var i = 0; i < 9; i++)
+        a[0][i].home == other[0][i].home && a[0][i].away == other[0][i].away,
+    ];
+    expect(same.every((x) => x), isFalse);
+  });
+
   test('double round robin: everyone plays everyone twice, home and away', () {
     final clubs = [for (var i = 1; i <= 18; i++) ClubId(i)];
     final days = Schedule.doubleRoundRobin(clubs, SeededRandom(5));

@@ -5,10 +5,17 @@ import 'package:game_core/game_core.dart';
 
 /// The career the player has started: the manager and the accepted offer.
 class Career {
-  const Career({required this.trainer, required this.offer});
+  const Career({
+    required this.trainer,
+    required this.offer,
+    required this.seed,
+  });
 
   final Trainer trainer;
   final JobOffer offer;
+
+  /// Seed of the career (the one of the screens that led to it).
+  final int seed;
 
   ClubId get clubId => offer.club.id;
 }
@@ -17,8 +24,12 @@ class CareerNotifier extends Notifier<Career?> {
   @override
   Career? build() => null;
 
-  void start({required Trainer trainer, required JobOffer offer}) {
-    state = Career(trainer: trainer, offer: offer);
+  void start({
+    required Trainer trainer,
+    required JobOffer offer,
+    required int seed,
+  }) {
+    state = Career(trainer: trainer, offer: offer, seed: seed);
   }
 }
 

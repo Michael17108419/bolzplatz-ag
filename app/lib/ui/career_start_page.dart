@@ -9,7 +9,7 @@ import '../theme/tokens.dart';
 import 'backstory_step.dart';
 import 'look_step.dart';
 import 'offers_step.dart';
-import 'placeholder_page.dart';
+import 'office_page.dart';
 import 'screen_frame.dart';
 import 'trainer_step.dart';
 import 'wish_step.dart';
@@ -58,12 +58,15 @@ class _CareerWizardState extends ConsumerState<_CareerWizard> {
   void _go(int step) => setState(() => _step = step);
 
   void _accept(Trainer trainer, JobOffer offer) {
-    ref.read(careerProvider.notifier).start(trainer: trainer, offer: offer);
-    final s = ref.read(stringsProvider);
+    ref
+        .read(careerProvider.notifier)
+        .start(
+          trainer: trainer,
+          offer: offer,
+          seed: ref.read(careerDraftProvider).seed,
+        );
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
-        builder: (_) => PlaceholderPage(title: s.homeTitle, step: 3),
-      ),
+      MaterialPageRoute<void>(builder: (_) => const OfficePage()),
     );
   }
 

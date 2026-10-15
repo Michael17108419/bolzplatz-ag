@@ -129,6 +129,16 @@ void main() {
       find.byType(BolzplatzApp),
       matchesGoldenFile('out/07b_angebote_info.png'),
     );
+    await tester.tapAt(const Offset(10, 700));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('offer-accept')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('mail-president')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/10_buero.png'),
+    );
   });
 
   testWidgets('trainer portraits', (tester) async {

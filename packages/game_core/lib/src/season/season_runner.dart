@@ -208,6 +208,18 @@ class SeasonRunner {
     }
   }
 
+  /// The schedule of one league in the season with this [seed]: one list of
+  /// fixtures per matchday. [play] uses the same function, so a screen can
+  /// show the real next match before the season is played.
+  static List<List<Fixture>> leagueSchedule(
+    List<ClubId> clubs,
+    LeagueId league,
+    int seed,
+  ) => Schedule.doubleRoundRobin(
+    clubs,
+    SeededRandom(seed).fork('schedule:${league.value}'),
+  );
+
   /// Plays the season described by [state].
   SeasonOutcome play(SeasonState state, {required int seed}) {
     _state = state;
@@ -235,10 +247,7 @@ class SeasonRunner {
     final tables = <LeagueId, LeagueTable>{};
     var maxDays = 0;
     for (final e in state.members.entries) {
-      schedules[e.key] = Schedule.doubleRoundRobin(
-        e.value,
-        root.fork('schedule:${e.key.value}'),
-      );
+      schedules[e.key] = leagueSchedule(e.value, e.key, seed);
       tables[e.key] = LeagueTable(e.value);
       maxDays = math.max(maxDays, schedules[e.key]!.length);
     }
