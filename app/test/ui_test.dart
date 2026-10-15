@@ -153,6 +153,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('lineup-pitch')), findsOneWidget);
     expect(find.byKey(const ValueKey('lineup-strength')), findsOneWidget);
+    expect(find.byKey(const ValueKey('lineup-benchcount')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('slot-1')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('lineup-slotcard')), findsOneWidget);

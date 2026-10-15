@@ -154,6 +154,7 @@ class _LineupPageState extends ConsumerState<LineupPage> {
             }),
           );
           final side = _Side(
+            places: benchPlaces(rules, career),
             loaded: loaded,
             squad: squad,
             lineup: lineup,
@@ -414,6 +415,7 @@ class _PitchPainter extends CustomPainter {
 
 class _Side extends ConsumerWidget {
   const _Side({
+    required this.places,
     required this.loaded,
     required this.squad,
     required this.lineup,
@@ -427,6 +429,7 @@ class _Side extends ConsumerWidget {
     required this.onFormation,
   });
 
+  final int places;
   final LoadedWorld loaded;
   final Map<PlayerId, Player> squad;
   final LineupState lineup;
@@ -447,7 +450,12 @@ class _Side extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _PreviewCard(preview: preview, sheet: lineup.sheet),
+        _PreviewCard(
+          preview: preview,
+          sheet: lineup.sheet,
+          squad: squad,
+          places: places,
+        ),
         const SizedBox(height: Tokens.gapS),
         Row(
           children: [
@@ -519,10 +527,17 @@ class _Side extends ConsumerWidget {
 }
 
 class _PreviewCard extends ConsumerWidget {
-  const _PreviewCard({required this.preview, required this.sheet});
+  const _PreviewCard({
+    required this.preview,
+    required this.sheet,
+    required this.squad,
+    required this.places,
+  });
 
   final LineupPreview preview;
   final TeamSheet sheet;
+  final Map<PlayerId, Player> squad;
+  final int places;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -604,6 +619,19 @@ class _PreviewCard extends ConsumerWidget {
                     : Tokens.orange,
               ),
             ),
+            Text(
+              s.lineupBenchCount(sheet.bench.length, places),
+              key: const ValueKey('lineup-benchcount'),
+              style: theme.textTheme.bodySmall?.copyWith(color: Tokens.beige),
+            ),
+            if (!sheet.bench.any((id) => squad[id]!.position.isGoalkeeper))
+              Text(
+                s.lineupNoBenchKeeper,
+                key: const ValueKey('lineup-nobenchkeeper'),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Tokens.orange,
+                ),
+              ),
           ],
         ),
       ),
