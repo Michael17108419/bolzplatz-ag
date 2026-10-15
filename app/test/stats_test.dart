@@ -57,7 +57,8 @@ void main() {
       );
       clubs += rows.length;
     }
-    expect(clubs, loaded.world.clubs.length);
+    // 146 clubs play in the eight leagues, the rest waits in the pools.
+    expect(clubs, 146);
   });
 
   test('a played season fills tables, cup and scorer lists', () {
