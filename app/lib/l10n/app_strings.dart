@@ -556,9 +556,9 @@ class AppStringsDe implements AppStrings {
     'construction_tycoon' =>
       'Willkommen, $name! Ich baue gerade ein Stadion für 80.000 Zuschauer, auch wenn wir im Schnitt 212 haben. Man muss groß denken, der Rest kommt von selbst. Bitte nicht am Fundament rütteln.',
     'thrifty_butcher' =>
-      'Hallo $name, schön, dass Sie da sind. Das Budget liegt im Kühlfach, bitte nur im Notfall öffnen. Das Mittagessen in der Kantine ist ein Wurstbrot, selbstverständlich auf eigene Rechnung.',
+      'Hallo $name, schön, dass du da bist. Das Budget liegt im Kühlfach, bitte nur im Notfall öffnen. Das Mittagessen in der Kantine ist ein Wurstbrot, selbstverständlich auf eigene Rechnung.',
     'car_dealer' =>
-      '$name, Sie sind der Richtige! Ich habe ein Auge für Talente wie für Gebrauchtwagen: viel Politur, wenig Kilometer. Falls Sie ein Auto brauchen, ich hätte da was. Sofort verfügbar, Vorbesitzer unbekannt.',
+      '$name, du bist der Richtige! Ich habe ein Auge für Talente wie für Gebrauchtwagen: viel Politur, wenig Kilometer. Falls du ein Auto brauchst, ich hätte da was. Sofort verfügbar, Vorbesitzer unbekannt.',
     'savings_bank_director' =>
       'Guten Tag, $name. Wir freuen uns auf eine solide, risikoarme Zusammenarbeit. Spektakuläre Transfers prüfen wir gern. Im Ausschuss. Im Frühjahr.',
     'ex_pro' =>
@@ -818,20 +818,20 @@ class AppStringsDe implements AppStrings {
       'Nachrichten vom Präsidenten, Berater und Presse. Die Ablage '
           'quillt über, das Postfach nicht.',
     DeskItem.press =>
-      'Was die Zeitungen über Sie schreiben. Die Zeitung ist von heute, '
+      'Was die Zeitungen über dich schreiben. Die Zeitung ist von heute, '
           'der Kaffeefleck auch.',
     DeskItem.tactics =>
       'Hier wird mit Kreide Geschichte geschrieben. Oder zumindest ein '
           'Kreuz gemalt.',
     DeskItem.files =>
-      'Ihr Kader in Pappkartons. Wer fehlt, steckt vermutlich im '
+      'Dein Kader in Pappkartons. Wer fehlt, steckt vermutlich im '
           'falschen Karton.',
     DeskItem.calendar =>
       'Spielplan und Termine. Der Block ist abgerissen, die Fristen nicht.',
     DeskItem.stats =>
       'Tabellen, Torschützen und Pokale. Der Pokalschrank ist noch ein Brett.',
     DeskItem.transfers =>
-      'Spieler suchen und kaufen. Die Stecknadeln sind Ihr Scoutingteam.',
+      'Spieler suchen und kaufen. Die Stecknadeln sind dein Scoutingteam.',
     DeskItem.finance =>
       'Kasse und Lizenz. Der Taschenrechner kennt noch bessere Zeiten.',
     DeskItem.grounds =>
@@ -855,8 +855,8 @@ class AppStringsDe implements AppStrings {
       unread == 1 ? '1 ungelesene Nachricht' : '$unread ungelesene Nachrichten';
   @override
   String get infoDesk =>
-      'Das ist Ihr Schreibtisch, und von hier läuft alles. Fahren Sie mit '
-      'der Maus über ein Ding, klicken Sie darauf oder drücken Sie die '
+      'Das ist dein Schreibtisch, und von hier läuft alles. Fahr mit '
+      'der Maus über ein Ding, klick darauf oder drück die '
       'Zahl daneben. Hinter der Tür geht es weiter. Das Büro wird besser, '
       'wenn der Verein es tut. Versprochen, irgendwann.';
   @override
@@ -865,7 +865,7 @@ class AppStringsDe implements AppStrings {
   String get officeSenderJourFix => 'Jour Fix aus dem Vorzimmer';
   @override
   String jourFixSubject(int matchday) =>
-      'Jour Fix vor Spieltag $matchday: Ihre Hausaufgaben';
+      'Jour Fix vor Spieltag $matchday: Deine Hausaufgaben';
   @override
   String jourFixBody({
     required int unread,
@@ -874,19 +874,19 @@ class AppStringsDe implements AppStrings {
     required bool home,
   }) {
     final lines = <String>[
-      'Guten Morgen! Damit Sie vor dem Spieltag nichts vergessen, hier die '
-          'Liste, die Sie nicht bestellt haben:',
+      'Guten Morgen! Damit du vor dem Spieltag nichts vergisst, hier die '
+          'Liste, die du nicht bestellt hast:',
       '',
       if (unread > 0)
         '• Post: $unread ungelesen. Ja, die Leute schreiben wirklich an '
-            'Sie.',
-      '• Aufstellung: Bisher hat sich noch niemand dafür interessiert. Sie '
+            'dich.',
+      '• Aufstellung: Bisher hat sich noch niemand dafür interessiert. Du '
           'auch nicht.',
       '• Termin: Spieltag $matchday gegen $opponent '
           '(${home ? 'zu Hause' : 'auswärts'}). Der Gegner hat sich den '
           'Termin schon notiert.',
       '',
-      'Mit freundlichen Grüßen, Ihr Vorzimmer',
+      'Mit freundlichen Grüßen, dein Vorzimmer',
     ];
     return lines.join('\n');
   }
@@ -920,7 +920,7 @@ class AppStringsDe implements AppStrings {
     SquadSort.contract => 'Vertrag',
   };
   @override
-  String get squadEmpty => 'Auf dieser Position hat Ihr Verein niemanden.';
+  String get squadEmpty => 'Auf dieser Position hat dein Verein niemanden.';
   @override
   String get squadColName => 'Spieler';
   @override
@@ -933,7 +933,7 @@ class AppStringsDe implements AppStrings {
   String get squadColContract => 'Vertrag';
   @override
   String get infoSquadList =>
-      'Ihr Kader in der Reihenfolge, die Sie wählen. Klicken Sie auf eine '
+      'Dein Kader in der Reihenfolge, die du wählst. Klick auf eine '
       'Überschrift, um zu sortieren (nochmal klicken dreht um), oder auf '
       'einen Spieler, um alles über ihn zu erfahren. Auch das, was er '
       'lieber nicht verraten hätte.';
@@ -949,7 +949,7 @@ class AppStringsDe implements AppStrings {
       'Mittelfeld, LA und RA Außen, ST Stürmer.';
   @override
   String get infoSquadContract =>
-      'Das Jahr, in dem der Vertrag ausläuft. Danach kostet er Sie keinen '
+      'Das Jahr, in dem der Vertrag ausläuft. Danach kostet er dich keinen '
       'Cent mehr, den Spieler aber vielleicht den Verein.';
   @override
   String get infoSquadSort =>
@@ -1000,14 +1000,14 @@ class AppStringsDe implements AppStrings {
       'sie sind. Mehr als vier hat niemand, und höchstens eine ist Gold.';
   @override
   String get infoProfileForm =>
-      'Wie gut es ihm gerade läuft und wie er drauf ist. Kommt, sobald Sie '
+      'Wie gut es ihm gerade läuft und wie er drauf ist. Kommt, sobald du '
       'das erste Spiel hinter sich haben.';
   @override
   String get valuesHint => 'Alle Werte von 1 bis 100';
   @override
   String get infoValues =>
       'Alle 34 Werte eines Feldspielers in sieben Blöcken, bei Torhütern '
-      'dazu der Torwartblock. Klicken Sie auf einen Block, um ihn ein- oder '
+      'dazu der Torwartblock. Klick auf einen Block, um ihn ein- oder '
       'auszuklappen.';
   @override
   String get infoValuesBar =>
@@ -1319,13 +1319,13 @@ class AppStringsDe implements AppStrings {
       'Die Zahlen sind die Spieler pro Reihe, von hinten nach vorn. Der '
       'Torwart zählt nicht mit, er steht ja ohnehin im Weg. Wer die '
       'Formation wechselt, lässt den Assistenten neu aufstellen; danach '
-      'dürfen Sie wieder alles besser wissen.';
+      'darfst du wieder alles besser wissen.';
   @override
   String get lineupSystem => 'Spielsystem';
   @override
   String get infoLineupSystem =>
       'Das System ist die Spielidee der ganzen Mannschaft. Die Zahl dahinter '
-      'zeigt, wie gut Ihre Elf dazu passt: plus ist gut, minus ist Mut. '
+      'zeigt, wie gut deine Elf dazu passt: plus ist gut, minus ist Mut. '
       'Ein System, das nicht zu den Spielern passt, wirkt kaum und kostet '
       'trotzdem Kraft.';
   @override
@@ -1378,7 +1378,7 @@ class AppStringsDe implements AppStrings {
   String get lineupPreview => 'Mannschaftsvorschau';
   @override
   String get infoLineupPreview =>
-      'Stärke: der Durchschnitt Ihrer Elf auf den Plätzen, auf denen sie '
+      'Stärke: der Durchschnitt deiner Elf auf den Plätzen, auf denen sie '
       'steht (100 wäre Weltklasse). Rollenpassung: wie gut jeder in seiner '
       'Rolle ist, von 0 bis 100 Prozent. Systempassung: wie gut die Elf zur '
       'Spielidee passt. Alles nur Vorschau, gespielt wird auf dem Platz.';
@@ -1411,12 +1411,12 @@ class AppStringsDe implements AppStrings {
   String get lineupConfirmed => 'Aufstellung steht.';
   @override
   String get lineupHint =>
-      'Tippen Sie auf einen Platz auf dem Feld und dann auf den Spieler, '
+      'Tipp auf einen Platz auf dem Feld und dann auf den Spieler, '
       'der dort spielen soll. Ohne Platz setzt ein Tipp auf einen Spieler '
       'ihn auf die Bank oder wieder herunter.';
   @override
   String get infoLineupPitch =>
-      'So steht Ihre Elf auf dem Feld, der Torwart unten. Die Farbe des '
+      'So steht deine Elf auf dem Feld, der Torwart unten. Die Farbe des '
       'Punktes zeigt, wie gut der Spieler in seiner Rolle ist: gelb top, '
       'grün gut, beige mittel, orange schwach.';
   @override
@@ -1464,10 +1464,10 @@ class AppStringsDe implements AppStrings {
     LineupProblem.wrongCount => 'Die Aufstellung hat nicht elf Spieler.',
     LineupProblem.keeper => 'Auf dem Torwartplatz steht kein Torwart.',
     LineupProblem.duplicate => 'Ein Spieler steht doppelt in der Aufstellung.',
-    LineupProblem.foreign => 'Ein Spieler gehört nicht zu Ihrem Verein.',
+    LineupProblem.foreign => 'Ein Spieler gehört nicht zu deinem Verein.',
   };
   @override
-  String get lineupPickSlotFirst => 'Wählen Sie zuerst einen Platz.';
+  String get lineupPickSlotFirst => 'Wähl zuerst einen Platz.';
 
   // --- statistics ---
   @override
