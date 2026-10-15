@@ -35,7 +35,11 @@ class PlayerPage extends ConsumerWidget {
         return DeskFrame(
           item: DeskItem.files,
           title: p.displayName,
-          child: _Profile(player: p, loaded: loaded, ownClub: career.offer.club.id),
+          child: _Profile(
+            player: p,
+            loaded: loaded,
+            ownClub: career.offer.club.id,
+          ),
         );
       },
     );
@@ -119,10 +123,7 @@ class _Profile extends ConsumerWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        s.profileOverall,
-                        style: theme.textTheme.bodySmall,
-                      ),
+                      Text(s.profileOverall, style: theme.textTheme.bodySmall),
                       InfoButton(message: s.infoProfileOverall),
                     ],
                   ),
@@ -166,9 +167,7 @@ Widget _section(ThemeData theme, String title, String? info, Widget body) {
         children: [
           Row(
             children: [
-              Flexible(
-                child: Text(title, style: theme.textTheme.titleMedium),
-              ),
+              Flexible(child: Text(title, style: theme.textTheme.titleMedium)),
               if (info != null) InfoButton(message: info),
             ],
           ),
@@ -492,7 +491,10 @@ class _HeadTab extends ConsumerWidget {
                   child: Row(
                     children: [
                       Expanded(flex: 3, child: Text(s.traitName(t))),
-                      Expanded(flex: 4, child: LevelBar(displayLevel(p.traits[t]!))),
+                      Expanded(
+                        flex: 4,
+                        child: LevelBar(displayLevel(p.traits[t]!)),
+                      ),
                       Expanded(
                         flex: 2,
                         child: Text(

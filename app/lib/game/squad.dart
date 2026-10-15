@@ -63,7 +63,10 @@ List<SquadRow> arrangeSquad(
   required SquadFilter filter,
   bool reversed = false,
 }) {
-  final out = [for (final r in rows) if (filter.accepts(r.player.position)) r];
+  final out = [
+    for (final r in rows)
+      if (filter.accepts(r.player.position)) r,
+  ];
   int byStrength(SquadRow a, SquadRow b) => b.overall.compareTo(a.overall);
   out.sort((a, b) {
     final c = switch (sort) {

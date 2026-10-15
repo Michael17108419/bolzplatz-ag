@@ -150,12 +150,7 @@ class LevelBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const colors = [
-      Tokens.beige,
-      Tokens.beige,
-      Tokens.green,
-      Tokens.yellow,
-    ];
+    const colors = [Tokens.beige, Tokens.beige, Tokens.green, Tokens.yellow];
     return Row(
       children: [
         for (var i = 0; i < 4; i++) ...[
@@ -183,10 +178,7 @@ class SortCaret extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(9, 6),
-      painter: _CaretPainter(up),
-    );
+    return CustomPaint(size: const Size(9, 6), painter: _CaretPainter(up));
   }
 }
 

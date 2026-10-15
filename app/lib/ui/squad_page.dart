@@ -59,9 +59,8 @@ class _SquadPageState extends ConsumerState<SquadPage> {
             filter: _filter,
             reversed: _reversed,
           );
-          final crestIndex = CrestSpec.forClub(
-            career.offer.club.id.value,
-          ).color;
+          final crestIndex = CrestSpec.forClub(career.offer.club.id.value)
+              .color;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -178,9 +177,8 @@ class _HeaderRow extends ConsumerWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: active ? Tokens.yellow : Tokens.beige,
-                  ),
+                  style: Theme.of(context).textTheme.labelLarge
+                      ?.copyWith(color: active ? Tokens.yellow : Tokens.beige),
                 ),
               ),
               if (active) ...[

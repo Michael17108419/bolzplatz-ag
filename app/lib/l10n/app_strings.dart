@@ -1145,22 +1145,34 @@ class AppStringsDe implements AppStrings {
   };
   @override
   String abilityInfo(SpecialAbilityType type) => switch (type) {
-    SpecialAbilityType.dribbler => 'Lässt Gegner stehen und freut sich darüber.',
-    SpecialAbilityType.longShooter => 'Schießt aus 30 Metern. Trifft manchmal sogar das Tor.',
-    SpecialAbilityType.volleySpecialist => 'Mag den Ball lieber in der Luft als am Boden.',
-    SpecialAbilityType.goalPoacher => 'Steht immer genau dort, wo der Ball hinfällt.',
-    SpecialAbilityType.headerMonster => 'Köpft alles, was fliegt, und manches, was nicht fliegt.',
-    SpecialAbilityType.playmaker => 'Sieht Pässe, bevor andere wissen, dass es einen Ball gibt.',
-    SpecialAbilityType.targetMan => 'Ein Hüne, an dem sich Verteidiger die Zähne ausbeißen.',
-    SpecialAbilityType.counterPlayer => 'Rennt los, bevor der Gegner den Ball verloren hat.',
-    SpecialAbilityType.setPieceSpecialist => 'Freistöße und Ecken sind sein Wohnzimmer.',
+    SpecialAbilityType.dribbler =>
+      'Lässt Gegner stehen und freut sich darüber.',
+    SpecialAbilityType.longShooter =>
+      'Schießt aus 30 Metern. Trifft manchmal sogar das Tor.',
+    SpecialAbilityType.volleySpecialist =>
+      'Mag den Ball lieber in der Luft als am Boden.',
+    SpecialAbilityType.goalPoacher =>
+      'Steht immer genau dort, wo der Ball hinfällt.',
+    SpecialAbilityType.headerMonster =>
+      'Köpft alles, was fliegt, und manches, was nicht fliegt.',
+    SpecialAbilityType.playmaker =>
+      'Sieht Pässe, bevor andere wissen, dass es einen Ball gibt.',
+    SpecialAbilityType.targetMan =>
+      'Ein Hüne, an dem sich Verteidiger die Zähne ausbeißen.',
+    SpecialAbilityType.counterPlayer =>
+      'Rennt los, bevor der Gegner den Ball verloren hat.',
+    SpecialAbilityType.setPieceSpecialist =>
+      'Freistöße und Ecken sind sein Wohnzimmer.',
     SpecialAbilityType.ballShield => 'Den Ball bekommt man nur mit Gewalt.',
     SpecialAbilityType.firstTouch => 'Der Ball klebt schon beim Annehmen.',
     SpecialAbilityType.vacuumCleaner => 'Saugt jeden Ball im Mittelfeld ein.',
     SpecialAbilityType.pressingMachine => 'Läuft Gegner an, bis sie weinen.',
-    SpecialAbilityType.passReader => 'Weiß vorher, wohin der Gegner passen will.',
-    SpecialAbilityType.penaltyKiller => 'Hält Elfmeter, weil er einfach besser rät.',
-    SpecialAbilityType.allrounder => 'Kann alles ein bisschen. Zählt als Fähigkeit.',
+    SpecialAbilityType.passReader =>
+      'Weiß vorher, wohin der Gegner passen will.',
+    SpecialAbilityType.penaltyKiller =>
+      'Hält Elfmeter, weil er einfach besser rät.',
+    SpecialAbilityType.allrounder =>
+      'Kann alles ein bisschen. Zählt als Fähigkeit.',
   };
   @override
   String abilityTierName(AbilityTier tier) => switch (tier) {

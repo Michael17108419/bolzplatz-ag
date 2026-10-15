@@ -162,7 +162,8 @@ void main() {
           (w) =>
               w.key is ValueKey<String> &&
               (w.key! as ValueKey<String>).value.startsWith('squad-') &&
-              RegExp(r'^squad-\d+$').hasMatch((w.key! as ValueKey<String>).value),
+              RegExp(r'^squad-\d+$')
+                  .hasMatch((w.key! as ValueKey<String>).value),
         )
         .first;
     await tester.tap(firstRow);

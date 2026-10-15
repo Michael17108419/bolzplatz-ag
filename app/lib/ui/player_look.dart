@@ -49,7 +49,8 @@ abstract final class PlayerLook {
     final t = p.traits;
     double tr(CharacterTrait c) => t[c]!;
     final Brows brows;
-    if (tr(CharacterTrait.temper) >= 70 || tr(CharacterTrait.aggression) >= 80) {
+    if (tr(CharacterTrait.temper) >= 70 ||
+        tr(CharacterTrait.aggression) >= 80) {
       brows = Brows.angry;
     } else if (tr(CharacterTrait.professionalism) >= 70 &&
         tr(CharacterTrait.temper) < 45) {
