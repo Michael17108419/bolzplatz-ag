@@ -121,6 +121,58 @@ void main() {
     expect(a.bolzplatz.winner, b.bolzplatz.winner);
   });
 
+  test('a season played day by day equals the season played in one go', () {
+    final state = SeasonState.fromWorld(world);
+    final runner = SeasonRunner(rules);
+    final whole = runner.play(state, seed: 3);
+    final run = runner.begin(state, seed: 3);
+    var days = 0;
+    while (!run.isOver) {
+      runner.completeMatchday(run);
+      days++;
+    }
+    final steps = runner.conclude(run);
+    expect(days, run.maxDays);
+    for (final l in rules.leagues) {
+      final id = LeagueId(l.id);
+      expect(steps.standing(id), whole.standing(id), reason: l.key);
+    }
+    expect(steps.goalsScored, whole.goalsScored);
+    expect(steps.matchesPlayed, whole.matchesPlayed);
+    expect(steps.bolzplatz.winner, whole.bolzplatz.winner);
+    expect(steps.pottWinners, whole.pottWinners);
+  });
+
+  test('the own match is played live and counts in the table', () {
+    final state = SeasonState.fromWorld(world);
+    final runner = SeasonRunner(rules);
+    final league1 = LeagueId(rules.leagues.firstWhere((l) => l.level == 1).id);
+    final club = state.members[league1]!.first;
+    final sheet = AutoManager(rules).build(
+      state.squads[club]!,
+      benchSize: rules.tactics.benchSize(1),
+    )!;
+    final run = runner.begin(state, seed: 5, userSheets: {club: sheet});
+    final own = runner.openOwnMatch(run, club, sheet)!;
+    expect(own.league, league1);
+    expect(own.fixture.home == club || own.fixture.away == club, isTrue);
+    final result = own.session.finish();
+    runner.completeMatchday(run, own: own, ownResult: result);
+    expect(run.day, 1);
+    final entry = run.tables[league1]!.entryOf(club);
+    expect(entry.played, 1);
+    final mine = own.fixture.home == club
+        ? result.homeGoals
+        : result.awayGoals;
+    expect(entry.goalsFor, mine);
+    // All matches of the day were played, the own one only once.
+    expect(run.matches, 9 + 9 + 10 + 5 * 9);
+    final out = runner.absences(run, club);
+    for (final id in out.keys) {
+      expect(state.squads[club]!.any((p) => p.id == id), isTrue);
+    }
+  });
+
   test('three seasons in a row keep the league sizes', () {
     var state = SeasonState.fromWorld(world);
     final runner = SeasonRunner(rules);
