@@ -284,30 +284,18 @@ class AppStringsDe implements AppStrings {
       'Dein Leben vor dem ersten Tag. Es bestimmt, mit welchen Stärken und Schwächen du startest. Jeder hier hat etwas erlebt, auf das er nicht stolz ist. Du auch.';
   @override
   String backstoryPast(String id) => switch (id) {
-    'failed_pro' =>
-      'Du warst mal Profi, fast. Zwei Jahre Bank, ein Kreuzbandriss, ein Abend, den die Zeitung nicht vergessen hat. Seitdem erzählst du jedem, es sei Pech gewesen.',
-    'outsider' =>
-      'Du hast Staubsauger verkauft und warst dabei erstaunlich gut. Dann wollte ein Präsident „frischen Wind“. Dass der Ball rund ist, hast du dir kurz vorher erklären lassen.',
-    'scandal_coach' =>
-      'Du hast schon einmal einen Verein trainiert, und es endete mit einer Pressekonferenz, die als Lehrfilm verwendet wird. Deine Taktik war bestechend. Das Wort „bestechend“ hättest du lieber nicht gehört.',
-    'club_fixture' =>
-      'Du hast hier als Kind Bälle geholt, später Bier gezapft, dann den Platz gemäht und irgendwann den Verein gerettet, ohne dass es jemand bemerkt hat. Dich kennt jeder, und jeder will etwas.',
-    'business_student' =>
-      'Sieben Semester BWL, eine Bachelorarbeit über „Synergien im Amateurfußball“ und ein Praktikum, in dem du nie Kaffee kochen musstest. Du hast Tabellen. Die Spieler haben Spott.',
-    'youth_coach' =>
-      'Zehn Jahre Samstagmorgen bei Regen, 40 Kinder, ein Ball und eine Trillerpfeife. Du erkennst Talent schon beim Schuhebinden. Erwachsene, die dir zuhören, kennst du dagegen nicht.',
-    'pub_landlord' =>
-      'Du hast tausende Spiele gesehen, von der besten Barhocker-Perspektive der Stadt aus. Deine Menschenkenntnis ist geprüft, deine Taktikkenntnis wurde nach der dritten Runde improvisiert.',
-    'wandering_saviour' =>
-      'Du hast fünf Vereine vor dem Abstieg gerettet und bist immer dann gegangen, wenn es ruhig wurde. Dein Koffer steht noch gepackt im Flur. Das ist keine Absicht, aber auch kein Zufall.',
-    'pe_teacher' =>
-      'Dreißig Jahre Schulhof, Zwei-Mannschaften-Wählen und Elternabende. Du kannst Menschen begeistern, die nicht wollen. Zum Glück sind Profis ähnlich, nur mit Beratern.',
-    'ex_referee' =>
-      'Du hast tausend Spiele gepfiffen und dir dabei tausend Beleidigungen gemerkt. Du kennst jede Regel auswendig. Die Spieler kennen dich auch.',
-    'tactics_streamer' =>
-      'Nächte vor dem Bildschirm, 400 Zuschauer, die dich lieben, und eine Taktiktafel in jedem Zimmer. Du weißt alles über Fußball, außer wie es sich anfühlt, wenn man dabei friert.',
-    'motivation_guru' =>
-      'Du hast Bücher geschrieben, Seminare gegeben und Menschen über Glasscherben laufen lassen. Ein Fußballplatz ist ähnlich, nur mit mehr Rasen und weniger Räucherstäbchen.',
+    'failed_pro' => 'Du warst mal Profi, fast. Zwei Jahre Bank, ein Kreuzbandriss, ein Abend, den die Zeitung nicht vergessen hat. Seitdem erzählst du jedem, es sei Pech gewesen.',
+    'outsider' => 'Du hast Staubsauger verkauft und warst dabei erstaunlich gut. Dann wollte ein Präsident „frischen Wind“. Dass der Ball rund ist, hast du dir kurz vorher erklären lassen.',
+    'scandal_coach' => 'Du hast schon einmal einen Verein trainiert, und es endete mit einer Pressekonferenz, die als Lehrfilm verwendet wird. Deine Taktik war bestechend. Das Wort „bestechend“ hättest du lieber nicht gehört.',
+    'club_fixture' => 'Du hast hier als Kind Bälle geholt, später Bier gezapft, dann den Platz gemäht und irgendwann den Verein gerettet, ohne dass es jemand bemerkt hat. Dich kennt jeder, und jeder will etwas.',
+    'business_student' => 'Sieben Semester BWL, eine Bachelorarbeit über „Synergien im Amateurfußball“ und ein Praktikum, in dem du nie Kaffee kochen musstest. Du hast Tabellen. Die Spieler haben Spott.',
+    'youth_coach' => 'Zehn Jahre Samstagmorgen bei Regen, 40 Kinder, ein Ball und eine Trillerpfeife. Du erkennst Talent schon beim Schuhebinden. Erwachsene, die dir zuhören, kennst du dagegen nicht.',
+    'pub_landlord' => 'Du hast tausende Spiele gesehen, von der besten Barhocker-Perspektive der Stadt aus. Deine Menschenkenntnis ist geprüft, deine Taktikkenntnis wurde nach der dritten Runde improvisiert.',
+    'wandering_saviour' => 'Du hast fünf Vereine vor dem Abstieg gerettet und bist immer dann gegangen, wenn es ruhig wurde. Dein Koffer steht noch gepackt im Flur. Das ist keine Absicht, aber auch kein Zufall.',
+    'pe_teacher' => 'Dreißig Jahre Schulhof, Zwei-Mannschaften-Wählen und Elternabende. Du kannst Menschen begeistern, die nicht wollen. Zum Glück sind Profis ähnlich, nur mit Beratern.',
+    'ex_referee' => 'Du hast tausend Spiele gepfiffen und dir dabei tausend Beleidigungen gemerkt. Du kennst jede Regel auswendig. Die Spieler kennen dich auch.',
+    'tactics_streamer' => 'Nächte vor dem Bildschirm, 400 Zuschauer, die dich lieben, und eine Taktiktafel in jedem Zimmer. Du weißt alles über Fußball, außer wie es sich anfühlt, wenn man dabei friert.',
+    'motivation_guru' => 'Du hast Bücher geschrieben, Seminare gegeben und Menschen über Glasscherben laufen lassen. Ein Fußballplatz ist ähnlich, nur mit mehr Rasen und weniger Räucherstäbchen.',
     _ => id,
   };
   @override
