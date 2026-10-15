@@ -116,7 +116,11 @@ abstract final class PresidentLook {
     final spec = _types[president.typeId] ?? _types['savings_bank_director']!;
     final rng = SeededRandom(_seed('${president.typeId}|${president.name}'));
 
-    final gender = switch (rng.fork('gender').weightedIndex([85.0, 12.0, 3.0])) {
+    final gender = switch (rng.fork('gender').weightedIndex([
+      85.0,
+      12.0,
+      3.0,
+    ])) {
       1 => 1,
       2 => 2,
       _ => 0,

@@ -95,7 +95,8 @@ class PortraitExtras {
       other.props.containsAll(props);
 
   @override
-  int get hashCode => Object.hash(mouth, brows, ageStage, whistle, props.length);
+  int get hashCode =>
+      Object.hash(mouth, brows, ageStage, whistle, props.length);
 }
 
 /// A person as a comic portrait: thick ink outlines, a big head, big eyes
@@ -390,7 +391,11 @@ class _AvatarPainter extends CustomPainter {
         const Color(0xFFF4EFE2),
       );
       for (final sx in const [38.0, 46.0, 54.0, 62.0]) {
-        canvas.drawLine(Offset(sx, 80), Offset(sx + (sx - 50) * 0.35, 104), _stroke(const Color(0xFFC0392B), 3));
+        canvas.drawLine(
+          Offset(sx, 80),
+          Offset(sx + (sx - 50) * 0.35, 104),
+          _stroke(const Color(0xFFC0392B), 3),
+        );
       }
       canvas.drawLine(const Offset(40, 70), const Offset(37, 77), _outline);
       canvas.drawLine(const Offset(60, 70), const Offset(63, 77), _outline);
@@ -458,11 +463,23 @@ class _AvatarPainter extends CustomPainter {
     if (x.props.contains(Prop.scarf)) {
       _shape(canvas, _rrect(35, 65, 30, 9, 4), const Color(0xFF2E8B57));
       for (final sx in const [41.0, 49.0, 57.0]) {
-        canvas.drawLine(Offset(sx, 65.5), Offset(sx, 73.5), _stroke(const Color(0xFFF4EFE2), 2.4));
+        canvas.drawLine(
+          Offset(sx, 65.5),
+          Offset(sx, 73.5),
+          _stroke(const Color(0xFFF4EFE2), 2.4),
+        );
       }
       _shape(canvas, _rrect(55, 70, 9, 24, 3), const Color(0xFF2E8B57));
-      canvas.drawLine(const Offset(55.5, 78), const Offset(63.5, 78), _stroke(const Color(0xFFF4EFE2), 2.4));
-      canvas.drawLine(const Offset(55.5, 86), const Offset(63.5, 86), _stroke(const Color(0xFFF4EFE2), 2.4));
+      canvas.drawLine(
+        const Offset(55.5, 78),
+        const Offset(63.5, 78),
+        _stroke(const Color(0xFFF4EFE2), 2.4),
+      );
+      canvas.drawLine(
+        const Offset(55.5, 86),
+        const Offset(63.5, 86),
+        _stroke(const Color(0xFFF4EFE2), 2.4),
+      );
     }
 
     // Ears and head.
@@ -609,9 +626,21 @@ class _AvatarPainter extends CustomPainter {
 
     // Cigar in the corner of the mouth.
     if (x.props.contains(Prop.cigar)) {
-      canvas.drawLine(const Offset(55, 64), const Offset(72, 58), _stroke(_ink, 5.6));
-      canvas.drawLine(const Offset(55, 64), const Offset(72, 58), _stroke(const Color(0xFF8A5A2B), 3.4));
-      canvas.drawCircle(const Offset(72.5, 57.8), 2.2, _fill(const Color(0xFFFF7A1A)));
+      canvas.drawLine(
+        const Offset(55, 64),
+        const Offset(72, 58),
+        _stroke(_ink, 5.6),
+      );
+      canvas.drawLine(
+        const Offset(55, 64),
+        const Offset(72, 58),
+        _stroke(const Color(0xFF8A5A2B), 3.4),
+      );
+      canvas.drawCircle(
+        const Offset(72.5, 57.8),
+        2.2,
+        _fill(const Color(0xFFFF7A1A)),
+      );
       for (final (cx, cy, r) in const [
         (76.0, 52.0, 2.6),
         (79.0, 46.0, 3.2),
@@ -823,7 +852,11 @@ class _AvatarPainter extends CustomPainter {
     // Head props.
     if (x.props.contains(Prop.monocle)) {
       final gold = _stroke(const Color(0xFFD9B35A), 2);
-      canvas.drawCircle(const Offset(60, 43), 8.5, _fill(white.withValues(alpha: 0.25)));
+      canvas.drawCircle(
+        const Offset(60, 43),
+        8.5,
+        _fill(white.withValues(alpha: 0.25)),
+      );
       canvas.drawCircle(const Offset(60, 43), 8.5, gold);
       canvas.drawPath(
         Path()

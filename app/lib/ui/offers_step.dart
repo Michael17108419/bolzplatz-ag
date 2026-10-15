@@ -253,11 +253,21 @@ class _OfferDetail extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(s.offerPresident, style: theme.textTheme.bodyMedium?.copyWith(color: Tokens.orange)),
-                  Text(offer.president.name, style: theme.textTheme.titleMedium),
+                  Text(
+                    s.offerPresident,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Tokens.orange,
+                    ),
+                  ),
+                  Text(
+                    offer.president.name,
+                    style: theme.textTheme.titleMedium,
+                  ),
                   Text(
                     s.presidentTypeName(offer.president.typeId),
-                    style: theme.textTheme.bodyMedium?.copyWith(color: Tokens.yellow),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Tokens.yellow,
+                    ),
                   ),
                   Text(words.join(', '), style: theme.textTheme.bodyMedium),
                 ],
