@@ -188,11 +188,7 @@ class LineupNotifier extends Notifier<LineupState?> {
     final now = state;
     final c = _context();
     if (now == null || c == null) return;
-    final built = _build(
-      c.rules,
-      c.squad,
-      formationId: now.sheet.formationId,
-    );
+    final built = _build(c.rules, c.squad, formationId: now.sheet.formationId);
     if (built == null) return;
     _set(
       built.copyWith(

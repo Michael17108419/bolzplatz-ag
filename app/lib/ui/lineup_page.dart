@@ -925,7 +925,9 @@ class _SquadTab extends ConsumerWidget {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            SnackBar(content: Text(s.lineupAbsentBlocked(s.matchAbsence(reason)))),
+            SnackBar(
+              content: Text(s.lineupAbsentBlocked(s.matchAbsence(reason))),
+            ),
           );
         return;
       }
