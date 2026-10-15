@@ -16,9 +16,9 @@ import 'player_page.dart';
 import 'player_widgets.dart';
 
 const double _wPos = 52;
-const double _wStrength = 64;
-const double _wAge = 44;
-const double _wContract = 56;
+const double _wStrength = 92;
+const double _wAge = 56;
+const double _wContract = 84;
 const double _wMedals = 62;
 
 /// The squad of the own club: sortable and filterable, one click opens the
