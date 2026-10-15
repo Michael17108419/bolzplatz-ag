@@ -226,6 +226,32 @@ void main() {
     await tester.pumpAndSettle();
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
+    // Statistics: tables of all leagues, the cups and the scorer lists.
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit6);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('stats-table')), findsOneWidget);
+    expect(find.byKey(const ValueKey('stats-forecast')), findsOneWidget);
+    for (final id in [1, 5]) {
+      final chip = find.byKey(ValueKey('stats-league-$id'));
+      await tester.ensureVisible(chip);
+      await tester.pumpAndSettle();
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('stats-table')), findsOneWidget);
+    }
+    await tester.tap(find.byKey(const ValueKey('stats-tab-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('stats-bolz-round-0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('stats-pott-nord')), findsOneWidget);
+    expect(find.text('Noch nicht ausgelost.'), findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('stats-tab-2')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('stats-scorers-empty')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('stats-scorers-assists')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('stats-scorers-empty')), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
     // The door is "Weiter".
     await tester.tap(find.byKey(const ValueKey('desk-door')));
     await tester.pumpAndSettle();

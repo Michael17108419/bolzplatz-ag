@@ -18,6 +18,7 @@ import 'placeholder_page.dart';
 import 'screen_frame.dart';
 import 'settings_page.dart';
 import 'lineup_page.dart';
+import 'stats_page.dart';
 import 'squad_page.dart';
 
 const List<LogicalKeyboardKey> _digitKeys = [
@@ -537,44 +538,6 @@ class CalendarPage extends ConsumerWidget {
                     ),
                     InfoButton(message: s.infoStrength),
                   ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Statistics and review: for now the table with the forecast.
-class StatsPage extends ConsumerWidget {
-  const StatsPage({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final s = ref.watch(stringsProvider);
-    final theme = Theme.of(context);
-    return DeskFrame(
-      item: DeskItem.stats,
-      child: WithCareer(
-        builder: (context, career, loaded, view) => _single(
-          _card(
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _heading(theme, s.officeTableTitle, s.infoOfficeTable),
-                const SizedBox(height: Tokens.gapS),
-                Text(s.officeTableEmpty, style: theme.textTheme.bodyMedium),
-                const SizedBox(height: Tokens.gapS),
-                Text(
-                  s.officeTableForecast(
-                    career.offer.strengthRank,
-                    view.leagueSize,
-                  ),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: Tokens.yellow,
-                  ),
                 ),
               ],
             ),

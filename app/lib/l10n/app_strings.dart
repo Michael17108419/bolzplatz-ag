@@ -4,6 +4,7 @@ import 'package:game_core/game_core.dart';
 import '../game/desk.dart';
 import '../game/lineup.dart';
 import '../game/squad.dart';
+import '../game/stats.dart';
 
 /// All texts of the user interface. A screen asks this interface and never
 /// holds a literal; another language is one more implementation.
@@ -63,9 +64,6 @@ abstract interface class AppStrings {
   String get officeHome;
   String get officeAway;
   String officeStrengthCompare(String mine, String theirs);
-  String get officeTableTitle;
-  String get officeTableEmpty;
-  String officeTableForecast(int rank, int count);
   String get officeCashTitle;
   String officeSquad(int count);
   String get officeMailTitle;
@@ -91,7 +89,6 @@ abstract interface class AppStrings {
     required String hook,
   });
   String get infoOfficeNext;
-  String get infoOfficeTable;
   String get infoOfficeMail;
   String get infoStrength;
   String backstoryPast(String id);
@@ -276,6 +273,41 @@ abstract interface class AppStrings {
   String get lineupNoSheet;
   String lineupProblemText(LineupProblem problem);
   String get lineupPickSlotFirst;
+
+  // --- statistics ---
+  String get statsTabTables;
+  String get statsTabCups;
+  String get statsTabScorers;
+  String get infoStatsPage;
+  String get statsColPlace;
+  String get statsColClub;
+  String get statsColPlayed;
+  String get statsColWon;
+  String get statsColDrawn;
+  String get statsColLost;
+  String get statsColGoals;
+  String get statsColDiff;
+  String get statsColPoints;
+  String get infoStatsColumns;
+  String get statsForecastNote;
+  String get statsOwnLeague;
+  String statsZoneName(TableZone zone);
+  String get infoStatsZones;
+  String get statsCupBolzplatz;
+  String get statsCupPott;
+  String get infoStatsCupBolzplatz;
+  String get infoStatsCupPott;
+  String statsCupRoundName(int clubs);
+  String statsCupAfterMatchday(int day);
+  String get statsCupNotDrawn;
+  String statsCupWinner(String club);
+  String get statsCupNoWinner;
+  String regionName(Region region);
+  String get statsGoals;
+  String get statsAssists;
+  String get infoStatsScorers;
+  String get statsScorersEmpty;
+  String get statsAssistsEmpty;
 }
 
 /// German, the only language for now.
@@ -501,14 +533,6 @@ class AppStringsDe implements AppStrings {
   String officeStrengthCompare(String mine, String theirs) =>
       'Stärke $mine gegen $theirs';
   @override
-  String get officeTableTitle => 'Tabelle';
-  @override
-  String get officeTableEmpty =>
-      'Noch nichts gespielt. Alle sind Erster, und alle sind es gern.';
-  @override
-  String officeTableForecast(int rank, int count) =>
-      'Nach Stärke: Platz $rank von $count';
-  @override
   String get officeCashTitle => 'Kasse';
   @override
   String officeSquad(int count) => 'Kader: $count Spieler';
@@ -579,9 +603,6 @@ class AppStringsDe implements AppStrings {
   @override
   String get infoOfficeNext =>
       'Dein nächster Gegner und wo gespielt wird. Heimspiel heißt: Die eigenen Fans pöbeln mit dir. Auswärts pöbeln die anderen.';
-  @override
-  String get infoOfficeTable =>
-      'Die Tabelle deiner Liga. Vor dem ersten Spiel steht noch nichts darin, deshalb zeigen wir, wo dich dein Kader der Stärke nach einordnet. Das ist eine Schätzung, kein Versprechen.';
   @override
   String get infoOfficeMail =>
       'Dein Posteingang. Hier melden sich Präsident, Berater und Presse, manchmal hilfreich, meist nicht. Ungelesenes bleibt gelb markiert.';
@@ -1447,6 +1468,102 @@ class AppStringsDe implements AppStrings {
   };
   @override
   String get lineupPickSlotFirst => 'Wählen Sie zuerst einen Platz.';
+
+  // --- statistics ---
+  @override
+  String get statsTabTables => 'Tabellen';
+  @override
+  String get statsTabCups => 'Pokale';
+  @override
+  String get statsTabScorers => 'Torschützen';
+  @override
+  String get infoStatsPage =>
+      'Hier steht, wer oben steht und wer unten. Tabellen aller acht Ligen, die beiden Pokale und die besten Torschützen. Wer nachschauen will, ob der Nachbarverein auch so schlecht ist wie man selbst: bitte sehr.';
+  @override
+  String get statsColPlace => '#';
+  @override
+  String get statsColClub => 'Verein';
+  @override
+  String get statsColPlayed => 'Sp';
+  @override
+  String get statsColWon => 'S';
+  @override
+  String get statsColDrawn => 'U';
+  @override
+  String get statsColLost => 'N';
+  @override
+  String get statsColGoals => 'Tore';
+  @override
+  String get statsColDiff => 'Diff';
+  @override
+  String get statsColPoints => 'Pkt';
+  @override
+  String get infoStatsColumns =>
+      'Sp = Spiele, S = Siege, U = Unentschieden, N = Niederlagen, Tore = geschossen zu kassiert, Diff = Tordifferenz, Pkt = Punkte (Sieg drei, Remis einer). Bei Punktgleichheit zählt erst die Tordifferenz, dann die geschossenen Tore.';
+  @override
+  String get statsForecastNote =>
+      'Noch nichts gespielt. Die Reihenfolge folgt der Mannschaftsstärke und ist nur eine Schätzung.';
+  @override
+  String get statsOwnLeague => 'Deine Liga';
+  @override
+  String statsZoneName(TableZone zone) => switch (zone) {
+    TableZone.none => '',
+    TableZone.promotion => 'Aufstieg',
+    TableZone.chance => 'Meister: Aufstiegschance',
+    TableZone.playoffUp => 'Aufstiegs-Relegation',
+    TableZone.playoffDown => 'Abstiegs-Relegation',
+    TableZone.relegation => 'Abstieg',
+  };
+  @override
+  String get infoStatsZones =>
+      'Die farbigen Streifen zeigen, was der Platz bedeutet. Relegation ist ein Extra-Duell gegen einen Klub aus der Liga darüber oder darunter, Ausgang ungewiss, Nerven garantiert. In der 4. Liga steigt der Meister nur auf, wenn seine Region in dem Jahr an der Reihe ist.';
+  @override
+  String get statsCupBolzplatz => 'Bolzplatzpokal';
+  @override
+  String get statsCupPott => 'Pott der Provinz';
+  @override
+  String get infoStatsCupBolzplatz =>
+      'Der große Pokal: 64 Vereine, ein Spiel pro Runde, wer verliert, fliegt raus. Dabei sind alle Klubs der 1. und 2. Liga und 28 Klubs aus den unteren Ligen. Ein Außenseiter-Sieg gilt als Märchen, bis man ihn selbst erlebt.';
+  @override
+  String get infoStatsCupPott =>
+      'Der Pokal für die Provinz: in jeder der fünf Regionen ein eigenes 32er-Feld. Wer weit kommt, spielt nächste Saison im Bolzplatzpokal mit (vier Plätze je Region, dazu vier Zusatzplätze).';
+  @override
+  String statsCupRoundName(int clubs) => switch (clubs) {
+    2 => 'Finale',
+    4 => 'Halbfinale',
+    8 => 'Viertelfinale',
+    16 => 'Achtelfinale',
+    _ => 'Runde der $clubs',
+  };
+  @override
+  String statsCupAfterMatchday(int day) => 'nach Spieltag $day';
+  @override
+  String get statsCupNotDrawn => 'Noch nicht ausgelost.';
+  @override
+  String statsCupWinner(String club) => 'Sieger: $club';
+  @override
+  String get statsCupNoWinner => 'Noch kein Sieger.';
+  @override
+  String regionName(Region region) => switch (region) {
+    Region.nord => 'Nord',
+    Region.nordost => 'Nordost',
+    Region.west => 'West',
+    Region.suedwest => 'Südwest',
+    Region.bayern => 'Bayern',
+  };
+  @override
+  String get statsGoals => 'Tore';
+  @override
+  String get statsAssists => 'Vorlagen';
+  @override
+  String get infoStatsScorers =>
+      'Die besten Schützen und Vorbereiter aller Ligen. Eine Vorlage ist der letzte Pass vor dem Tor, also die Arbeit, für die niemand Sprechchöre bekommt.';
+  @override
+  String get statsScorersEmpty =>
+      'Noch kein Tor gefallen. Die Stürmer üben noch das Zielen.';
+  @override
+  String get statsAssistsEmpty =>
+      'Noch keine Vorlage. Alle haben den Ball behalten.';
 }
 
 /// The strings in use. Later this follows a setting in the settings screen.
