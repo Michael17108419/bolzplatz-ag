@@ -29,9 +29,8 @@ class InfoButton extends ConsumerWidget {
         borderRadius: BorderRadius.circular(Tokens.radius),
         border: Border.all(color: Tokens.yellow, width: 1.5),
       ),
-      textStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        color: Tokens.text,
-      ),
+      textStyle: Theme.of(context).textTheme.bodyMedium
+          ?.copyWith(color: Tokens.text),
       child: MouseRegion(
         cursor: SystemMouseCursors.help,
         child: Container(

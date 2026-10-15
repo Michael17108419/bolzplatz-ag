@@ -264,24 +264,15 @@ class AppStringsDe implements AppStrings {
   String get hookLabel => 'Der Haken';
   @override
   String managerValueInfo(ManagerValue value) => switch (value) {
-    ManagerValue.standing =>
-      'Dein Ruf in der Branche. Hoch: Vereine rufen dich an. Niedrig: Du rufst an, und die Sekretärin legt auf.',
-    ManagerValue.charisma =>
-      'Wie gut du Menschen um den Finger wickelst. Wirkt auf Stimmung, Ansprachen und Beziehungen. Wächst, wenn du es übst.',
-    ManagerValue.stress =>
-      'Wie sehr dich der Job auffrisst. Niedrig ist gut. Hoch heißt: Kaffee, Kopfschmerzen und kurze Nerven.',
-    ManagerValue.presidentTrust =>
-      'Wie fest der Präsident an dich glaubt. Davon hängen dein Budget und deine Zukunft ab. Vertrauen gewinnt man in Jahren und verliert es in einer Halbzeit.',
-    ManagerValue.pressImage =>
-      'Was die Zeitung über dich schreibt. Ein gutes Bild gibt Rückenwind, ein schlechtes Schlagzeilen, die man nicht rahmen will.',
-    ManagerValue.contacts =>
-      'Wen du anrufen kannst. Hilft bei Transfers und beim Personal. Fußball ist ein Dorf mit Telefonnummern.',
-    ManagerValue.tacticalKnowledge =>
-      'Wie gut du Taktik verstehst. Davon hängt ab, wie viele und wie schlaue Hinweise du zur Aufstellung bekommst. Wächst mit der Zeit.',
-    ManagerValue.negotiation =>
-      'Wie hart du feilschst. Bessere Preise bei Transfers und Verträgen. Wächst mit der Erfahrung.',
-    ManagerValue.talentEye =>
-      'Wie gut du Talente erkennst, bevor es alle anderen tun. Macht dein Scouting genauer. Wächst mit der Zeit.',
+    ManagerValue.standing => 'Dein Ruf in der Branche. Hoch: Vereine rufen dich an. Niedrig: Du rufst an, und die Sekretärin legt auf.',
+    ManagerValue.charisma => 'Wie gut du Menschen um den Finger wickelst. Wirkt auf Stimmung, Ansprachen und Beziehungen. Wächst, wenn du es übst.',
+    ManagerValue.stress => 'Wie sehr dich der Job auffrisst. Niedrig ist gut. Hoch heißt: Kaffee, Kopfschmerzen und kurze Nerven.',
+    ManagerValue.presidentTrust => 'Wie fest der Präsident an dich glaubt. Davon hängen dein Budget und deine Zukunft ab. Vertrauen gewinnt man in Jahren und verliert es in einer Halbzeit.',
+    ManagerValue.pressImage => 'Was die Zeitung über dich schreibt. Ein gutes Bild gibt Rückenwind, ein schlechtes Schlagzeilen, die man nicht rahmen will.',
+    ManagerValue.contacts => 'Wen du anrufen kannst. Hilft bei Transfers und beim Personal. Fußball ist ein Dorf mit Telefonnummern.',
+    ManagerValue.tacticalKnowledge => 'Wie gut du Taktik verstehst. Davon hängt ab, wie viele und wie schlaue Hinweise du zur Aufstellung bekommst. Wächst mit der Zeit.',
+    ManagerValue.negotiation => 'Wie hart du feilschst. Bessere Preise bei Transfers und Verträgen. Wächst mit der Erfahrung.',
+    ManagerValue.talentEye => 'Wie gut du Talente erkennst, bevor es alle anderen tun. Macht dein Scouting genauer. Wächst mit der Zeit.',
   };
   @override
   String get hookInfo =>
@@ -318,16 +309,11 @@ class AppStringsDe implements AppStrings {
   @override
   String infoQuirkKind(ClubQuirk quirk) => switch (quirk) {
     ClubQuirk.none => 'Keine Besonderheit. Fast schon verdächtig.',
-    ClubQuirk.debtMountain =>
-      'Der Verein hat mehr Schulden als Spieler Beine. Das Geld ist knapp, die Gläubiger sind geduldig. Noch.',
-    ClubQuirk.talentFactory =>
-      'Aus der Jugend kommen laufend Talente. Du musst sie nur spielen lassen und den Verkaufsdrang des Präsidenten bremsen.',
-    ClubQuirk.feudingSquad =>
-      'In der Kabine fliegen mehr als Sprüche. Die Stimmung ist von Anfang an im Keller, da hilft nur Charisma.',
-    ClubQuirk.loyalFans =>
-      'Die Fans stehen hinter dir, auch wenn du es nicht verdient hast. Wie lange, hängt von den Ergebnissen ab.',
-    ClubQuirk.crumblingStadium =>
-      'Beim Heimspiel fällt gelegentlich ein Stück Tribüne ab. Das drückt Stimmung und Einnahmen, und die Reparatur kostet.',
+    ClubQuirk.debtMountain => 'Der Verein hat mehr Schulden als Spieler Beine. Das Geld ist knapp, die Gläubiger sind geduldig. Noch.',
+    ClubQuirk.talentFactory => 'Aus der Jugend kommen laufend Talente. Du musst sie nur spielen lassen und den Verkaufsdrang des Präsidenten bremsen.',
+    ClubQuirk.feudingSquad => 'In der Kabine fliegen mehr als Sprüche. Die Stimmung ist von Anfang an im Keller, da hilft nur Charisma.',
+    ClubQuirk.loyalFans => 'Die Fans stehen hinter dir, auch wenn du es nicht verdient hast. Wie lange, hängt von den Ergebnissen ab.',
+    ClubQuirk.crumblingStadium => 'Beim Heimspiel fällt gelegentlich ein Stück Tribüne ab. Das drückt Stimmung und Einnahmen, und die Reparatur kostet.',
   };
   @override
   String get offerSituation => 'Lage';

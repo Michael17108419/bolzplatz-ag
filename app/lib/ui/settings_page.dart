@@ -39,8 +39,7 @@ class SettingsPage extends ConsumerWidget {
                     title: Text(s.helpSettingTitle),
                     subtitle: Text(s.helpSettingText),
                     value: ref.watch(helpProvider),
-                    onChanged: (on) =>
-                        ref.read(helpProvider.notifier).set(on),
+                    onChanged: (on) => ref.read(helpProvider.notifier).set(on),
                   ),
                 ),
                 const SizedBox(height: Tokens.gapL),
