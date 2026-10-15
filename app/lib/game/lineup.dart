@@ -122,9 +122,8 @@ class LineupNotifier extends Notifier<LineupState?> {
     final loaded = ref.watch(loadedWorldProvider).value;
     if (career == null || loaded == null) return null;
     final squad = clubPlayers(loaded, career.clubId).values.toList();
-    final sheet = AutoManager(
-      loaded.rules,
-    ).build(squad, benchSize: benchPlaces(loaded.rules, career));
+    final sheet = AutoManager(loaded.rules)
+        .build(squad, benchSize: benchPlaces(loaded.rules, career));
     return sheet == null ? null : LineupState(sheet: sheet);
   }
 
