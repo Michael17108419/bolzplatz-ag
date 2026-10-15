@@ -102,9 +102,11 @@ class _Office extends ConsumerWidget {
             ),
             InfoButton(message: s.infoDesk),
             const SizedBox(width: Tokens.gapM),
-            Flexible(
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 220),
               child: Text(
                 career.trainer.name,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.titleSmall,
               ),
