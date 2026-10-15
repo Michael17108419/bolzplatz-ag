@@ -30,6 +30,12 @@ class CrestSpec {
   /// Main colour of the crest.
   Color get fieldColor => Color(_colors[color]);
 
+  /// The club colour, a darker and a lighter shade as `#rrggbb` (the office
+  /// scene paints its walls and rug with them).
+  String get fieldHex => _hex(_colors[color]);
+  String get deepHex => _hex(_darken(_colors[color]));
+  String get lightHex => _hex(_lighten(_colors[color]));
+
   String toSvg() {
     final field = _hex(_colors[color]);
     final deep = _hex(_darken(_colors[color]));
@@ -50,6 +56,15 @@ class CrestSpec {
 
   static int _darken(int argb) {
     int part(int shift) => (((argb >> shift) & 0xFF) * 0.55).round();
+    return 0xFF000000 | (part(16) << 16) | (part(8) << 8) | part(0);
+  }
+
+  static int _lighten(int argb) {
+    int part(int shift) {
+      final v = (argb >> shift) & 0xFF;
+      return (v + (255 - v) * 0.3).round();
+    }
+
     return 0xFF000000 | (part(16) << 16) | (part(8) << 8) | part(0);
   }
 

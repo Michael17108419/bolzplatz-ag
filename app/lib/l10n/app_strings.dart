@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
+import '../game/desk.dart';
+
 /// All texts of the user interface. A screen asks this interface and never
 /// holds a literal; another language is one more implementation.
 abstract interface class AppStrings {
@@ -131,6 +133,29 @@ abstract interface class AppStrings {
 
   /// Display name of a league from its key in the world data.
   String leagueName(String key);
+
+  // --- desk scene (document "Büro als Schreibtisch-Szene") ---
+  String deskName(DeskItem item);
+  String deskShort(DeskItem item);
+  String deskHint(DeskItem item);
+  String deskKey(int digit);
+  String get deskKeyDoor;
+  String deskNext(int matchday);
+  String get deskBadgeTactics;
+  String deskBadgePost(int unread);
+  String get infoDesk;
+  String get comingLater;
+  String get officeSenderJourFix;
+  String jourFixSubject(int matchday);
+  String jourFixBody({
+    required int unread,
+    required int matchday,
+    required String opponent,
+    required bool home,
+  });
+  String get jourFixToPost;
+  String get jourFixToTactics;
+  String get jourFixToCalendar;
 }
 
 /// German, the only language for now.
@@ -616,6 +641,120 @@ class AppStringsDe implements AppStrings {
     'liga_4_bayern' => '4. Liga Bayern',
     _ => key,
   };
+
+  // --- desk scene ---
+  @override
+  String deskName(DeskItem item) => switch (item) {
+    DeskItem.post => 'Post',
+    DeskItem.press => 'Presse',
+    DeskItem.tactics => 'Taktiktafel',
+    DeskItem.files => 'Spielerakten',
+    DeskItem.calendar => 'Kalender',
+    DeskItem.stats => 'Statistik und Rückblick',
+    DeskItem.transfers => 'Transfers und Scouting',
+    DeskItem.finance => 'Finanzen',
+    DeskItem.grounds => 'Verein und Gelände',
+    DeskItem.saves => 'Spielstände und Einstellungen',
+    DeskItem.door => 'Weiter',
+  };
+  @override
+  String deskShort(DeskItem item) => switch (item) {
+    DeskItem.post => 'Post',
+    DeskItem.press => 'Presse',
+    DeskItem.tactics => 'Taktik',
+    DeskItem.files => 'Akten',
+    DeskItem.calendar => 'Kalender',
+    DeskItem.stats => 'Statistik',
+    DeskItem.transfers => 'Transfers',
+    DeskItem.finance => 'Finanzen',
+    DeskItem.grounds => 'Gelände',
+    DeskItem.saves => 'Spielstand',
+    DeskItem.door => 'Weiter',
+  };
+  @override
+  String deskHint(DeskItem item) => switch (item) {
+    DeskItem.post =>
+      'Nachrichten vom Präsidenten, Berater und Presse. Die Ablage '
+          'quillt über, das Postfach nicht.',
+    DeskItem.press =>
+      'Was die Zeitungen über Sie schreiben. Die Zeitung ist von heute, '
+          'der Kaffeefleck auch.',
+    DeskItem.tactics =>
+      'Hier wird mit Kreide Geschichte geschrieben. Oder zumindest ein '
+          'Kreuz gemalt.',
+    DeskItem.files =>
+      'Ihr Kader in Pappkartons. Wer fehlt, steckt vermutlich im '
+          'falschen Karton.',
+    DeskItem.calendar =>
+      'Spielplan und Termine. Der Block ist abgerissen, die Fristen nicht.',
+    DeskItem.stats =>
+      'Tabellen, Torschützen und Pokale. Der Pokalschrank ist noch ein Brett.',
+    DeskItem.transfers =>
+      'Spieler suchen und kaufen. Die Stecknadeln sind Ihr Scoutingteam.',
+    DeskItem.finance =>
+      'Kasse und Lizenz. Der Taschenrechner kennt noch bessere Zeiten.',
+    DeskItem.grounds =>
+      'Verein und Gelände. Ausblick: Hinterhof. Ausbaustufe: Hinterhof, '
+          'aber mit Tor.',
+    DeskItem.saves =>
+      'Spielstände und Einstellungen. Die Schublade klemmt, hält aber.',
+    DeskItem.door =>
+      'Weiter zum nächsten Spieltag. Hinter der Tür wartet der Platz.',
+  };
+  @override
+  String deskKey(int digit) => 'Taste $digit';
+  @override
+  String get deskKeyDoor => 'Leertaste';
+  @override
+  String deskNext(int matchday) => 'Weiter zu Spieltag $matchday';
+  @override
+  String get deskBadgeTactics => 'Aufstellung noch offen';
+  @override
+  String deskBadgePost(int unread) =>
+      unread == 1 ? '1 ungelesene Nachricht' : '$unread ungelesene Nachrichten';
+  @override
+  String get infoDesk =>
+      'Das ist Ihr Schreibtisch, und von hier läuft alles. Fahren Sie mit '
+      'der Maus über ein Ding, klicken Sie darauf oder drücken Sie die '
+      'Zahl daneben. Hinter der Tür geht es weiter. Das Büro wird besser, '
+      'wenn der Verein es tut. Versprochen, irgendwann.';
+  @override
+  String get comingLater => 'Kommt später.';
+  @override
+  String get officeSenderJourFix => 'Jour Fix aus dem Vorzimmer';
+  @override
+  String jourFixSubject(int matchday) =>
+      'Jour Fix vor Spieltag $matchday: Ihre Hausaufgaben';
+  @override
+  String jourFixBody({
+    required int unread,
+    required int matchday,
+    required String opponent,
+    required bool home,
+  }) {
+    final lines = <String>[
+      'Guten Morgen! Damit Sie vor dem Spieltag nichts vergessen, hier die '
+          'Liste, die Sie nicht bestellt haben:',
+      '',
+      if (unread > 0)
+        '• Post: $unread ungelesen. Ja, die Leute schreiben wirklich an '
+            'Sie.',
+      '• Aufstellung: Bisher hat sich noch niemand dafür interessiert. Sie '
+          'auch nicht.',
+      '• Termin: Spieltag $matchday gegen $opponent '
+          '(${home ? 'zu Hause' : 'auswärts'}). Der Gegner hat sich den '
+          'Termin schon notiert.',
+      '',
+      'Mit freundlichen Grüßen, Ihr Vorzimmer',
+    ];
+    return lines.join('\n');
+  }
+  @override
+  String get jourFixToPost => 'Zur Post';
+  @override
+  String get jourFixToTactics => 'Zur Taktiktafel';
+  @override
+  String get jourFixToCalendar => 'Zum Kalender';
 }
 
 /// The strings in use. Later this follows a setting in the settings screen.

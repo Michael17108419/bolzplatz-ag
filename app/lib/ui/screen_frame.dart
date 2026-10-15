@@ -12,12 +12,18 @@ class ScreenFrame extends StatelessWidget {
     required this.title,
     required this.child,
     this.maxWidth = 720,
+    this.padding = const EdgeInsets.all(Tokens.gapL),
+    this.extraBindings = const {},
     super.key,
   });
 
   final String title;
   final Widget child;
   final double maxWidth;
+  final EdgeInsets padding;
+
+  /// More keyboard shortcuts besides Esc (for example the desk numbers).
+  final Map<ShortcutActivator, VoidCallback> extraBindings;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +31,7 @@ class ScreenFrame extends StatelessWidget {
       bindings: {
         const SingleActivator(LogicalKeyboardKey.escape): () =>
             Navigator.of(context).maybePop(),
+        ...extraBindings,
       },
       child: Focus(
         autofocus: true,
@@ -51,7 +58,7 @@ class ScreenFrame extends StatelessWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
               child: Padding(
-                padding: const EdgeInsets.all(Tokens.gapL),
+                padding: padding,
                 child: child,
               ),
             ),

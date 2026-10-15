@@ -133,11 +133,36 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('offer-accept')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('mail-president')));
-    await tester.pumpAndSettle();
     await expectLater(
       find.byType(BolzplatzApp),
       matchesGoldenFile('out/10_buero.png'),
+    );
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset.zero);
+    addTearDown(mouse.removePointer);
+    await mouse.moveTo(
+      tester.getCenter(find.byKey(const ValueKey('desk-tactics'))),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/10b_buero_hover.png'),
+    );
+    await mouse.moveTo(
+      tester.getCenter(find.byKey(const ValueKey('desk-post'))),
+    );
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/10c_buero_post.png'),
+    );
+    await tester.tap(find.byKey(const ValueKey('desk-post')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('mail-jourfix')));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(BolzplatzApp),
+      matchesGoldenFile('out/11_post.png'),
     );
   });
 

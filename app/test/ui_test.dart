@@ -108,15 +108,47 @@ void main() {
     expect(find.byKey(const ValueKey('president-portrait')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('offer-accept')));
     await tester.pumpAndSettle();
-    // The office: club, next match, and a mail that can be opened.
+    // The office: the desk scene with club, badge and the things on it.
     expect(find.byKey(const ValueKey('office-club')), findsOneWidget);
-    expect(find.byKey(const ValueKey('office-opponent')), findsOneWidget);
     expect(find.byKey(const ValueKey('office-trainer')), findsOneWidget);
+    expect(find.byKey(const ValueKey('desk-door')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('badge-post')),
+        matching: find.text('4'),
+      ),
+      findsOneWidget,
+    );
+    // The post: a mail can be opened and counts as read.
+    await tester.tap(find.byKey(const ValueKey('desk-post')));
+    await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('mail-subject')), findsNothing);
     await tester.tap(find.byKey(const ValueKey('mail-president')));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('mail-subject')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('step-next')));
+    // The Jour Fix jumps to the calendar, which shows the next opponent.
+    await tester.tap(find.byKey(const ValueKey('mail-jourfix')));
+    await tester.pumpAndSettle();
+    final toCalendar = find.byKey(const ValueKey('mail-go-calendar'));
+    await tester.ensureVisible(toCalendar);
+    await tester.tap(toCalendar);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('office-opponent')), findsOneWidget);
+    // The number key 1 leads back to the post, Esc to the office.
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit1);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('mail-president')), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('badge-post')),
+        matching: find.text('2'),
+      ),
+      findsOneWidget,
+    );
+    // The door is "Weiter".
+    await tester.tap(find.byKey(const ValueKey('desk-door')));
     await tester.pumpAndSettle();
     expect(find.text('Kommt in Bauabschnitt 7.'), findsOneWidget);
   });
