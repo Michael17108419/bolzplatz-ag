@@ -269,7 +269,7 @@ abstract interface class AppStrings {
   String get lineupSlotRole;
   String get infoLineupSlot;
   String get lineupNoRole;
-  String lineupRoleFit(int percent);
+  String lineupRolePercent(int percent);
   String lineupOutOfPositionHint(String own, String slot, int percent);
   String get lineupNoSheet;
   String lineupProblemText(LineupProblem problem);
@@ -1419,7 +1419,7 @@ class AppStringsDe implements AppStrings {
   @override
   String get lineupNoRole => 'keine besondere Rolle';
   @override
-  String lineupRoleFit(int percent) => '$percent %';
+  String lineupRolePercent(int percent) => '$percent %';
   @override
   String lineupOutOfPositionHint(String own, String slot, int percent) =>
       'Von Haus aus $own, hier als $slot: er spielt mit $percent % seiner '

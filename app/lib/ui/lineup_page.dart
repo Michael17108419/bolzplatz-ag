@@ -697,7 +697,7 @@ class _SlotCard extends ConsumerWidget {
                     label: Text(
                       '${s.roleName(r.id)} '
                       '${s.roleFamiliaritySymbol(player.roles[r.id] ?? RoleFamiliarity.basic)} · '
-                      '${s.lineupRoleFit((fit.playerFit(player, slot, r.id) * 100).round())}',
+                      '${s.lineupRolePercent((fit.playerFit(player, slot, r.id) * 100).round())}',
                     ),
                     selected: current == r.id,
                     onSelected: (_) => notifier.setRole(slotIndex, r.id),

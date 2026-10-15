@@ -254,10 +254,9 @@ class _QuickChip extends ConsumerWidget {
 
 /// For the desk items that a later building step delivers.
 class _LaterPage extends ConsumerWidget {
-  const _LaterPage(this.item, {this.step});
+  const _LaterPage(this.item);
 
   final DeskItem item;
-  final int? step;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -270,7 +269,7 @@ class _LaterPage extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              step == null ? s.comingLater : s.comingInStep(step!),
+              s.comingLater,
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: Tokens.gapS),
