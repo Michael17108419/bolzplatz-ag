@@ -255,7 +255,66 @@ void main() {
     // The door is "Weiter".
     await tester.tap(find.byKey(const ValueKey('desk-door')));
     await tester.pumpAndSettle();
-    expect(find.text('Kommt in Bauabschnitt 7.'), findsOneWidget);
+    // Preview before the match.
+    expect(find.byKey(const ValueKey('match-preview-strength')), findsOneWidget);
+    expect(find.byKey(const ValueKey('match-preview-lineup')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('step-next')));
+    await tester.pump();
+    // Live: the minutes run, the speed can be changed, the match paused.
+    expect(find.byKey(const ValueKey('match-score')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('match-speed-2')));
+    await tester.pump(const Duration(seconds: 2));
+    expect(find.byKey(const ValueKey('match-ticker')), findsOneWidget);
+    expect(find.byKey(const ValueKey('match-line-0')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('match-pause')));
+    await tester.pump();
+    // Tactics: change the pressing, the ticker notes it.
+    await tester.tap(find.byKey(const ValueKey('match-tactics')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('match-slider-pressing-2')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('match-dialog-close')));
+    await tester.pumpAndSettle();
+    // Substitution: first one who goes, then one who comes.
+    await tester.tap(find.byKey(const ValueKey('match-subs')));
+    await tester.pumpAndSettle();
+    final off = find.byWidgetPredicate(
+      (w) =>
+          w.key is ValueKey<String> &&
+          (w.key! as ValueKey<String>).value.startsWith('match-sub-off-'),
+    );
+    expect(off, findsWidgets);
+    // Pick an outfield player (the keeper stands first).
+    await tester.tap(off.at(3));
+    await tester.pumpAndSettle();
+    final on = find.byWidgetPredicate(
+      (w) =>
+          w.key is ValueKey<String> &&
+          (w.key! as ValueKey<String>).value.startsWith('match-sub-on-'),
+    );
+    expect(on, findsWidgets);
+    await tester.tap(find.byKey(const ValueKey('match-dialog-close')));
+    await tester.pumpAndSettle();
+    // Leaving in the middle of the match is blocked.
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('match-score')), findsOneWidget);
+    // Skip to the end, then the report.
+    await tester.tap(find.byKey(const ValueKey('match-skip')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('match-report')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('report-score')), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-verdict')), findsOneWidget);
+    // The table now shows a played matchday.
+    await tester.tap(find.byKey(const ValueKey('report-table')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('stats-forecast')), findsNothing);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('report-office')));
+    await tester.pumpAndSettle();
+    expect(find.text('Weiter zu Spieltag 2'), findsWidgets);
   });
 
   test('the app copies of world, rules and names equal the originals', () {

@@ -9,12 +9,13 @@ import '../game/loaded_world.dart';
 import '../game/mail_state.dart';
 import '../game/office.dart';
 import '../game/office_provider.dart';
+import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'crest.dart';
 import 'info_button.dart';
 import 'office_mail.dart';
-import 'placeholder_page.dart';
+import 'match_pages.dart';
 import 'screen_frame.dart';
 import 'settings_page.dart';
 import 'lineup_page.dart';
@@ -84,13 +85,16 @@ void goNext(BuildContext context, WidgetRef ref) {
       ..showSnackBar(SnackBar(content: Text(s.lineupProblemText(problem))));
     return;
   }
+  if (view?.seasonOver ?? false) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(s.officeMatchdayOver)));
+    return;
+  }
+  final own = ref.read(seasonProvider.notifier).openNext();
+  if (own == null) return;
   Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => PlaceholderPage(
-        title: s.officeMatchday(view?.matchday ?? 1),
-        step: 7,
-      ),
-    ),
+    MaterialPageRoute<void>(builder: (_) => const MatchPreviewPage()),
   );
 }
 

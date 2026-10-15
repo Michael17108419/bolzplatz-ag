@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
 import 'loaded_world.dart';
+import 'season_game.dart';
 
 /// What a place in a league table means for the club.
 ///
@@ -121,6 +122,39 @@ class SeasonStats {
     );
   }
 
+  /// The state of a season in progress.
+  factory SeasonStats.fromRun(LoadedWorld loaded, SeasonGame game) {
+    final base = SeasonStats.start(loaded);
+    if (game.played == 0) return base;
+    List<ScorerRow> top(Map<PlayerId, int> counts) {
+      final rows = <ScorerRow>[];
+      for (final e in counts.entries) {
+        final p = loaded.player(e.key);
+        if (p != null && e.value > 0) rows.add(ScorerRow(p, e.value));
+      }
+      rows.sort((a, b) {
+        final c = b.count.compareTo(a.count);
+        return c != 0 ? c : a.player.id.value.compareTo(b.player.id.value);
+      });
+      return rows.take(20).toList();
+    }
+
+    final run = game.run;
+    return SeasonStats(
+      startYear: base.startYear,
+      matchday: game.played,
+      leagues: base.leagues,
+      tables: {for (final e in run.tables.entries) e.key: e.value.standing},
+      bolzplatz: run.bolzplatz.roundsPlayed > 0 ? run.bolzplatz : null,
+      pottWinners: {
+        for (final e in run.pott.entries)
+          if (e.value.winner != null) e.key: e.value.winner!,
+      },
+      goals: top(game.runner.leagueGoals),
+      assists: top(game.runner.leagueAssists),
+    );
+  }
+
   final int startYear;
 
   /// Matchdays played so far; 0 before the first match.
@@ -139,10 +173,11 @@ class SeasonStats {
   bool get isForecast => matchday == 0;
 }
 
-/// The statistics of the running season. Until the matchday exists this is
-/// the start state.
+/// The statistics of the running season.
 final seasonStatsProvider = Provider<SeasonStats?>((ref) {
   final loaded = ref.watch(loadedWorldProvider).value;
   if (loaded == null) return null;
-  return SeasonStats.start(loaded);
+  final game = ref.watch(seasonProvider);
+  if (game == null) return SeasonStats.start(loaded);
+  return SeasonStats.fromRun(loaded, game);
 });

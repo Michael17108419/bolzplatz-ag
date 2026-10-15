@@ -82,11 +82,16 @@ class OwnMatch {
     required this.league,
     required this.fixture,
     required this.session,
+    required this.sheetReplaced,
   });
 
   final LeagueId league;
   final Fixture fixture;
   final MatchSession session;
+
+  /// True if the handed-in line-up had players who are out, so the
+  /// assistant set up the team for this match.
+  final bool sheetReplaced;
 }
 
 /// A season in progress, played day by day by [SeasonRunner].
@@ -471,6 +476,16 @@ class SeasonRunner {
     return k.winnerSide == 0 ? home : away;
   }
 
+  /// Sets the line-up of a club that is not set up by the assistant. It is
+  /// used from the next match on, as long as none of its players is out.
+  void setUserSheet(ClubId club, TeamSheet sheet) => _userSheets[club] = sheet;
+
+  /// Goals per player in league matches so far.
+  Map<PlayerId, int> get leagueGoals => Map.of(_leagueGoals);
+
+  /// Assists per player in league matches so far.
+  Map<PlayerId, int> get leagueAssists => Map.of(_leagueAssists);
+
   /// The fixture of the club [own] on the next matchday and a live session
   /// for it, played with [sheet] (not managed by the assistant). Null if the
   /// club has no match on that day.
@@ -479,6 +494,9 @@ class SeasonRunner {
     _state = run.state;
     _seed = run.seed;
     _tick = day;
+    final out = absences(run, own).keys.toSet();
+    final usable =
+        !sheet.startingXi.any(out.contains) && !sheet.bench.any(out.contains);
     for (final e in run.state.members.entries) {
       final schedule = run.schedules[e.key]!;
       if (day > schedule.length) continue;
@@ -491,7 +509,7 @@ class SeasonRunner {
             clubId: c,
             name: base.name,
             squad: base.squad,
-            sheet: sheet,
+            sheet: usable ? sheet : base.sheet,
             form: base.form,
             autoManage: false,
           );
@@ -506,6 +524,7 @@ class SeasonRunner {
             away: team(f.away),
             seed: _matchSeed('l:${e.key.value}:$day:${f.home.value}'),
           ),
+          sheetReplaced: !usable,
         );
       }
     }

@@ -5,6 +5,7 @@ import '../game/desk.dart';
 import '../game/lineup.dart';
 import '../game/squad.dart';
 import '../game/stats.dart';
+import '../game/ticker.dart';
 
 /// All texts of the user interface. A screen asks this interface and never
 /// holds a literal; another language is one more implementation.
@@ -61,6 +62,53 @@ abstract interface class AppStrings {
   String get officeGo;
   String get officeNextTitle;
   String officeMatchday(int day);
+  String get officeMatchdayOver;
+
+  // Match day: preview, live ticker, report.
+  String get matchKickOff;
+  String get matchPreviewStrength;
+  String matchPreviewLineup(String formation, String system);
+  String get matchPreviewAbsent;
+  String matchAbsence(Absence reason);
+  String get matchSheetReplaced;
+  String get matchNoAbsent;
+  String get infoMatchPreview;
+  String get matchSpeedSlow;
+  String get matchSpeedNormal;
+  String get matchSpeedFast;
+  String get matchPause;
+  String get matchResume;
+  String get matchSkip;
+  String get matchSubs;
+  String get matchTactics;
+  String get matchToReport;
+  String get matchLeaveBlocked;
+  String get matchFinal;
+  String get matchPaused;
+  String matchSubsLeft(int n);
+  String get matchSubPickOff;
+  String get matchSubPickOn;
+  String get matchSubNone;
+  String get matchSubBenchEmpty;
+  String get matchSubKeeperOnly;
+  String get infoMatchSpeed;
+  String get infoMatchSubs;
+  String get infoMatchTactics;
+  String get matchClose;
+  String get matchReportTitle;
+  String get matchReportGoals;
+  String get matchReportNoGoals;
+  String get matchReportCards;
+  String get matchReportInjuries;
+  String get matchReportStats;
+  String get matchReportToTable;
+  String get matchReportToOffice;
+  String matchReportVerdict(int mine, int theirs);
+  String matchStatName(String id);
+  String matchCardLine(TickerKind kind);
+  String matchInjuryLine(int days);
+  String get infoMatchReport;
+  List<String> tickerTemplates(TickerKind kind);
   String get officeHome;
   String get officeAway;
   String officeStrengthCompare(String mine, String theirs);
@@ -525,6 +573,254 @@ class AppStringsDe implements AppStrings {
   String get officeNextTitle => 'Nächstes Spiel';
   @override
   String officeMatchday(int day) => 'Spieltag $day';
+  @override
+  String get officeMatchdayOver =>
+      'Die Saison ist gespielt. Der Saisonwechsel ist noch nicht gebaut – '
+      'bitte noch ein wenig im Büro herumsitzen und würdevoll aussehen.';
+  @override
+  String get matchKickOff => 'Anpfiff';
+  @override
+  String get matchPreviewStrength => 'Mannschaftsstärke';
+  @override
+  String matchPreviewLineup(String formation, String system) =>
+      'Deine Elf: $formation · $system';
+  @override
+  String get matchPreviewAbsent => 'Fehlen bei dir';
+  @override
+  String matchAbsence(Absence reason) => switch (reason) {
+    Absence.injured => 'verletzt',
+    Absence.suspended => 'gesperrt',
+  };
+  @override
+  String get matchSheetReplaced =>
+      'In deiner Aufstellung stand jemand, der heute ausfällt. Dein '
+      'Assistent hat für dieses Spiel neu aufgestellt – er war ohnehin '
+      'schon beleidigt, dass du ihn nicht gefragt hast.';
+  @override
+  String get matchNoAbsent => 'Alle fit und nur leicht mürrisch.';
+  @override
+  String get infoMatchPreview =>
+      'Vor dem Anpfiff siehst du, gegen wen es geht, wie stark beide '
+      'Mannschaften im Schnitt sind und wer bei dir fehlt. Die Stärke ist '
+      'der Mittelwert der 14 besten Spieler. Sie sagt nicht, wer gewinnt – '
+      'sonst müsste man ja nicht spielen.';
+  @override
+  String get matchSpeedSlow => 'Langsam';
+  @override
+  String get matchSpeedNormal => 'Normal';
+  @override
+  String get matchSpeedFast => 'Schnell';
+  @override
+  String get matchPause => 'Pause';
+  @override
+  String get matchResume => 'Weiter';
+  @override
+  String get matchSkip => 'Bis zum Ende';
+  @override
+  String get matchSubs => 'Wechsel';
+  @override
+  String get matchTactics => 'Taktik';
+  @override
+  String get matchToReport => 'Zum Spielbericht';
+  @override
+  String get matchLeaveBlocked =>
+      'Mitten im Spiel gehst du nicht. Das haben schon andere Trainer '
+      'versucht, es endete in einer Geldstrafe.';
+  @override
+  String get matchFinal => 'Endstand';
+  @override
+  String get matchPaused => 'Unterbrechung';
+  @override
+  String matchSubsLeft(int n) =>
+      n == 1 ? 'Noch 1 Wechsel' : 'Noch $n Wechsel';
+  @override
+  String get matchSubPickOff => 'Wer geht raus?';
+  @override
+  String get matchSubPickOn => 'Wer kommt rein?';
+  @override
+  String get matchSubNone => 'Du hast alle Wechsel verbraucht.';
+  @override
+  String get matchSubBenchEmpty => 'Die Bank ist leer. Das nennt man Mut.';
+  @override
+  String get matchSubKeeperOnly =>
+      'Ein Torwart darf nur für einen Torwart, ein Feldspieler nur für '
+      'einen Feldspieler. So steht es geschrieben.';
+  @override
+  String get infoMatchSpeed =>
+      'Wie schnell die Minuten vergehen. Bei Verletzung, Rot und zur '
+      'Halbzeit hält das Spiel von selbst an, damit du reagieren kannst. '
+      '"Bis zum Ende" spielt den Rest sofort, ohne dass du noch eingreifst.';
+  @override
+  String get infoMatchSubs =>
+      'Fünf Wechsel pro Spiel. Wer rausgeht, kommt nicht wieder. Wer '
+      'verletzt rausmuss, wird vom Assistenten ersetzt und zählt als '
+      'Wechsel mit.';
+  @override
+  String get infoMatchTactics =>
+      'System und Regler kannst du im Spiel ändern. In den ersten Minuten '
+      'und in der Halbzeit kostet das nichts. Zu anderer Zeit wird die '
+      'Mannschaft unruhig, weil sie nicht weiß, wem sie glauben soll.';
+  @override
+  String get matchClose => 'Schließen';
+  @override
+  String get matchReportTitle => 'Spielbericht';
+  @override
+  String get matchReportGoals => 'Tore';
+  @override
+  String get matchReportNoGoals =>
+      'Keine Tore. Das Publikum fordert sein Eintrittsgeld zurück.';
+  @override
+  String get matchReportCards => 'Karten';
+  @override
+  String get matchReportInjuries => 'Verletzungen';
+  @override
+  String get matchReportStats => 'Zahlen zum Spiel';
+  @override
+  String get matchReportToTable => 'Zur Tabelle';
+  @override
+  String get matchReportToOffice => 'Zurück ins Büro';
+  @override
+  String matchReportVerdict(int mine, int theirs) {
+    if (mine > theirs) {
+      return mine - theirs >= 3
+          ? 'Ein Fest. Der Präsident lächelt, und das ist selten.'
+          : 'Gewonnen. Wir tun so, als wäre das geplant gewesen.';
+    }
+    if (mine < theirs) {
+      return theirs - mine >= 3
+          ? 'Das war keine Niederlage, das war ein Naturereignis.'
+          : 'Verloren. Wir nennen es "Lehrgeld" und schicken die Rechnung '
+                'an den Schiedsrichter.';
+    }
+    return mine == 0
+        ? 'Nullnull. Wenigstens hat sich niemand verletzt, außer dem Spiel.'
+        : 'Unentschieden. Die Diplomatie hat gesiegt.';
+  }
+
+  @override
+  String matchStatName(String id) => switch (id) {
+    'shots' => 'Schüsse',
+    'shotsOnTarget' => 'Aufs Tor',
+    'corners' => 'Ecken',
+    'freeKicks' => 'Freistöße',
+    'yellow' => 'Gelbe Karten',
+    'red' => 'Rote Karten',
+    'subs' => 'Wechsel',
+    _ => id,
+  };
+  @override
+  String matchCardLine(TickerKind kind) => switch (kind) {
+    TickerKind.yellow => 'Gelb',
+    TickerKind.secondYellow => 'Gelb-Rot',
+    _ => 'Rot',
+  };
+  @override
+  String matchInjuryLine(int days) =>
+      days == 1 ? 'fällt 1 Tag aus' : 'fällt $days Tage aus';
+  @override
+  String get infoMatchReport =>
+      'Hier steht, was passiert ist, auch wenn du es live gesehen hast. '
+      'Verletzte und Gesperrte fehlen im nächsten Spiel und stehen im '
+      'Kader und in der Aufstellung markiert.';
+  @override
+  List<String> tickerTemplates(TickerKind kind) => switch (kind) {
+    TickerKind.kickOff => const [
+      'Anpfiff! {home} gegen {away}. Möge der Bessere gewinnen – oder '
+          'wenigstens der Lautere.',
+      'Der Ball rollt: {home} gegen {away}. Alle tun so, als hätten sie '
+          'einen Plan.',
+      'Los geht\'s zwischen {home} und {away}. Die Nervosität auf der Bank '
+          'ist kostenlos.',
+      'Der Schiedsrichter pfeift an. {home} gegen {away}, Hoffnung gegen '
+          'Wirklichkeit.',
+    ],
+    TickerKind.goal => const [
+      'TOR! {p} trifft für {team}. Es steht {score}.',
+      '{p} schiebt ein, und {team} jubelt. {score}.',
+      'Einschlag! {p} netzt für {team} ein, {score}.',
+      'Das Netz zappelt: {p} für {team}. Neuer Stand {score}.',
+      '{p} macht das Ding. {team} führt den Torwart vor, {score}.',
+    ],
+    TickerKind.goalAssist => const [
+      'TOR! {p} trifft für {team}, aufgelegt von {q}. Es steht {score}.',
+      '{q} flankt, {p} vollendet. {team} jubelt, {score}.',
+      'Schöner Pass von {q}, {p} muss nur noch einschieben. {score}.',
+      'Zusammenarbeit zahlt sich aus: {q} bereitet vor, {p} trifft. {score}.',
+    ],
+    TickerKind.penalty => const [
+      'Elfmeter für {team}! Der Schiedsrichter zeigt auf den Punkt.',
+      'Strafstoß für {team}. Jetzt wird es still im Stadion.',
+      'Der Unparteiische entscheidet auf Elfmeter für {team}. Proteste '
+          'zwecklos.',
+      'Elfmeter! Wer traut sich bei {team}?',
+    ],
+    TickerKind.parade => const [
+      'Parade! Der Torwart rettet gegen {p}.',
+      '{p} schießt, aber der Keeper ist da. Ärgerlich für {team}.',
+      'Glanztat des Torwarts gegen {p}. Der Ball bleibt draußen.',
+      'Der Torwart lenkt den Schuss von {p} zur Seite. {team} hadert.',
+    ],
+    TickerKind.miss => const [
+      '{p} hat die Chance, aber der Ball findet das Tor nicht.',
+      'Vorbei! {p} zielt, trifft aber nur die Landschaft.',
+      '{p} vergibt für {team}. Die Bank hält sich den Kopf.',
+      'Das war eine Chance für {team}: {p} schießt knapp daneben.',
+      '{p} wird im letzten Moment geblockt. Knapp, aber zählt nicht.',
+    ],
+    TickerKind.yellow => const [
+      'Gelbe Karte für {p}. Der Schiedsrichter notiert eifrig.',
+      '{p} sieht Gelb. Das Foul war eher Kunst als Sport.',
+      'Verwarnung für {p} ({team}). Der Block des Schiedsrichters füllt sich.',
+      'Gelb für {p}. Hoffentlich lernt er daraus. Hat er bisher nie.',
+    ],
+    TickerKind.secondYellow => const [
+      'Gelb-Rot für {p}! {team} ist nur noch zu zehnt.',
+      '{p} sieht zum zweiten Mal Gelb und muss duschen gehen.',
+      'Zweite Gelbe für {p}: Platzverweis. {team} spielt in Unterzahl.',
+      'Das war\'s für {p}. Gelb-Rot, und die Kabine ruft.',
+    ],
+    TickerKind.red => const [
+      'Rote Karte für {p}! {team} ist nur noch zu zehnt.',
+      'Platzverweis für {p}. Direkt Rot, keine Diskussion.',
+      '{p} fliegt vom Platz. {team} spielt jetzt in Unterzahl.',
+      'Rot! {p} muss sofort runter. Das wird teuer.',
+    ],
+    TickerKind.injury => const [
+      '{p} bleibt liegen und kann nicht weiter. Verletzung, {days} Tage.',
+      'Schlechte Nachrichten: {p} ({team}) hat sich verletzt. Ausfall {days} '
+          'Tage.',
+      '{p} humpelt vom Platz. Der Arzt sagt: {days} Tage Pause.',
+      'Es hat {p} erwischt. {team} muss reagieren, er fällt {days} Tage aus.',
+    ],
+    TickerKind.substitution => const [
+      'Wechsel bei {team}: {p} kommt für {q}.',
+      '{q} geht, {p} kommt. Frische Beine für {team}.',
+      'Die Bank von {team} schickt {p} aufs Feld. {q} darf sich setzen.',
+      'Auswechslung: {p} ersetzt {q}. Der Trainer wird schon wissen, warum.',
+    ],
+    TickerKind.tactic => const [
+      'An der Seitenlinie von {team} wird gestikuliert: neue Taktik.',
+      '{team} stellt um. Ob das ein Plan ist, sehen wir gleich.',
+      'Taktikwechsel bei {team}. Die Spieler nicken, als hätten sie es '
+          'verstanden.',
+      'Neue Ansage von der Bank ({team}): Es wird umgestellt.',
+    ],
+    TickerKind.halfTime => const [
+      'Halbzeit. Es steht {score}. Zeit für Tee und große Worte.',
+      'Pause beim Stand von {score}. In der Kabine wird gleich laut '
+          'geflüstert.',
+      'Der Schiedsrichter pfeift zur Pause: {score}. Jetzt ist der Trainer '
+          'dran.',
+      'Halbzeitpfiff, {score}. Die Würstchen sind der eigentliche Gewinner.',
+    ],
+    TickerKind.fullTime => const [
+      'Abpfiff! Endstand {score}.',
+      'Das Spiel ist aus. {home} gegen {away} endet {score}.',
+      'Schluss! {score}. Der Rest ist Pressekonferenz.',
+      'Abpfiff beim Stand von {score}. Alle dürfen jetzt so tun, als hätten '
+          'sie es kommen sehen.',
+    ],
+  };
   @override
   String get officeHome => 'Heimspiel';
   @override

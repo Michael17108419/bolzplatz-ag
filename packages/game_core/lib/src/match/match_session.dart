@@ -122,6 +122,10 @@ class MatchSession {
     for (final p in _sides[side].bench) p.id,
   ];
 
+  /// The line-up and tactics of [side] as they are now: system and sliders
+  /// follow every [changeTactics].
+  TeamSheet sheetOf(int side) => _sides[side].sheet;
+
   int substitutionsLeft(int side) =>
       rules.tactics.maxSubstitutions - _sides[side].subsUsed;
 
