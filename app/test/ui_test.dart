@@ -187,7 +187,7 @@ void main() {
     final confirm = find.byKey(const ValueKey('lineup-confirm'));
     if (confirm.evaluate().isNotEmpty) {
       await tester.ensureVisible(confirm);
-    await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
       await tester.tap(confirm);
       await tester.pumpAndSettle();
     }
