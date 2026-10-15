@@ -2,11 +2,21 @@ name: ci
 
 on:
   push:
-  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'app/tool/out/**'
+      - 'data/**'
+      - '.github/workflows/screenshots.yml'
+  workflow_dispatch:
+
+# A new push cancels the older run of the same branch: no minutes wasted.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   game_core:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: packages/game_core
@@ -41,7 +51,7 @@ jobs:
           exit $code
 
   app:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: app
@@ -51,6 +61,7 @@ jobs:
         with:
           flutter-version-file: app/pubspec.yaml
           channel: stable
+          cache: true
       - run: flutter pub get
       - name: Generate code
         shell: bash
@@ -85,6 +96,27 @@ jobs:
             echo "::error::${msg}"
           fi
           exit $code
+
+  # The Windows build costs about twice as much, so it only runs by hand
+  # (Actions > ci > Run workflow), not on every push.
+  windows:
+    if: github.event_name == 'workflow_dispatch'
+    needs: [game_core, app]
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: app/pubspec.yaml
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Generate code
+        shell: bash
+        run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter build windows --release
       - uses: actions/upload-artifact@v4
         with:
