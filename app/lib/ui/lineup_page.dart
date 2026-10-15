@@ -6,6 +6,7 @@ import 'package:game_core/game_core.dart';
 
 import '../game/desk.dart';
 import '../game/lineup.dart';
+import '../game/season_game.dart';
 import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
@@ -890,6 +891,7 @@ class _SquadTab extends ConsumerWidget {
     final notifier = ref.read(lineupProvider.notifier);
     final fit = Fit(loaded.rules);
     final xi = sheet.startingXi;
+    final absent = ref.watch(ownAbsencesProvider);
 
     int order(Player p) {
       final x = xi.indexOf(p.id);
@@ -918,6 +920,15 @@ class _SquadTab extends ConsumerWidget {
     }
 
     void tap(Player p) {
+      final reason = absent[p.id];
+      if (reason != null) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(content: Text(s.lineupAbsentBlocked(s.matchAbsence(reason)))),
+          );
+        return;
+      }
       if (slot != null) {
         notifier.assign(slot!, p.id);
         onSlot(null);
@@ -995,7 +1006,9 @@ class _SquadTab extends ConsumerWidget {
                           SizedBox(
                             width: 76,
                             child: Text(
-                              inXi
+                              absent[p.id] != null
+                                  ? s.matchAbsence(absent[p.id]!)
+                                  : inXi
                                   ? s.lineupStartXi
                                   : onBench
                                   ? s.lineupBench
@@ -1004,7 +1017,9 @@ class _SquadTab extends ConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.right,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: inXi
+                                color: absent[p.id] != null
+                                    ? Tokens.orange
+                                    : inXi
                                     ? Tokens.yellow
                                     : onBench
                                     ? Tokens.green

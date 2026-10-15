@@ -4,6 +4,7 @@ import 'package:game_core/game_core.dart';
 
 import '../game/desk.dart';
 import '../game/loaded_world.dart';
+import '../game/season_game.dart';
 import '../game/squad.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
@@ -254,6 +255,7 @@ class _SquadTile extends ConsumerWidget {
     final s = ref.watch(stringsProvider);
     final theme = Theme.of(context);
     final p = row.player;
+    final reason = ref.watch(ownAbsencesProvider)[p.id];
     final look = PlayerLook.of(p, age: row.age, crestColour: crestIndex);
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -291,10 +293,19 @@ class _SquadTile extends ConsumerWidget {
                         style: theme.textTheme.titleSmall,
                       ),
                       Text(
-                        s.nationName(p.nationality),
+                        reason == null
+                            ? s.nationName(p.nationality)
+                            : s.matchAbsence(reason),
+                        key: reason == null
+                            ? null
+                            : ValueKey('squad-absent-${p.id.value}'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall,
+                        style: reason == null
+                            ? theme.textTheme.bodySmall
+                            : theme.textTheme.bodySmall?.copyWith(
+                                color: Tokens.orange,
+                              ),
                       ),
                     ],
                   ),

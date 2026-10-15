@@ -3,6 +3,7 @@ import 'package:game_core/game_core.dart';
 
 import 'career.dart';
 import 'loaded_world.dart';
+import 'season_game.dart';
 
 /// What is wrong with a line-up, if anything. A wrong line-up blocks
 /// "Weiter" (document "Büro als Schreibtisch-Szene", section 4).
@@ -144,14 +145,32 @@ class LineupNotifier extends Notifier<LineupState?> {
     state = now.copyWith(sheet: sheet, reviewed: true);
   }
 
+  /// The assistant builds a sheet without the players who are out.
+  TeamSheet? _build(
+    Rules rules,
+    Map<PlayerId, Player> squad, {
+    required String formationId,
+    int? bench,
+  }) {
+    final out = ref.read(ownAbsencesProvider).keys.toSet();
+    final auto = AutoManager(rules);
+    final players = squad.values.toList();
+    return auto.build(
+          players,
+          exclude: out,
+          formationId: formationId,
+          benchSize: bench,
+        ) ??
+        auto.build(players, formationId: formationId, benchSize: bench);
+  }
+
   /// Switches the formation; the assistant picks the eleven anew, system and
   /// sliders stay.
   void setFormation(String id) {
     final now = state;
     final c = _context();
     if (now == null || c == null) return;
-    final built = AutoManager(c.rules)
-        .build(c.squad.values.toList(), formationId: id, benchSize: c.bench);
+    final built = _build(c.rules, c.squad, formationId: id, bench: c.bench);
     if (built == null) return;
     _set(
       built.copyWith(
@@ -169,8 +188,11 @@ class LineupNotifier extends Notifier<LineupState?> {
     final now = state;
     final c = _context();
     if (now == null || c == null) return;
-    final built = AutoManager(c.rules)
-        .build(c.squad.values.toList(), formationId: now.sheet.formationId);
+    final built = _build(
+      c.rules,
+      c.squad,
+      formationId: now.sheet.formationId,
+    );
     if (built == null) return;
     _set(
       built.copyWith(

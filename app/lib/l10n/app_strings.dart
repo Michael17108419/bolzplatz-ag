@@ -311,6 +311,7 @@ abstract interface class AppStrings {
   String get lineupBench;
   String get lineupStand;
   String lineupBenchFull(int places);
+  String lineupAbsentBlocked(String reason);
   String lineupBenchCount(int n, int places);
   String get lineupNoBenchKeeper;
   String get lineupSlotRole;
@@ -1728,6 +1729,10 @@ class AppStringsDe implements AppStrings {
   String get lineupNoBenchKeeper =>
       'Kein Ersatztorwart auf der Bank. Fliegt der Torwart, geht ein '
       'Feldspieler ins Tor.';
+  @override
+  String lineupAbsentBlocked(String reason) =>
+      'Der Spieler ist $reason und kann nicht spielen. Auch nicht, wenn du '
+      'ganz lieb fragst.';
   @override
   String lineupBenchFull(int places) =>
       'Die Bank ist voll. $places Plätze, kein weiterer.';

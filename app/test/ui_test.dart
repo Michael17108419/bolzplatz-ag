@@ -303,6 +303,9 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('match-score')), findsOneWidget);
+    // Let the note disappear, it covers the buttons.
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
     // Skip to the end, then the report.
     await tester.tap(find.byKey(const ValueKey('match-skip')));
     await tester.pumpAndSettle();

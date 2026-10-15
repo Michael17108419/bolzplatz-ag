@@ -120,3 +120,10 @@ int seasonSeed(Career career, LoadedWorld loaded) =>
 final seasonProvider = NotifierProvider<SeasonNotifier, SeasonGame?>(
   SeasonNotifier.new,
 );
+
+/// Players of the own club who miss the next match, with the reason.
+final ownAbsencesProvider = Provider<Map<PlayerId, Absence>>((ref) {
+  final game = ref.watch(seasonProvider);
+  if (game == null) return const {};
+  return game.runner.absences(game.run, game.clubId);
+});
