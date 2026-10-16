@@ -101,6 +101,14 @@ class SettingsPage extends ConsumerWidget {
                         ),
                       ),
                       SwitchListTile(
+                        key: const ValueKey('autolineup-switch'),
+                        title: Text(s.settingsAutoLineup),
+                        subtitle: Text(s.settingsAutoLineupText),
+                        value: ref.watch(autoLineupProvider),
+                        onChanged: (on) =>
+                            ref.read(autoLineupProvider.notifier).set(on),
+                      ),
+                      SwitchListTile(
                         key: const ValueKey('vibration-switch'),
                         title: Text(s.settingsVibration),
                         subtitle: Text(s.settingsVibrationText),

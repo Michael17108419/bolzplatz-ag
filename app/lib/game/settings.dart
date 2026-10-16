@@ -82,6 +82,12 @@ final soundProvider = NotifierProvider<_Stored<bool>, bool>(
   () => _Stored<bool>('sound', true),
 );
 
+/// Whether the assistant re-sets the line-up when a player of it is out
+/// (injured or banned). Off: "Weiter" stops and the manager does it.
+final autoLineupProvider = NotifierProvider<_Stored<bool>, bool>(
+  () => _Stored<bool>('auto_lineup', false),
+);
+
 /// One strong buzz, where the device can (not in the iPhone browser).
 Future<void> buzz() async {
   try {

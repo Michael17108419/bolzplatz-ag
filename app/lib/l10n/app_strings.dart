@@ -349,6 +349,15 @@ abstract interface class AppStrings {
   String get lineupStand;
   String lineupBenchFull(int places);
   String lineupAbsentBlocked(String reason);
+  String get settingsAutoLineup;
+  String get settingsAutoLineupText;
+  String get lineupBenchTitle;
+  String get lineupBenchEmpty;
+  String get lineupBenchRemove;
+  String lineupAbsentWarning(int n);
+  String get lineupGoToLineup;
+  String lineupAbsentInSheet(String names);
+  String lineupAutoChanged(String names);
   String lineupBenchCount(int n, int places);
   String get lineupNoBenchKeeper;
   String get lineupSlotRole;
@@ -1982,6 +1991,33 @@ class AppStringsDe implements AppStrings {
   String get lineupNoBenchKeeper =>
       'Kein Ersatztorwart auf der Bank. Fliegt der Torwart, geht ein '
       'Feldspieler ins Tor.';
+  @override
+  String get settingsAutoLineup =>
+      'Assistent stellt um';
+  @override
+  String get settingsAutoLineupText =>
+      'Fällt jemand aus deiner Aufstellung aus, baut der Assistent sie neu. Aus: Du musst selbst umstellen, vorher geht es nicht weiter.';
+  @override
+  String get lineupBenchTitle =>
+      'Bank';
+  @override
+  String get lineupBenchEmpty =>
+      'Frei. Tipp unten auf einen Spieler, um ihn auf die Bank zu setzen.';
+  @override
+  String get lineupBenchRemove =>
+      'Von der Bank nehmen';
+  @override
+  String lineupAbsentWarning(int n) =>
+      n == 1 ? '1 Spieler fällt aus' : '$n Spieler fallen aus';
+  @override
+  String get lineupGoToLineup =>
+      'Aufstellung';
+  @override
+  String lineupAbsentInSheet(String names) =>
+      '$names fällt aus. Stell die Aufstellung um oder schalte in den Einstellungen den Assistenten ein.';
+  @override
+  String lineupAutoChanged(String names) =>
+      '$names fällt aus, der Assistent hat umgestellt.';
   @override
   String lineupAbsentBlocked(String reason) =>
       'Der Spieler ist $reason und kann nicht spielen. Auch nicht, wenn du '

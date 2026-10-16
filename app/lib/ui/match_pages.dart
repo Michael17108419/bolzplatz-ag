@@ -14,6 +14,7 @@ import '../game/season_game.dart';
 import '../game/ticker.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'conference_view.dart';
 import 'crest.dart';
 import 'info_button.dart';
@@ -439,6 +440,70 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     );
   }
 
+  void _openMore() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) => StatefulBuilder(
+        builder: (context, setSheet) {
+          final s = ref.read(stringsProvider);
+          final theme = Theme.of(context);
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(Tokens.gapM),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        s.settingsTicker,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      InfoButton(message: s.infoMatchSpeed),
+                    ],
+                  ),
+                  const SizedBox(height: Tokens.gapS),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (var i = 0; i < 3; i++)
+                        ChoiceChip(
+                          key: ValueKey('match-speed-$i'),
+                          label: Text(
+                            [
+                              s.matchSpeedSlow,
+                              s.matchSpeedNormal,
+                              s.matchSpeedFast,
+                            ][i],
+                          ),
+                          selected: _speed == i,
+                          onSelected: (_) {
+                            _setSpeed(i);
+                            setSheet(() {});
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: Tokens.gapM),
+                  OutlinedButton(
+                    key: const ValueKey('match-skip'),
+                    onPressed: () {
+                      Navigator.of(sheet).pop();
+                      _skip();
+                    },
+                    child: Text(s.matchSkip),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(stringsProvider);
@@ -446,8 +511,25 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     final home = _own.fixture.home;
     final away = _own.fixture.away;
     final game = ref.watch(seasonProvider);
+    final phone = isNarrow(context);
 
-    Widget team(ClubId id, {required bool right}) => Expanded(
+    Widget team(ClubId id, {required bool right}) => phone
+        ? Expanded(
+            child: Column(
+              children: [
+                ClubCrest(clubId: id.value, size: 44),
+                const SizedBox(height: 4),
+                Text(
+                  _clubName(_loaded, id),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall,
+                ),
+              ],
+            ),
+          )
+        : Expanded(
       child: Row(
         mainAxisAlignment: right
             ? MainAxisAlignment.start
@@ -506,7 +588,9 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                   child: Text(
                     '${_session.homeGoals} : ${_session.awayGoals}',
                     key: const ValueKey('match-score'),
-                    style: theme.textTheme.headlineMedium,
+                    style: phone
+                        ? theme.textTheme.displaySmall
+                        : theme.textTheme.headlineMedium,
                   ),
                 ),
                 team(away, right: true),
@@ -534,6 +618,19 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                 ],
               ],
             ),
+            if (phone) ...[
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  key: const ValueKey('match-progress'),
+                  minHeight: 6,
+                  value: (_done ? 90 : _session.minute.clamp(0, 90)) / 90,
+                  color: Tokens.yellow,
+                  backgroundColor: Tokens.panel,
+                ),
+              ),
+            ],
             const SizedBox(height: Tokens.gapS),
             Wrap(
               spacing: 8,
@@ -589,6 +686,61 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                   onPressed: _toReport,
                   child: Text(s.matchToReport),
                 ),
+              )
+            else if (phone)
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton(
+                      key: const ValueKey('match-pause'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 52),
+                      ),
+                      onPressed: _running ? _pause : _resume,
+                      child: Text(
+                        _running ? s.matchPause : s.matchResume,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: OutlinedButton(
+                      key: const ValueKey('match-subs'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 52),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                      ),
+                      onPressed: _openSubs,
+                      child: Text(
+                        '${s.matchSubs} ($subsLeft)',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: OutlinedButton(
+                      key: const ValueKey('match-tactics'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 52),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                      ),
+                      onPressed: _openTactics,
+                      child: Text(s.matchTactics, maxLines: 1),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  IconButton.outlined(
+                    key: const ValueKey('match-more'),
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(52, 52),
+                    ),
+                    onPressed: _openMore,
+                    icon: const Icon(Icons.more_horiz),
+                  ),
+                ],
               )
             else
               Wrap(

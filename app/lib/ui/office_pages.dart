@@ -11,6 +11,7 @@ import '../game/office.dart';
 import '../game/office_provider.dart';
 import '../game/planning.dart';
 import '../game/season_game.dart';
+import '../game/settings.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'crest.dart';
@@ -92,6 +93,41 @@ void goNext(BuildContext context, WidgetRef ref) {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(s.lineupProblemText(problem))));
     return;
+  }
+  // Players of the line-up who are out (injured or banned).
+  final lineup = ref.read(lineupProvider);
+  final absences = ref.read(ownAbsencesProvider);
+  final loaded = ref.read(loadedWorldProvider).value;
+  if (lineup != null && loaded != null) {
+    final out = [
+      for (final id in [...lineup.sheet.startingXi, ...lineup.sheet.bench])
+        if (absences.containsKey(id)) id,
+    ];
+    if (out.isNotEmpty) {
+      final names = [
+        for (final id in out) loaded.player(id)?.lastName ?? '?',
+      ].join(', ');
+      if (ref.read(autoLineupProvider)) {
+        ref.read(lineupProvider.notifier).autoPick();
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(s.lineupAutoChanged(names))));
+      } else {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(s.lineupAbsentInSheet(names)),
+              action: SnackBarAction(
+                label: s.lineupGoToLineup,
+                onPressed: () =>
+                    openDesk(context, ref, DeskItem.tactics),
+              ),
+            ),
+          );
+        return;
+      }
+    }
   }
   final own = ref.read(seasonProvider.notifier).openNext();
   if (own == null) return;
