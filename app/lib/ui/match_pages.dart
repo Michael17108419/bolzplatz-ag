@@ -1002,9 +1002,7 @@ class MatchReportPage extends ConsumerWidget {
                   : s.matchReportOut,
               key: const ValueKey('report-cup'),
               textAlign: TextAlign.center,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: Tokens.yellow,
-              ),
+              style: theme.textTheme.titleSmall?.copyWith(color: Tokens.yellow),
             ),
           ],
           Expanded(

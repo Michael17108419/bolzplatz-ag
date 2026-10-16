@@ -944,9 +944,7 @@ class AppStringsDe implements AppStrings {
       'Unentschieden, {score}. Die Verlängerung beginnt, die Kabinen bleiben '
           'leer.',
     ],
-    TickerKind.shootout => const [
-      'Elfmeterschießen!',
-    ],
+    TickerKind.shootout => const ['Elfmeterschießen!'],
     TickerKind.fullTime => const [
       'Abpfiff! Endstand {score}.',
       'Das Spiel ist aus. {home} gegen {away} endet {score}.',
@@ -1999,9 +1997,8 @@ class AppStringsDe implements AppStrings {
   String get statsAssistsEmpty =>
       'Noch keine Vorlage. Alle haben den Ball behalten.';
   @override
-  String cupName(Competition competition) => competition == Competition.pott
-      ? 'Pott der Provinz'
-      : 'Bolzplatzpokal';
+  String cupName(Competition competition) =>
+      competition == Competition.pott ? 'Pott der Provinz' : 'Bolzplatzpokal';
   @override
   String cupRoundName(bool isFinal, int round) =>
       isFinal ? 'Finale' : 'Runde ${round + 1}';

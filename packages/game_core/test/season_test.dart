@@ -205,7 +205,10 @@ void main() {
       expect(own.isLive, isTrue);
       expect(own.knockout, isNull);
       final k = own.session!.finishKnockout();
-      expect(k.match.homeGoals != k.match.awayGoals || k.decidedByShootout, isTrue);
+      expect(
+        k.match.homeGoals != k.match.awayGoals || k.decidedByShootout,
+        isTrue,
+      );
       runner.completeDay(run, day, ownKnockout: k);
       cupTies++;
       final cup = own.competition == Competition.bolzplatz
