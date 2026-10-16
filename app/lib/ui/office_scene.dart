@@ -356,8 +356,10 @@ class _OfficeSceneState extends State<OfficeScene> {
             for (final item in DeskItem.values)
               if (widget.labels[item] != null)
                 Positioned(
-                  left: deskSpots[item]!.center.dx * scale - 60,
-                  width: 120,
+                  left: (deskSpots[item]!.center.dx * scale - 85)
+                      .clamp(0.0, math.max(0.0, w - 170))
+                      .toDouble(),
+                  width: 170,
                   top: deskSpots[item]!.bottom * scale - 22,
                   child: IgnorePointer(
                     child: Center(
@@ -371,10 +373,11 @@ class _OfficeSceneState extends State<OfficeScene> {
                           color: const Color(0xCC1B2E22),
                           borderRadius: BorderRadius.circular(9),
                         ),
-                        child: Text(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
                           widget.labels[item]!.title,
                           maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontFamily: Tokens.headlineFont,
                             fontWeight: FontWeight.w700,
@@ -382,6 +385,7 @@ class _OfficeSceneState extends State<OfficeScene> {
                             height: 1.2,
                             color: Tokens.cream,
                           ),
+                        ),
                         ),
                       ),
                     ),
