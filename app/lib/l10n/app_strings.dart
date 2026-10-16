@@ -720,7 +720,7 @@ class AppStringsDe implements AppStrings {
   @override
   String get matchSpeedSlow => 'Langsam';
   @override
-  String get matchSpeedNormal => 'Normal';
+  String get matchSpeedNormal => 'Mittel';
   @override
   String get matchSpeedFast => 'Schnell';
   @override

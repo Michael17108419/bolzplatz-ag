@@ -210,8 +210,8 @@ class LiveMatchPage extends ConsumerStatefulWidget {
 class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
   static const _speeds = [
     Duration(milliseconds: 700),
-    Duration(milliseconds: 300),
-    Duration(milliseconds: 80),
+    Duration(milliseconds: 350),
+    Duration(milliseconds: 100),
   ];
 
   late final OwnMatch _own;
@@ -221,7 +221,8 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
   late final int _ownSide;
   final List<TickerLine> _lines = [];
   int _seen = 0;
-  int _speed = 1;
+  // Slow is the default: the ticker should be readable.
+  int _speed = 0;
   bool _running = true;
   bool _pausedByEvent = false;
   bool _done = false;
