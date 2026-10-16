@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
@@ -165,6 +166,13 @@ String packSeasonState(SeasonState state) =>
 /// Reads a state written by [packSeasonState].
 SeasonState unpackSeasonState(String text, Map<ClubId, Club> clubs) =>
     SeasonSnapshot.decode(utf8.decode(gzip.decode(base64.decode(text))), clubs);
+
+/// Like [unpackSeasonState], but on another isolate: a saved game of a later
+/// season carries a few megabytes, and the window must not freeze meanwhile.
+Future<SeasonState> unpackSeasonStateInBackground(
+  String text,
+  Map<ClubId, Club> clubs,
+) => Isolate.run(() => unpackSeasonState(text, clubs));
 
 /// Where the saved games are kept (one text per slot).
 abstract class SaveRepository {
@@ -335,9 +343,11 @@ class SaveService {
     }
     if (offer == null) return false;
     // The world of the saved season, then the career in it.
-    _ref
-        .read(worldStateProvider.notifier)
-        .set(data.base == null ? null : unpackSeasonState(data.base!, clubs));
+    final base = data.base;
+    final state = base == null
+        ? null
+        : await unpackSeasonStateInBackground(base, clubs);
+    _ref.read(worldStateProvider.notifier).set(state);
     _ref.read(seasonHistoryProvider.notifier).restore(data.seasons);
     _ref
         .read(careerProvider.notifier)

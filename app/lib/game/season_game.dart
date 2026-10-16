@@ -453,7 +453,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
         ? 1
         : level[nextLeague]! - career.league.level;
     final seed = SeededRandom(game.seed).fork('review').seed;
-    var review = const SeasonReviewer().review(
+    var review = SeasonReviewer(loaded.rules.season.review).review(
       goal: career.goal,
       rank: rank,
       teams: table.length,

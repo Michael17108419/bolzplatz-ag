@@ -1,5 +1,6 @@
 import '../model/career.dart';
 import '../rng/seeded_random.dart';
+import '../rules/season_rules.dart';
 
 /// How the season ended, measured against the goal of the president.
 enum GoalVerdict { exceeded, reached, missed, failed }
@@ -30,10 +31,11 @@ class SeasonReview {
 }
 
 /// Judges a season. Pure and deterministic: the same inputs and seed give
-/// the same verdict. Numbers are kept together here until the rules file
-/// takes them.
+/// the same verdict. The numbers come from the rules file.
 class SeasonReviewer {
-  const SeasonReviewer();
+  const SeasonReviewer(this.rules);
+
+  final ReviewRules rules;
 
   /// The goal the president sets for a new season: from the strength rank of
   /// the club in its league (1 is the strongest) and the league level.
@@ -72,14 +74,14 @@ class SeasonReviewer {
           verdict = GoalVerdict.reached;
         } else {
           gap = rank - 1;
-          verdict = gap <= 2 ? GoalVerdict.missed : GoalVerdict.failed;
+          verdict = gap <= rules.titleMissedMaxGap ? GoalVerdict.missed : GoalVerdict.failed;
         }
       case SeasonGoal.promotion:
         if (promoted) {
           verdict = rank == 1 ? GoalVerdict.exceeded : GoalVerdict.reached;
         } else {
           gap = (rank - 3).clamp(1, teams);
-          verdict = gap <= 3 ? GoalVerdict.missed : GoalVerdict.failed;
+          verdict = gap <= rules.promotionMissedMaxGap ? GoalVerdict.missed : GoalVerdict.failed;
         }
       case SeasonGoal.noTarget:
         if (relegated) {
@@ -92,20 +94,22 @@ class SeasonReviewer {
       case SeasonGoal.licence:
         if (relegated) {
           gap = (rank - (teams - 3)).clamp(1, teams);
-          verdict = gap <= 1 ? GoalVerdict.missed : GoalVerdict.failed;
+          verdict = gap <= rules.survivalMissedMaxGap ? GoalVerdict.missed : GoalVerdict.failed;
         } else if (rank <= teams ~/ 2 || promoted) {
           verdict = GoalVerdict.exceeded;
         }
     }
     var risk = 0.0;
     if (verdict == GoalVerdict.missed) {
-      risk = 0.2 + 0.05 * gap;
+      risk = rules.missedBase + rules.missedPerPlace * gap;
     } else if (verdict == GoalVerdict.failed) {
-      risk = 0.55 + 0.04 * gap;
+      risk = rules.failedBase + rules.failedPerPlace * gap;
     }
     if (risk > 0) {
-      risk += (0.5 - presidentTrust) * 0.6 + (0.5 - squadMood) * 0.4;
-      risk = risk.clamp(0.0, 0.95);
+      risk +=
+          (0.5 - presidentTrust) * rules.trustWeight +
+          (0.5 - squadMood) * rules.moodWeight;
+      risk = risk.clamp(0.0, rules.maxRisk);
     }
     final dismissed =
         risk > 0 && SeededRandom(seed).fork('dismissal').nextDouble() < risk;

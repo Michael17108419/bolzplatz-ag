@@ -69,6 +69,7 @@ class SeasonRules {
     required this.formLoss,
     required this.formDrift,
     required this.cups,
+    required this.review,
   });
 
   factory SeasonRules.fromJson(Map<String, dynamic> m) => SeasonRules(
@@ -78,6 +79,7 @@ class SeasonRules {
     formLoss: (m['form_loss'] as num).toDouble(),
     formDrift: (m['form_drift'] as num).toDouble(),
     cups: CupRules.fromJson(m['cups'] as Map<String, dynamic>),
+    review: ReviewRules.fromJson(m['review'] as Map<String, dynamic>),
   );
 
   /// One matchday stands for this many days of recovery.
@@ -87,4 +89,51 @@ class SeasonRules {
   final double formLoss;
   final double formDrift;
   final CupRules cups;
+  final ReviewRules review;
+}
+
+/// Numbers for the verdict on a season (document 13, drafts for mass tests).
+class ReviewRules {
+  const ReviewRules({
+    required this.titleMissedMaxGap,
+    required this.promotionMissedMaxGap,
+    required this.survivalMissedMaxGap,
+    required this.missedBase,
+    required this.missedPerPlace,
+    required this.failedBase,
+    required this.failedPerPlace,
+    required this.trustWeight,
+    required this.moodWeight,
+    required this.maxRisk,
+  });
+
+  factory ReviewRules.fromJson(Map<String, dynamic> m) => ReviewRules(
+    titleMissedMaxGap: m['title_missed_max_gap'] as int,
+    promotionMissedMaxGap: m['promotion_missed_max_gap'] as int,
+    survivalMissedMaxGap: m['survival_missed_max_gap'] as int,
+    missedBase: (m['missed_base'] as num).toDouble(),
+    missedPerPlace: (m['missed_per_place'] as num).toDouble(),
+    failedBase: (m['failed_base'] as num).toDouble(),
+    failedPerPlace: (m['failed_per_place'] as num).toDouble(),
+    trustWeight: (m['trust_weight'] as num).toDouble(),
+    moodWeight: (m['mood_weight'] as num).toDouble(),
+    maxRisk: (m['max_risk'] as num).toDouble(),
+  );
+
+  /// Places by which a goal may be missed and still count as "missed"
+  /// (further off is "failed").
+  final int titleMissedMaxGap;
+  final int promotionMissedMaxGap;
+  final int survivalMissedMaxGap;
+
+  /// Dismissal risk: base plus a part per place missed.
+  final double missedBase;
+  final double missedPerPlace;
+  final double failedBase;
+  final double failedPerPlace;
+
+  /// How strongly a distrustful president and a sour squad raise the risk.
+  final double trustWeight;
+  final double moodWeight;
+  final double maxRisk;
 }

@@ -68,7 +68,8 @@ void main() {
   });
 
   group('season review', () {
-    const reviewer = SeasonReviewer();
+    late SeasonReviewer reviewer;
+    setUpAll(() => reviewer = SeasonReviewer(rules.season.review));
 
     SeasonReview review(
       SeasonGoal goal,

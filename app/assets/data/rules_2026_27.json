@@ -2200,6 +2200,18 @@
     "form_win": 2.0,
     "form_loss": -2.0,
     "form_drift": 0.08,
+    "review": {
+      "title_missed_max_gap": 2,
+      "promotion_missed_max_gap": 3,
+      "survival_missed_max_gap": 1,
+      "missed_base": 0.2,
+      "missed_per_place": 0.05,
+      "failed_base": 0.55,
+      "failed_per_place": 0.04,
+      "trust_weight": 0.6,
+      "mood_weight": 0.4,
+      "max_risk": 0.95
+    },
     "cups": {
       "bolzplatz_after_matchday": [
         4,
