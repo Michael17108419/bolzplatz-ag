@@ -63,7 +63,9 @@ class _Office extends ConsumerWidget {
     final lineup = ref.watch(lineupProvider);
     final today = ref.watch(todayProvider);
     final game = ref.watch(seasonProvider);
-    final nextMatch = game?.runner.nextMatchOf(game.run, game.clubId);
+    final nextMatch = game == null
+        ? null
+        : game.runner.nextMatchOf(game.run, game.clubId);
     final nextText = nextMatch != null && nextMatch.$2 != Competition.league
         ? s.deskNextCup(s.cupName(nextMatch.$2))
         : s.deskNext(view.matchday);
