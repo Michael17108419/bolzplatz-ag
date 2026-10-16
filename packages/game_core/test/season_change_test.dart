@@ -165,8 +165,10 @@ void main() {
     expect(back.goal, offer.goal);
     expect(back.budget, offer.budget);
     expect(back.president.name, offer.president.name);
-    expect(back.president[PresidentTrait.vanity],
-        offer.president[PresidentTrait.vanity]);
+    expect(
+      back.president[PresidentTrait.vanity],
+      offer.president[PresidentTrait.vanity],
+    );
     expect(back.toJson(), offer.toJson());
   });
 

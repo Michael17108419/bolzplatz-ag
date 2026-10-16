@@ -127,9 +127,7 @@ class JobOffer {
       'president': {
         'type': president.typeId,
         'name': president.name,
-        'traits': {
-          for (final t in PresidentTrait.values) t.id: president[t],
-        },
+        'traits': {for (final t in PresidentTrait.values) t.id: president[t]},
       },
     };
   }
