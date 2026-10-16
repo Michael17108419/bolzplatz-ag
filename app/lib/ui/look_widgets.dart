@@ -8,6 +8,7 @@ import '../game/career.dart';
 import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'person_avatar.dart';
 
 /// One row of the looks pages: a label and the choices.
@@ -19,6 +20,17 @@ class LookRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final text = Text(label, style: Theme.of(context).textTheme.bodyLarge);
+    // On a phone the label stands above its choices.
+    if (isNarrow(context)) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: Tokens.gapM),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [text, const SizedBox(height: Tokens.gapS), child],
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: Tokens.gapL),
       child: Row(
@@ -26,10 +38,7 @@ class LookRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 170,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(label, style: Theme.of(context).textTheme.bodyLarge),
-            ),
+            child: Padding(padding: const EdgeInsets.only(top: 8), child: text),
           ),
           Expanded(child: child),
         ],
@@ -121,6 +130,38 @@ class LookSwatches extends ConsumerWidget {
   }
 }
 
+/// The portrait and the choices: side by side on a wide screen, the portrait
+/// above the choices on a phone held upright.
+class AvatarSplit extends StatelessWidget {
+  const AvatarSplit({required this.loaded, required this.children, super.key});
+
+  final LoadedWorld loaded;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final list = ListView(children: children);
+    if (isNarrow(context)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AvatarPanel(loaded: loaded),
+          const SizedBox(height: Tokens.gapM),
+          Expanded(child: list),
+        ],
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AvatarPanel(loaded: loaded),
+        const SizedBox(width: Tokens.gapL),
+        Expanded(child: list),
+      ],
+    );
+  }
+}
+
 /// The portrait with the dice button, left of the choices.
 class AvatarPanel extends ConsumerWidget {
   const AvatarPanel({required this.loaded, super.key});
@@ -152,19 +193,38 @@ class AvatarPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
     final a = ref.watch(careerDraftProvider).appearance;
+    final dice = TextButton.icon(
+      key: const ValueKey('random-look'),
+      style: TextButton.styleFrom(minimumSize: const Size(0, 48)),
+      onPressed: () => _randomLook(ref),
+      icon: const DiceIcon(),
+      label: Text(s.trainerRandomLook),
+    );
+    // On a phone upright the portrait sits above the choices, small, with
+    // the dice beside it.
+    if (isNarrow(context)) {
+      return Row(
+        children: [
+          PersonAvatar(appearance: a, size: 120),
+          const SizedBox(width: Tokens.gapM),
+          Expanded(child: Align(alignment: Alignment.centerLeft, child: dice)),
+        ],
+      );
+    }
     return SizedBox(
       width: 240,
-      child: Column(
-        children: [
-          PersonAvatar(appearance: a, size: 220),
-          const SizedBox(height: Tokens.gapM),
-          TextButton.icon(
-            key: const ValueKey('random-look'),
-            onPressed: () => _randomLook(ref),
-            icon: const DiceIcon(),
-            label: Text(s.trainerRandomLook),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, box) {
+          // On a phone on its side there is little height: shrink the portrait.
+          final size = (box.maxHeight - 64).clamp(96.0, 220.0);
+          return Column(
+            children: [
+              PersonAvatar(appearance: a, size: size),
+              const SizedBox(height: Tokens.gapS),
+              dice,
+            ],
+          );
+        },
       ),
     );
   }
@@ -188,8 +248,8 @@ class _Swatch extends StatelessWidget {
       customBorder: const CircleBorder(),
       onTap: onTap,
       child: Container(
-        width: 32,
-        height: 32,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: color,

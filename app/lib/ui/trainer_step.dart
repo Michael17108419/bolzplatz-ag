@@ -5,6 +5,7 @@ import '../game/career.dart';
 import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'look_widgets.dart';
 import 'step_buttons.dart';
 import 'person_avatar.dart';
@@ -52,14 +53,9 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: AvatarSplit(
+            loaded: widget.loaded,
             children: [
-              AvatarPanel(loaded: widget.loaded),
-              const SizedBox(width: Tokens.gapL),
-              Expanded(
-                child: ListView(
-                  children: [
                     Text(
                       s.trainerHeading,
                       style: theme.textTheme.headlineSmall,
@@ -67,7 +63,7 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                     const SizedBox(height: Tokens.gapM),
                     TextField(
                       controller: _name,
-                      autofocus: true,
+                      autofocus: !isNarrow(context),
                       onChanged: (v) {
                         ref.read(careerDraftProvider.notifier).setName(v);
                         setState(() {});
@@ -123,9 +119,6 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                         value: a.beard,
                         change: (a, i) => a.copyWith(beard: i),
                       ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),

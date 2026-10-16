@@ -32,14 +32,9 @@ class LookStep extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: AvatarSplit(
+            loaded: loaded,
             children: [
-              AvatarPanel(loaded: loaded),
-              const SizedBox(width: Tokens.gapL),
-              Expanded(
-                child: ListView(
-                  children: [
                     Text(s.lookHeading, style: theme.textTheme.headlineSmall),
                     const SizedBox(height: Tokens.gapL),
                     LookChips(
@@ -73,9 +68,6 @@ class LookStep extends ConsumerWidget {
                         value: a.outfitColour2,
                         change: (a, i) => a.copyWith(outfitColour2: i),
                       ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),

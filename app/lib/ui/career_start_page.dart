@@ -9,6 +9,7 @@ import '../game/loaded_world.dart';
 import '../game/saves.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'backstory_step.dart';
 import 'look_step.dart';
 import 'offers_step.dart';
@@ -140,7 +141,7 @@ class _CareerWizardState extends ConsumerState<_CareerWizard> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _StepBar(titles: titles, current: _step),
-        const SizedBox(height: Tokens.gapL),
+        SizedBox(height: isCompact(context) ? Tokens.gapM : Tokens.gapL),
         Expanded(child: body),
       ],
     );
@@ -156,6 +157,53 @@ class _StepBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // On a phone upright only the numbers fit; the name of the step stands
+    // under them.
+    if (isNarrow(context)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              for (var i = 0; i < titles.length; i++) ...[
+                if (i > 0)
+                  Expanded(
+                    child: Container(
+                      height: 2,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      color: i <= current ? Tokens.yellow : Tokens.panel,
+                    ),
+                  ),
+                Container(
+                  key: ValueKey('step-$i'),
+                  width: 30,
+                  height: 30,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: i <= current ? Tokens.yellow : Tokens.panel,
+                  ),
+                  child: Text(
+                    '${i + 1}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: i <= current ? Tokens.ink : Tokens.text,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: Tokens.gapS),
+          Text(
+            titles[current],
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: Tokens.yellow,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      );
+    }
     return Row(
       children: [
         for (var i = 0; i < titles.length; i++) ...[

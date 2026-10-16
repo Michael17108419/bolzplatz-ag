@@ -6,6 +6,7 @@ import '../game/career.dart';
 import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'crest.dart';
 import 'info_button.dart';
 import 'step_buttons.dart';
@@ -40,6 +41,34 @@ class _WishStepState extends ConsumerState<WishStep> {
     _league = _leagues.first;
   }
 
+  /// The leagues as chips: wrapped on a wide screen, one scrolling row on a
+  /// phone (eight leagues would take half the screen).
+  Widget _leagueChips(AppStrings s) {
+    final chips = [
+      for (final l in _leagues)
+        ChoiceChip(
+          key: ValueKey('wish-league-${l.id.value}'),
+          label: Text(s.leagueName(l.name)),
+          selected: l.id == _league.id,
+          onSelected: (_) => setState(() => _league = l),
+        ),
+    ];
+    if (isNarrow(context)) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final c in chips) Padding(
+              padding: const EdgeInsets.only(right: Tokens.gapS),
+              child: c,
+            ),
+          ],
+        ),
+      );
+    }
+    return Wrap(spacing: Tokens.gapS, runSpacing: Tokens.gapS, children: chips);
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(stringsProvider);
@@ -62,19 +91,7 @@ class _WishStepState extends ConsumerState<WishStep> {
         const SizedBox(height: 4),
         Text(s.wishHint, style: theme.textTheme.bodyMedium),
         const SizedBox(height: Tokens.gapM),
-        Wrap(
-          spacing: Tokens.gapS,
-          runSpacing: Tokens.gapS,
-          children: [
-            for (final l in _leagues)
-              ChoiceChip(
-                key: ValueKey('wish-league-${l.id.value}'),
-                label: Text(s.leagueName(l.name)),
-                selected: l.id == _league.id,
-                onSelected: (_) => setState(() => _league = l),
-              ),
-          ],
-        ),
+        _leagueChips(s),
         const SizedBox(height: Tokens.gapM),
         Expanded(
           child: ListView(

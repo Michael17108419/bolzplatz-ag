@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'logo_svg.dart';
 
 /// Common frame of all screens except the main menu: centred content with a
@@ -27,6 +28,7 @@ class ScreenFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final compact = isCompact(context);
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.escape): () =>
@@ -37,11 +39,11 @@ class ScreenFrame extends StatelessWidget {
         autofocus: true,
         child: Scaffold(
           appBar: AppBar(
-            toolbarHeight: 72,
+            toolbarHeight: compact ? 56 : 72,
             automaticallyImplyLeading: false,
-            leadingWidth: 130,
+            leadingWidth: compact ? 96 : 130,
             leading: Padding(
-              padding: const EdgeInsets.only(left: Tokens.gapL),
+              padding: EdgeInsets.only(left: compact ? Tokens.gapM : Tokens.gapL),
               child: SvgPicture.string(
                 bolzplatzLogoSvg,
                 key: const ValueKey('app-logo'),
@@ -51,13 +53,21 @@ class ScreenFrame extends StatelessWidget {
             ),
             title: Text(
               title,
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: compact
+                  ? Theme.of(context).textTheme.titleLarge
+                  : Theme.of(context).textTheme.headlineSmall,
             ),
           ),
           body: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Padding(padding: padding, child: child),
+              child: Padding(
+                padding: compact ? padding.copyWith(
+                  left: Tokens.gapM, right: Tokens.gapM, top: Tokens.gapS,
+                  bottom: Tokens.gapS,
+                ) : padding,
+                child: child,
+              ),
             ),
           ),
         ),
