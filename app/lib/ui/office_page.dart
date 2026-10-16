@@ -55,6 +55,77 @@ class _Office extends ConsumerWidget {
   final Career career;
   final OfficeView view;
 
+  Widget _header(
+    BuildContext context,
+    AppStrings s,
+    ThemeData theme,
+    GameDate? today,
+  ) {
+    final offer = career.offer;
+    final narrow = isNarrow(context);
+    final info = '${offer.club.place} · ${s.leagueName(career.league.name)} '
+        '· ${s.officeSeason(view.startYear)}';
+    final dateText = today == null
+        ? null
+        : Text(
+            formatDate(s, today),
+            key: const ValueKey('office-date'),
+            style: theme.textTheme.titleMedium,
+          );
+    return Row(
+      children: [
+        ClubCrest(clubId: offer.club.id.value, size: 40),
+        const SizedBox(width: Tokens.gapM),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                offer.club.name,
+                key: const ValueKey('office-club'),
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleLarge,
+              ),
+              Text(
+                info,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium,
+              ),
+              // On a phone the date and the help stand under the club.
+              if (narrow)
+                Row(
+                  children: [
+                    if (dateText != null) Flexible(child: dateText),
+                    InfoButton(message: s.infoDesk),
+                  ],
+                ),
+            ],
+          ),
+        ),
+        if (!narrow) ...[
+          if (dateText != null) dateText,
+          InfoButton(message: s.infoDesk),
+          const SizedBox(width: Tokens.gapM),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 220),
+            child: Text(
+              career.trainer.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall,
+            ),
+          ),
+          const SizedBox(width: Tokens.gapS),
+        ],
+        PersonAvatar(
+          key: const ValueKey('office-trainer'),
+          appearance: career.trainer.appearance,
+          size: 40,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
@@ -95,56 +166,7 @@ class _Office extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            ClubCrest(clubId: offer.club.id.value, size: 40),
-            const SizedBox(width: Tokens.gapM),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    offer.club.name,
-                    key: const ValueKey('office-club'),
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  Text(
-                    '${offer.club.place} · ${s.leagueName(career.league.name)} '
-                    '· ${s.officeSeason(view.startYear)}',
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-            if (today != null)
-              Text(
-                formatDate(s, today),
-                key: const ValueKey('office-date'),
-                style: theme.textTheme.titleMedium,
-              ),
-            InfoButton(message: s.infoDesk),
-            const SizedBox(width: Tokens.gapS),
-            if (!isNarrow(context)) ...[
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 220),
-                child: Text(
-                  career.trainer.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall,
-                ),
-              ),
-              const SizedBox(width: Tokens.gapS),
-            ],
-            PersonAvatar(
-              key: const ValueKey('office-trainer'),
-              appearance: career.trainer.appearance,
-              size: 40,
-            ),
-          ],
-        ),
+        _header(context, s, theme, today),
         const SizedBox(height: Tokens.gapS),
         Expanded(
           child: OfficeScene(
