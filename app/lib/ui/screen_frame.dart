@@ -43,7 +43,9 @@ class ScreenFrame extends StatelessWidget {
             automaticallyImplyLeading: false,
             leadingWidth: compact ? 96 : 130,
             leading: Padding(
-              padding: EdgeInsets.only(left: compact ? Tokens.gapM : Tokens.gapL),
+              padding: EdgeInsets.only(
+                left: compact ? Tokens.gapM : Tokens.gapL,
+              ),
               child: SvgPicture.string(
                 bolzplatzLogoSvg,
                 key: const ValueKey('app-logo'),
@@ -62,10 +64,14 @@ class ScreenFrame extends StatelessWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
               child: Padding(
-                padding: compact ? padding.copyWith(
-                  left: Tokens.gapM, right: Tokens.gapM, top: Tokens.gapS,
-                  bottom: Tokens.gapS,
-                ) : padding,
+                padding: compact
+                    ? padding.copyWith(
+                        left: Tokens.gapM,
+                        right: Tokens.gapM,
+                        top: Tokens.gapS,
+                        bottom: Tokens.gapS,
+                      )
+                    : padding,
                 child: child,
               ),
             ),

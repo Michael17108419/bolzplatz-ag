@@ -58,10 +58,11 @@ class _WishStepState extends ConsumerState<WishStep> {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            for (final c in chips) Padding(
-              padding: const EdgeInsets.only(right: Tokens.gapS),
-              child: c,
-            ),
+            for (final c in chips)
+              Padding(
+                padding: const EdgeInsets.only(right: Tokens.gapS),
+                child: c,
+              ),
           ],
         ),
       );

@@ -27,7 +27,11 @@ class LookRow extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: Tokens.gapM),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [text, const SizedBox(height: Tokens.gapS), child],
+          children: [
+            text,
+            const SizedBox(height: Tokens.gapS),
+            child,
+          ],
         ),
       );
     }
@@ -207,7 +211,9 @@ class AvatarPanel extends ConsumerWidget {
         children: [
           PersonAvatar(appearance: a, size: 120),
           const SizedBox(width: Tokens.gapM),
-          Expanded(child: Align(alignment: Alignment.centerLeft, child: dice)),
+          Expanded(
+            child: Align(alignment: Alignment.centerLeft, child: dice),
+          ),
         ],
       );
     }

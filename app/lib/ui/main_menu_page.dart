@@ -42,7 +42,8 @@ class _MainMenuPageState extends ConsumerState<MainMenuPage> {
   }
 
   Future<void> _open(BuildContext context, Widget page) async {
-    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
+    await Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => page));
     if (mounted) await _findAuto();
   }
 

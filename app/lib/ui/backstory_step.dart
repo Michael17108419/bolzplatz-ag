@@ -76,47 +76,47 @@ class BackstoryStep extends ConsumerWidget {
                   ],
                 )
               : Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 5,
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: Tokens.gapS,
-                  crossAxisSpacing: Tokens.gapS,
-                  childAspectRatio: 4.2,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (final b in stories)
-                      _StoryCard(
-                        key: ValueKey('story-${b.id}'),
-                        label: s.backstoryName(b.id),
-                        selected: b.id == draft.backstoryId,
-                        onTap: () => ref
-                            .read(careerDraftProvider.notifier)
-                            .setBackstory(b.id),
+                    Expanded(
+                      flex: 5,
+                      child: GridView.count(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: Tokens.gapS,
+                        crossAxisSpacing: Tokens.gapS,
+                        childAspectRatio: 4.2,
+                        children: [
+                          for (final b in stories)
+                            _StoryCard(
+                              key: ValueKey('story-${b.id}'),
+                              label: s.backstoryName(b.id),
+                              selected: b.id == draft.backstoryId,
+                              onTap: () => ref
+                                  .read(careerDraftProvider.notifier)
+                                  .setBackstory(b.id),
+                            ),
+                        ],
                       ),
+                    ),
+                    const SizedBox(width: Tokens.gapL),
+                    Expanded(
+                      flex: 4,
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(Tokens.gapL),
+                          child: chosen == null
+                              ? Center(
+                                  child: Text(
+                                    s.backstoryPick,
+                                    style: theme.textTheme.bodyLarge,
+                                  ),
+                                )
+                              : _StoryDetail(story: chosen),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              ),
-              const SizedBox(width: Tokens.gapL),
-              Expanded(
-                flex: 4,
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(Tokens.gapL),
-                    child: chosen == null
-                        ? Center(
-                            child: Text(
-                              s.backstoryPick,
-                              style: theme.textTheme.bodyLarge,
-                            ),
-                          )
-                        : _StoryDetail(story: chosen),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
         const SizedBox(height: Tokens.gapM),
         StepButtons(

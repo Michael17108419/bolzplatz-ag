@@ -106,41 +106,41 @@ class _OffersStepState extends ConsumerState<OffersStep> {
                   ],
                 )
               : Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 5,
-                child: ListView(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (var i = 0; i < offers.length; i++)
-                      _OfferTile(
-                        key: ValueKey('offer-$i'),
-                        offer: offers[i],
-                        selected: i == _selected,
-                        onTap: () => setState(() => _selected = i),
+                    Expanded(
+                      flex: 5,
+                      child: ListView(
+                        children: [
+                          for (var i = 0; i < offers.length; i++)
+                            _OfferTile(
+                              key: ValueKey('offer-$i'),
+                              offer: offers[i],
+                              selected: i == _selected,
+                              onTap: () => setState(() => _selected = i),
+                            ),
+                        ],
                       ),
+                    ),
+                    const SizedBox(width: Tokens.gapL),
+                    Expanded(
+                      flex: 4,
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(Tokens.gapL),
+                          child: selected == null
+                              ? Center(
+                                  child: Text(
+                                    s.offerNoneChosen,
+                                    style: theme.textTheme.bodyLarge,
+                                  ),
+                                )
+                              : _OfferDetail(offer: selected),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              ),
-              const SizedBox(width: Tokens.gapL),
-              Expanded(
-                flex: 4,
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(Tokens.gapL),
-                    child: selected == null
-                        ? Center(
-                            child: Text(
-                              s.offerNoneChosen,
-                              style: theme.textTheme.bodyLarge,
-                            ),
-                          )
-                        : _OfferDetail(offer: selected),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
         const SizedBox(height: Tokens.gapM),
         Row(
