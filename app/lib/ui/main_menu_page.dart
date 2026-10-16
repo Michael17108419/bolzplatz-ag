@@ -76,54 +76,74 @@ class _MainMenuPageState extends ConsumerState<MainMenuPage> {
   Widget build(BuildContext context) {
     final s = ref.watch(stringsProvider);
     final theme = Theme.of(context);
+    final low = MediaQuery.sizeOf(context).height < 500;
+    final logo = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        BolzplatzLogo(height: low ? 150 : 200),
+        const SizedBox(height: Tokens.gapM),
+        Text(
+          s.tagline,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyLarge,
+        ),
+      ],
+    );
+    final buttons = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_auto != null) ...[
+          FilledButton(
+            key: const ValueKey('menu-continue'),
+            onPressed: _busy ? null : _continue,
+            child: Text(s.menuContinue),
+          ),
+          const SizedBox(height: Tokens.gapM),
+        ],
+        _newGameButton(s),
+        const SizedBox(height: Tokens.gapM),
+        FilledButton.tonal(
+          onPressed: () => _open(context, const SavesPage(fromMenu: true)),
+          child: Text(s.menuLoadGame),
+        ),
+        const SizedBox(height: Tokens.gapM),
+        FilledButton.tonal(
+          onPressed: () => _open(context, const SettingsPage()),
+          child: Text(s.menuSettings),
+        ),
+        if (!kIsWeb) ...[
+          const SizedBox(height: Tokens.gapM),
+          TextButton(onPressed: () => exit(0), child: Text(s.menuQuit)),
+        ],
+      ],
+    );
+    // A phone on its side has little height: logo left, buttons right.
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 440),
+            constraints: BoxConstraints(maxWidth: low ? 820 : 440),
             child: Padding(
-              padding: const EdgeInsets.all(Tokens.gapL),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const BolzplatzLogo(height: 200),
-                  const SizedBox(height: Tokens.gapM),
-                  Text(
-                    s.tagline,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: Tokens.gapL * 1.5),
-                  if (_auto != null) ...[
-                    FilledButton(
-                      key: const ValueKey('menu-continue'),
-                      onPressed: _busy ? null : _continue,
-                      child: Text(s.menuContinue),
+              padding: EdgeInsets.all(low ? Tokens.gapM : Tokens.gapL),
+              child: low
+                  ? Row(
+                      children: [
+                        Expanded(child: logo),
+                        const SizedBox(width: Tokens.gapL),
+                        Expanded(child: buttons),
+                      ],
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        logo,
+                        const SizedBox(height: Tokens.gapL * 1.5),
+                        buttons,
+                      ],
                     ),
-                    const SizedBox(height: Tokens.gapM),
-                  ],
-                  _newGameButton(s),
-                  const SizedBox(height: Tokens.gapM),
-                  FilledButton.tonal(
-                    onPressed: () =>
-                        _open(context, const SavesPage(fromMenu: true)),
-                    child: Text(s.menuLoadGame),
-                  ),
-                  const SizedBox(height: Tokens.gapM),
-                  FilledButton.tonal(
-                    onPressed: () => _open(context, const SettingsPage()),
-                    child: Text(s.menuSettings),
-                  ),
-                  if (!kIsWeb) ...[
-                    const SizedBox(height: Tokens.gapM),
-                    TextButton(
-                      onPressed: () => exit(0),
-                      child: Text(s.menuQuit),
-                    ),
-                  ],
-                ],
-              ),
             ),
           ),
         ),

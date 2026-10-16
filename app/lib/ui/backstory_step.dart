@@ -269,6 +269,7 @@ class _LevelRow extends StatelessWidget {
                 Flexible(
                   child: Text(
                     label,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium,
                   ),
