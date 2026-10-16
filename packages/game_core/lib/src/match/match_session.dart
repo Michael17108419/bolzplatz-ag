@@ -133,12 +133,12 @@ class SessionAction {
   Map<String, dynamic> toJson() => {
     'minute': minute,
     'side': side,
-    'off': ?off?.value,
-    'on': ?on?.value,
-    'system': ?systemId,
-    'pressing': ?pressing,
-    'tempo': ?tempo,
-    'line': ?defensiveLine,
+    if (off != null) 'off': off!.value,
+    if (on != null) 'on': on!.value,
+    if (systemId != null) 'system': systemId,
+    if (pressing != null) 'pressing': pressing,
+    if (tempo != null) 'tempo': tempo,
+    if (defensiveLine != null) 'line': defensiveLine,
   };
 
   /// Does the change in [session].
