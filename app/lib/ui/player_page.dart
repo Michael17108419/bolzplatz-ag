@@ -98,6 +98,72 @@ class _Profile extends ConsumerWidget {
       age: age,
       crestColour: CrestSpec.forClub(club?.id.value ?? 0).color,
     );
+    final compactHeader = Row(
+      children: [
+        PersonAvatar(
+          key: const ValueKey('profile-portrait'),
+          appearance: look.appearance,
+          extras: look.extras,
+          size: 64,
+        ),
+        const SizedBox(width: Tokens.gapM),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                p.displayName,
+                key: const ValueKey('profile-name'),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleLarge,
+              ),
+              Text(
+                club == null ? s.profileNoContract : club.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  PositionChip(p.position),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      s.profileAgeNation(age, s.nationName(p.nationality)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: Tokens.gapS),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              overall.round().toString(),
+              key: const ValueKey('profile-overall'),
+              style: theme.textTheme.headlineMedium?.copyWith(
+                color: valueColor(overall),
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(s.profileOverall, style: theme.textTheme.bodySmall),
+                InfoButton(message: s.infoProfileOverall),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
     return DefaultTabController(
       length: 6,
       child: Column(
@@ -130,7 +196,9 @@ class _Profile extends ConsumerWidget {
                     if (v < -200) onStep!(1);
                     if (v > 200) onStep!(-1);
                   },
-            child: Row(
+            child: compact
+                ? compactHeader
+                : Row(
             children: [
               if (onStep != null)
                 IconButton(

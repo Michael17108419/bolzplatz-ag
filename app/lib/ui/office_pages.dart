@@ -19,6 +19,7 @@ import 'info_button.dart';
 import 'office_mail.dart';
 import 'match_pages.dart';
 import 'month_calendar.dart';
+import 'adaptive.dart';
 import 'screen_frame.dart';
 import 'saves_page.dart';
 import 'lineup_page.dart';
@@ -195,6 +196,44 @@ class QuickBar extends ConsumerWidget {
         .watch(inboxIdsProvider)
         .where((id) => !read.contains(id))
         .length;
+    if (isNarrow(context)) {
+      // Phone: back to the office and one swipeable row of the other rooms.
+      return Row(
+        children: [
+          TextButton(
+            key: const ValueKey('quick-office'),
+            onPressed: () => Navigator.of(context).maybePop(),
+            child: Text(s.homeTitle),
+          ),
+          Expanded(
+            child: SizedBox(
+              height: 44,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  for (final item in DeskItem.rooms)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Center(
+                        child: _QuickChip(
+                          item: item,
+                          selected: item == current,
+                          count: item == DeskItem.post ? unread : 0,
+                          onTap: () {
+                            if (item != current) {
+                              openDesk(context, ref, item, replace: true);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
     return Row(
       children: [
         TextButton(
