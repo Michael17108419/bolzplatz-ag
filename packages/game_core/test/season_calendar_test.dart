@@ -137,7 +137,7 @@ void main() {
       final inBreak = [
         for (final m in c.matchdays)
           for (final g in m.groups)
-            if (!g.date.isBefore(GameDate(2026, 12, 20)) &&
+            if (!g.date.isBefore(GameDate(2026, 12, 21)) &&
                 !g.date.isAfter(GameDate(2027, 1, 14)))
               g.date,
       ];
