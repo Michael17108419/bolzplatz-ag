@@ -600,12 +600,6 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
   }
 }
 
-/// The seed of the first season of a career.
-int seasonSeed(Career career, LoadedWorld loaded) =>
-    SeededRandom(career.seed)
-        .fork('season:${loaded.world.season.startYear}')
-        .seed;
-
 /// Null until a career is started and the world is loaded.
 final seasonProvider = NotifierProvider<SeasonNotifier, SeasonGame?>(
   SeasonNotifier.new,

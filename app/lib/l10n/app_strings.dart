@@ -62,7 +62,6 @@ abstract interface class AppStrings {
   String get officeGo;
   String get officeNextTitle;
   String officeMatchday(int day);
-  String get officeMatchdayOver;
 
   // Match day: preview, live ticker, report.
   String get matchKickOff;
@@ -214,7 +213,6 @@ abstract interface class AppStrings {
   String deskBadgePost(int unread);
   String get infoDesk;
   String get comingLater;
-  String get officeSenderJourFix;
   String jourFixSubject(int matchday);
   String jourFixBody({
     required int unread,
@@ -692,10 +690,6 @@ class AppStringsDe implements AppStrings {
   String get officeNextTitle => 'Nächstes Spiel';
   @override
   String officeMatchday(int day) => 'Spieltag $day';
-  @override
-  String get officeMatchdayOver =>
-      'Die Saison ist gespielt. Der Saisonwechsel ist noch nicht gebaut – '
-      'bitte noch ein wenig im Büro herumsitzen und würdevoll aussehen.';
   @override
   String get matchKickOff => 'Anpfiff';
   @override
@@ -1355,8 +1349,6 @@ class AppStringsDe implements AppStrings {
       'wenn der Verein es tut. Versprochen, irgendwann.';
   @override
   String get comingLater => 'Kommt später.';
-  @override
-  String get officeSenderJourFix => 'Jour Fix aus dem Vorzimmer';
   @override
   String jourFixSubject(int matchday) =>
       'Jour Fix vor Spieltag $matchday: Deine Hausaufgaben';

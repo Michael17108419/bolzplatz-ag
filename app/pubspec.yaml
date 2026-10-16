@@ -24,9 +24,6 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   drift_dev: ^2.35.1
   build_runner: ^2.16.2
-  # build 4.1.0 breaks build_runner 2.16.2 (missing librarySourceSink);
-  # remove this line once a fixed build_runner is out.
-  build: '>=4.0.0 <4.1.0'
 
 flutter:
   uses-material-design: true
