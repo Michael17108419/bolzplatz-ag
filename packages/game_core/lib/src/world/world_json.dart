@@ -75,7 +75,9 @@ class WorldJson {
       ],
     };
     final headText = jsonEncode(head);
-    final players = w.players.map((p) => jsonEncode(playerToJson(p))).join(',\n');
+    final players = w.players
+        .map((p) => jsonEncode(playerToJson(p)))
+        .join(',\n');
     // Insert the players as the last key of the object.
     return '${headText.substring(0, headText.length - 1)},"players":[\n'
         '$players\n]}\n';
