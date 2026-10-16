@@ -695,11 +695,14 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                       key: const ValueKey('match-pause'),
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(0, 52),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
                       ),
                       onPressed: _running ? _pause : _resume,
-                      child: Text(
-                        _running ? s.matchPause : s.matchResume,
-                        maxLines: 1,
+                      child: FittedBox(
+                        child: Text(
+                          _running ? s.matchPause : s.matchResume,
+                          maxLines: 1,
+                        ),
                       ),
                     ),
                   ),
