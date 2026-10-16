@@ -89,6 +89,12 @@ class _Profile extends ConsumerWidget {
     final theme = Theme.of(context);
     final p = player;
     final compact = isNarrow(context);
+    final number = p.clubId == null
+        ? null
+        : shirtNumbers([
+            for (final q in loaded.world.players)
+              if (q.clubId == p.clubId) q,
+          ])[p.id];
     final absence = ref.watch(ownAbsencesProvider)[p.id];
     final age = p.ageOn(loaded.today);
     final overall = loaded.overall(p);
@@ -112,7 +118,7 @@ class _Profile extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                p.displayName,
+                number == null ? p.displayName : '$number  ${p.displayName}',
                 key: const ValueKey('profile-name'),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -219,7 +225,9 @@ class _Profile extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      p.displayName,
+                      number == null
+                          ? p.displayName
+                          : '$number  ${p.displayName}',
                       key: const ValueKey('profile-name'),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

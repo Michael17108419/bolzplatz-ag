@@ -10,6 +10,7 @@ import '../game/season_game.dart';
 import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'crest.dart';
 import 'info_button.dart';
 import 'office_pages.dart';
@@ -119,6 +120,41 @@ class _LineupPageState extends ConsumerState<LineupPage> {
   int? _slot;
   int _tab = 0;
 
+  void _openTactics(
+    BuildContext context,
+    LoadedWorld loaded,
+    Map<PlayerId, Player> squad,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Tokens.ground,
+      builder: (sheet) => Consumer(
+        builder: (context, ref, _) {
+          final lineup = ref.watch(lineupProvider);
+          if (lineup == null) return const SizedBox.shrink();
+          return SafeArea(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+              ),
+              child: SingleChildScrollView(
+                key: const ValueKey('lineup-tactics-sheet'),
+                padding: const EdgeInsets.all(Tokens.gapM),
+                child: _TacticsTab(
+                  loaded: loaded,
+                  squad: squad,
+                  lineup: lineup,
+                  onFormation: () => setState(() => _slot = null),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(stringsProvider);
@@ -141,7 +177,16 @@ class _LineupPageState extends ConsumerState<LineupPage> {
           final formation = rules.tactics.formation(lineup.sheet.formationId);
           final preview = previewLineup(lineup.sheet, squad, rules);
           final crest = CrestSpec.forClub(career.clubId.value).color;
+          final phone = isNarrow(context);
+          final numbers = shirtNumbers(squad.values);
+          final strengths = {
+            for (final p in squad.values) p.id: loaded.overall(p),
+          };
           final pitch = _Pitch(
+            clubId: career.clubId.value,
+            numbers: numbers,
+            strengths: strengths,
+            onFormationTap: () => _openTactics(context, loaded, squad),
             formation: formation,
             sheet: lineup.sheet,
             squad: squad,
@@ -155,6 +200,8 @@ class _LineupPageState extends ConsumerState<LineupPage> {
             }),
           );
           final side = _Side(
+            phone: phone,
+            numbers: numbers,
             places: benchPlaces(rules, career),
             loaded: loaded,
             squad: squad,
@@ -198,6 +245,10 @@ class _LineupPageState extends ConsumerState<LineupPage> {
               final w = math.min(c.maxWidth, 520.0);
               return ListView(
                 children: [
+                  if (phone) ...[
+                    _PhoneStrip(preview: preview),
+                    const SizedBox(height: Tokens.gapS),
+                  ],
                   Center(
                     child: SizedBox(width: w, height: w / 0.8, child: pitch),
                   ),
@@ -215,6 +266,10 @@ class _LineupPageState extends ConsumerState<LineupPage> {
 
 class _Pitch extends StatelessWidget {
   const _Pitch({
+    required this.clubId,
+    required this.numbers,
+    required this.strengths,
+    required this.onFormationTap,
     required this.formation,
     required this.sheet,
     required this.squad,
@@ -225,6 +280,10 @@ class _Pitch extends StatelessWidget {
     required this.onSelect,
   });
 
+  final int clubId;
+  final Map<PlayerId, int> numbers;
+  final Map<PlayerId, double> strengths;
+  final VoidCallback onFormationTap;
   final FormationRule formation;
   final TeamSheet sheet;
   final Map<PlayerId, Player> squad;
@@ -253,13 +312,15 @@ class _Pitch extends StatelessWidget {
               ),
               for (var i = 0; i < formation.slots.length; i++)
                 Positioned(
-                  left: spots[i].dx * w - 38,
-                  top: spots[i].dy * h - 34,
-                  width: 76,
-                  height: 68,
+                  left: spots[i].dx * w - 40,
+                  top: spots[i].dy * h - 38,
+                  width: 80,
+                  height: 76,
                   child: _SlotView(
                     key: ValueKey('slot-$i'),
                     player: squad[sheet.startingXi[i]]!,
+                    number: numbers[sheet.startingXi[i]],
+                    strength: strengths[sheet.startingXi[i]] ?? 0,
                     slot: formation.slots[i],
                     fit: preview.slotFits[i],
                     selected: selected == i,
@@ -268,6 +329,33 @@ class _Pitch extends StatelessWidget {
                     onTap: () => onSelect(i),
                   ),
                 ),
+              Positioned(
+                right: 10,
+                bottom: 8,
+                child: GestureDetector(
+                  key: const ValueKey('lineup-formation-button'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onFormationTap,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        formation.id,
+                        style: Theme.of(context).textTheme.titleLarge
+                            ?.copyWith(color: Tokens.text),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(
+                        Icons.tune,
+                        size: 18,
+                        color: Tokens.yellow,
+                      ),
+                      const SizedBox(width: 8),
+                      ClubCrest(clubId: clubId, size: 30),
+                    ],
+                  ),
+                ),
+              ),
             ],
           );
         },
@@ -279,6 +367,8 @@ class _Pitch extends StatelessWidget {
 class _SlotView extends StatelessWidget {
   const _SlotView({
     required this.player,
+    required this.number,
+    required this.strength,
     required this.slot,
     required this.fit,
     required this.selected,
@@ -289,6 +379,8 @@ class _SlotView extends StatelessWidget {
   });
 
   final Player player;
+  final int? number;
+  final double strength;
   final Position slot;
   final double fit;
   final bool selected;
@@ -303,6 +395,7 @@ class _SlotView extends StatelessWidget {
       age: player.ageOn(today),
       crestColour: crestColour,
     );
+    final off = player.position != slot;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -315,41 +408,80 @@ class _SlotView extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(2),
+                  padding: const EdgeInsets.all(2.5),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: selected ? Tokens.yellow : Colors.transparent,
+                    color: selected ? Tokens.yellow : Tokens.ink,
                   ),
                   child: PersonAvatar(
                     appearance: look.appearance,
                     extras: look.extras,
-                    size: 38,
+                    size: 44,
                   ),
                 ),
                 Positioned(
-                  right: -2,
-                  top: -2,
+                  right: -10,
+                  top: -4,
                   child: Container(
-                    width: 13,
-                    height: 13,
+                    key: ValueKey('slot-strength-${player.id.value}'),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1,
+                    ),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: valueColor(fit * 100),
-                      border: Border.all(color: Tokens.ink, width: 2),
+                      color: valueColor(strength),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Tokens.ink, width: 1.5),
+                    ),
+                    child: Text(
+                      strength.round().toString(),
+                      style: const TextStyle(
+                        fontFamily: Tokens.bodyFont,
+                        fontSize: 12,
+                        height: 1.2,
+                        fontWeight: FontWeight.w800,
+                        color: Tokens.ink,
+                      ),
                     ),
                   ),
                 ),
+                if (off)
+                  Positioned(
+                    left: -8,
+                    top: 0,
+                    child: Container(
+                      width: 18,
+                      height: 18,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Tokens.orange,
+                        border: Border.all(color: Tokens.ink, width: 1.5),
+                      ),
+                      child: const Text(
+                        '!',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1,
+                          fontWeight: FontWeight.w900,
+                          color: Tokens.ink,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 3),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 5),
               decoration: BoxDecoration(
                 color: const Color(0xB31A1300),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                player.lastName,
+                number == null
+                    ? player.lastName
+                    : '$number ${player.lastName}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -375,20 +507,26 @@ class _PitchPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    const stripes = 8;
-    for (var i = 0; i < stripes; i++) {
-      canvas.drawRect(
-        Rect.fromLTWH(0, h / stripes * i, w, h / stripes + 1),
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, w, h),
+      Paint()..color = const Color(0xFF1F5A36),
+    );
+    final centre = Offset(w / 2, h * 0.04);
+    const rings = 9;
+    for (var i = rings; i >= 1; i--) {
+      canvas.drawCircle(
+        centre,
+        h * 1.05 * i / rings,
         Paint()
           ..color = i.isEven
-              ? const Color(0xFF2A6B3E)
-              : const Color(0xFF256238),
+              ? const Color(0xFF256238)
+              : const Color(0xFF2A6B3E),
       );
     }
     final line = Paint()
-      ..color = const Color(0xB3F4EFE2)
+      ..color = const Color(0x80F4EFE2)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 1.5;
     final m = w * 0.04;
     canvas.drawRect(Rect.fromLTRB(m, m, w - m, h - m), line);
     canvas.drawLine(Offset(m, h / 2), Offset(w - m, h / 2), line);
@@ -416,6 +554,8 @@ class _PitchPainter extends CustomPainter {
 
 class _Side extends ConsumerWidget {
   const _Side({
+    required this.phone,
+    required this.numbers,
     required this.places,
     required this.loaded,
     required this.squad,
@@ -430,6 +570,8 @@ class _Side extends ConsumerWidget {
     required this.onFormation,
   });
 
+  final bool phone;
+  final Map<PlayerId, int> numbers;
   final int places;
   final LoadedWorld loaded;
   final Map<PlayerId, Player> squad;
@@ -451,13 +593,15 @@ class _Side extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _PreviewCard(
-          preview: preview,
-          sheet: lineup.sheet,
-          squad: squad,
-          places: places,
-        ),
-        const SizedBox(height: Tokens.gapS),
+        if (!phone) ...[
+          _PreviewCard(
+            preview: preview,
+            sheet: lineup.sheet,
+            squad: squad,
+            places: places,
+          ),
+          const SizedBox(height: Tokens.gapS),
+        ],
         Row(
           children: [
             Expanded(
@@ -477,7 +621,7 @@ class _Side extends ConsumerWidget {
           ),
         Row(
           children: [
-            for (var i = 0; i < 2; i++)
+            for (var i = 0; i < (phone ? 0 : 2); i++)
               Padding(
                 padding: const EdgeInsets.only(right: 6),
                 child: ChoiceChip(
@@ -505,7 +649,7 @@ class _Side extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: Tokens.gapS),
-        if (tab == 0)
+        if (tab == 0 && !phone)
           _TacticsTab(
             loaded: loaded,
             squad: squad,
@@ -514,6 +658,7 @@ class _Side extends ConsumerWidget {
           )
         else
           _SquadTab(
+            numbers: numbers,
             loaded: loaded,
             squad: squad,
             lineup: lineup,
@@ -866,6 +1011,7 @@ class _TacticsTab extends ConsumerWidget {
 
 class _SquadTab extends ConsumerWidget {
   const _SquadTab({
+    required this.numbers,
     required this.loaded,
     required this.squad,
     required this.lineup,
@@ -875,6 +1021,7 @@ class _SquadTab extends ConsumerWidget {
     required this.onSlot,
   });
 
+  final Map<PlayerId, int> numbers;
   final LoadedWorld loaded;
   final Map<PlayerId, Player> squad;
   final LineupState lineup;
@@ -988,7 +1135,9 @@ class _SquadTab extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              p.displayName,
+                              numbers[p.id] == null
+                                  ? p.displayName
+                                  : '${numbers[p.id]}  ${p.displayName}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.titleSmall,
@@ -1038,6 +1187,71 @@ class _SquadTab extends ConsumerWidget {
             },
           ),
       ],
+    );
+  }
+}
+
+/// Phone: strength, role fit and system fit in one slim strip above the pitch.
+class _PhoneStrip extends ConsumerWidget {
+  const _PhoneStrip({required this.preview});
+
+  final LineupPreview preview;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(stringsProvider);
+    final theme = Theme.of(context);
+    final roleFit = preview.roleFit * 100;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: Tokens.gapM,
+        vertical: Tokens.gapS,
+      ),
+      decoration: BoxDecoration(
+        color: Tokens.panel,
+        borderRadius: BorderRadius.circular(Tokens.radius),
+      ),
+      child: Row(
+        children: [
+          Text(
+            preview.strength.round().toString(),
+            key: const ValueKey('lineup-strength'),
+            style: theme.textTheme.headlineMedium?.copyWith(
+              color: valueColor(preview.strength),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(s.lineupStrength, style: theme.textTheme.bodySmall),
+                Text(
+                  '${s.lineupRoleFit} ${roleFit.round()} %',
+                  key: const ValueKey('lineup-rolefit'),
+                  style: theme.textTheme.bodySmall,
+                ),
+                Text(
+                  s.lineupSystemFitName(preview.systemFit),
+                  key: const ValueKey('lineup-systemfit'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          if (preview.outOfPosition > 0)
+            Text(
+              s.lineupOutOfPosition(preview.outOfPosition),
+              key: const ValueKey('lineup-outofposition'),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Tokens.orange,
+              ),
+            ),
+          InfoButton(message: s.infoLineupPreview),
+        ],
+      ),
     );
   }
 }

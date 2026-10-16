@@ -37,20 +37,33 @@ class SquadRow {
     required this.player,
     required this.overall,
     required this.age,
+    this.number,
   });
 
   final Player player;
   final double overall;
   final int age;
+
+  /// Shirt number in the club, see [shirtNumbers].
+  final int? number;
 }
 
 /// The players of a club with their strength and age at the world's date.
 List<SquadRow> squadOf(LoadedWorld loaded, ClubId club) {
   final today = loaded.today;
-  return [
+  final players = [
     for (final p in loaded.world.players)
-      if (p.clubId == club)
-        SquadRow(player: p, overall: loaded.overall(p), age: p.ageOn(today)),
+      if (p.clubId == club) p,
+  ];
+  final numbers = shirtNumbers(players);
+  return [
+    for (final p in players)
+      SquadRow(
+        player: p,
+        overall: loaded.overall(p),
+        age: p.ageOn(today),
+        number: numbers[p.id],
+      ),
   ];
 }
 

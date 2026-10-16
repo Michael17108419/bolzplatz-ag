@@ -582,7 +582,9 @@ class _NarrowTile extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          p.displayName,
+                          row.number == null
+                              ? p.displayName
+                              : '${row.number}  ${p.displayName}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleSmall,

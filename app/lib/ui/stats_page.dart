@@ -7,6 +7,7 @@ import '../game/loaded_world.dart';
 import '../game/stats.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'crest.dart';
 import 'info_button.dart';
 import 'office_pages.dart';
@@ -118,6 +119,37 @@ class _TablesTab extends ConsumerWidget {
   final int selected;
   final ValueChanged<int> onSelect;
 
+  Widget _leagueChips(
+    AppStrings s,
+    List<League> leagues,
+    League league,
+    bool narrow,
+  ) {
+    final chips = [
+      for (final l in leagues)
+        Padding(
+          padding: const EdgeInsets.only(right: 6),
+          child: ChoiceChip(
+            key: ValueKey('stats-league-${l.id.value}'),
+            avatar: l.id.value == ownLeague
+                ? const Icon(Icons.star, size: 14)
+                : null,
+            label: Text(s.leagueName(l.name)),
+            selected: l.id == league.id,
+            onSelected: (_) => onSelect(l.id.value),
+          ),
+        ),
+    ];
+    if (narrow) {
+      // Phone: one swipeable row.
+      return SizedBox(
+        height: 44,
+        child: ListView(scrollDirection: Axis.horizontal, children: chips),
+      );
+    }
+    return Wrap(runSpacing: 6, children: chips);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
@@ -135,6 +167,7 @@ class _TablesTab extends ConsumerWidget {
       for (var i = 0; i < rows.length; i++)
         zoneOf(level: league.level, teamCount: rows.length, place: i + 1),
     ];
+    final narrow = isNarrow(context);
     final used = <TableZone>[
       for (final z in TableZone.values)
         if (z != TableZone.none && zones.contains(z)) z,
@@ -142,24 +175,9 @@ class _TablesTab extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            for (final l in leagues)
-              ChoiceChip(
-                key: ValueKey('stats-league-${l.id.value}'),
-                avatar: l.id.value == ownLeague
-                    ? const Icon(Icons.star, size: 14)
-                    : null,
-                label: Text(s.leagueName(l.name)),
-                selected: l.id == league.id,
-                onSelected: (_) => onSelect(l.id.value),
-              ),
-          ],
-        ),
+        _leagueChips(s, leagues, league, narrow),
         const SizedBox(height: Tokens.gapS),
-        _TableHeader(info: s.infoStatsColumns),
+        _TableHeader(info: s.infoStatsColumns, narrow: narrow),
         const SizedBox(height: 4),
         Expanded(
           child: ListView.builder(
@@ -172,6 +190,7 @@ class _TablesTab extends ConsumerWidget {
               zone: zones[i],
               club: loaded.club(rows[i].club),
               own: rows[i].club == ownClub,
+              narrow: narrow,
             ),
           ),
         ),
@@ -213,9 +232,10 @@ class _TablesTab extends ConsumerWidget {
 }
 
 class _TableHeader extends ConsumerWidget {
-  const _TableHeader({required this.info});
+  const _TableHeader({required this.info, required this.narrow});
 
   final String info;
+  final bool narrow;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -235,9 +255,11 @@ class _TableHeader extends ConsumerWidget {
           const SizedBox(width: 28),
           Expanded(child: Text(s.statsColClub, style: style)),
           cell(s.statsColPlayed, _wNumber),
-          cell(s.statsColWon, _wNumber),
-          cell(s.statsColDrawn, _wNumber),
-          cell(s.statsColLost, _wNumber),
+          if (!narrow) ...[
+            cell(s.statsColWon, _wNumber),
+            cell(s.statsColDrawn, _wNumber),
+            cell(s.statsColLost, _wNumber),
+          ],
           cell(s.statsColGoals, _wGoals),
           cell(s.statsColDiff, _wDiff),
           cell(s.statsColPoints, _wPoints),
@@ -255,9 +277,11 @@ class _TableTile extends StatelessWidget {
     required this.zone,
     required this.club,
     required this.own,
+    required this.narrow,
     super.key,
   });
 
+  final bool narrow;
   final int place;
   final TableEntry entry;
   final TableZone zone;
@@ -283,22 +307,25 @@ class _TableTile extends StatelessWidget {
       child: Material(
         color: own ? Tokens.yellow.withAlpha(46) : Tokens.panel,
         borderRadius: BorderRadius.circular(8),
-        child: Container(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: narrow ? () => _details(context) : null,
+          child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: own ? Border.all(color: Tokens.yellow, width: 1) : null,
           ),
-          padding: const EdgeInsets.fromLTRB(0, 4, Tokens.gapS, 4),
+          padding: EdgeInsets.fromLTRB(0, narrow ? 10 : 4, Tokens.gapS, narrow ? 10 : 4),
           child: Row(
             children: [
               Container(
                 width: 4,
-                height: 24,
+                height: narrow ? 30 : 24,
                 margin: const EdgeInsets.only(right: 8),
                 color: zoneColor(zone),
               ),
               cell('$place', _wPlace, style: theme.textTheme.titleSmall),
-              ClubCrest(clubId: club.id.value, size: 24),
+              ClubCrest(clubId: club.id.value, size: narrow ? 30 : 24),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
@@ -313,9 +340,11 @@ class _TableTile extends StatelessWidget {
                 ),
               ),
               cell('${entry.played}', _wNumber),
-              cell('${entry.won}', _wNumber),
-              cell('${entry.drawn}', _wNumber),
-              cell('${entry.lost}', _wNumber),
+              if (!narrow) ...[
+                cell('${entry.won}', _wNumber),
+                cell('${entry.drawn}', _wNumber),
+                cell('${entry.lost}', _wNumber),
+              ],
               cell('${entry.goalsFor}:${entry.goalsAgainst}', _wGoals),
               cell(diff > 0 ? '+$diff' : '$diff', _wDiff),
               cell(
@@ -325,10 +354,66 @@ class _TableTile extends StatelessWidget {
                   color: Tokens.yellow,
                 ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: narrow ? 0 : 14),
             ],
           ),
         ),
+        ),
+      ),
+    );
+  }
+
+  void _details(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) => Consumer(
+        builder: (context, ref, _) {
+          final s = ref.watch(stringsProvider);
+          final theme = Theme.of(context);
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(Tokens.gapM),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      ClubCrest(clubId: club.id.value, size: 40),
+                      const SizedBox(width: Tokens.gapM),
+                      Expanded(
+                        child: Text(
+                          club.name,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: Tokens.gapM),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      for (final e in [
+                        (s.statsColWon, entry.won),
+                        (s.statsColDrawn, entry.drawn),
+                        (s.statsColLost, entry.lost),
+                      ])
+                        Column(
+                          children: [
+                            Text(
+                              '${e.$2}',
+                              style: theme.textTheme.headlineSmall,
+                            ),
+                            Text(e.$1, style: theme.textTheme.bodySmall),
+                          ],
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
