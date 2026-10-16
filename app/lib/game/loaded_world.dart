@@ -92,12 +92,7 @@ final worldLoaderProvider = Provider<Future<LoadedWorld> Function()>((ref) {
     );
     // Let the loading screen draw once before the parsing blocks the thread.
     await Future<void>.delayed(const Duration(milliseconds: 50));
-    return LoadedWorld.fromTexts(
-      worldText,
-      rulesText,
-      namesText,
-      calendarText,
-    );
+    return LoadedWorld.fromTexts(worldText, rulesText, namesText, calendarText);
   };
 });
 

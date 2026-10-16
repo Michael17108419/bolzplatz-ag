@@ -118,8 +118,8 @@ class ConferenceDay {
   final List<CupRoundPlan> cupPlans;
 
   /// The kickoff times of today in order.
-  List<int> get kickoffs => ({for (final m in matches) m.minuteOfDay}).toList()
-    ..sort();
+  List<int> get kickoffs =>
+      ({for (final m in matches) m.minuteOfDay}).toList()..sort();
 
   /// Matches of one league.
   List<ConferenceMatch> ofLeague(LeagueId league) => [

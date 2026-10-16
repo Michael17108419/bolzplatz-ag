@@ -629,14 +629,7 @@ class SeasonRunner {
           final cup = run.pott[region]!;
           if (cup.isFinished) continue;
           cupPlans.add(
-            _planCupRound(
-              Competition.pott,
-              region,
-              cup,
-              w.round,
-              windows,
-              own,
-            ),
+            _planCupRound(Competition.pott, region, cup, w.round, windows, own),
           );
         }
       }
@@ -703,11 +696,7 @@ class SeasonRunner {
 
   /// Makes the opened [day] part of the season. [ownResult] is the result
   /// of the live own league match, if there was one.
-  void completeDay(
-    SeasonRun run,
-    ConferenceDay day, {
-    MatchResult? ownResult,
-  }) {
+  void completeDay(SeasonRun run, ConferenceDay day, {MatchResult? ownResult}) {
     if (run.isOver || run.dayIndex != day.openedIndex) {
       throw StateError('This is not the next day of the season');
     }

@@ -106,11 +106,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       final next = game.runner.nextMatchOf(run, game.clubId);
       if (next == null) break;
       if (next.$1 == run.nextDate && next.$2 == Competition.league) {
-        final day = game.runner.openDay(
-          run,
-          own: game.clubId,
-          sheet: sheet,
-        );
+        final day = game.runner.openDay(run, own: game.clubId, sheet: sheet);
         state = game._with(day: day);
         return day.own;
       }
