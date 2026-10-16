@@ -119,7 +119,12 @@ class _ConferenceViewState extends State<ConferenceView> {
     final table = widget.run.tables[league]!.copy();
     for (final l in lines) {
       if (l.status != _Status.notStarted) {
-        table.record(l.match.fixture.home, l.match.fixture.away, l.home, l.away);
+        table.record(
+          l.match.fixture.home,
+          l.match.fixture.away,
+          l.home,
+          l.away,
+        );
       }
     }
     final standing = table.standing;

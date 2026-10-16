@@ -470,20 +470,20 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                       ownDone: _done,
                     )
                   : DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Tokens.panel,
-                  borderRadius: BorderRadius.circular(Tokens.radius),
-                ),
-                child: ListView.builder(
-                  key: const ValueKey('match-ticker'),
-                  padding: const EdgeInsets.all(Tokens.gapM),
-                  itemCount: _lines.length,
-                  itemBuilder: (context, i) => _TickerRow(
-                    key: ValueKey('match-line-${_lines.length - 1 - i}'),
-                    line: _lines[i],
-                  ),
-                ),
-              ),
+                      decoration: BoxDecoration(
+                        color: Tokens.panel,
+                        borderRadius: BorderRadius.circular(Tokens.radius),
+                      ),
+                      child: ListView.builder(
+                        key: const ValueKey('match-ticker'),
+                        padding: const EdgeInsets.all(Tokens.gapM),
+                        itemCount: _lines.length,
+                        itemBuilder: (context, i) => _TickerRow(
+                          key: ValueKey('match-line-${_lines.length - 1 - i}'),
+                          line: _lines[i],
+                        ),
+                      ),
+                    ),
             ),
             const SizedBox(height: Tokens.gapS),
             if (_done)
