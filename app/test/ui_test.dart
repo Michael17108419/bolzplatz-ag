@@ -278,7 +278,6 @@ void main() {
     await tester.pump();
     expect(find.byKey(const ValueKey('conf-clock')), findsOneWidget);
     expect(find.byKey(const ValueKey('conf-list')), findsOneWidget);
-    expect(find.byKey(const ValueKey('conf-table-0')), findsOneWidget);
     expect(
       find.byWidgetPredicate(
         (w) =>
@@ -287,6 +286,12 @@ void main() {
       ),
       findsWidgets,
     );
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('conf-table-0')),
+      find.byKey(const ValueKey('conf-list')),
+      const Offset(0, -200),
+    );
+    expect(find.byKey(const ValueKey('conf-table-0')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('match-view-own')));
     await tester.pump();
     // Tactics: change the pressing, the ticker notes it.
