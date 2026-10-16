@@ -27,10 +27,11 @@ String _signature(SeasonTimeline t) {
   for (final d in t.days) {
     out.write('${d.date}');
     for (final s in d.leagueSlots) {
-      out.write(
-        ' L${s.minuteOfDay}:'
-        '${[for (final k in s.kicks) '${k.league.value}.${k.matchday}.${k.fixture.home.value}'].join('/')}',
-      );
+      final ids = <String>[];
+      for (final k in s.kicks) {
+        ids.add('${k.league.value}.${k.matchday}.${k.fixture.home.value}');
+      }
+      out.write(' L${s.minuteOfDay}:${ids.join('/')}');
     }
     for (final w in d.cupWindows) {
       out.write(' C${w.kind.name}${w.round}@${w.minuteOfDay}');

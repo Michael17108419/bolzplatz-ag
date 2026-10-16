@@ -182,20 +182,29 @@ class CupCalendarRules {
     required this.pottWindow,
   });
 
-  factory CupCalendarRules.fromJson(Map<String, dynamic> m) => CupCalendarRules(
-    bolzplatzWindows: [
-      for (final w in m['bolzplatz_windows'] as List<dynamic>)
-        DayTime.fromJson(w as Map<String, dynamic>),
-    ],
-    bolzplatzFinal: DayTime.fromJson(
+  factory CupCalendarRules.fromJson(Map<String, dynamic> m) {
+    final windows = <DayTime>[];
+    for (final w in m['bolzplatz_windows'] as List<dynamic>) {
+      windows.add(DayTime.fromJson(w as Map<String, dynamic>));
+    }
+    final months = <int>[];
+    for (final v in m['pott_months'] as List<dynamic>) {
+      months.add(v as int);
+    }
+    final finalDay = DayTime.fromJson(
       m['bolzplatz_final'] as Map<String, dynamic>,
-    ),
-    bolzplatzFinalWeeksAfterLastLeagueWeekend:
-        m['bolzplatz_final_weeks_after_last_league_weekend'] as int,
-    pottMonths: [for (final v in m['pott_months'] as List<dynamic>) v as int],
-    pottFirstDayOfMonth: m['pott_first_day_of_month'] as int,
-    pottWindow: DayTime.fromJson(m['pott_window'] as Map<String, dynamic>),
-  );
+    );
+    final pott = DayTime.fromJson(m['pott_window'] as Map<String, dynamic>);
+    final weeks = m['bolzplatz_final_weeks_after_last_league_weekend'] as int;
+    return CupCalendarRules(
+      bolzplatzWindows: windows,
+      bolzplatzFinal: finalDay,
+      bolzplatzFinalWeeksAfterLastLeagueWeekend: weeks,
+      pottMonths: months,
+      pottFirstDayOfMonth: m['pott_first_day_of_month'] as int,
+      pottWindow: pott,
+    );
+  }
 
   /// Kickoff windows of the early Bolzplatzpokal rounds (Tuesday/Wednesday).
   final List<DayTime> bolzplatzWindows;
