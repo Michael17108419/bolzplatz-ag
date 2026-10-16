@@ -9,21 +9,14 @@ import 'info_button.dart';
 
 /// What happens on one day of the month view.
 class _DayInfo {
-  _DayInfo({
-    this.ownMatch = false,
-    this.leagueDay = false,
-    this.cup = false,
-    this.holiday = false,
-    this.breakDay = false,
-    this.rest = false,
-  });
+  _DayInfo({required this.holiday, required this.breakDay});
 
-  bool ownMatch;
-  bool leagueDay;
-  bool cup;
-  bool holiday;
-  bool breakDay;
-  bool rest;
+  final bool holiday;
+  final bool breakDay;
+  bool ownMatch = false;
+  bool leagueDay = false;
+  bool cup = false;
+  bool rest = false;
 }
 
 /// The month view of the season: matches, cups, holidays and breaks.
