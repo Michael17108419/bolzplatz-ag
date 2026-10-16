@@ -141,7 +141,10 @@ class SeasonTimeline {
     for (final e in schedules.entries) {
       final key = groupKeyOfLevel(levelOf[e.key] ?? 4);
       groupOf[e.key] = key;
-      final cal = calendars.putIfAbsent(key, () => generator.build(season, key));
+      final cal = calendars.putIfAbsent(
+        key,
+        () => generator.build(season, key),
+      );
       if (cal.matchdays.length != e.value.length) {
         throw StateError(
           'League ${e.key.value} has ${e.value.length} matchdays, '
@@ -213,7 +216,8 @@ class SeasonTimeline {
       for (var i = 0; i < 12; i++) {
         final tue = monday.plusDays(1);
         final wed = monday.plusDays(2);
-        final clash = (byDate[tue.epochDay]?.cupWindows.isNotEmpty ?? false) ||
+        final clash =
+            (byDate[tue.epochDay]?.cupWindows.isNotEmpty ?? false) ||
             (byDate[wed.epochDay]?.cupWindows.isNotEmpty ?? false);
         if (leagueFree(tue) && leagueFree(wed) && !clash) return tue;
         monday = monday.plusDays(7);
@@ -247,9 +251,8 @@ class SeasonTimeline {
     for (var r = 0; r < bolzAfter.length; r++) {
       final isFinal = r == bolzAfter.length - 1;
       if (isFinal) {
-        final lastLeague = [
-          for (final c in calendars.values) c.lastDate,
-        ].reduce((a, b) => a.isAfter(b) ? a : b);
+        final lastLeague = [for (final c in calendars.values) c.lastDate]
+            .reduce((a, b) => a.isAfter(b) ? a : b);
         final saturday = CalendarGenerator.saturdayOnOrBefore(lastLeague)
             .plusDays(7 * cups.bolzplatzFinalWeeksAfterLastLeagueWeekend);
         add(

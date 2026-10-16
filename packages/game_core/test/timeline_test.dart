@@ -129,7 +129,8 @@ void main() {
   test('the Bolzplatz final is a Saturday after the last league weekend', () {
     final t = _build(9);
     final finalDay = t.days.lastWhere(
-      (d) => d.cupWindows.any((w) => w.kind == CupKind.bolzplatz && w.round == 5),
+      (d) =>
+          d.cupWindows.any((w) => w.kind == CupKind.bolzplatz && w.round == 5),
     );
     expect(finalDay.date.weekday, 6);
     for (final c in t.calendars.values) {
