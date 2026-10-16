@@ -15,7 +15,6 @@ import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'crest.dart';
 import 'info_button.dart';
-import 'office_mail.dart';
 import 'office_pages.dart';
 import 'office_scene.dart';
 import 'person_avatar.dart';
