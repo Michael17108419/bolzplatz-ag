@@ -186,10 +186,15 @@ def desk():
     b += circle(470, 662, 7, '#3a1d0c', 0, 'fill-opacity="0.6"')  # burn mark
     b += path('M300 765 Q420 758 520 778', 'none', '#4a2a12', 2, .5)  # crack
     b += poly([(250, 790), (1350, 790), (1350, 812), (250, 812)], '#6A3E22', 4)
-    b += ell(800, 962, 590, 16, '#000000', .35)  # shadow on the floor
-    b += rect(262, 812, 1076, 148, 'url(#dfront)', 4)
-    b += rect(610, 822, 370, 138, 'url(#dknee)', 3)
-    b += rect(262, 944, 1076, 16, '#3F2412', 3)  # plinth
+    b += rect(262, 812, 1076, 90, 'url(#dfront)', 4)
+    b += rect(610, 822, 370, 78, 'url(#dknee)', 3)
+    # four long legs down to the floor, with their shadows
+    for lx in (268, 566, 1010, 1300):
+        b += ell(lx + 15, 1046, 30, 8, '#000000', .4)
+        b += rect(lx, 902, 30, 140, '#6A3E22', 4)
+        b += rect(lx + 4, 906, 8, 132, '#ffffff', 0, 0, 'fill-opacity="0.10"')
+        b += rect(lx - 3, 1038, 36, 10, '#3F2412', 3, 2)
+    b += rect(262, 900, 1076, 12, '#4a2a12', 3)  # lower rail
     # left drawer unit
     for (y, h, open_) in [(824, 36, True), (864, 34, False)]:
         b += rect(278, y, 312, h, '#7A4727', 3, 2)

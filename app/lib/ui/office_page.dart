@@ -123,7 +123,7 @@ class _Office extends ConsumerWidget {
           ),
         ),
         Positioned(
-          left: 10,
+          right: 10,
           bottom: 6,
           child: _PlayButton(
             semanticLabel: nextText,

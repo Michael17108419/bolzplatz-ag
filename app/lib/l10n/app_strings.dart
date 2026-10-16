@@ -1353,7 +1353,7 @@ class AppStringsDe implements AppStrings {
       'Das ist dein Büro, und von hier läuft alles. Tipp auf ein Ding, '
       'und es öffnet sich (am Computer geht auch die Zahl daneben). Auf dem '
       'Handy wischst du durch den Raum, drei Ansichten. Der runde Knopf '
-      'unten links lässt die Zeit weiterlaufen, die Tür tut dasselbe. Das '
+      'unten rechts lässt die Zeit weiterlaufen, die Tür tut dasselbe. Das '
       'Büro wird besser, wenn der Verein es tut. Versprochen, irgendwann.';
   @override
   String get comingLater => 'Kommt später.';
