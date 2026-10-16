@@ -103,7 +103,6 @@ abstract interface class AppStrings {
   String get confNoLeagues;
   String weekdayShort(int weekday);
   String get infoConference;
-  String get officeNextDay;
   String get infoNextDay;
   String monthName(int month);
   String get calLegendMatch;
@@ -210,6 +209,7 @@ abstract interface class AppStrings {
   String deskKey(int digit);
   String get deskKeyDoor;
   String deskNext(int matchday);
+  String deskNextCup(String cup);
   String get deskBadgeTactics;
   String deskBadgePost(int unread);
   String get infoDesk;
@@ -725,13 +725,11 @@ class AppStringsDe implements AppStrings {
       'Die Tabelle rechnet jeden Zwischenstand sofort mit. Reiter gibt es '
       'nur für Ligen, die heute spielen, deine zuerst.';
   @override
-  String get officeNextDay => 'Einen Tag weiter';
-  @override
   String get infoNextDay =>
-      'Lässt die Uhr genau einen Tag laufen. An freien Tagen passiert '
-      'nichts, an Spieltagen anderer Ligen spielen die anderen. Ist morgen '
-      'dein Spiel, geht es direkt zur Vorschau. "Weiter" springt dagegen '
-      'bis zu deinem nächsten Spiel.';
+      'Lässt die Uhr laufen, bis etwas passiert: dein nächstes Spiel '
+      '(Liga oder Pokal) oder eine Entscheidung, die du treffen musst. Freie '
+      'Tage und die Spiele der anderen Ligen laufen dabei im Hintergrund '
+      'mit. Das Datum oben rechts läuft mit.';
   @override
   String monthName(int month) => const [
     'Januar',
@@ -1276,6 +1274,8 @@ class AppStringsDe implements AppStrings {
   String get deskKeyDoor => 'Leertaste';
   @override
   String deskNext(int matchday) => 'Weiter zu Spieltag $matchday';
+  @override
+  String deskNextCup(String cup) => 'Weiter zum $cup';
   @override
   String get deskBadgeTactics => 'Aufstellung noch offen';
   @override

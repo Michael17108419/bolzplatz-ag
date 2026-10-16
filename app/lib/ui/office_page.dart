@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:game_core/game_core.dart';
 
 import '../game/career.dart';
 import '../game/dates.dart';
@@ -61,13 +62,18 @@ class _Office extends ConsumerWidget {
     final read = ref.watch(mailReadProvider);
     final lineup = ref.watch(lineupProvider);
     final today = ref.watch(todayProvider);
+    final game = ref.watch(seasonProvider);
+    final nextMatch = game?.runner.nextMatchOf(game.run, game.clubId);
+    final nextText = nextMatch != null && nextMatch.$2 != Competition.league
+        ? s.deskNextCup(s.cupName(nextMatch.$2))
+        : s.deskNext(view.matchday);
     final unread = officeMailIds.where((id) => !read.contains(id)).length;
 
     final labels = {
       for (final item in DeskItem.values)
         item: DeskLabel(
           title: item == DeskItem.door
-              ? s.deskNext(view.matchday)
+              ? nextText
               : s.deskName(item),
           hint: item == DeskItem.press
               ? '${s.deskHint(item)}\n\n'
@@ -148,20 +154,10 @@ class _Office extends ConsumerWidget {
         const SizedBox(height: Tokens.gapS),
         StepButtons(
           backLabel: s.officeToMenu,
-          nextLabel: s.deskNext(view.matchday),
+          nextLabel: nextText,
           onBack: () => Navigator.of(context).maybePop(),
           onNext: () => goNext(context, ref),
-          middle: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              OutlinedButton(
-                key: const ValueKey('office-next-day'),
-                onPressed: () => goNextDay(context, ref),
-                child: Text(s.officeNextDay),
-              ),
-              InfoButton(message: s.infoNextDay),
-            ],
-          ),
+          middle: InfoButton(message: s.infoNextDay),
         ),
       ],
     );

@@ -98,21 +98,6 @@ void goNext(BuildContext context, WidgetRef ref) {
       .push(MaterialPageRoute<void>(builder: (_) => const MatchPreviewPage()));
 }
 
-/// "Einen Tag weiter": the clock runs one day.
-void goNextDay(BuildContext context, WidgetRef ref) {
-  final s = ref.read(stringsProvider);
-  switch (ref.read(seasonProvider.notifier).advanceDay()) {
-    case DayStep.played:
-      break;
-    case DayStep.ownMatch:
-      goNext(context, ref);
-    case DayStep.seasonOver:
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(s.officeMatchdayOver)));
-  }
-}
-
 Widget _pageFor(DeskItem item) => switch (item) {
   DeskItem.post => const PostPage(),
   DeskItem.calendar => const CalendarPage(),
