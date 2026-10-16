@@ -22,6 +22,16 @@ abstract interface class AppStrings {
   String get settingsTitle;
   String get settingsLanguage;
   String get settingsShortcuts;
+  String get settingsTicker;
+  String get settingsTickerText;
+  String get settingsVibration;
+  String get settingsVibrationText;
+  String get settingsSound;
+  String get settingsSoundText;
+  String get settingsAbout;
+  String get settingsAboutText;
+  String get settingsGeneral;
+  String get settingsMatch;
   String get shortcutBack;
   String get shortcutBackKey;
   String comingInStep(int step);
@@ -230,6 +240,11 @@ abstract interface class AppStrings {
   String get squadCount0;
   String squadCount(int n);
   String squadFilterName(SquadFilter filter);
+  String squadFilterButton(String name);
+  String get squadFilterTitle;
+  String squadAgeShort(int age);
+  String squadContractUntil(int year);
+  String get squadNoContract;
   String squadSortName(SquadSort sort);
   String get squadEmpty;
   String get squadColName;
@@ -328,12 +343,20 @@ abstract interface class AppStrings {
   String get lineupConfirmed;
   String get lineupHint;
   String get infoLineupPitch;
-  String get lineupBenchTitle;
   String get lineupStartXi;
   String get lineupBench;
   String get lineupStand;
   String lineupBenchFull(int places);
   String lineupAbsentBlocked(String reason);
+  String get settingsAutoLineup;
+  String get settingsAutoLineupText;
+  String get lineupBenchTitle;
+  String get lineupBenchEmpty;
+  String get lineupBenchRemove;
+  String lineupAbsentWarning(int n);
+  String get lineupGoToLineup;
+  String lineupAbsentInSheet(String names);
+  String lineupAutoChanged(String names);
   String lineupBenchCount(int n, int places);
   String get lineupNoBenchKeeper;
   String get lineupSlotRole;
@@ -504,6 +527,36 @@ class AppStringsDe implements AppStrings {
   String get settingsTitle => 'Einstellungen';
   @override
   String get settingsLanguage => 'Sprache';
+  @override
+  String get settingsTicker =>
+      'Ticker-Tempo';
+  @override
+  String get settingsTickerText =>
+      'So schnell läuft der Ticker beim Anpfiff los. Im Spiel kannst du es jederzeit ändern.';
+  @override
+  String get settingsVibration =>
+      'Vibration bei Toren';
+  @override
+  String get settingsVibrationText =>
+      'Dein Handy brummt, wenn deine Mannschaft trifft. Im iPhone-Browser geht das leider nicht, erst in der richtigen App.';
+  @override
+  String get settingsSound =>
+      'Ton';
+  @override
+  String get settingsSoundText =>
+      'Pfiffe und Jubel. Gibt es noch nicht, der Schalter hält die Stelle warm.';
+  @override
+  String get settingsAbout =>
+      'Über das Spiel';
+  @override
+  String get settingsAboutText =>
+      'Bolzplatz AG. Tipp: In Safari auf „Teilen“ und dann „Zum Home-Bildschirm“, dann startet das Spiel wie eine App.';
+  @override
+  String get settingsGeneral =>
+      'Allgemein';
+  @override
+  String get settingsMatch =>
+      'Spiel';
   @override
   String get settingsShortcuts => 'Tastaturkürzel';
   @override
@@ -1398,6 +1451,16 @@ class AppStringsDe implements AppStrings {
   @override
   String squadCount(int n) => n == 1 ? '1 Spieler' : '$n Spieler';
   @override
+  String squadFilterButton(String name) => 'Filter: $name';
+  @override
+  String get squadFilterTitle => 'Wen willst du sehen?';
+  @override
+  String squadAgeShort(int age) => '$age J.';
+  @override
+  String squadContractUntil(int year) => 'bis $year';
+  @override
+  String get squadNoContract => 'ohne Vertrag';
+  @override
   String squadFilterName(SquadFilter filter) => switch (filter) {
     SquadFilter.all => 'Alle',
     SquadFilter.goalkeepers => 'Tor',
@@ -1451,7 +1514,7 @@ class AppStringsDe implements AppStrings {
       'zuerst), Name (A bis Z) oder Vertrag (läuft zuerst aus).';
   @override
   String profileTab(int index) =>
-      const ['Übersicht', 'Werte', 'Rollen', 'Kopf', 'Karriere'][index];
+      const ['Übersicht', 'Werte', 'Rollen', 'Kopf', 'Karriere', 'Vertrag'][index];
   @override
   String get profileBack => 'Zum Kader';
   @override
@@ -1927,6 +1990,30 @@ class AppStringsDe implements AppStrings {
   String get lineupNoBenchKeeper =>
       'Kein Ersatztorwart auf der Bank. Fliegt der Torwart, geht ein '
       'Feldspieler ins Tor.';
+  @override
+  String get settingsAutoLineup =>
+      'Assistent stellt um';
+  @override
+  String get settingsAutoLineupText =>
+      'Fällt jemand aus deiner Aufstellung aus, baut der Assistent sie neu. Aus: Du musst selbst umstellen, vorher geht es nicht weiter.';
+  @override
+  String get lineupBenchEmpty =>
+      'Frei. Tipp unten auf einen Spieler, um ihn auf die Bank zu setzen.';
+  @override
+  String get lineupBenchRemove =>
+      'Von der Bank nehmen';
+  @override
+  String lineupAbsentWarning(int n) =>
+      n == 1 ? '1 Spieler fällt aus' : '$n Spieler fallen aus';
+  @override
+  String get lineupGoToLineup =>
+      'Aufstellung';
+  @override
+  String lineupAbsentInSheet(String names) =>
+      '$names fällt aus. Stell die Aufstellung um oder schalte in den Einstellungen den Assistenten ein.';
+  @override
+  String lineupAutoChanged(String names) =>
+      '$names fällt aus, der Assistent hat umgestellt.';
   @override
   String lineupAbsentBlocked(String reason) =>
       'Der Spieler ist $reason und kann nicht spielen. Auch nicht, wenn du '

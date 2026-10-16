@@ -63,6 +63,7 @@ class SeasonStats {
     required this.pottWinners,
     required this.goals,
     required this.assists,
+    this.previous = const {},
   });
 
   /// The state before the first match: empty tables in the order of the
@@ -145,6 +146,7 @@ class SeasonStats {
       matchday: game.played,
       leagues: base.leagues,
       tables: {for (final e in run.tables.entries) e.key: e.value.standing},
+      previous: {for (final e in run.previousOrder.entries) e.key: e.value},
       bolzplatz: run.bolzplatz.roundsPlayed > 0 ? run.bolzplatz : null,
       pottWinners: {
         for (final e in run.pott.entries)
@@ -161,6 +163,9 @@ class SeasonStats {
   final int matchday;
   final List<League> leagues;
   final Map<LeagueId, List<TableEntry>> tables;
+
+  /// Order of each table before its last matchday (for the trend arrows).
+  final Map<LeagueId, List<ClubId>> previous;
 
   /// Null as long as the cup is not drawn.
   final KnockoutCup? bolzplatz;

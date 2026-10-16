@@ -4,9 +4,11 @@ import 'package:game_core/game_core.dart';
 
 import '../game/desk.dart';
 import '../game/loaded_world.dart';
+import '../game/season_game.dart';
 import '../game/squad.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'crest.dart';
 import 'info_button.dart';
 import 'office_pages.dart';
@@ -14,18 +16,37 @@ import 'person_avatar.dart';
 import 'player_look.dart';
 import 'player_widgets.dart';
 
-/// The profile of one player (own or foreign) in five tabs.
-class PlayerPage extends ConsumerWidget {
-  const PlayerPage({required this.playerId, super.key});
+/// The profile of one player (own or foreign) in six tabs. When opened from
+/// the squad list, swiping the header (or the arrows) steps to the next or
+/// previous player of that list.
+class PlayerPage extends ConsumerStatefulWidget {
+  const PlayerPage({required this.playerId, this.squadOrder, super.key});
 
   final int playerId;
+  final List<int>? squadOrder;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PlayerPage> createState() => _PlayerPageState();
+}
+
+class _PlayerPageState extends ConsumerState<PlayerPage> {
+  late int _id = widget.playerId;
+
+  void _step(int dir) {
+    final order = widget.squadOrder;
+    if (order == null || order.length < 2) return;
+    final i = order.indexOf(_id);
+    if (i < 0) return;
+    setState(() => _id = order[(i + dir) % order.length]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final s = ref.watch(stringsProvider);
+    final canStep = (widget.squadOrder?.length ?? 0) > 1;
     return WithCareer(
       builder: (context, career, loaded, view) {
-        final p = loaded.player(PlayerId(playerId));
+        final p = loaded.player(PlayerId(_id));
         if (p == null) {
           return DeskFrame(
             item: DeskItem.files,
@@ -36,9 +57,11 @@ class PlayerPage extends ConsumerWidget {
           item: DeskItem.files,
           title: p.displayName,
           child: _Profile(
+            key: ValueKey('profile-$_id'),
             player: p,
             loaded: loaded,
             ownClub: career.offer.club.id,
+            onStep: canStep ? _step : null,
           ),
         );
       },
@@ -51,17 +74,28 @@ class _Profile extends ConsumerWidget {
     required this.player,
     required this.loaded,
     required this.ownClub,
+    this.onStep,
+    super.key,
   });
 
   final Player player;
   final LoadedWorld loaded;
   final ClubId ownClub;
+  final void Function(int dir)? onStep;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
     final theme = Theme.of(context);
     final p = player;
+    final compact = isNarrow(context);
+    final number = p.clubId == null
+        ? null
+        : shirtNumbers([
+            for (final q in loaded.world.players)
+              if (q.clubId == p.clubId) q,
+          ])[p.id];
+    final absence = ref.watch(ownAbsencesProvider)[p.id];
     final age = p.ageOn(loaded.today);
     final overall = loaded.overall(p);
     final club = p.clubId == null ? null : loaded.club(p.clubId!);
@@ -70,18 +104,120 @@ class _Profile extends ConsumerWidget {
       age: age,
       crestColour: CrestSpec.forClub(club?.id.value ?? 0).color,
     );
+    final compactHeader = Row(
+      children: [
+        PersonAvatar(
+          key: const ValueKey('profile-portrait'),
+          appearance: look.appearance,
+          extras: look.extras,
+          size: 64,
+        ),
+        const SizedBox(width: Tokens.gapM),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                number == null ? p.displayName : '$number  ${p.displayName}',
+                key: const ValueKey('profile-name'),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleLarge,
+              ),
+              Text(
+                club == null ? s.profileNoContract : club.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  PositionChip(p.position),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      s.profileAgeNation(age, s.nationName(p.nationality)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: Tokens.gapS),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              overall.round().toString(),
+              key: const ValueKey('profile-overall'),
+              style: theme.textTheme.headlineMedium?.copyWith(
+                color: valueColor(overall),
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(s.profileOverall, style: theme.textTheme.bodySmall),
+                InfoButton(message: s.infoProfileOverall),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          if (absence != null)
+            Container(
+              key: const ValueKey('profile-absence'),
+              margin: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              decoration: BoxDecoration(
+                color: Tokens.orange,
+                borderRadius: BorderRadius.circular(Tokens.radius),
+              ),
+              child: Text(
+                s.matchAbsence(absence),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: Tokens.ink,
+                ),
+              ),
+            ),
+          GestureDetector(
+            key: const ValueKey('profile-header'),
+            behavior: HitTestBehavior.opaque,
+            onHorizontalDragEnd: onStep == null
+                ? null
+                : (d) {
+                    final v = d.primaryVelocity ?? 0;
+                    if (v < -200) onStep!(1);
+                    if (v > 200) onStep!(-1);
+                  },
+            child: compact
+                ? compactHeader
+                : Row(
             children: [
+              if (onStep != null)
+                IconButton(
+                  key: const ValueKey('profile-prev'),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => onStep!(-1),
+                  icon: const Icon(Icons.chevron_left),
+                ),
               PersonAvatar(
                 key: const ValueKey('profile-portrait'),
                 appearance: look.appearance,
                 extras: look.extras,
-                size: 96,
+                size: compact ? 64 : 96,
               ),
               const SizedBox(width: Tokens.gapM),
               Expanded(
@@ -89,7 +225,9 @@ class _Profile extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      p.displayName,
+                      number == null
+                          ? p.displayName
+                          : '$number  ${p.displayName}',
                       key: const ValueKey('profile-name'),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -129,14 +267,22 @@ class _Profile extends ConsumerWidget {
                   ),
                 ],
               ),
+              if (onStep != null)
+                IconButton(
+                  key: const ValueKey('profile-next'),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => onStep!(1),
+                  icon: const Icon(Icons.chevron_right),
+                ),
             ],
+          ),
           ),
           const SizedBox(height: Tokens.gapS),
           TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,
             tabs: [
-              for (var i = 0; i < 5; i++)
+              for (var i = 0; i < 6; i++)
                 Tab(key: ValueKey('profile-tab-$i'), text: s.profileTab(i)),
             ],
           ),
@@ -149,6 +295,7 @@ class _Profile extends ConsumerWidget {
                 _RolesTab(player: p, loaded: loaded),
                 _HeadTab(player: p),
                 _CareerTab(player: p, loaded: loaded),
+                _ContractTab(player: p),
               ],
             ),
           ),
@@ -207,7 +354,6 @@ class _OverviewTab extends ConsumerWidget {
     final familiarity = role == null
         ? RoleFamiliarity.basic
         : (p.roles[role.id] ?? RoleFamiliarity.basic);
-    final c = p.contract;
     return ListView(
       children: [
         _section(
@@ -251,18 +397,6 @@ class _OverviewTab extends ConsumerWidget {
                         ),
                       ),
                   ],
-                ),
-        ),
-        _section(
-          theme,
-          s.profileContract,
-          null,
-          c == null
-              ? Text(s.profileNoContract)
-              : Text(
-                  '${s.profileContractUntil(_date(c.end))} · '
-                  '${s.profileSalary(_euro(c.baseSalaryPerYear))}',
-                  key: const ValueKey('profile-contract'),
                 ),
         ),
         _section(
@@ -569,6 +703,35 @@ class _CareerTab extends ConsumerWidget {
               Text(s.careerNoSeason),
             ],
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ContractTab extends ConsumerWidget {
+  const _ContractTab({required this.player});
+
+  final Player player;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(stringsProvider);
+    final theme = Theme.of(context);
+    final c = player.contract;
+    return ListView(
+      children: [
+        _section(
+          theme,
+          s.profileContract,
+          null,
+          c == null
+              ? Text(s.profileNoContract)
+              : Text(
+                  '${s.profileContractUntil(_date(c.end))} · '
+                  '${s.profileSalary(_euro(c.baseSalaryPerYear))}',
+                  key: const ValueKey('profile-contract'),
+                ),
         ),
       ],
     );

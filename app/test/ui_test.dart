@@ -43,6 +43,8 @@ void main() {
     await _start(tester);
     await tester.tap(find.text('Einstellungen'));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('settings-speed')), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Tastaturkürzel'), 200);
     expect(find.text('Tastaturkürzel'), findsOneWidget);
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
@@ -241,7 +243,7 @@ void main() {
     await tester.tap(firstRow);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('profile-overall')), findsOneWidget);
-    for (var i = 1; i < 5; i++) {
+    for (var i = 1; i < 6; i++) {
       await tester.tap(find.byKey(ValueKey('profile-tab-$i')));
       await tester.pumpAndSettle();
     }

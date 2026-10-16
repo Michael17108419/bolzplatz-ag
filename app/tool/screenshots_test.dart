@@ -200,7 +200,7 @@ void main() {
           .first,
     );
     await tester.pumpAndSettle();
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 6; i++) {
       await tester.tap(find.byKey(ValueKey('profile-tab-$i')));
       await tester.pumpAndSettle();
       await expectLater(

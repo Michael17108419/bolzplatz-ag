@@ -8,6 +8,7 @@ import '../game/season_game.dart';
 import '../game/squad.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'crest.dart';
 import 'info_button.dart';
 import 'office_pages.dart';
@@ -61,9 +62,20 @@ class _SquadPageState extends ConsumerState<SquadPage> {
           );
           final crestIndex = CrestSpec.forClub(career.offer.club.id.value)
               .color;
+          final narrow = isNarrow(context);
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (narrow)
+                _NarrowBar(
+                  filter: _filter,
+                  sort: _sort,
+                  reversed: _reversed,
+                  count: rows.length,
+                  onFilter: (f) => setState(() => _filter = f),
+                  onSort: _pick,
+                )
+              else ...[
               _Toolbar(
                 filter: _filter,
                 count: rows.length,
@@ -71,6 +83,7 @@ class _SquadPageState extends ConsumerState<SquadPage> {
               ),
               const SizedBox(height: Tokens.gapS),
               _HeaderRow(sort: _sort, reversed: _reversed, onSort: _pick),
+              ],
               const SizedBox(height: 4),
               Expanded(
                 child: rows.isEmpty
@@ -82,13 +95,26 @@ class _SquadPageState extends ConsumerState<SquadPage> {
                       )
                     : ListView.builder(
                         itemCount: rows.length,
-                        itemBuilder: (context, i) => _SquadTile(
-                          key: ValueKey('squad-${rows[i].player.id.value}'),
-                          row: rows[i],
-                          crestIndex: crestIndex,
-                          today: loaded.today,
-                          loaded: loaded,
-                        ),
+                        itemBuilder: (context, i) => narrow
+                            ? _NarrowTile(
+                                key: ValueKey(
+                                  'squad-${rows[i].player.id.value}',
+                                ),
+                                row: rows[i],
+                                crestIndex: crestIndex,
+                                order: [
+                                  for (final r in rows) r.player.id.value,
+                                ],
+                              )
+                            : _SquadTile(
+                                key: ValueKey(
+                                  'squad-${rows[i].player.id.value}',
+                                ),
+                                row: rows[i],
+                                crestIndex: crestIndex,
+                                today: loaded.today,
+                                loaded: loaded,
+                              ),
                       ),
               ),
             ],
@@ -366,6 +392,251 @@ class _SquadTile extends ConsumerWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Phone: a filter button with a sheet and a swipeable row of sort chips.
+class _NarrowBar extends ConsumerWidget {
+  const _NarrowBar({
+    required this.filter,
+    required this.sort,
+    required this.reversed,
+    required this.count,
+    required this.onFilter,
+    required this.onSort,
+  });
+
+  final SquadFilter filter;
+  final SquadSort sort;
+  final bool reversed;
+  final int count;
+  final ValueChanged<SquadFilter> onFilter;
+  final ValueChanged<SquadSort> onSort;
+
+  Future<void> _openFilter(BuildContext context, AppStrings s) {
+    return showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(Tokens.gapM),
+              child: Text(
+                s.squadFilterTitle,
+                style: Theme.of(sheet).textTheme.titleMedium,
+              ),
+            ),
+            for (final f in SquadFilter.values)
+              ListTile(
+                key: ValueKey('squad-filter-${f.name}'),
+                minTileHeight: 56,
+                title: Text(s.squadFilterName(f)),
+                trailing: f == filter
+                    ? const Icon(Icons.check, color: Tokens.yellow)
+                    : null,
+                onTap: () {
+                  onFilter(f);
+                  Navigator.of(sheet).pop();
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(stringsProvider);
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            OutlinedButton.icon(
+              key: const ValueKey('squad-filter-button'),
+              style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+              onPressed: () => _openFilter(context, s),
+              icon: const Icon(Icons.arrow_drop_down),
+              iconAlignment: IconAlignment.end,
+              label: Text(s.squadFilterButton(s.squadFilterName(filter))),
+            ),
+            const Spacer(),
+            Text(
+              count == 0 ? s.squadCount0 : s.squadCount(count),
+              key: const ValueKey('squad-count'),
+              style: theme.textTheme.bodyMedium,
+            ),
+            InfoButton(message: s.infoSquadList),
+          ],
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          height: 44,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              for (final k in const [
+                SquadSort.position,
+                SquadSort.strength,
+                SquadSort.age,
+                SquadSort.contract,
+                SquadSort.name,
+              ])
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    key: ValueKey('squad-sort-${k.name}'),
+                    selected: sort == k,
+                    onSelected: (_) => onSort(k),
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(s.squadSortName(k)),
+                        if (sort == k) ...[
+                          const SizedBox(width: 6),
+                          SortCaret(up: reversed),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+const _greyscale = ColorFilter.matrix(<double>[
+  0.33, 0.33, 0.33, 0, 0, //
+  0.33, 0.33, 0.33, 0, 0,
+  0.33, 0.33, 0.33, 0, 0,
+  0, 0, 0, 1, 0,
+]);
+
+/// Phone: two lines per player, big strength on the right.
+class _NarrowTile extends ConsumerWidget {
+  const _NarrowTile({
+    required this.row,
+    required this.crestIndex,
+    required this.order,
+    super.key,
+  });
+
+  final SquadRow row;
+  final int crestIndex;
+  final List<int> order;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(stringsProvider);
+    final theme = Theme.of(context);
+    final p = row.player;
+    final reason = ref.watch(ownAbsencesProvider)[p.id];
+    final look = PlayerLook.of(p, age: row.age, crestColour: crestIndex);
+    Widget avatar = PersonAvatar(
+      appearance: look.appearance,
+      extras: look.extras,
+      size: 44,
+    );
+    if (reason != null) {
+      avatar = ColorFiltered(colorFilter: _greyscale, child: avatar);
+    }
+    final contract = p.contract;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
+        color: Tokens.panel,
+        borderRadius: BorderRadius.circular(Tokens.radius),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(Tokens.radius),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) =>
+                  PlayerPage(playerId: p.id.value, squadOrder: order),
+            ),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 60),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Tokens.gapS,
+                vertical: 6,
+              ),
+              child: Row(
+                children: [
+                  avatar,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          row.number == null
+                              ? p.displayName
+                              : '${row.number}  ${p.displayName}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            PositionChip(p.position),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                '${s.squadAgeShort(row.age)} · '
+                                '${contract == null ? s.squadNoContract : s.squadContractUntil(contract.end.year)}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (reason != null)
+                          Text(
+                            '⚠ ${s.matchAbsence(reason)}',
+                            key: ValueKey('squad-absent-${p.id.value}'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Tokens.orange,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  // Room for the mood symbol that comes with Stimmung.
+                  const SizedBox(width: 22),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        row.overall.round().toString(),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: valueColor(row.overall),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 44,
+                        child: ValueBar(row.overall, height: 5),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
