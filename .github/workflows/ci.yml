@@ -173,7 +173,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          flutter build web --release --no-web-resources-cdn > web.txt 2>&1
+          flutter build web --release --no-web-resources-cdn --base-href /bolzplatz-ag/ > web.txt 2>&1
           code=$?
           cat web.txt
           grep -iE 'error|unsupported' web.txt | head -15 | while read -r line; do echo "::error::${line}"; done
