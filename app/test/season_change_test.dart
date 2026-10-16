@@ -127,6 +127,7 @@ void main() {
     final end = a.read(seasonProvider)!.end!;
     if (end.review.dismissed || end.nextLeague == null) return;
     expect(season.startNextSeason(), isTrue);
+    await a.read(loadedWorldProvider.future);
     final own = season.openNext()!;
     season.complete(own.session!.finish());
 
