@@ -253,6 +253,22 @@ void main() {
     expect(find.byKey(const ValueKey('stats-scorers-empty')), findsOneWidget);
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
+    // The clock: the date is shown, one day on moves it.
+    expect(find.text('Mi 01.07.2026'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('office-next-day')));
+    await tester.pumpAndSettle();
+    expect(find.text('Do 02.07.2026'), findsOneWidget);
+    // The calendar shows the month with today marked.
+    await tester.tap(find.byKey(const ValueKey('desk-calendar')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('cal-title')), findsOneWidget);
+    expect(find.text('Juli 2026'), findsOneWidget);
+    expect(find.byKey(const ValueKey('cal-day-2')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('cal-next')));
+    await tester.pumpAndSettle();
+    expect(find.text('August 2026'), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await tester.pumpAndSettle();
     // The door is "Weiter".
     await tester.tap(find.byKey(const ValueKey('desk-door')));
     await tester.pumpAndSettle();

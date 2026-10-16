@@ -8,6 +8,7 @@ class StepButtons extends StatelessWidget {
     required this.nextLabel,
     required this.onBack,
     required this.onNext,
+    this.middle,
     super.key,
   });
 
@@ -16,6 +17,9 @@ class StepButtons extends StatelessWidget {
   final VoidCallback? onBack;
   final VoidCallback? onNext;
 
+  /// An extra widget left of the next button.
+  final Widget? middle;
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -23,6 +27,7 @@ class StepButtons extends StatelessWidget {
         if (backLabel != null)
           TextButton(onPressed: onBack, child: Text(backLabel!)),
         const Spacer(),
+        if (middle != null) ...[middle!, const SizedBox(width: 12)],
         FilledButton(
           key: const ValueKey('step-next'),
           onPressed: onNext,

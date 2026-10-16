@@ -19,6 +19,7 @@ class SeasonGame {
     required this.ownLeague,
     required this.seed,
     required this.ownDays,
+    required this.today,
     this.revision = 0,
     this.day,
   });
@@ -38,6 +39,9 @@ class SeasonGame {
   final int ownDays;
   final int revision;
 
+  /// The date the world stands on.
+  final GameDate today;
+
   /// The day that is open (preview or live), null between matches.
   final ConferenceDay? day;
 
@@ -53,17 +57,25 @@ class SeasonGame {
   /// True after the last matchday of the own league.
   bool get isOver => played >= ownDays;
 
-  SeasonGame _with({ConferenceDay? day, bool clearDay = false}) => SeasonGame(
+  SeasonGame _with({
+    ConferenceDay? day,
+    bool clearDay = false,
+    GameDate? today,
+  }) => SeasonGame(
     runner: runner,
     run: run,
     clubId: clubId,
     ownLeague: ownLeague,
     seed: seed,
     ownDays: ownDays,
+    today: today ?? this.today,
     revision: revision + 1,
     day: clearDay ? null : (day ?? this.day),
   );
 }
+
+/// What happened when the clock moved one day on.
+enum DayStep { played, ownMatch, seasonOver }
 
 class SeasonNotifier extends Notifier<SeasonGame?> {
   @override
@@ -89,6 +101,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       ownLeague: career.offer.league.id,
       seed: seed,
       ownDays: run.schedules[career.offer.league.id]!.length,
+      today: loaded.today,
     );
   }
 
@@ -102,18 +115,53 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     if (game == null || sheet == null || game.isOver) return null;
     game.runner.setUserSheet(game.clubId, sheet);
     final run = game.run;
+    var last = game.today;
     while (!run.isOver) {
       final next = game.runner.nextMatchOf(run, game.clubId);
       if (next == null) break;
       if (next.$1 == run.nextDate && next.$2 == Competition.league) {
         final day = game.runner.openDay(run, own: game.clubId, sheet: sheet);
-        state = game._with(day: day);
+        state = game._with(day: day, today: day.date);
         return day.own;
       }
-      game.runner.completeDay(run, game.runner.openDay(run));
+      final played = game.runner.openDay(run);
+      game.runner.completeDay(run, played);
+      last = played.date;
     }
-    state = game._with(clearDay: true);
+    state = game._with(clearDay: true, today: last);
     return null;
+  }
+
+  /// One day on: nothing happens on a free day, other leagues play on a day
+  /// without a match of the club. The day of a league match of the club is
+  /// not played here: [DayStep.ownMatch] says the match is next, the screen
+  /// then opens it like "Weiter".
+  DayStep advanceDay() {
+    final game = state;
+    if (game == null) return DayStep.seasonOver;
+    final tomorrow = game.today.plusDays(1);
+    if (tomorrow.isAfter(Season.containing(game.today).end)) {
+      return DayStep.seasonOver;
+    }
+    final run = game.run;
+    if (!run.isOver && run.nextDate == tomorrow) {
+      final next = game.isOver
+          ? null
+          : game.runner.nextMatchOf(run, game.clubId);
+      if (next != null &&
+          next.$1 == tomorrow &&
+          next.$2 == Competition.league) {
+        return DayStep.ownMatch;
+      }
+      game.runner.completeDay(run, game.runner.openDay(run));
+      if (game.isOver) {
+        while (!run.isOver) {
+          game.runner.completeDay(run, game.runner.openDay(run));
+        }
+      }
+    }
+    state = game._with(today: tomorrow, clearDay: true);
+    return DayStep.played;
   }
 
   /// Closes the matchday: plays all other matches of the day and takes the
@@ -149,4 +197,11 @@ final ownAbsencesProvider = Provider<Map<PlayerId, Absence>>((ref) {
   final game = ref.watch(seasonProvider);
   if (game == null) return const {};
   return game.runner.absences(game.run, game.clubId);
+});
+
+/// The date the world stands on (the start date until the season runs).
+final todayProvider = Provider<GameDate?>((ref) {
+  final game = ref.watch(seasonProvider);
+  if (game != null) return game.today;
+  return ref.watch(loadedWorldProvider).value?.today;
 });

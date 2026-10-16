@@ -16,6 +16,7 @@ import 'crest.dart';
 import 'info_button.dart';
 import 'office_mail.dart';
 import 'match_pages.dart';
+import 'month_calendar.dart';
 import 'screen_frame.dart';
 import 'settings_page.dart';
 import 'lineup_page.dart';
@@ -95,6 +96,21 @@ void goNext(BuildContext context, WidgetRef ref) {
   if (own == null) return;
   Navigator.of(context)
       .push(MaterialPageRoute<void>(builder: (_) => const MatchPreviewPage()));
+}
+
+/// "Einen Tag weiter": the clock runs one day.
+void goNextDay(BuildContext context, WidgetRef ref) {
+  final s = ref.read(stringsProvider);
+  switch (ref.read(seasonProvider.notifier).advanceDay()) {
+    case DayStep.played:
+      break;
+    case DayStep.ownMatch:
+      goNext(context, ref);
+    case DayStep.seasonOver:
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(s.officeMatchdayOver)));
+  }
 }
 
 Widget _pageFor(DeskItem item) => switch (item) {
@@ -497,7 +513,10 @@ class CalendarPage extends ConsumerWidget {
       item: DeskItem.calendar,
       child: WithCareer(
         builder: (context, career, loaded, view) => _single(
-          _card(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _card(
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -544,6 +563,10 @@ class CalendarPage extends ConsumerWidget {
                 ),
               ],
             ),
+          ),
+              const SizedBox(height: Tokens.gapM),
+              const MonthCalendar(),
+            ],
           ),
         ),
       ),

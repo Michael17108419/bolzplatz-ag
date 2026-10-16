@@ -103,6 +103,17 @@ abstract interface class AppStrings {
   String get confNoLeagues;
   String weekdayShort(int weekday);
   String get infoConference;
+  String get officeNextDay;
+  String get infoNextDay;
+  String monthName(int month);
+  String get calLegendMatch;
+  String get calLegendLeague;
+  String get calLegendCup;
+  String get calLegendHoliday;
+  String get calLegendBreak;
+  String get calLegendRest;
+  String get calToday;
+  String get infoCalendarMonth;
   String get infoMatchSubs;
   String get infoMatchTactics;
   String get matchClose;
@@ -683,6 +694,51 @@ class AppStringsDe implements AppStrings {
       'gemeinsam. Hier siehst du ihren Stand, wie in der Radio-Konferenz. '
       'Die Tabelle rechnet jeden Zwischenstand sofort mit. Reiter gibt es '
       'nur für Ligen, die heute spielen, deine zuerst.';
+  @override
+  String get officeNextDay => 'Einen Tag weiter';
+  @override
+  String get infoNextDay =>
+      'Lässt die Uhr genau einen Tag laufen. An freien Tagen passiert '
+      'nichts, an Spieltagen anderer Ligen spielen die anderen. Ist morgen '
+      'dein Spiel, geht es direkt zur Vorschau. "Weiter" springt dagegen '
+      'bis zu deinem nächsten Spiel.';
+  @override
+  String monthName(int month) => const [
+    'Januar',
+    'Februar',
+    'März',
+    'April',
+    'Mai',
+    'Juni',
+    'Juli',
+    'August',
+    'September',
+    'Oktober',
+    'November',
+    'Dezember',
+  ][month - 1];
+  @override
+  String get calLegendMatch => 'Dein Spiel';
+  @override
+  String get calLegendLeague => 'Liga-Spieltag';
+  @override
+  String get calLegendCup => 'Pokal';
+  @override
+  String get calLegendHoliday => 'Feiertag';
+  @override
+  String get calLegendBreak => 'Länderspielpause';
+  @override
+  String get calLegendRest => 'Urlaub und Pause';
+  @override
+  String get calToday => 'Heute';
+  @override
+  String get infoCalendarMonth =>
+      'Der Monat auf einen Blick: Dein Spiel, die Spieltage der Ligen, '
+      'Pokalrunden, Feiertage, Länderspielpausen und die Zeiten, in denen '
+      'die Spieler Urlaub haben müssen (30 Werktage pro Spieljahr, einmal '
+      '12 am Stück). An Feiertagen wird bis auf wenige Ausnahmen trotzdem '
+      'gespielt. Karfreitag, Totensonntag, Volkstrauertag, der 24. und '
+      '25.12. sind spielfrei.';
   @override
   String get infoMatchSpeed =>
       'Wie schnell die Minuten vergehen. Bei Verletzung, Rot und zur '
