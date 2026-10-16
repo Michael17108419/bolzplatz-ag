@@ -28,6 +28,10 @@ double _corr(List<double> x, List<double> y) {
   return sxy / math.sqrt(sxx * syy);
 }
 
+final _calendarRules = CalendarRules.fromJsonString(
+  File('../../rules/calendar_rules.json').readAsStringSync(),
+);
+
 void main() {
   test('balance over several seasons', () {
     final rules = Rules.parse(
@@ -41,7 +45,7 @@ void main() {
     );
     const seasons = 8;
     var state = SeasonState.fromWorld(world);
-    final runner = SeasonRunner(rules);
+    final runner = SeasonRunner(rules, calendarRules: _calendarRules);
     final tierOf = {for (final l in rules.leagues) LeagueId(l.id): l.level};
 
     final goals = <int, int>{};

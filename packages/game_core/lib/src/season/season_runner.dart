@@ -1,5 +1,9 @@
 import 'dart:math' as math;
 
+import '../calendar/calendar_rules.dart';
+import '../calendar/game_date.dart';
+import '../calendar/season.dart';
+import '../calendar/season_calendar.dart';
 import '../development/squad_turnover.dart';
 import '../generation/player_generator.dart';
 import '../match/auto_manager.dart';
@@ -13,10 +17,12 @@ import '../pyramid/pyramid.dart';
 import '../result/result.dart';
 import '../rng/seeded_random.dart';
 import '../rules/rules.dart';
+import 'conference.dart';
 import 'cup.dart';
 import 'league_table.dart';
 import 'schedule.dart';
 import 'season_state.dart';
+import 'timeline.dart';
 
 /// Result of one played season.
 class SeasonOutcome {
@@ -76,24 +82,6 @@ class SeasonOutcome {
 /// Why a player misses the next match.
 enum Absence { injured, suspended }
 
-/// The own match of a matchday: the fixture and its live session.
-class OwnMatch {
-  OwnMatch({
-    required this.league,
-    required this.fixture,
-    required this.session,
-    required this.sheetReplaced,
-  });
-
-  final LeagueId league;
-  final Fixture fixture;
-  final MatchSession session;
-
-  /// True if the handed-in line-up had players who are out, so the
-  /// assistant set up the team for this match.
-  final bool sheetReplaced;
-}
-
 /// A season in progress, played day by day by [SeasonRunner].
 class SeasonRun {
   SeasonRun._({
@@ -101,7 +89,7 @@ class SeasonRun {
     required this.seed,
     required this.schedules,
     required this.tables,
-    required this.maxDays,
+    required this.timeline,
     required this.bolzplatz,
     required this.pott,
   });
@@ -110,12 +98,23 @@ class SeasonRun {
   final int seed;
   final Map<LeagueId, List<List<Fixture>>> schedules;
   final Map<LeagueId, LeagueTable> tables;
-  final int maxDays;
+
+  /// Every day with matches of the season on the calendar.
+  final SeasonTimeline timeline;
   final KnockoutCup bolzplatz;
   final Map<Region, KnockoutCup> pott;
 
-  /// Matchdays played so far.
-  int day = 0;
+  /// Index of the next day to play in [timeline].
+  int dayIndex = 0;
+
+  /// The last day that was played, null before the first one.
+  GameDate? date;
+
+  /// Matchdays played so far per league.
+  final Map<LeagueId, int> leagueDays = {};
+
+  /// Cup ties of later windows of a round that was decided on its first day.
+  final Map<int, List<ConferenceMatch>> carry = {};
   int bolzRound = 0;
   int pottRound = 0;
   int matches = 0;
@@ -124,17 +123,28 @@ class SeasonRun {
   int draws = 0;
   int awayWins = 0;
 
-  bool get isOver => day >= maxDays;
+  bool get isOver => dayIndex >= timeline.days.length;
+
+  /// The next day with matches, or null when the season is over.
+  GameDate? get nextDate => isOver ? null : timeline.days[dayIndex].date;
+
+  /// Matchdays of [league] played so far.
+  int matchdaysPlayed(LeagueId league) => leagueDays[league] ?? 0;
 }
 
 /// Plays a whole season of all leagues and both cups without a user
 /// interface. Everything depends only on the state, the rules and the seed.
 class SeasonRunner {
-  SeasonRunner(this.rules, {this.forcedFormation})
+  SeasonRunner(this.rules, {required this.calendarRules, this.forcedFormation})
     : _engine = MatchEngine(rules),
-      _auto = AutoManager(rules);
+      _auto = AutoManager(rules),
+      _calendar = CalendarGenerator(calendarRules);
 
   final Rules rules;
+
+  /// Where the matches of the leagues and cups lie on the calendar.
+  final CalendarRules calendarRules;
+  final CalendarGenerator _calendar;
 
   /// If set, every club plays this formation (for tests and analysis).
   final String? forcedFormation;
@@ -143,12 +153,13 @@ class SeasonRunner {
 
   // Per-season working data.
   late Map<ClubId, double> _form;
-  late Map<PlayerId, int> _outUntil;
-  late Map<PlayerId, int> _yellowCount;
+  late Map<PlayerId, int> _injuredUntil;
+  late Map<String, int> _bans;
+  late Map<String, int> _cardsByCompetition;
   late Map<ClubId, TeamSheet> _sheets;
   late Map<ClubId, String> _sheetKey;
   late SeasonState _state;
-  late int _tick;
+  late int _today;
   int _injuries = 0;
   int _reds = 0;
   int _yellows = 0;
@@ -159,7 +170,6 @@ class SeasonRunner {
   final Map<PlayerId, int> _minutes = {};
   int _seed = 0;
   Map<ClubId, TeamSheet> _userSheets = {};
-  final Map<PlayerId, Absence> _reasons = {};
 
   Map<ClubId, int> _tiers(SeasonState state) {
     final tiers = <ClubId, int>{};
@@ -184,11 +194,23 @@ class SeasonRunner {
     return _tierMap[club] ?? 4;
   }
 
-  MatchTeam _team(ClubId club) {
+  static String _compKey(Competition c) => switch (c) {
+    Competition.league => 'L',
+    Competition.bolzplatz => 'B',
+    Competition.pott => 'P',
+  };
+
+  /// True if the player misses a match of [comp] on the day [epochDay]:
+  /// injured, or banned in this competition.
+  bool _isOut(PlayerId p, String comp, int epochDay) =>
+      (_injuredUntil[p] ?? -1) >= epochDay ||
+      (_bans['$comp:${p.value}'] ?? 0) > 0;
+
+  MatchTeam _team(ClubId club, String comp) {
     final squad = _state.squads[club]!;
     final out = <PlayerId>{
       for (final p in squad)
-        if ((_outUntil[p.id] ?? -1) >= _tick) p.id,
+        if (_isOut(p.id, comp, _today)) p.id,
     };
     final key = (out.toList()..sort((a, b) => a.value.compareTo(b.value)))
         .map((e) => e.value)
@@ -232,7 +254,17 @@ class SeasonRunner {
     ClubId away,
     MatchResult r, {
     required bool countForm,
+    required String comp,
   }) {
+    // A club that plays serves one match of every ban it has in this
+    // competition (before new cards of this match count).
+    for (final club in [home, away]) {
+      for (final p in _state.squads[club]!) {
+        final key = '$comp:${p.id.value}';
+        final left = _bans[key] ?? 0;
+        if (left > 0) _bans[key] = left - 1;
+      }
+    }
     for (final e in r.events) {
       if (e.type == MatchEventType.shot && e.isGoal && e.player != null) {
         _goals[e.player!] = (_goals[e.player!] ?? 0) + 1;
@@ -242,28 +274,25 @@ class SeasonRunner {
           if (a != null) _leagueAssists[a] = (_leagueAssists[a] ?? 0) + 1;
         }
       }
+      final key = e.player == null ? '' : '$comp:${e.player!.value}';
       if (e.type == MatchEventType.secondYellow ||
           e.type == MatchEventType.redCard) {
-        _outUntil[e.player!] = _tick + 1;
-        _reasons[e.player!] = Absence.suspended;
+        _bans[key] = math.max(_bans[key] ?? 0, 1);
       }
       if (e.type == MatchEventType.yellowCard ||
           e.type == MatchEventType.secondYellow) {
-        final n = (_yellowCount[e.player!] ?? 0) + 1;
-        _yellowCount[e.player!] = n;
+        final n = (_cardsByCompetition[key] ?? 0) + 1;
+        _cardsByCompetition[key] = n;
         if (n % rules.season.suspensionYellowCards == 0) {
-          _outUntil[e.player!] = math.max(
-            _outUntil[e.player!] ?? -1,
-            _tick + 1,
-          );
-          _reasons[e.player!] = Absence.suspended;
+          _bans[key] = math.max(_bans[key] ?? 0, 1);
         }
       }
     }
     for (final inj in r.injuries) {
-      final ticks = (inj.days / rules.season.injuryDaysPerMatchday).ceil();
-      _outUntil[inj.player] = _tick + ticks;
-      _reasons[inj.player] = Absence.injured;
+      // One matchday stands for a week: the player is back after the injury
+      // plus the days up to the next weekly match.
+      final grace = rules.season.injuryDaysPerMatchday.round() - 1;
+      _injuredUntil[inj.player] = _today + inj.days + grace;
       _injuries++;
     }
     for (final e in r.minutesPlayed.entries) {
@@ -317,15 +346,15 @@ class SeasonRunner {
     Map<ClubId, TeamSheet> userSheets = const {},
   }) {
     _userSheets = Map.of(userSheets);
-    _reasons.clear();
     _state = state;
     _seed = seed;
     _form = {};
-    _outUntil = {};
-    _yellowCount = {};
+    _injuredUntil = {};
+    _bans = {};
+    _cardsByCompetition = {};
     _sheets = {};
     _sheetKey = {};
-    _tick = 0;
+    _today = 0;
     _injuries = 0;
     _reds = 0;
     _yellows = 0;
@@ -341,11 +370,9 @@ class SeasonRunner {
     // Schedules and tables.
     final schedules = <LeagueId, List<List<Fixture>>>{};
     final tables = <LeagueId, LeagueTable>{};
-    var maxDays = 0;
     for (final e in state.members.entries) {
       schedules[e.key] = leagueSchedule(e.value, e.key, seed);
       tables[e.key] = LeagueTable(e.value);
-      maxDays = math.max(maxDays, schedules[e.key]!.length);
     }
 
     // Cups.
@@ -460,19 +487,26 @@ class SeasonRunner {
       seed: seed,
       schedules: schedules,
       tables: tables,
-      maxDays: maxDays,
+      timeline: SeasonTimeline.build(
+        rules: rules,
+        calendarRules: calendarRules,
+        generator: _calendar,
+        season: Season(state.startYear),
+        schedules: schedules,
+        seed: seed,
+      ),
       bolzplatz: bolzplatz,
       pott: pott,
     );
   }
 
-  ClubId _playTie(ClubId home, ClubId away, String label) {
+  ClubId _playTie(ClubId home, ClubId away, String label, String comp) {
     final k = _engine.simulateKnockout(
-      _team(home),
-      _team(away),
+      _team(home, comp),
+      _team(away, comp),
       seed: _matchSeed(label),
     );
-    _afterMatch(home, away, k.match, countForm: false);
+    _afterMatch(home, away, k.match, countForm: false, comp: comp);
     return k.winnerSide == 0 ? home : away;
   }
 
@@ -486,124 +520,303 @@ class SeasonRunner {
   /// Assists per player in league matches so far.
   Map<PlayerId, int> get leagueAssists => Map.of(_leagueAssists);
 
-  /// The fixture of the club [own] on the next matchday and a live session
-  /// for it, played with [sheet] (not managed by the assistant). Null if the
-  /// club has no match on that day.
-  OwnMatch? openOwnMatch(SeasonRun run, ClubId own, TeamSheet sheet) {
-    final day = run.day + 1;
+  /// The next day of the season with all its matches. The matches of other
+  /// clubs are simulated in advance. If [own] and [sheet] are given, the own
+  /// league match of that club is a live session played with [sheet]
+  /// (not managed by the assistant). Opening a day changes nothing: the
+  /// day becomes part of the season with [completeDay].
+  ConferenceDay openDay(SeasonRun run, {ClubId? own, TeamSheet? sheet}) {
+    if (run.isOver) throw StateError('The season is over');
     _state = run.state;
     _seed = run.seed;
-    _tick = day;
-    final out = absences(run, own).keys.toSet();
-    final usable =
-        !sheet.startingXi.any(out.contains) && !sheet.bench.any(out.contains);
-    for (final e in run.state.members.entries) {
-      final schedule = run.schedules[e.key]!;
-      if (day > schedule.length) continue;
-      for (final f in schedule[day - 1]) {
-        if (f.home != own && f.away != own) continue;
-        MatchTeam team(ClubId c) {
-          final base = _team(c);
-          if (c != own) return base;
-          return MatchTeam(
-            clubId: c,
-            name: base.name,
-            squad: base.squad,
-            sheet: usable ? sheet : base.sheet,
-            form: base.form,
-            autoManage: false,
+    final plan = run.timeline.days[run.dayIndex];
+    _today = plan.date.epochDay;
+    final matches = <ConferenceMatch>[];
+    ConferenceMatch? ownMatch;
+
+    final out = <PlayerId>{
+      if (own != null)
+        for (final p in run.state.squads[own]!)
+          if (_isOut(p.id, 'L', _today)) p.id,
+    };
+    for (final slot in plan.leagueSlots) {
+      for (final k in slot.kicks) {
+        final f = k.fixture;
+        final seed = _matchSeed(
+          'l:${k.league.value}:${k.matchday}:${f.home.value}',
+        );
+        final isOwn = own != null && (f.home == own || f.away == own);
+        if (isOwn && sheet != null) {
+          final usable =
+              !sheet.startingXi.any(out.contains) &&
+              !sheet.bench.any(out.contains);
+          MatchTeam team(ClubId c) {
+            final base = _team(c, 'L');
+            if (c != own) return base;
+            return MatchTeam(
+              clubId: c,
+              name: base.name,
+              squad: base.squad,
+              sheet: usable ? sheet : base.sheet,
+              form: base.form,
+              autoManage: false,
+            );
+          }
+
+          final m = ConferenceMatch(
+            competition: Competition.league,
+            league: k.league,
+            fixture: f,
+            date: plan.date,
+            minuteOfDay: slot.minuteOfDay,
+            round: k.matchday,
+            session: MatchSession(
+              rules: rules,
+              home: team(f.home),
+              away: team(f.away),
+              seed: seed,
+            ),
+            isOwn: true,
+            sheetReplaced: !usable,
+          );
+          ownMatch = m;
+          matches.add(m);
+        } else {
+          matches.add(
+            ConferenceMatch(
+              competition: Competition.league,
+              league: k.league,
+              fixture: f,
+              date: plan.date,
+              minuteOfDay: slot.minuteOfDay,
+              round: k.matchday,
+              result: _engine.simulate(
+                _team(f.home, 'L'),
+                _team(f.away, 'L'),
+                seed: seed,
+              ),
+              isOwn: isOwn,
+            ),
           );
         }
+      }
+    }
 
-        return OwnMatch(
-          league: e.key,
-          fixture: f,
-          session: MatchSession(
-            rules: rules,
-            home: team(f.home),
-            away: team(f.away),
-            seed: _matchSeed('l:${e.key.value}:$day:${f.home.value}'),
+    // Cup rounds are decided on the first day of their windows; ties of
+    // later windows are shown on their own day.
+    final cupPlans = <CupRoundPlan>[];
+    final started = <String>{};
+    for (final w in plan.cupWindows) {
+      final key = '${w.kind.name}:${w.round}';
+      if (!started.add(key)) continue;
+      final windows = run.timeline.cupWindowsOf(w.kind, w.round);
+      if (windows.first.$1 != plan.date) continue;
+      if (w.kind == CupKind.bolzplatz) {
+        if (run.bolzRound != w.round || run.bolzplatz.isFinished) continue;
+        cupPlans.add(
+          _planCupRound(
+            Competition.bolzplatz,
+            null,
+            run.bolzplatz,
+            w.round,
+            windows,
+            own,
           ),
-          sheetReplaced: !usable,
         );
+      } else {
+        if (run.pottRound != w.round) continue;
+        for (final region in Region.values) {
+          final cup = run.pott[region]!;
+          if (cup.isFinished) continue;
+          cupPlans.add(
+            _planCupRound(
+              Competition.pott,
+              region,
+              cup,
+              w.round,
+              windows,
+              own,
+            ),
+          );
+        }
+      }
+    }
+    for (final cp in cupPlans) {
+      for (final t in cp.ties) {
+        if (t.date == plan.date) matches.add(t);
+      }
+    }
+    matches.addAll(run.carry[plan.date.epochDay] ?? const []);
+    matches.sort((a, b) => a.minuteOfDay.compareTo(b.minuteOfDay));
+    return ConferenceDay(
+      date: plan.date,
+      matches: matches,
+      own: ownMatch,
+      openedIndex: run.dayIndex,
+      cupPlans: cupPlans,
+    );
+  }
+
+  /// Simulates all ties of the next round of [cup] and spreads them over the
+  /// kickoff [windows] of the round.
+  CupRoundPlan _planCupRound(
+    Competition competition,
+    Region? region,
+    KnockoutCup cup,
+    int round,
+    List<(GameDate, CupWindow)> windows,
+    ClubId? own,
+  ) {
+    final comp = _compKey(competition);
+    final pending = cup.pendingTies;
+    final ties = <ConferenceMatch>[];
+    for (var i = 0; i < pending.length; i++) {
+      final (h, a) = pending[i];
+      final label = competition == Competition.bolzplatz
+          ? 'bp:$round:${h.value}'
+          : 'pott:${region!.id}:$round:${h.value}';
+      final window = windows[i * windows.length ~/ pending.length];
+      ties.add(
+        ConferenceMatch(
+          competition: competition,
+          region: region,
+          fixture: Fixture(h, a),
+          date: window.$1,
+          minuteOfDay: window.$2.minuteOfDay,
+          round: round,
+          knockout: _engine.simulateKnockout(
+            _team(h, comp),
+            _team(a, comp),
+            seed: _matchSeed(label),
+          ),
+          isOwn: own != null && (h == own || a == own),
+        ),
+      );
+    }
+    return CupRoundPlan(
+      competition: competition,
+      region: region,
+      round: round,
+      ties: ties,
+    );
+  }
+
+  /// Makes the opened [day] part of the season. [ownResult] is the result
+  /// of the live own league match, if there was one.
+  void completeDay(
+    SeasonRun run,
+    ConferenceDay day, {
+    MatchResult? ownResult,
+  }) {
+    if (run.isOver || run.dayIndex != day.openedIndex) {
+      throw StateError('This is not the next day of the season');
+    }
+    _state = run.state;
+    _seed = run.seed;
+    _today = day.date.epochDay;
+    for (final m in day.matches) {
+      if (!m.isLeague || m.applied) continue;
+      final MatchResult r;
+      if (m.isLive) {
+        if (ownResult == null) throw StateError('The own result is missing');
+        r = ownResult;
+      } else {
+        r = m.result!;
+      }
+      final f = m.fixture;
+      final league = m.league!;
+      _afterMatch(f.home, f.away, r, countForm: true, comp: 'L');
+      run.tables[league]!.record(f.home, f.away, r.homeGoals, r.awayGoals);
+      run.matches++;
+      run.goals += r.homeGoals + r.awayGoals;
+      if (r.homeGoals > r.awayGoals) {
+        run.homeWins++;
+      } else if (r.homeGoals < r.awayGoals) {
+        run.awayWins++;
+      } else {
+        run.draws++;
+      }
+      run.leagueDays[league] = math.max(run.leagueDays[league] ?? 0, m.round);
+      m.applied = true;
+    }
+    var pottDone = false;
+    for (final cp in day.cupPlans) {
+      final comp = _compKey(cp.competition);
+      final winners = <(ClubId, ClubId), ClubId>{};
+      for (final t in cp.ties) {
+        final k = t.knockout!;
+        final f = t.fixture;
+        _afterMatch(f.home, f.away, k.match, countForm: false, comp: comp);
+        winners[(f.home, f.away)] = k.winnerSide == 0 ? f.home : f.away;
+        t.applied = true;
+        if (t.date != day.date) {
+          run.carry.putIfAbsent(t.date.epochDay, () => []).add(t);
+        }
+      }
+      if (cp.competition == Competition.bolzplatz) {
+        run.bolzplatz.playNextRound((h, a) => winners[(h, a)]!);
+        run.bolzRound++;
+      } else {
+        run.pott[cp.region!]!.playNextRound((h, a) => winners[(h, a)]!);
+        pottDone = true;
+      }
+    }
+    if (pottDone) run.pottRound++;
+    run.carry.remove(day.date.epochDay);
+    run.date = day.date;
+    run.dayIndex++;
+  }
+
+  /// The date and competition of the next match of [club], or null.
+  (GameDate, Competition)? nextMatchOf(SeasonRun run, ClubId club) {
+    bool plays(List<(ClubId, ClubId)> ties) =>
+        ties.any((t) => t.$1 == club || t.$2 == club);
+    final region = run.state.clubs[club]?.region;
+    for (var i = run.dayIndex; i < run.timeline.days.length; i++) {
+      final d = run.timeline.days[i];
+      for (final s in d.leagueSlots) {
+        for (final k in s.kicks) {
+          if (k.fixture.home == club || k.fixture.away == club) {
+            return (d.date, Competition.league);
+          }
+        }
+      }
+      for (final m in run.carry[d.date.epochDay] ?? const <ConferenceMatch>[]) {
+        if (m.fixture.home == club || m.fixture.away == club) {
+          return (d.date, m.competition);
+        }
+      }
+      for (final w in d.cupWindows) {
+        if (w.kind == CupKind.bolzplatz) {
+          if (w.round == run.bolzRound && plays(run.bolzplatz.pendingTies)) {
+            return (d.date, Competition.bolzplatz);
+          }
+        } else if (region != null && w.round == run.pottRound) {
+          final cup = run.pott[region];
+          if (cup != null && plays(cup.pendingTies)) {
+            return (d.date, Competition.pott);
+          }
+        }
       }
     }
     return null;
   }
 
-  /// Plays the next matchday of all leagues (and the cup round that follows
-  /// it). The match [own] is not simulated: [ownResult], its finished live
-  /// session, is taken instead.
-  void completeMatchday(
-    SeasonRun run, {
-    OwnMatch? own,
-    MatchResult? ownResult,
-  }) {
-    if (run.isOver) throw StateError('The season is over');
-    _state = run.state;
-    _seed = run.seed;
-    final state = run.state;
-    final cups = rules.season.cups;
-    final day = run.day + 1;
-    {
-      _tick = day;
-      for (final e in state.members.entries) {
-        final schedule = run.schedules[e.key]!;
-        if (day > schedule.length) continue;
-        for (final f in schedule[day - 1]) {
-          final r =
-              (own != null && ownResult != null && identical(f, own.fixture))
-              ? ownResult
-              : _engine.simulate(
-                  _team(f.home),
-                  _team(f.away),
-                  seed: _matchSeed('l:${e.key.value}:$day:${f.home.value}'),
-                );
-          _afterMatch(f.home, f.away, r, countForm: true);
-          run.tables[e.key]!.record(f.home, f.away, r.homeGoals, r.awayGoals);
-          run.matches++;
-          run.goals += r.homeGoals + r.awayGoals;
-          if (r.homeGoals > r.awayGoals) {
-            run.homeWins++;
-          } else if (r.homeGoals < r.awayGoals) {
-            run.awayWins++;
-          } else {
-            run.draws++;
-          }
-        }
-      }
-      if (run.bolzRound < cups.bolzplatzAfterMatchday.length &&
-          day == cups.bolzplatzAfterMatchday[run.bolzRound]) {
-        final round = run.bolzRound;
-        run.bolzplatz.playNextRound(
-          (h, a) => _playTie(h, a, 'bp:$round:${h.value}'),
-        );
-        run.bolzRound++;
-      }
-      if (run.pottRound < cups.pottAfterMatchday.length &&
-          day == cups.pottAfterMatchday[run.pottRound]) {
-        final round = run.pottRound;
-        for (final region in Region.values) {
-          final cup = run.pott[region]!;
-          if (cup.isFinished) continue;
-          cup.playNextRound(
-            (h, a) => _playTie(h, a, 'pott:${region.id}:$round:${h.value}'),
-          );
-        }
-        run.pottRound++;
+  /// Players who cannot play the next match of [club], with the reason.
+  Map<PlayerId, Absence> absences(SeasonRun run, ClubId club) {
+    final next = nextMatchOf(run, club);
+    if (next == null) return const {};
+    final comp = _compKey(next.$2);
+    final day = next.$1.epochDay;
+    final out = <PlayerId, Absence>{};
+    for (final p in run.state.squads[club]!) {
+      if ((_injuredUntil[p.id] ?? -1) >= day) {
+        out[p.id] = Absence.injured;
+      } else if ((_bans['$comp:${p.id.value}'] ?? 0) > 0) {
+        out[p.id] = Absence.suspended;
       }
     }
-    run.day = day;
-  }
-
-  /// Players who cannot play the next matchday, with the reason.
-  Map<PlayerId, Absence> absences(SeasonRun run, ClubId club) {
-    final next = run.day + 1;
-    return {
-      for (final p in run.state.squads[club]!)
-        if ((_outUntil[p.id] ?? -1) >= next)
-          p.id: _reasons[p.id] ?? Absence.injured,
-    };
+    return out;
   }
 
   /// Finishes cups that are still running and closes the season.
@@ -629,14 +842,16 @@ class SeasonRunner {
     // Finish cups that did not finish within the planned rounds.
     while (!bolzplatz.isFinished) {
       final round = bolzRound++;
-      bolzplatz.playNextRound((h, a) => _playTie(h, a, 'bp:$round:${h.value}'));
+      bolzplatz.playNextRound(
+        (h, a) => _playTie(h, a, 'bp:$round:${h.value}', 'B'),
+      );
     }
     for (final region in Region.values) {
       final cup = pott[region]!;
       while (!cup.isFinished) {
         final round = pottRound;
         cup.playNextRound(
-          (h, a) => _playTie(h, a, 'pott:${region.id}:$round:${h.value}'),
+          (h, a) => _playTie(h, a, 'pott:${region.id}:$round:${h.value}', 'P'),
         );
       }
     }
@@ -733,7 +948,7 @@ class SeasonRunner {
   SeasonOutcome play(SeasonState state, {required int seed}) {
     final run = begin(state, seed: seed);
     while (!run.isOver) {
-      completeMatchday(run);
+      completeDay(run, openDay(run));
     }
     return conclude(run);
   }

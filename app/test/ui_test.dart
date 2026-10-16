@@ -19,6 +19,7 @@ Future<void> _start(WidgetTester tester) async {
             File('../data/world_2026_27.json').readAsStringSync(),
             File('../rules/rules_2026_27.json').readAsStringSync(),
             File('../data/names_de.json').readAsStringSync(),
+            File('../rules/calendar_rules.json').readAsStringSync(),
           ),
         ),
       ],
@@ -329,6 +330,7 @@ void main() {
       ['assets/data/world_2026_27.json', '../data/world_2026_27.json'],
       ['assets/data/rules_2026_27.json', '../rules/rules_2026_27.json'],
       ['assets/data/names_de.json', '../data/names_de.json'],
+      ['assets/data/calendar_rules.json', '../rules/calendar_rules.json'],
     ]) {
       expect(
         File(pair[0]).readAsStringSync().replaceAll('\r\n', '\n'),

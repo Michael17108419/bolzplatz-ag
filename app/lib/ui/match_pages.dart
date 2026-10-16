@@ -201,7 +201,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
   bool _done = false;
   Timer? _timer;
 
-  MatchSession get _session => _own.session;
+  MatchSession get _session => _own.session!;
 
   @override
   void initState() {

@@ -9,6 +9,7 @@ LoadedWorld _load() => LoadedWorld.fromTexts(
   File('../data/world_2026_27.json').readAsStringSync(),
   File('../rules/rules_2026_27.json').readAsStringSync(),
   File('../data/names_de.json').readAsStringSync(),
+  File('../rules/calendar_rules.json').readAsStringSync(),
 );
 
 void main() {

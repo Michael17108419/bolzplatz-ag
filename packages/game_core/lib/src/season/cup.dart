@@ -173,6 +173,9 @@ class KnockoutCup {
     return ties;
   }
 
+  /// The ties of the next round, home club first.
+  List<(ClubId, ClubId)> get pendingTies => List.unmodifiable(_pending);
+
   /// Clubs still in the cup after the rounds played so far.
   List<ClubId> get remaining {
     if (_winner != null) return [_winner!];

@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "note": "Calendar rules 2026/27 and following. Kickoff times are on the half hour grid. Weekdays are ISO: 1 Monday to 7 Sunday. Values marked approximate are derived from rules, not from verified history.",
+  "last_weekend": {
+    "weeks_before_may_31_weekend": 2,
+    "overrides": {
+      "2026": "2027-05-22"
+    }
+  },
+  "winter_break": {
+    "first_saturday_on_or_after": "12-22"
+  },
+  "international_breaks": [
+    {
+      "first_saturday_on_or_after": "09-24",
+      "weekends": 2
+    },
+    {
+      "first_saturday_on_or_after": "11-12",
+      "weekends": 1
+    },
+    {
+      "first_saturday_on_or_after": "03-22",
+      "weekends": 1
+    }
+  ],
+  "vacation": {
+    "werktage_per_season": 30,
+    "block_werktage": 12,
+    "restart_training_days": 7
+  },
+  "leagues": {
+    "liga1": {
+      "matchdays": 34,
+      "matches_per_matchday": 9,
+      "start_even_year": "08-29",
+      "start_odd_year": "08-22",
+      "preparation_weeks": 4,
+      "winter_break_weekends": 2,
+      "international_breaks": true,
+      "min_midweek_rounds": 3,
+      "max_midweek_rounds": 5,
+      "weekend_slots": [
+        {
+          "weekday": 5,
+          "time": "20:30",
+          "matches": 1
+        },
+        {
+          "weekday": 6,
+          "time": "15:30",
+          "matches": 5
+        },
+        {
+          "weekday": 6,
+          "time": "18:30",
+          "matches": 1
+        },
+        {
+          "weekday": 7,
+          "time": "15:30",
+          "matches": 1
+        },
+        {
+          "weekday": 7,
+          "time": "17:30",
+          "matches": 1
+        }
+      ],
+      "final_slot": {
+        "weekday": 6,
+        "time": "15:30"
+      },
+      "midweek_slots": [
+        {
+          "weekday": 2,
+          "time": "18:30",
+          "matches": 1
+        },
+        {
+          "weekday": 2,
+          "time": "20:30",
+          "matches": 3
+        },
+        {
+          "weekday": 3,
+          "time": "18:30",
+          "matches": 1
+        },
+        {
+          "weekday": 3,
+          "time": "20:30",
+          "matches": 4
+        }
+      ]
+    },
+    "liga2": {
+      "matchdays": 34,
+      "matches_per_matchday": 9,
+      "start_even_year": "08-08",
+      "start_odd_year": "08-08",
+      "preparation_weeks": 3,
+      "winter_break_weekends": 3,
+      "international_breaks": true,
+      "min_midweek_rounds": 0,
+      "max_midweek_rounds": 4,
+      "weekend_slots": [
+        {
+          "weekday": 5,
+          "time": "18:30",
+          "matches": 2
+        },
+        {
+          "weekday": 6,
+          "time": "13:00",
+          "matches": 3
+        },
+        {
+          "weekday": 6,
+          "time": "20:30",
+          "matches": 1
+        },
+        {
+          "weekday": 7,
+          "time": "13:30",
+          "matches": 3
+        }
+      ],
+      "final_slot": {
+        "weekday": 7,
+        "time": "15:30"
+      },
+      "midweek_slots": [
+        {
+          "weekday": 2,
+          "time": "18:30",
+          "matches": [
+            4,
+            5
+          ]
+        },
+        {
+          "weekday": 3,
+          "time": "18:30",
+          "matches": -1
+        }
+      ]
+    },
+    "liga3": {
+      "matchdays": 38,
+      "matches_per_matchday": 10,
+      "start_even_year": "08-08",
+      "start_odd_year": "08-08",
+      "preparation_weeks": 3,
+      "winter_break_weekends": 3,
+      "international_breaks": true,
+      "min_midweek_rounds": 0,
+      "max_midweek_rounds": 6,
+      "weekend_slots": [
+        {
+          "weekday": 5,
+          "time": "19:00",
+          "matches": 1
+        },
+        {
+          "weekday": 6,
+          "time": "14:00",
+          "matches": 5
+        },
+        {
+          "weekday": 6,
+          "time": "16:30",
+          "matches": 1
+        },
+        {
+          "weekday": 7,
+          "time": "13:30",
+          "matches": 1
+        },
+        {
+          "weekday": 7,
+          "time": "16:30",
+          "matches": 1
+        },
+        {
+          "weekday": 7,
+          "time": "19:30",
+          "matches": 1
+        }
+      ],
+      "final_slot": {
+        "weekday": 6,
+        "time": "13:30"
+      },
+      "midweek_slots": [
+        {
+          "weekday": 2,
+          "time": "19:00",
+          "matches": 5
+        },
+        {
+          "weekday": 3,
+          "time": "19:00",
+          "matches": 5
+        }
+      ]
+    },
+    "stufe4": {
+      "matchdays": 34,
+      "matches_per_matchday": 9,
+      "start_even_year": "08-08",
+      "start_odd_year": "08-08",
+      "preparation_weeks": 3,
+      "winter_break_weekends": 4,
+      "international_breaks": false,
+      "min_midweek_rounds": 0,
+      "max_midweek_rounds": 0,
+      "weekend_slots": [
+        {
+          "weekday": 5,
+          "time": "19:00",
+          "matches": 3
+        },
+        {
+          "weekday": 6,
+          "time": "14:00",
+          "matches": 5
+        },
+        {
+          "weekday": 7,
+          "time": "14:00",
+          "matches": 1
+        }
+      ],
+      "final_slot": {
+        "weekday": 7,
+        "time": "14:00"
+      },
+      "midweek_slots": []
+    }
+  },
+  "cups": {
+    "bolzplatz_windows": [
+      {
+        "weekday": 2,
+        "time": "18:00"
+      },
+      {
+        "weekday": 2,
+        "time": "20:30"
+      },
+      {
+        "weekday": 3,
+        "time": "18:00"
+      },
+      {
+        "weekday": 3,
+        "time": "20:30"
+      }
+    ],
+    "bolzplatz_final": {
+      "weekday": 6,
+      "time": "20:00"
+    },
+    "bolzplatz_final_weeks_after_last_league_weekend": 1,
+    "pott_months": [
+      9,
+      10,
+      11,
+      12,
+      1
+    ],
+    "pott_first_day_of_month": 12,
+    "pott_window": {
+      "weekday": 3,
+      "time": "18:30"
+    }
+  }
+}

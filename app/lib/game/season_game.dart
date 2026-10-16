@@ -5,6 +5,9 @@ import 'career.dart';
 import 'lineup.dart';
 import 'loaded_world.dart';
 
+/// The own match of a day: the live match the player coaches.
+typedef OwnMatch = ConferenceMatch;
+
 /// The running season of the career: the runner of the game core and the
 /// season it plays. The objects of the core change in place, so every
 /// change gets a new [revision] and with it a new state for the screens.
@@ -13,15 +16,19 @@ class SeasonGame {
     required this.runner,
     required this.run,
     required this.clubId,
+    required this.ownLeague,
     required this.seed,
     required this.ownDays,
     this.revision = 0,
-    this.next,
+    this.day,
   });
 
   final SeasonRunner runner;
   final SeasonRun run;
   final ClubId clubId;
+
+  /// The league of the club of the player.
+  final LeagueId ownLeague;
 
   /// The seed of this season (also the one of the schedule shown in the
   /// office).
@@ -31,11 +38,14 @@ class SeasonGame {
   final int ownDays;
   final int revision;
 
-  /// The own match that is open (preview or live), null between matches.
-  final OwnMatch? next;
+  /// The day that is open (preview or live), null between matches.
+  final ConferenceDay? day;
 
-  /// Matchdays played so far.
-  int get played => run.day;
+  /// The own match that is open (preview or live), null between matches.
+  OwnMatch? get next => day?.own;
+
+  /// Matchdays of the own league played so far.
+  int get played => run.matchdaysPlayed(ownLeague);
 
   /// The number of the next matchday; after the last one it stays there.
   int get matchday => played >= ownDays ? ownDays : played + 1;
@@ -43,14 +53,15 @@ class SeasonGame {
   /// True after the last matchday of the own league.
   bool get isOver => played >= ownDays;
 
-  SeasonGame _with({OwnMatch? next, bool clearNext = false}) => SeasonGame(
+  SeasonGame _with({ConferenceDay? day, bool clearDay = false}) => SeasonGame(
     runner: runner,
     run: run,
     clubId: clubId,
+    ownLeague: ownLeague,
     seed: seed,
     ownDays: ownDays,
     revision: revision + 1,
-    next: clearNext ? null : (next ?? this.next),
+    day: clearDay ? null : (day ?? this.day),
   );
 }
 
@@ -61,7 +72,10 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     final loaded = ref.watch(loadedWorldProvider).value;
     if (career == null || loaded == null) return null;
     final seed = seasonSeed(career, loaded);
-    final runner = SeasonRunner(loaded.rules);
+    final runner = SeasonRunner(
+      loaded.rules,
+      calendarRules: loaded.calendarRules,
+    );
     final sheet = ref.read(lineupProvider)?.sheet;
     final run = runner.begin(
       SeasonState.fromWorld(loaded.world),
@@ -72,41 +86,54 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       runner: runner,
       run: run,
       clubId: career.clubId,
+      ownLeague: career.offer.league.id,
       seed: seed,
       ownDays: run.schedules[career.offer.league.id]!.length,
     );
   }
 
   /// Opens the own match of the next matchday with the current line-up.
-  /// Null if the season is over or the line-up is missing.
+  /// Days without a league match of the club (other leagues, cup ties of the
+  /// club for now) are played in the background first. Null if the season is
+  /// over or the line-up is missing.
   OwnMatch? openNext() {
     final game = state;
     final sheet = ref.read(lineupProvider)?.sheet;
     if (game == null || sheet == null || game.isOver) return null;
     game.runner.setUserSheet(game.clubId, sheet);
-    final own = game.runner.openOwnMatch(game.run, game.clubId, sheet);
-    state = game._with(next: own, clearNext: own == null);
-    return own;
+    final run = game.run;
+    while (!run.isOver) {
+      final next = game.runner.nextMatchOf(run, game.clubId);
+      if (next == null) break;
+      if (next.$1 == run.nextDate && next.$2 == Competition.league) {
+        final day = game.runner.openDay(
+          run,
+          own: game.clubId,
+          sheet: sheet,
+        );
+        state = game._with(day: day);
+        return day.own;
+      }
+      game.runner.completeDay(run, game.runner.openDay(run));
+    }
+    state = game._with(clearDay: true);
+    return null;
   }
 
   /// Closes the matchday: plays all other matches of the day and takes the
   /// result of the own match (null if the club has no match that day).
   void complete(MatchResult? ownResult) {
     final game = state;
-    if (game == null || game.isOver) return;
-    final own = game.next;
-    game.runner.completeMatchday(
-      game.run,
-      own: ownResult == null ? null : own,
-      ownResult: ownResult,
-    );
+    final day = game?.day;
+    if (game == null || day == null) return;
+    game.runner.completeDay(game.run, day, ownResult: ownResult);
     // Leagues with more matchdays than the own one play on in the background.
     if (game.isOver) {
       while (!game.run.isOver) {
-        game.runner.completeMatchday(game.run);
+        game.runner.completeDay(game.run, game.runner.openDay(game.run));
       }
     }
-    state = game._with(clearNext: true);
+    state = game._with(clearDay: true);
   }
 }
 

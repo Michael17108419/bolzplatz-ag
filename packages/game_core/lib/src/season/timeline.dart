@@ -98,6 +98,17 @@ class SeasonTimeline {
     return null;
   }
 
+  /// The windows of a cup round with their dates, in time order.
+  List<(GameDate, CupWindow)> cupWindowsOf(CupKind kind, int round) {
+    final out = <(GameDate, CupWindow)>[];
+    for (final d in days) {
+      for (final w in d.cupWindows) {
+        if (w.kind == kind && w.round == round) out.add((d.date, w));
+      }
+    }
+    return out;
+  }
+
   /// Index of the first day on or after [date], or -1 if there is none.
   int firstIndexOnOrAfter(GameDate date) {
     for (var i = 0; i < days.length; i++) {

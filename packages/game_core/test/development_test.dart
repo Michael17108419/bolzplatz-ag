@@ -7,6 +7,10 @@ late Rules rules;
 late World world;
 late NameLists names;
 
+final _calendarRules = CalendarRules.fromJsonString(
+  File('../../rules/calendar_rules.json').readAsStringSync(),
+);
+
 void main() {
   setUpAll(() {
     rules = Rules.parse(
@@ -60,7 +64,7 @@ void main() {
 
   test('turnover keeps squad size, positions and unique ids and names', () {
     var state = SeasonState.fromWorld(world);
-    final runner = SeasonRunner(rules);
+    final runner = SeasonRunner(rules, calendarRules: _calendarRules);
     var retired = 0;
     for (var year = 0; year < 3; year++) {
       final outcome = runner.play(state, seed: 10 + year);

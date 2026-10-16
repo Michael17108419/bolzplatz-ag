@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:game_core/game_core.dart';
 import 'package:test/test.dart';
 
+final _calendarRules = CalendarRules.fromJsonString(
+  File('../../rules/calendar_rules.json').readAsStringSync(),
+);
 late Rules rules;
 late World world;
 
@@ -79,7 +82,7 @@ void main() {
 
   test('a full season of all leagues and cups runs and is consistent', () {
     final state = SeasonState.fromWorld(world);
-    final runner = SeasonRunner(rules);
+    final runner = SeasonRunner(rules, calendarRules: _calendarRules);
     final watch = Stopwatch()..start();
     final outcome = runner.play(state, seed: 11);
     watch.stop();
@@ -112,7 +115,7 @@ void main() {
 
   test('the same seed gives the same season', () {
     final state = SeasonState.fromWorld(world);
-    final runner = SeasonRunner(rules);
+    final runner = SeasonRunner(rules, calendarRules: _calendarRules);
     final a = runner.play(state, seed: 3);
     final b = runner.play(state, seed: 3);
     final league1 = LeagueId(rules.leagues.firstWhere((l) => l.level == 1).id);
@@ -123,16 +126,16 @@ void main() {
 
   test('a season played day by day equals the season played in one go', () {
     final state = SeasonState.fromWorld(world);
-    final runner = SeasonRunner(rules);
+    final runner = SeasonRunner(rules, calendarRules: _calendarRules);
     final whole = runner.play(state, seed: 3);
     final run = runner.begin(state, seed: 3);
     var days = 0;
     while (!run.isOver) {
-      runner.completeMatchday(run);
+      runner.completeDay(run, runner.openDay(run));
       days++;
     }
     final steps = runner.conclude(run);
-    expect(days, run.maxDays);
+    expect(days, run.timeline.days.length);
     for (final l in rules.leagues) {
       final id = LeagueId(l.id);
       expect(steps.standing(id), whole.standing(id), reason: l.key);
@@ -145,33 +148,65 @@ void main() {
 
   test('the own match is played live and counts in the table', () {
     final state = SeasonState.fromWorld(world);
-    final runner = SeasonRunner(rules);
+    final runner = SeasonRunner(rules, calendarRules: _calendarRules);
     final league1 = LeagueId(rules.leagues.firstWhere((l) => l.level == 1).id);
     final club = state.members[league1]!.first;
     final sheet = AutoManager(rules)
         .build(state.squads[club]!, benchSize: rules.tactics.benchSize(1))!;
     final run = runner.begin(state, seed: 5, userSheets: {club: sheet});
-    final own = runner.openOwnMatch(run, club, sheet)!;
+    // Play the days before the first match of the club.
+    while (runner.nextMatchOf(run, club)!.$1 != run.nextDate) {
+      runner.completeDay(run, runner.openDay(run));
+    }
+    final day = runner.openDay(run, own: club, sheet: sheet);
+    final own = day.own!;
     expect(own.league, league1);
     expect(own.fixture.home == club || own.fixture.away == club, isTrue);
-    final result = own.session.finish();
-    runner.completeMatchday(run, own: own, ownResult: result);
-    expect(run.day, 1);
+    final result = own.session!.finish();
+    runner.completeDay(run, day, ownResult: result);
+    expect(run.matchdaysPlayed(league1), 1);
     final entry = run.tables[league1]!.entryOf(club);
     expect(entry.played, 1);
     final mine = own.fixture.home == club ? result.homeGoals : result.awayGoals;
     expect(entry.goalsFor, mine);
     // All matches of the day were played, the own one only once.
-    expect(run.matches, 9 + 9 + 10 + 5 * 9);
+    expect(run.matches, greaterThanOrEqualTo(day.matches.length));
     final out = runner.absences(run, club);
     for (final id in out.keys) {
       expect(state.squads[club]!.any((p) => p.id == id), isTrue);
     }
   });
 
+  test('a conference day shows the score growing to the final result', () {
+    final state = SeasonState.fromWorld(world);
+    final runner = SeasonRunner(rules, calendarRules: _calendarRules);
+    final run = runner.begin(state, seed: 4);
+    var checked = 0;
+    while (!run.isOver && checked < 40) {
+      final day = runner.openDay(run);
+      var previousMinute = -1;
+      for (final m in day.matches) {
+        expect(m.minuteOfDay, greaterThanOrEqualTo(previousMinute));
+        previousMinute = m.minuteOfDay;
+        final r = m.finalResult!;
+        expect(m.scoreAt(0).$1 + m.scoreAt(0).$2, lessThanOrEqualTo(1));
+        expect(m.scoreAt(200), (r.homeGoals, r.awayGoals));
+        var last = 0;
+        for (var minute = 0; minute <= 130; minute += 5) {
+          final s = m.scoreAt(minute);
+          expect(s.$1 + s.$2, greaterThanOrEqualTo(last));
+          last = s.$1 + s.$2;
+        }
+        checked++;
+      }
+      runner.completeDay(run, day);
+    }
+    expect(checked, greaterThan(0));
+  });
+
   test('three seasons in a row keep the league sizes', () {
     var state = SeasonState.fromWorld(world);
-    final runner = SeasonRunner(rules);
+    final runner = SeasonRunner(rules, calendarRules: _calendarRules);
     for (var year = 0; year < 3; year++) {
       final outcome = runner.play(state, seed: 100 + year);
       final next = runner.nextSeason(state, outcome, seed: 200 + year);

@@ -8,6 +8,7 @@ class LoadedWorld {
     required this.world,
     required this.rules,
     required this.names,
+    required this.calendarRules,
     required this.strengths,
   });
 
@@ -16,6 +17,7 @@ class LoadedWorld {
     String worldText,
     String rulesText,
     String namesText,
+    String calendarText,
   ) {
     final world = WorldJson.decode(worldText);
     final rules = Rules.parse(rulesText).valueOrNull;
@@ -24,6 +26,7 @@ class LoadedWorld {
       world: world,
       rules: rules,
       names: NameLists.fromJson(namesText),
+      calendarRules: CalendarRules.fromJsonString(calendarText),
       strengths: ClubStrengths.compute(world, rules),
     );
   }
@@ -31,6 +34,9 @@ class LoadedWorld {
   final World world;
   final Rules rules;
   final NameLists names;
+
+  /// Where matches, breaks and holidays lie on the calendar.
+  final CalendarRules calendarRules;
 
   /// Club strength: mean overall of the 14 best players.
   final Map<ClubId, double> strengths;
@@ -81,9 +87,17 @@ final worldLoaderProvider = Provider<Future<LoadedWorld> Function()>((ref) {
       'assets/data/rules_2026_27.json',
     );
     final namesText = await rootBundle.loadString('assets/data/names_de.json');
+    final calendarText = await rootBundle.loadString(
+      'assets/data/calendar_rules.json',
+    );
     // Let the loading screen draw once before the parsing blocks the thread.
     await Future<void>.delayed(const Duration(milliseconds: 50));
-    return LoadedWorld.fromTexts(worldText, rulesText, namesText);
+    return LoadedWorld.fromTexts(
+      worldText,
+      rulesText,
+      namesText,
+      calendarText,
+    );
   };
 });
 

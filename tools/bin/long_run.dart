@@ -64,7 +64,14 @@ void main(List<String> args) {
     File('$root/data/names_de.json').readAsStringSync(),
   );
   final tierOf = {for (final l in rules.leagues) LeagueId(l.id): l.level};
-  final runner = SeasonRunner(rules, forcedFormation: formation);
+  final calendarRules = CalendarRules.fromJsonString(
+    File('$root/rules/calendar_rules.json').readAsStringSync(),
+  );
+  final runner = SeasonRunner(
+    rules,
+    calendarRules: calendarRules,
+    forcedFormation: formation,
+  );
   var state = SeasonState.fromWorld(world);
   final watch = Stopwatch()..start();
 
