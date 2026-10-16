@@ -135,4 +135,57 @@ void main() {
       expect(a.risk, b.risk);
     });
   });
+
+  test('a job offer survives a round trip through JSON', () {
+    final names = NameLists.fromJson(
+      File('../../data/names_de.json').readAsStringSync(),
+    );
+    final strengths = ClubStrengths.compute(world, rules);
+    final generator = OfferGenerator(
+      rules: rules,
+      world: world,
+      names: names,
+      strengths: strengths,
+    );
+    final trainer = TrainerFactory.create(
+      rules: rules,
+      name: 'Hans Test',
+      appearance: const TrainerAppearance(),
+      backstoryId: rules.career.backstories.first.id,
+      seed: 3,
+    );
+    final offer = generator.generate(trainer: trainer, seed: 3).offers.first;
+    final back = JobOffer.fromJson(
+      offer.toJson(),
+      clubs: {for (final c in world.clubs) c.id: c},
+      leagues: {for (final l in world.leagues) l.id: l},
+    );
+    expect(back.club.id, offer.club.id);
+    expect(back.league.id, offer.league.id);
+    expect(back.goal, offer.goal);
+    expect(back.budget, offer.budget);
+    expect(back.president.name, offer.president.name);
+    expect(back.president[PresidentTrait.vanity],
+        offer.president[PresidentTrait.vanity]);
+    expect(back.toJson(), offer.toJson());
+  });
+
+  test('the goal for a new season follows the strength rank', () {
+    expect(
+      SeasonReviewer.goalFor(level: 1, strengthRank: 1, teams: 18),
+      SeasonGoal.title,
+    );
+    expect(
+      SeasonReviewer.goalFor(level: 2, strengthRank: 2, teams: 18),
+      SeasonGoal.promotion,
+    );
+    expect(
+      SeasonReviewer.goalFor(level: 2, strengthRank: 9, teams: 18),
+      SeasonGoal.noTarget,
+    );
+    expect(
+      SeasonReviewer.goalFor(level: 3, strengthRank: 18, teams: 20),
+      SeasonGoal.survival,
+    );
+  });
 }

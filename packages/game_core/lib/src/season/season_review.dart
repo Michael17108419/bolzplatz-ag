@@ -35,6 +35,21 @@ class SeasonReview {
 class SeasonReviewer {
   const SeasonReviewer();
 
+  /// The goal the president sets for a new season: from the strength rank of
+  /// the club in its league (1 is the strongest) and the league level.
+  static SeasonGoal goalFor({
+    required int level,
+    required int strengthRank,
+    required int teams,
+  }) {
+    final quarter = ((strengthRank - 1) * 4 ~/ teams).clamp(0, 3);
+    return switch (quarter) {
+      0 => level == 1 ? SeasonGoal.title : SeasonGoal.promotion,
+      3 => SeasonGoal.survival,
+      _ => SeasonGoal.noTarget,
+    };
+  }
+
   /// [levelChange] is -1 when the club went up a league, 1 when it went
   /// down, 0 otherwise. [presidentTrust] and [squadMood] run from 0 (bad)
   /// to 1 (good); 0.5 is neutral and stands in until both are in the game.

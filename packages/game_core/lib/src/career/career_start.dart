@@ -111,6 +111,58 @@ class JobOffer {
   final President president;
 
   int get tier => league.level;
+
+  /// The offer as JSON, so a saved game keeps the exact offer.
+  Map<String, dynamic> toJson() {
+    return {
+      'club': club.id.value,
+      'league': league.id.value,
+      'strength': strength,
+      'strength_rank': strengthRank,
+      'situation': situation.id,
+      'last_rank': lastSeasonRank,
+      'goal': goal.name,
+      'budget': budget,
+      'quirk': quirk.id,
+      'president': {
+        'type': president.typeId,
+        'name': president.name,
+        'traits': {
+          for (final t in PresidentTrait.values) t.id: president[t],
+        },
+      },
+    };
+  }
+
+  /// Reads an offer written by [toJson]; [clubs] and [leagues] are those of
+  /// the world.
+  factory JobOffer.fromJson(
+    Map<String, dynamic> m, {
+    required Map<ClubId, Club> clubs,
+    required Map<LeagueId, League> leagues,
+  }) {
+    final p = m['president'] as Map<String, dynamic>;
+    final traits = p['traits'] as Map<String, dynamic>;
+    return JobOffer(
+      club: clubs[ClubId(m['club'] as int)]!,
+      league: leagues[LeagueId(m['league'] as int)]!,
+      strength: (m['strength'] as num).toDouble(),
+      strengthRank: m['strength_rank'] as int,
+      situation: Situation.values.firstWhere((s) => s.id == m['situation']),
+      lastSeasonRank: m['last_rank'] as int,
+      goal: SeasonGoal.values.byName(m['goal'] as String),
+      budget: m['budget'] as int,
+      quirk: ClubQuirk.values.firstWhere((q) => q.id == m['quirk']),
+      president: President(
+        typeId: p['type'] as String,
+        name: p['name'] as String,
+        traits: {
+          for (final t in PresidentTrait.values)
+            t: (traits[t.id] as num).toDouble(),
+        },
+      ),
+    );
+  }
 }
 
 /// What happened to the wish club (document 16: it becomes one of the offers
