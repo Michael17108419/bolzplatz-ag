@@ -7,11 +7,17 @@ CalendarRules _rules() => CalendarRules.fromJsonString(
   File('../../rules/calendar_rules.json').readAsStringSync(),
 );
 
-String _signature(LeagueCalendar c) => [
-  for (final m in c.matchdays)
-    '${m.number}${m.isMidweek ? 'm' : ''}:'
-        '${[for (final g in m.groups) '${g.date}T${g.timeLabel}x${g.matches}'].join(',')}',
-].join(';');
+String _signature(LeagueCalendar c) {
+  final parts = <String>[];
+  for (final m in c.matchdays) {
+    final groups = <String>[];
+    for (final g in m.groups) {
+      groups.add('${g.date}T${g.timeLabel}x${g.matches}');
+    }
+    parts.add('${m.number}${m.isMidweek ? 'm' : ''}:${groups.join(',')}');
+  }
+  return parts.join(';');
+}
 
 void main() {
   group('holidays', () {
