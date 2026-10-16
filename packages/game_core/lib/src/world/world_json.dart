@@ -75,13 +75,14 @@ class WorldJson {
       ],
     };
     final headText = jsonEncode(head);
-    final players = w.players.map((p) => jsonEncode(_player(p))).join(',\n');
+    final players = w.players.map((p) => jsonEncode(playerToJson(p))).join(',\n');
     // Insert the players as the last key of the object.
     return '${headText.substring(0, headText.length - 1)},"players":[\n'
         '$players\n]}\n';
   }
 
-  static Map<String, dynamic> _player(Player p) => {
+  /// One player as a JSON map (also used by the season snapshot).
+  static Map<String, dynamic> playerToJson(Player p) => {
     'id': p.id.value,
     'first_name': p.firstName,
     'last_name': p.lastName,
@@ -181,7 +182,7 @@ class WorldJson {
 
     final players = [
       for (final raw in root['players'] as List<dynamic>)
-        _playerFrom(raw as Map<String, dynamic>),
+        playerFromJson(raw as Map<String, dynamic>),
     ];
 
     return World(
@@ -242,7 +243,8 @@ class WorldJson {
     clubId: m['club_id'] == null ? null : ClubId(m['club_id'] as int),
   );
 
-  static Player _playerFrom(Map<String, dynamic> m) {
+  /// Reads a player written by [playerToJson].
+  static Player playerFromJson(Map<String, dynamic> m) {
     final values = [
       for (final v in m['attributes'] as List<dynamic>) (v as num).toDouble(),
     ];
