@@ -120,7 +120,6 @@ class _OfficeSceneState extends State<OfficeScene> {
   /// of the view on a phone. Every desk item lies whole in at least one.
   static const _zoneStarts = [0.0, 500.0, 1000.0];
   static const _zoneW = 500.0;
-  static const _bandH = 64.0;
   static const _floor = Color(0xFF2A1D14);
 
   @override
@@ -218,7 +217,8 @@ class _OfficeSceneState extends State<OfficeScene> {
   }
 
   static const _sceneW = officeW;
-  static const _sceneH = officeH;
+  static const _canvasH = officeH;
+  static const _coreH = officeCoreH;
 
   @override
   Widget build(BuildContext context) {
@@ -227,14 +227,13 @@ class _OfficeSceneState extends State<OfficeScene> {
         // On a phone held upright only a part of the room fits the width:
         // the scene is then wider than the screen and shows in zones.
         final narrow = isNarrow(context);
-        final room = box.maxHeight - (narrow ? _bandH : 0);
-        // On a phone the view is at least one zone wide; a taller screen
-        // gets more floor under the picture instead of a bigger picture.
+        // On a phone the view is at least one zone wide and shows all of the
+        // picture proper; a taller screen shows more of the floor below it.
         final scale = narrow
-            ? math.min(room / _sceneH, box.maxWidth / _zoneW)
-            : math.min(box.maxWidth / _sceneW, room / _sceneH);
+            ? math.min(box.maxWidth / _zoneW, box.maxHeight / (_coreH - 10))
+            : math.min(box.maxWidth / _sceneW, box.maxHeight / _coreH);
         final w = _sceneW * scale;
-        final h = _sceneH * scale;
+        final h = narrow ? box.maxHeight : _coreH * scale;
         final scrolls = w > box.maxWidth + 0.5;
         final viewW = scrolls ? box.maxWidth : w;
         if (scrolls) {
@@ -271,8 +270,13 @@ class _OfficeSceneState extends State<OfficeScene> {
         final hover = _hover;
 
         final children = <Widget>[
+          const Positioned.fill(child: ColoredBox(color: _floor)),
           for (final svg in _svgs)
-            Positioned.fill(
+            Positioned(
+              left: 0,
+              top: 0,
+              width: w,
+              height: _canvasH * scale,
               child: SvgPicture.string(
                 svg,
                 fit: BoxFit.fill,
@@ -478,7 +482,7 @@ class _OfficeSceneState extends State<OfficeScene> {
         final stack = SizedBox(
           width: w,
           height: h,
-          child: Stack(clipBehavior: Clip.none, children: children),
+          child: Stack(clipBehavior: Clip.hardEdge, children: children),
         );
         if (!scrolls) {
           return Center(
@@ -495,55 +499,51 @@ class _OfficeSceneState extends State<OfficeScene> {
         final stops = _stops;
         return Align(
           alignment: Alignment.topCenter,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: viewW,
-                height: h,
-                child: Stack(
-                  children: [
-                    ScrollConfiguration(
-                      behavior: ScrollConfiguration.of(context).copyWith(
-                        dragDevices: {
-                          PointerDeviceKind.touch,
-                          PointerDeviceKind.mouse,
-                          PointerDeviceKind.trackpad,
-                        },
-                        scrollbars: false,
-                      ),
-                      child: SingleChildScrollView(
-                        key: const ValueKey('office-zones'),
-                        controller: _controller,
-                        scrollDirection: Axis.horizontal,
-                        physics: _ZoneSnapPhysics(
-                          stops: stops,
-                          parent: const ClampingScrollPhysics(),
-                        ),
-                        child: stack,
-                      ),
+          child: SizedBox(
+            width: viewW,
+            height: h,
+            child: Stack(
+              children: [
+                ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(
+                    dragDevices: {
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.mouse,
+                      PointerDeviceKind.trackpad,
+                    },
+                    scrollbars: false,
+                  ),
+                  child: SingleChildScrollView(
+                    key: const ValueKey('office-zones'),
+                    controller: _controller,
+                    scrollDirection: Axis.horizontal,
+                    physics: _ZoneSnapPhysics(
+                      stops: stops,
+                      parent: const ClampingScrollPhysics(),
                     ),
-                    Positioned.fill(
-                      child: AnimatedBuilder(
-                        animation: _controller,
-                        builder: (context, _) => _edgeHints(viewW, h, stops),
-                      ),
+                    child: stack,
+                  ),
+                ),
+                Positioned.fill(
+                  child: AnimatedBuilder(
+                    animation: _controller,
+                    builder: (context, _) => _edgeHints(viewW, h, stops),
+                  ),
+                ),
+                // The dots that show the view stand on the floor.
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 34,
+                  child: IgnorePointer(
+                    child: AnimatedBuilder(
+                      animation: _controller,
+                      builder: (context, _) => _dots(stops),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              // Below the picture the floor goes on; the dots show the zone.
-              Container(
-                width: viewW,
-                height: math.max(_bandH, box.maxHeight - h),
-                color: _floor,
-                alignment: Alignment.center,
-                child: AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, _) => _dots(stops),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -562,12 +562,14 @@ class _OfficeSceneState extends State<OfficeScene> {
         for (var i = 0; i < stops.length; i++)
           Container(
             key: ValueKey('zone-dot-$i'),
-            width: 10,
-            height: 10,
-            margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+            width: 14,
+            height: 14,
+            margin: const EdgeInsets.symmetric(horizontal: 6),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: i == now ? Tokens.yellow : Tokens.panel,
+              // Drawn like the rest of the room: outline, flat colour.
+              color: i == now ? Tokens.yellow : const Color(0xFF2E8B57),
+              border: Border.all(color: const Color(0xFF2B1B12), width: 2.5),
             ),
           ),
       ],

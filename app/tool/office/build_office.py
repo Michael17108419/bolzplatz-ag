@@ -13,7 +13,8 @@ import pathlib
 import sys
 
 O = '#2B1B12'  # outline
-W, H = 1500, 900
+W, H = 1500, 1300
+CORE_H = 900  # the picture proper; below it the floor goes on
 
 # Where each layer sits in the 1500 x 900 room: (scale, shift x, shift y)
 # applied to the layer's own drawing coordinates. The room has three views
@@ -140,14 +141,14 @@ def room():
         b += rect(x, 490, 70, 90, '#000000', 0, 6, 'fill-opacity="0.07"')
     b += rect(0, 592, W, 24, '#3B281B', 4)
     # floor with planks
-    b += rect(0, 616, W, 284, 'url(#floor)', 0)
-    for i in range(1, 6):
+    b += rect(0, 616, W, H - 616, 'url(#floor)', 0)
+    for i in range(1, 9):
         y = 616 + i * i * 9
         b += line(0, y, W, y, '#1a0f08', 2, .35)
     for x in range(-600, 2200, 150):
-        b += line(750 + (x - 750) * .3, 616, x, 900, '#1a0f08', 2, .28)
+        b += line(750 + (x - 750) * .3, 616, x, H, '#1a0f08', 2, .28)
     # rug in the club colour (mostly hidden by the desk)
-    b += path('M70 748 Q750 646 1430 748 L1500 900 L0 900 Z', '{{club}}',
+    b += path('M70 748 Q750 646 1430 748 L1500 %d L0 %d Z' % (H, H), '{{club}}',
               '#F4EFE2', 6)
     b += path('M130 782 Q750 690 1370 782', 'none', '{{clubLight}}', 5, .8)
     b += path('M170 830 Q750 748 1330 830', 'none', '#F4EFE2', 3, .55,
@@ -185,8 +186,10 @@ def desk():
     b += circle(470, 662, 7, '#3a1d0c', 0, 'fill-opacity="0.6"')  # burn mark
     b += path('M300 765 Q420 758 520 778', 'none', '#4a2a12', 2, .5)  # crack
     b += poly([(250, 790), (1350, 790), (1350, 812), (250, 812)], '#6A3E22', 4)
-    b += rect(262, 812, 1076, 88, 'url(#dfront)', 4)
-    b += rect(610, 822, 370, 78, 'url(#dknee)', 3)
+    b += ell(800, 962, 590, 16, '#000000', .35)  # shadow on the floor
+    b += rect(262, 812, 1076, 148, 'url(#dfront)', 4)
+    b += rect(610, 822, 370, 138, 'url(#dknee)', 3)
+    b += rect(262, 944, 1076, 16, '#3F2412', 3)  # plinth
     # left drawer unit
     for (y, h, open_) in [(824, 36, True), (864, 34, False)]:
         b += rect(278, y, 312, h, '#7A4727', 3, 2)
@@ -612,7 +615,7 @@ def main():
         out.append('/// Size of the room picture and where each layer sits in it '
                    '(scale, shift x, shift y).\n')
         out.append('const double officeW = %d;\nconst double officeH = %d;\n'
-                   % (W, H))
+                   'const double officeCoreH = %d;\n' % (W, H, CORE_H))
         out.append('const Map<String, (double, double, double)> officePlace = '
                    '{\n')
         for k, (s_, x_, y_) in PLACE.items():
