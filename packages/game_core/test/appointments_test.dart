@@ -28,8 +28,7 @@ void main() {
     for (final d in run.timeline.days)
       for (final s in d.leagueSlots)
         for (final k in s.kicks)
-          if (k.fixture.home == club || k.fixture.away == club)
-            d.date.epochDay,
+          if (k.fixture.home == club || k.fixture.away == club) d.date.epochDay,
   };
 
   Set<int> cupDays(SeasonRun run) => {
@@ -47,9 +46,8 @@ void main() {
         final state = run.state;
         for (final league in rules.leagues.where((l) => l.level <= 3)) {
           final club = state.members[LeagueId(league.id)]!.first;
-          final list = AppointmentPlanner(
-            holidays,
-          ).build(season: season, timeline: run.timeline, club: club);
+          final list = AppointmentPlanner(holidays)
+              .build(season: season, timeline: run.timeline, club: club);
           final own = ownMatchDays(run, club);
           final cups = cupDays(run);
           expect(list, isNotEmpty);
@@ -79,19 +77,19 @@ void main() {
     test('the plan is the same every time', () {
       final run = begin(5);
       final club = run.state.members[LeagueId(rules.leagues.first.id)]!.first;
-      String ids() => AppointmentPlanner(holidays)
-          .build(season: season, timeline: run.timeline, club: club)
-          .map((a) => a.id)
-          .join(',');
+      String ids() =>
+          AppointmentPlanner(holidays)
+              .build(season: season, timeline: run.timeline, club: club)
+              .map((a) => a.id)
+              .join(',');
       expect(ids(), ids());
     });
 
     test('a Jour Fix follows every week with a league match', () {
       final run = begin(4);
       final club = run.state.members[LeagueId(rules.leagues.first.id)]!.first;
-      final list = AppointmentPlanner(
-        holidays,
-      ).build(season: season, timeline: run.timeline, club: club);
+      final list = AppointmentPlanner(holidays)
+          .build(season: season, timeline: run.timeline, club: club);
       final own = ownMatchDays(run, club);
       final fixes = {
         for (final a in list)

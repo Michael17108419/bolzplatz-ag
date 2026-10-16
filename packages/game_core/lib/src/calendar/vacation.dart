@@ -55,11 +55,7 @@ class VacationPlanner {
   /// that are not in [blocked] (epoch days of matches of the club).
   Set<int> allowedDays(Season season, Set<int> blocked) {
     final out = <int>{};
-    for (
-      var d = season.start;
-      !d.isAfter(season.end);
-      d = d.plusDays(1)
-    ) {
+    for (var d = season.start; !d.isAfter(season.end); d = d.plusDays(1)) {
       if (isWerktag(d) && !blocked.contains(d.epochDay)) out.add(d.epochDay);
     }
     return out;
@@ -71,11 +67,7 @@ class VacationPlanner {
   Set<int> suggest(Season season, Set<int> allowed) {
     final runs = <List<int>>[];
     var current = <int>[];
-    for (
-      var d = season.start;
-      !d.isAfter(season.end);
-      d = d.plusDays(1)
-    ) {
+    for (var d = season.start; !d.isAfter(season.end); d = d.plusDays(1)) {
       if (!isWerktag(d)) continue;
       if (allowed.contains(d.epochDay)) {
         current.add(d.epochDay);
@@ -101,11 +93,7 @@ class VacationPlanner {
     var total = 0;
     var run = 0;
     var longest = 0;
-    for (
-      var d = season.start;
-      !d.isAfter(season.end);
-      d = d.plusDays(1)
-    ) {
+    for (var d = season.start; !d.isAfter(season.end); d = d.plusDays(1)) {
       if (!isWerktag(d)) continue;
       if (days.contains(d.epochDay)) {
         total++;
