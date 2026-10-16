@@ -119,6 +119,17 @@ class _TablesTab extends ConsumerWidget {
   final int selected;
   final ValueChanged<int> onSelect;
 
+  /// Places gained since the last matchday (negative: lost); null if not
+  /// known yet (first matchday).
+  int? _trend(LeagueId league, ClubId club, int place) {
+    if (stats.matchday < 2) return null;
+    final before = stats.previous[league];
+    if (before == null) return null;
+    final at = before.indexOf(club);
+    if (at < 0) return null;
+    return (at + 1) - place;
+  }
+
   Widget _leagueChips(
     AppStrings s,
     List<League> leagues,
@@ -191,6 +202,7 @@ class _TablesTab extends ConsumerWidget {
               club: loaded.club(rows[i].club),
               own: rows[i].club == ownClub,
               narrow: narrow,
+              trend: _trend(league.id, rows[i].club, i + 1),
             ),
           ),
         ),
@@ -250,7 +262,7 @@ class _TableHeader extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: Tokens.gapS),
       child: Row(
         children: [
-          const SizedBox(width: 4 + 8),
+          SizedBox(width: narrow ? 4 + 8 + 16 : 4 + 8),
           cell(s.statsColPlace, (narrow ? 30 : _wPlace)),
           SizedBox(width: narrow ? 34 : 28),
           Expanded(child: Text(s.statsColClub, style: style)),
@@ -278,10 +290,12 @@ class _TableTile extends StatelessWidget {
     required this.club,
     required this.own,
     required this.narrow,
+    this.trend,
     super.key,
   });
 
   final bool narrow;
+  final int? trend;
   final int place;
   final TableEntry entry;
   final TableZone zone;
@@ -324,6 +338,22 @@ class _TableTile extends StatelessWidget {
                 margin: const EdgeInsets.only(right: 8),
                 color: zoneColor(zone),
               ),
+              if (narrow)
+                SizedBox(
+                  width: 16,
+                  child: trend == null || trend == 0
+                      ? null
+                      : Icon(
+                          trend! > 0
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward,
+                          key: ValueKey('trend-${club.id.value}'),
+                          size: 14,
+                          color: trend! > 0
+                              ? Tokens.green
+                              : const Color(0xFFD64545),
+                        ),
+                ),
               cell('$place', (narrow ? 30 : _wPlace), style: theme.textTheme.titleSmall),
               ClubCrest(clubId: club.id.value, size: narrow ? 30 : 24),
               const SizedBox(width: 4),

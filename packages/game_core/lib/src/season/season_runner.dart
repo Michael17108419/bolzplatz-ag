@@ -99,6 +99,10 @@ class SeasonRun {
   final Map<LeagueId, List<List<Fixture>>> schedules;
   final Map<LeagueId, LeagueTable> tables;
 
+  /// The order of each league table as it was before the last matchday of
+  /// that league (for the arrows "up" and "down" in the table).
+  final Map<LeagueId, List<ClubId>> previousOrder = {};
+
   /// Every day with matches of the season on the calendar.
   final SeasonTimeline timeline;
   final KnockoutCup bolzplatz;
@@ -790,6 +794,12 @@ class SeasonRunner {
     _state = run.state;
     _seed = run.seed;
     _today = day.date.epochDay;
+    final seenLeagues = <LeagueId>{};
+    for (final m in day.matches) {
+      if (!m.isLeague || m.applied) continue;
+      final l = m.league!;
+      if (seenLeagues.add(l)) run.previousOrder[l] = run.tables[l]!.order;
+    }
     for (final m in day.matches) {
       if (!m.isLeague || m.applied) continue;
       final MatchResult r;
