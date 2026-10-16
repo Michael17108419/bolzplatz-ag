@@ -61,6 +61,102 @@ class _Side {
 /// and returns the result.
 ///
 /// Everything random comes from the seed, so a match can be repeated.
+/// A change the manager made during a live match: a substitution or a
+/// change of system and sliders. Saved games repeat them.
+class SessionAction {
+  const SessionAction._(
+    this.minute,
+    this.side,
+    this.off,
+    this.on,
+    this.systemId,
+    this.pressing,
+    this.tempo,
+    this.defensiveLine,
+  );
+
+  factory SessionAction.substitution(
+    int minute,
+    int side,
+    PlayerId off,
+    PlayerId on,
+  ) => SessionAction._(minute, side, off, on, null, null, null, null);
+
+  factory SessionAction.tactics(
+    int minute,
+    int side, {
+    String? systemId,
+    int? pressing,
+    int? tempo,
+    int? defensiveLine,
+  }) => SessionAction._(
+    minute,
+    side,
+    null,
+    null,
+    systemId,
+    pressing,
+    tempo,
+    defensiveLine,
+  );
+
+  factory SessionAction.fromJson(Map<String, dynamic> m) {
+    final off = m['off'] as int?;
+    final on = m['on'] as int?;
+    return SessionAction._(
+      m['minute'] as int,
+      m['side'] as int,
+      off == null ? null : PlayerId(off),
+      on == null ? null : PlayerId(on),
+      m['system'] as String?,
+      m['pressing'] as int?,
+      m['tempo'] as int?,
+      m['line'] as int?,
+    );
+  }
+
+  final int minute;
+  final int side;
+
+  /// Set for a substitution.
+  final PlayerId? off;
+  final PlayerId? on;
+
+  /// Set for a tactic change (only the parts that were changed).
+  final String? systemId;
+  final int? pressing;
+  final int? tempo;
+  final int? defensiveLine;
+
+  bool get isSubstitution => off != null;
+
+  Map<String, dynamic> toJson() => {
+    'minute': minute,
+    'side': side,
+    'off': ?off?.value,
+    'on': ?on?.value,
+    'system': ?systemId,
+    'pressing': ?pressing,
+    'tempo': ?tempo,
+    'line': ?defensiveLine,
+  };
+
+  /// Does the change in [session].
+  void applyTo(MatchSession session) {
+    if (isSubstitution) {
+      session.substitute(side, off!, on!);
+    } else {
+      session.changeTactics(
+        side,
+        systemId: systemId,
+        pressing: pressing,
+        tempo: tempo,
+        defensiveLine: defensiveLine,
+      );
+    }
+  }
+}
+
 class MatchSession {
   MatchSession({
     required this.rules,
@@ -102,6 +198,7 @@ class MatchSession {
   int _goalsAway = 0;
   bool _finished = false;
   int _totalMinutes = 0;
+  final List<SessionAction> _actions = [];
 
   MatchRules get _m => rules.match;
 
@@ -111,6 +208,18 @@ class MatchSession {
   int get homeGoals => _goalsHome;
   int get awayGoals => _goalsAway;
   List<MatchEvent> get events => List.unmodifiable(_events);
+
+  /// The substitutions and tactic changes made by hand, with their minute.
+  /// [replay] repeats them in a fresh session of the same match.
+  List<SessionAction> get actions => List.unmodifiable(_actions);
+
+  /// Plays the match on, repeating [actions] at their minutes.
+  void replay(List<SessionAction> actions) {
+    for (final a in actions) {
+      advanceTo(a.minute);
+      a.applyTo(this);
+    }
+  }
 
   /// Ids of the players on the pitch for [side] (0 home, 1 away).
   List<PlayerId> onPitch(int side) => [
@@ -1002,6 +1111,12 @@ class MatchSession {
 
   /// Substitutes [off] by [on] for [side]. Returns false when not allowed.
   bool substitute(int side, PlayerId off, PlayerId on) {
+    final ok = _substitute(side, off, on);
+    if (ok) _actions.add(SessionAction.substitution(_minute, side, off, on));
+    return ok;
+  }
+
+  bool _substitute(int side, PlayerId off, PlayerId on) {
     final s = _sides[side];
     if (_finished || s.subsUsed >= rules.tactics.maxSubstitutions) return false;
     final slot = s.pitch.where((x) => x.player.id == off).firstOrNull;
@@ -1026,6 +1141,16 @@ class MatchSession {
     int? tempo,
     int? defensiveLine,
   }) {
+    _actions.add(
+      SessionAction.tactics(
+        _minute,
+        side,
+        systemId: systemId,
+        pressing: pressing,
+        tempo: tempo,
+        defensiveLine: defensiveLine,
+      ),
+    );
     final s = _sides[side];
     final before = s.sheet;
     s.sheet = before.copyWith(
@@ -1067,7 +1192,7 @@ class MatchSession {
                   .compareTo(_fit.slotScore(a, target.position)),
             );
         if (options.isNotEmpty) {
-          substitute(i, target.player.id, options.first.id);
+          _substitute(i, target.player.id, options.first.id);
           return;
         }
       }
