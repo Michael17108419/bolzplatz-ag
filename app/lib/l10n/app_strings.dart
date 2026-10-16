@@ -60,6 +60,7 @@ abstract interface class AppStrings {
   String get infoBackstory;
   String officeSeason(int startYear);
   String get officeToMenu;
+  String get officeMenuLabel;
   String get officeGo;
   String get officeNextTitle;
   String officeMatchday(int day);
@@ -689,6 +690,8 @@ class AppStringsDe implements AppStrings {
   @override
   String get officeToMenu => 'Hauptmenü';
   @override
+  String get officeMenuLabel => 'Menü';
+  @override
   String get officeGo => 'Zum Spieltag';
   @override
   String get officeNextTitle => 'Nächstes Spiel';
@@ -793,7 +796,7 @@ class AppStringsDe implements AppStrings {
       'Lässt die Uhr laufen, bis etwas passiert: dein nächstes Spiel '
       '(Liga oder Pokal) oder eine Entscheidung, die du treffen musst. Freie '
       'Tage und die Spiele der anderen Ligen laufen dabei im Hintergrund '
-      'mit. Das Datum oben rechts läuft mit.';
+      'mit. Das Datum auf dem Tischkalender läuft mit.';
   @override
   String monthName(int month) => const [
     'Januar',
@@ -1347,10 +1350,11 @@ class AppStringsDe implements AppStrings {
       unread == 1 ? '1 ungelesene Nachricht' : '$unread ungelesene Nachrichten';
   @override
   String get infoDesk =>
-      'Das ist dein Schreibtisch, und von hier läuft alles. Fahr mit '
-      'der Maus über ein Ding, klick darauf oder drück die '
-      'Zahl daneben. Hinter der Tür geht es weiter. Das Büro wird besser, '
-      'wenn der Verein es tut. Versprochen, irgendwann.';
+      'Das ist dein Büro, und von hier läuft alles. Tipp auf ein Ding, '
+      'und es öffnet sich (am Computer geht auch die Zahl daneben). Auf dem '
+      'Handy wischst du durch den Raum, drei Ansichten. Der runde Knopf '
+      'unten links lässt die Zeit weiterlaufen, die Tür tut dasselbe. Das '
+      'Büro wird besser, wenn der Verein es tut. Versprochen, irgendwann.';
   @override
   String get comingLater => 'Kommt später.';
   @override

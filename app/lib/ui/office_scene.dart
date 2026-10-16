@@ -10,8 +10,9 @@ import 'adaptive.dart';
 import 'crest.dart';
 import 'office_svgs.dart';
 
-/// Where each desk item sits in the 1600 x 900 scene (the click areas).
-const Map<DeskItem, Rect> deskSpots = {
+/// Where each desk item was drawn (1600 x 900 sheet of the first stage);
+/// the room is laid out anew, see [officePlace].
+const Map<DeskItem, Rect> _baseSpots = {
   DeskItem.post: Rect.fromLTWH(270, 560, 200, 180),
   DeskItem.press: Rect.fromLTWH(490, 680, 265, 100),
   DeskItem.tactics: Rect.fromLTWH(60, 96, 310, 240),
@@ -23,6 +24,27 @@ const Map<DeskItem, Rect> deskSpots = {
   DeskItem.grounds: Rect.fromLTWH(590, 84, 420, 290),
   DeskItem.saves: Rect.fromLTWH(996, 806, 330, 68),
   DeskItem.door: Rect.fromLTWH(1432, 98, 166, 560),
+};
+
+/// A rectangle in a layer's own drawing, moved to where the layer sits.
+Rect _placed(String layer, Rect r) {
+  final p = officePlace[layer];
+  if (p == null) return r;
+  final (k, tx, ty) = p;
+  return Rect.fromLTWH(r.left * k + tx, r.top * k + ty, r.width * k, r.height * k);
+}
+
+/// Where each desk item sits in the 1500 x 900 room (the click areas).
+final Map<DeskItem, Rect> deskSpots = {
+  for (final e in _baseSpots.entries)
+    e.key: _placed(
+      switch (e.key) {
+        DeskItem.post => 'mail',
+        DeskItem.saves => 'drawer',
+        _ => e.key.name,
+      },
+      e.value,
+    ),
 };
 
 /// The sign that appears when the mouse rests on a desk item.
@@ -52,6 +74,8 @@ class OfficeScene extends StatefulWidget {
     required this.onOpen,
     required this.portrait,
     required this.leagueLabel,
+    this.calendarTop = '',
+    this.calendarDay = '',
     this.trophies = 0,
     super.key,
   });
@@ -66,6 +90,11 @@ class OfficeScene extends StatefulWidget {
   /// Builds the trainer portrait for the given edge length.
   final Widget Function(double size) portrait;
   final String leagueLabel;
+
+  /// The date on the desk calendar: weekday and month on the red band, the
+  /// day of the month large below.
+  final String calendarTop;
+  final String calendarDay;
 
   /// Number of won titles shown in the cabinet (at most six).
   final int trophies;
@@ -89,8 +118,10 @@ class _OfficeSceneState extends State<OfficeScene> {
 
   /// The zones of the room, as the left edge in scene units, and the width
   /// of the view on a phone. Every desk item lies whole in at least one.
-  static const _zoneStarts = [0.0, 460.0, 920.0];
-  static const _narrowViewW = 680.0;
+  static const _zoneStarts = [0.0, 500.0, 1000.0];
+  static const _zoneW = 500.0;
+  static const _bandH = 64.0;
+  static const _floor = Color(0xFF2A1D14);
 
   @override
   void initState() {
@@ -178,8 +209,8 @@ class _OfficeSceneState extends State<OfficeScene> {
     ];
   }
 
-  static const _sceneW = 1600.0;
-  static const _sceneH = 900.0;
+  static const _sceneW = officeW;
+  static const _sceneH = officeH;
 
   @override
   Widget build(BuildContext context) {
@@ -188,11 +219,12 @@ class _OfficeSceneState extends State<OfficeScene> {
         // On a phone held upright only a part of the room fits the width:
         // the scene is then wider than the screen and shows in zones.
         final narrow = isNarrow(context);
-        final room = box.maxHeight - (narrow ? _dotsH : 0);
-        final scale = math.min(
-          box.maxWidth / (narrow ? _narrowViewW : _sceneW),
-          room / _sceneH,
-        );
+        final room = box.maxHeight - (narrow ? _bandH : 0);
+        // On a phone the view is at least one zone wide; a taller screen
+        // gets more floor under the picture instead of a bigger picture.
+        final scale = narrow
+            ? math.min(room / _sceneH, box.maxWidth / _zoneW)
+            : math.min(box.maxWidth / _sceneW, room / _sceneH);
         final w = _sceneW * scale;
         final h = _sceneH * scale;
         final scrolls = w > box.maxWidth + 0.5;
@@ -246,7 +278,7 @@ class _OfficeSceneState extends State<OfficeScene> {
           ),
           // The league on the poster banner.
           Positioned.fromRect(
-            rect: r(const Rect.fromLTWH(1058, 146, 88, 26)),
+            rect: r(_placed('stats', const Rect.fromLTWH(1058, 146, 88, 26))),
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
@@ -262,7 +294,7 @@ class _OfficeSceneState extends State<OfficeScene> {
           ),
           // The trainer in the frame on the desk.
           Positioned.fromRect(
-            rect: r(const Rect.fromLTWH(1224, 614, 44, 66)),
+            rect: r(_placed('frame', const Rect.fromLTWH(1224, 614, 44, 66))),
             child: ClipRect(
               child: FittedBox(
                 fit: BoxFit.cover,
@@ -279,15 +311,57 @@ class _OfficeSceneState extends State<OfficeScene> {
           for (var i = 0; i < math.min(widget.trophies, 6); i++)
             Positioned.fromRect(
               rect: r(
-                Rect.fromLTWH(
-                  1230.0 + (i % 3) * 65 - 22,
-                  (i < 3 ? 236.0 : 336.0) - 58,
-                  44,
-                  58,
+                _placed(
+                  'stats',
+                  Rect.fromLTWH(
+                    1230.0 + (i % 3) * 65 - 22,
+                    (i < 3 ? 236.0 : 336.0) - 58,
+                    44,
+                    58,
+                  ),
                 ),
               ),
               child: const CustomPaint(painter: _CupPainter()),
             ),
+          // The date on the desk calendar.
+          Positioned.fromRect(
+            rect: r(_placed('calendar', const Rect.fromLTWH(802, 646, 70, 24))),
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  widget.calendarTop,
+                  key: const ValueKey('calendar-top'),
+                  style: const TextStyle(
+                    fontFamily: Tokens.headlineFont,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    height: 1,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned.fromRect(
+            rect: r(_placed('calendar', const Rect.fromLTWH(802, 670, 70, 48))),
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  widget.calendarDay,
+                  key: const ValueKey('calendar-day'),
+                  style: const TextStyle(
+                    fontFamily: Tokens.headlineFont,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 40,
+                    height: 1,
+                    color: Color(0xFF222222),
+                  ),
+                ),
+              ),
+            ),
+          ),
           // The click areas.
           for (final item in DeskItem.values)
             Positioned.fromRect(
@@ -413,50 +487,51 @@ class _OfficeSceneState extends State<OfficeScene> {
           );
         }
         final stops = _stops;
-        return Center(
+        return Align(
+          alignment: Alignment.topCenter,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(
                 width: viewW,
                 height: h,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      ScrollConfiguration(
-                        behavior: ScrollConfiguration.of(context).copyWith(
-                          dragDevices: {
-                            PointerDeviceKind.touch,
-                            PointerDeviceKind.mouse,
-                            PointerDeviceKind.trackpad,
-                          },
-                          scrollbars: false,
-                        ),
-                        child: SingleChildScrollView(
-                          key: const ValueKey('office-zones'),
-                          controller: _controller,
-                          scrollDirection: Axis.horizontal,
-                          physics: _ZoneSnapPhysics(
-                            stops: stops,
-                            parent: const ClampingScrollPhysics(),
-                          ),
-                          child: stack,
-                        ),
+                child: Stack(
+                  children: [
+                    ScrollConfiguration(
+                      behavior: ScrollConfiguration.of(context).copyWith(
+                        dragDevices: {
+                          PointerDeviceKind.touch,
+                          PointerDeviceKind.mouse,
+                          PointerDeviceKind.trackpad,
+                        },
+                        scrollbars: false,
                       ),
-                      Positioned.fill(
-                        child: AnimatedBuilder(
-                          animation: _controller,
-                          builder: (context, _) =>
-                              _edgeHints(viewW, h, stops),
+                      child: SingleChildScrollView(
+                        key: const ValueKey('office-zones'),
+                        controller: _controller,
+                        scrollDirection: Axis.horizontal,
+                        physics: _ZoneSnapPhysics(
+                          stops: stops,
+                          parent: const ClampingScrollPhysics(),
                         ),
+                        child: stack,
                       ),
-                    ],
-                  ),
+                    ),
+                    Positioned.fill(
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, _) => _edgeHints(viewW, h, stops),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(
-                height: _dotsH,
+              // Below the picture the floor goes on; the dots show the zone.
+              Container(
+                width: viewW,
+                height: math.max(_bandH, box.maxHeight - h),
+                color: _floor,
+                alignment: Alignment.center,
                 child: AnimatedBuilder(
                   animation: _controller,
                   builder: (context, _) => _dots(stops),
@@ -468,8 +543,6 @@ class _OfficeSceneState extends State<OfficeScene> {
       },
     );
   }
-
-  static const _dotsH = 22.0;
 
   double get _offset => _controller.hasClients
       ? _controller.offset

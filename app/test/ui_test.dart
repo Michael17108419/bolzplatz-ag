@@ -112,9 +112,17 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('offer-accept')));
     await tester.pumpAndSettle();
     // The office: the desk scene with club, badge and the things on it.
-    expect(find.byKey(const ValueKey('office-club')), findsOneWidget);
-    expect(find.byKey(const ValueKey('office-trainer')), findsOneWidget);
+    expect(find.byKey(const ValueKey('office-play')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-day')), findsOneWidget);
     expect(find.byKey(const ValueKey('desk-door')), findsOneWidget);
+    // The menu holds the club, the date and the trainer.
+    await tester.tap(find.byKey(const ValueKey('office-menu')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('office-club')), findsOneWidget);
+    expect(find.byKey(const ValueKey('office-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('office-trainer')), findsOneWidget);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('badge-post')),
@@ -370,7 +378,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('report-office')));
     await tester.pumpAndSettle();
-    expect(find.text('Weiter zu Spieltag 2'), findsWidgets);
+    expect(find.byKey(const ValueKey('office-play')), findsOneWidget);
   });
 
   test('the app copies of world, rules and names equal the originals', () {
