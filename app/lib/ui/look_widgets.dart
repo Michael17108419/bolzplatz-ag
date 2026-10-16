@@ -39,7 +39,9 @@ class LookRow extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
-                Expanded(child: Align(alignment: Alignment.centerLeft, child: child)),
+                Expanded(
+                  child: Align(alignment: Alignment.centerLeft, child: child),
+                ),
               ],
             ),
           );
@@ -126,11 +128,7 @@ class LookPicker extends ConsumerWidget {
 }
 
 class _ArrowButton extends StatelessWidget {
-  const _ArrowButton({
-    required this.forward,
-    required this.onTap,
-    super.key,
-  });
+  const _ArrowButton({required this.forward, required this.onTap, super.key});
 
   final bool forward;
   final VoidCallback onTap;
@@ -277,7 +275,9 @@ class AvatarPanel extends ConsumerWidget {
         children: [
           PersonAvatar(appearance: a, size: 120),
           const SizedBox(width: Tokens.gapM),
-          Expanded(child: Align(alignment: Alignment.centerLeft, child: dice)),
+          Expanded(
+            child: Align(alignment: Alignment.centerLeft, child: dice),
+          ),
         ],
       );
     }

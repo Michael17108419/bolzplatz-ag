@@ -31,20 +31,22 @@ Rect _placed(String layer, Rect r) {
   final p = officePlace[layer];
   if (p == null) return r;
   final (k, tx, ty) = p;
-  return Rect.fromLTWH(r.left * k + tx, r.top * k + ty, r.width * k, r.height * k);
+  return Rect.fromLTWH(
+    r.left * k + tx,
+    r.top * k + ty,
+    r.width * k,
+    r.height * k,
+  );
 }
 
 /// Where each desk item sits in the 1500 x 900 room (the click areas).
 final Map<DeskItem, Rect> deskSpots = {
   for (final e in _baseSpots.entries)
-    e.key: _placed(
-      switch (e.key) {
-        DeskItem.post => 'mail',
-        DeskItem.saves => 'drawer',
-        _ => e.key.name,
-      },
-      e.value,
-    ),
+    e.key: _placed(switch (e.key) {
+      DeskItem.post => 'mail',
+      DeskItem.saves => 'drawer',
+      _ => e.key.name,
+    }, e.value),
 };
 
 /// The sign that appears when the mouse rests on a desk item.
@@ -460,16 +462,16 @@ class _OfficeSceneState extends State<OfficeScene> {
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                          widget.labels[item]!.title,
-                          maxLines: 1,
-                          style: const TextStyle(
-                            fontFamily: Tokens.headlineFont,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 11,
-                            height: 1.2,
-                            color: Tokens.cream,
+                            widget.labels[item]!.title,
+                            maxLines: 1,
+                            style: const TextStyle(
+                              fontFamily: Tokens.headlineFont,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                              height: 1.2,
+                              color: Tokens.cream,
+                            ),
                           ),
-                        ),
                         ),
                       ),
                     ),
@@ -628,10 +630,7 @@ class _OfficeSceneState extends State<OfficeScene> {
     final l = _mostUrgent(left);
     final r = _mostUrgent(right);
     return Stack(
-      children: [
-        if (l != null) pill(l, false),
-        if (r != null) pill(r, true),
-      ],
+      children: [if (l != null) pill(l, false), if (r != null) pill(r, true)],
     );
   }
 
