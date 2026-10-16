@@ -15,6 +15,7 @@ abstract interface class AppStrings {
   String get tagline;
   String get menuNewGame;
   String get menuLoadGame;
+  String get menuContinue;
   String get menuSettings;
   String get menuQuit;
   String get back;
@@ -457,6 +458,7 @@ abstract interface class AppStrings {
   String get savesEmpty;
   String get savesUnreadable;
   String savesLine1(String trainer, String club);
+  String savesLiveHint(int minute);
   String savesLine2(String league, String date, int matchday, int matchdays);
   String savesSavedAt(String stamp);
   String get savesSave;
@@ -489,6 +491,8 @@ class AppStringsDe implements AppStrings {
   String get menuNewGame => 'Neues Spiel';
   @override
   String get menuLoadGame => 'Spiel laden';
+  @override
+  String get menuContinue => 'Weiterspielen';
   @override
   String get menuSettings => 'Einstellungen';
   @override
@@ -2406,6 +2410,8 @@ class AppStringsDe implements AppStrings {
       'Nicht lesbar: andere Version oder beschädigt. Die Datei bleibt liegen.';
   @override
   String savesLine1(String trainer, String club) => '$trainer bei $club';
+  @override
+  String savesLiveHint(int minute) => 'Ein Spiel läuft: Minute $minute.';
   @override
   String savesLine2(String league, String date, int matchday, int matchdays) =>
       '$league · $date · Spieltag $matchday von $matchdays gespielt';

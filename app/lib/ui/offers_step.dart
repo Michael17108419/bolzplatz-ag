@@ -6,6 +6,7 @@ import '../game/career.dart';
 import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'crest.dart';
 import 'info_button.dart';
 import 'person_avatar.dart';
@@ -77,7 +78,34 @@ class _OffersStepState extends ConsumerState<OffersStep> {
         ],
         const SizedBox(height: Tokens.gapM),
         Expanded(
-          child: Row(
+          child: isNarrow(context)
+              ? ListView(
+                  children: [
+                    for (var i = 0; i < offers.length; i++) ...[
+                      _OfferTile(
+                        key: ValueKey('offer-$i'),
+                        offer: offers[i],
+                        selected: i == _selected,
+                        onTap: () => setState(() => _selected = i),
+                      ),
+                      // The chosen offer opens right under its card.
+                      if (i == _selected)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: Tokens.gapM),
+                          child: Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(Tokens.gapM),
+                              child: _OfferDetail(
+                                offer: offers[i],
+                                inline: true,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ],
+                )
+              : Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
@@ -121,6 +149,7 @@ class _OffersStepState extends ConsumerState<OffersStep> {
             const Spacer(),
             FilledButton(
               key: const ValueKey('offer-accept'),
+              style: FilledButton.styleFrom(minimumSize: const Size(96, 48)),
               onPressed: selected == null
                   ? null
                   : () => widget.onAccept(trainer, selected),
@@ -199,9 +228,12 @@ class _OfferTile extends ConsumerWidget {
 }
 
 class _OfferDetail extends ConsumerWidget {
-  const _OfferDetail({required this.offer});
+  const _OfferDetail({required this.offer, this.inline = false});
 
   final JobOffer offer;
+
+  /// True inside a scrolling list on a phone: the detail then sizes itself.
+  final bool inline;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -226,7 +258,7 @@ class _OfferDetail extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 130,
+            width: inline ? 110 : 130,
             child: Row(
               children: [
                 Flexible(
@@ -247,6 +279,8 @@ class _OfferDetail extends ConsumerWidget {
       ),
     );
     return ListView(
+      shrinkWrap: inline,
+      physics: inline ? const NeverScrollableScrollPhysics() : null,
       children: [
         Text(offer.club.name, style: theme.textTheme.headlineSmall),
         const SizedBox(height: Tokens.gapM),

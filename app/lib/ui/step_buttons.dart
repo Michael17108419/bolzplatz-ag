@@ -25,11 +25,16 @@ class StepButtons extends StatelessWidget {
     return Row(
       children: [
         if (backLabel != null)
-          TextButton(onPressed: onBack, child: Text(backLabel!)),
+          TextButton(
+            style: TextButton.styleFrom(minimumSize: const Size(72, 48)),
+            onPressed: onBack,
+            child: Text(backLabel!),
+          ),
         const Spacer(),
         if (middle != null) ...[middle!, const SizedBox(width: 12)],
         FilledButton(
           key: const ValueKey('step-next'),
+          style: FilledButton.styleFrom(minimumSize: const Size(96, 48)),
           onPressed: onNext,
           child: Text(nextLabel),
         ),

@@ -6,6 +6,7 @@ import '../game/career.dart';
 import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'info_button.dart';
 import 'step_buttons.dart';
 
@@ -42,7 +43,39 @@ class BackstoryStep extends ConsumerWidget {
         ),
         const SizedBox(height: Tokens.gapM),
         Expanded(
-          child: Row(
+          child: isNarrow(context)
+              ? ListView(
+                  children: [
+                    for (final b in stories) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: Tokens.gapS),
+                        child: SizedBox(
+                          height: 56,
+                          child: _StoryCard(
+                            key: ValueKey('story-${b.id}'),
+                            label: s.backstoryName(b.id),
+                            selected: b.id == draft.backstoryId,
+                            onTap: () => ref
+                                .read(careerDraftProvider.notifier)
+                                .setBackstory(b.id),
+                          ),
+                        ),
+                      ),
+                      // The chosen story opens right under its card.
+                      if (b.id == draft.backstoryId)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: Tokens.gapM),
+                          child: Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(Tokens.gapM),
+                              child: _StoryDetail(story: b, inline: true),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ],
+                )
+              : Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
@@ -141,15 +174,20 @@ class _StoryCard extends StatelessWidget {
 }
 
 class _StoryDetail extends ConsumerWidget {
-  const _StoryDetail({required this.story});
+  const _StoryDetail({required this.story, this.inline = false});
 
   final Backstory story;
+
+  /// True inside a scrolling list on a phone: the detail then sizes itself.
+  final bool inline;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
     final theme = Theme.of(context);
     return ListView(
+      shrinkWrap: inline,
+      physics: inline ? const NeverScrollableScrollPhysics() : null,
       children: [
         Row(
           children: [
@@ -231,6 +269,7 @@ class _LevelRow extends StatelessWidget {
                 Flexible(
                   child: Text(
                     label,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium,
                   ),
