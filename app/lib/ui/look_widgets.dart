@@ -81,13 +81,15 @@ class LookPicker extends ConsumerWidget {
         .read(careerDraftProvider.notifier)
         .setAppearance(change(a, (value + step + _count) % _count));
     final Widget shown = labels != null
-        ? Text(
-            labels![value],
-            key: ValueKey('$optionKey-value'),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge,
+        ? FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              labels![value],
+              key: ValueKey('$optionKey-value'),
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           )
         : Container(
             key: ValueKey('$optionKey-value'),
