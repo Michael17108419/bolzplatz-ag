@@ -74,14 +74,18 @@ class SeasonReviewer {
           verdict = GoalVerdict.reached;
         } else {
           gap = rank - 1;
-          verdict = gap <= rules.titleMissedMaxGap ? GoalVerdict.missed : GoalVerdict.failed;
+          verdict = gap <= rules.titleMissedMaxGap
+              ? GoalVerdict.missed
+              : GoalVerdict.failed;
         }
       case SeasonGoal.promotion:
         if (promoted) {
           verdict = rank == 1 ? GoalVerdict.exceeded : GoalVerdict.reached;
         } else {
           gap = (rank - 3).clamp(1, teams);
-          verdict = gap <= rules.promotionMissedMaxGap ? GoalVerdict.missed : GoalVerdict.failed;
+          verdict = gap <= rules.promotionMissedMaxGap
+              ? GoalVerdict.missed
+              : GoalVerdict.failed;
         }
       case SeasonGoal.noTarget:
         if (relegated) {
@@ -94,7 +98,9 @@ class SeasonReviewer {
       case SeasonGoal.licence:
         if (relegated) {
           gap = (rank - (teams - 3)).clamp(1, teams);
-          verdict = gap <= rules.survivalMissedMaxGap ? GoalVerdict.missed : GoalVerdict.failed;
+          verdict = gap <= rules.survivalMissedMaxGap
+              ? GoalVerdict.missed
+              : GoalVerdict.failed;
         } else if (rank <= teams ~/ 2 || promoted) {
           verdict = GoalVerdict.exceeded;
         }
