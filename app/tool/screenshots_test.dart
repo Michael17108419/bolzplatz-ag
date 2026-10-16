@@ -71,8 +71,10 @@ void main() {
     );
     await tester.tap(next);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('outfit-5')));
-    await tester.pumpAndSettle();
+    for (var i = 0; i < 5; i++) {
+      await tester.tap(find.byKey(const ValueKey('outfit-next')));
+      await tester.pumpAndSettle();
+    }
     await expectLater(
       find.byType(BolzplatzApp),
       matchesGoldenFile('out/04b_kleidung.png'),

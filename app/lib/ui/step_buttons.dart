@@ -28,15 +28,34 @@ class StepButtons extends StatelessWidget {
           TextButton(
             style: TextButton.styleFrom(minimumSize: const Size(72, 48)),
             onPressed: onBack,
-            child: Text(backLabel!),
+            child: Text(backLabel!, maxLines: 1, softWrap: false),
           ),
-        const Spacer(),
-        if (middle != null) ...[middle!, const SizedBox(width: 12)],
-        FilledButton(
-          key: const ValueKey('step-next'),
-          style: FilledButton.styleFrom(minimumSize: const Size(96, 48)),
-          onPressed: onNext,
-          child: Text(nextLabel),
+        // The rest of the row belongs to the next button; a long label
+        // wraps instead of overflowing on a phone.
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (middle != null) ...[middle!, const SizedBox(width: 8)],
+                Flexible(
+                  child: FilledButton(
+                    key: const ValueKey('step-next'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(96, 48),
+                    ),
+                    onPressed: onNext,
+                    child: Text(
+                      nextLabel,
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );

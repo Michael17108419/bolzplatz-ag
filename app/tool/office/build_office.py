@@ -13,7 +13,36 @@ import pathlib
 import sys
 
 O = '#2B1B12'  # outline
-W, H = 1600, 900
+W, H = 1500, 1300
+CORE_H = 900  # the picture proper; below it the floor goes on
+
+# Where each layer sits in the 1500 x 900 room: (scale, shift x, shift y)
+# applied to the layer's own drawing coordinates. The room has three views
+# (zones) of 500 units each; every desk item lies whole in one of them.
+PLACE = {
+    'tactics': (1.0, -50.0, 0.0),
+    'transfers': (0.9, -17.0, 14.0),
+    'press': (1.0, 20.0, 0.0),
+    'grounds': (1.0, -22.0, 0.0),
+    'calendar': (1.4, -302.0, -300.8),
+    'stats': (0.86, 116.2, 6.8),
+    'door': (1.0, -100.0, 0.0),
+    'finance': (0.8, 266.0, 155.0),
+    'frame': (1.0, 22.0, 0.0),
+}
+
+
+def place(name, s):
+    if name not in PLACE:
+        return s
+    k, tx, ty = PLACE[name]
+    g = '<g transform="translate(%g %g) scale(%g)">' % (tx, ty, k)
+    if '</defs>' in s:
+        s = s.replace('</defs>', '</defs>' + g, 1)
+    else:
+        i = s.index('>') + 1
+        s = s[:i] + g + s[i:]
+    return s[:-len('</svg>')] + '</g></svg>'
 
 
 def svg(body, defs=''):
@@ -88,18 +117,20 @@ def room():
         lg('wall', [(0, '#E0D2AB', None), (1, '#C2B28A', None)])
         + lg('dado', [(0, '{{clubLight}}', None), (1, '{{club}}', None)])
         + lg('floor', [(0, '#5C412E', None), (1, '#2F2118', None)])
-        + rg('vig', 800, 380, 980, [(0.5, '#1a0f08', 0), (1, '#1a0f08', .5)])
-        + rg('glow', 585, 84, 150, [(0, '#FFE9A0', .55), (1, '#FFE9A0', 0)])
+        + rg('vig', 750, 380, 940, [(0.5, '#1a0f08', 0), (1, '#1a0f08', .5)])
+        + rg('glow', 750, 84, 150, [(0, '#FFE9A0', .55), (1, '#FFE9A0', 0)])
     )
     b = rect(0, 0, W, 620, 'url(#wall)', 0)
     for x in range(0, W, 80):
         b += rect(x, 0, 40, 466, '#ffffff', 0, 0, 'fill-opacity="0.04"')
     # peeled plaster with bricks
+    b += '<g transform="translate(314 0)">'
     b += path('M26 36 Q70 20 126 30 L152 74 Q150 120 106 146 L48 128 '
               'Q20 90 26 36Z', '#BFAE86', '#9C8A62', 2, 1)
     for (x, y) in [(52, 56), (86, 56), (68, 74), (52, 92), (86, 92),
                    (104, 110)]:
         b += rect(x, y, 30, 14, '#9A4B34', 1, 1, 'fill-opacity="0.85"')
+    b += '</g>'
     b += ell(1330, 96, 96, 44, '#7a5a30', .10)
     b += ell(1360, 120, 60, 26, '#7a5a30', .10)
     # club coloured dado
@@ -110,24 +141,24 @@ def room():
         b += rect(x, 490, 70, 90, '#000000', 0, 6, 'fill-opacity="0.07"')
     b += rect(0, 592, W, 24, '#3B281B', 4)
     # floor with planks
-    b += rect(0, 616, W, 284, 'url(#floor)', 0)
-    for i in range(1, 6):
+    b += rect(0, 616, W, H - 616, 'url(#floor)', 0)
+    for i in range(1, 9):
         y = 616 + i * i * 9
         b += line(0, y, W, y, '#1a0f08', 2, .35)
-    for x in range(-600, 2300, 150):
-        b += line(800 + (x - 800) * .3, 616, x, 900, '#1a0f08', 2, .28)
+    for x in range(-600, 2200, 150):
+        b += line(750 + (x - 750) * .3, 616, x, H, '#1a0f08', 2, .28)
     # rug in the club colour (mostly hidden by the desk)
-    b += path('M70 748 Q800 646 1530 748 L1600 900 L0 900 Z', '{{club}}',
+    b += path('M70 748 Q750 646 1430 748 L1500 %d L0 %d Z' % (H, H), '{{club}}',
               '#F4EFE2', 6)
-    b += path('M130 782 Q800 690 1470 782', 'none', '{{clubLight}}', 5, .8)
-    b += path('M170 830 Q800 748 1430 830', 'none', '#F4EFE2', 3, .55,
+    b += path('M130 782 Q750 690 1370 782', 'none', '{{clubLight}}', 5, .8)
+    b += path('M170 830 Q750 748 1330 830', 'none', '#F4EFE2', 3, .55,
               'stroke-dasharray="14 10"')
     # bare bulb on a cord
-    b += ell(585, 84, 150, 150, 'url(#glow)', 1)
-    b += line(585, 0, 585, 62, O, 3)
-    b += rect(576, 58, 18, 14, '#6b6b6b', 2, 2)
-    b += circle(585, 86, 17, '#FFE9A0', 3)
-    b += path('M578 90 q7 -10 14 0', 'none', '#C79A2A', 2)
+    b += ell(750, 84, 150, 150, 'url(#glow)', 1)
+    b += line(750, 0, 750, 62, O, 3)
+    b += rect(741, 58, 18, 14, '#6b6b6b', 2, 2)
+    b += circle(750, 86, 17, '#FFE9A0', 3)
+    b += path('M743 90 q7 -10 14 0', 'none', '#C79A2A', 2)
     # mouse hole
     b += path('M1394 592 q0 -28 22 -28 q22 0 22 28 z', '#140b06', O, 3)
     b += circle(1405, 586, 2, '#ffffff')
@@ -155,10 +186,18 @@ def desk():
     b += circle(470, 662, 7, '#3a1d0c', 0, 'fill-opacity="0.6"')  # burn mark
     b += path('M300 765 Q420 758 520 778', 'none', '#4a2a12', 2, .5)  # crack
     b += poly([(250, 790), (1350, 790), (1350, 812), (250, 812)], '#6A3E22', 4)
-    b += rect(262, 812, 1076, 88, 'url(#dfront)', 4)
-    b += rect(610, 822, 370, 78, 'url(#dknee)', 3)
+    # a pedestal desk: two drawer blocks down to the floor, knee space between
+    b += ell(800, 992, 600, 14, '#000000', .38)  # shadow on the floor
+    b += rect(592, 840, 408, 145, 'url(#dknee)', 3)  # knee space, dark
+    b += rect(592, 962, 408, 23, '#000000', 0, 0, 'fill-opacity="0.35"')
+    b += rect(262, 812, 1076, 30, 'url(#dfront)', 4)  # apron over the knees
+    b += rect(262, 812, 330, 173, 'url(#dfront)', 4)  # left block
+    b += rect(1000, 812, 338, 173, 'url(#dfront)', 4)  # right block
+    for x, w in ((262, 330), (1000, 338)):
+        b += rect(x, 972, w, 13, '#3F2412', 3)  # plinth
     # left drawer unit
-    for (y, h, open_) in [(824, 36, True), (864, 34, False)]:
+    for (y, h, open_) in [(824, 36, True), (864, 34, False),
+                           (902, 34, False), (940, 30, False)]:
         b += rect(278, y, 312, h, '#7A4727', 3, 2)
         b += rect(286, y + 7, 296, h - 14, '#000000', 0, 2,
                   'fill-opacity="0.15"')
@@ -169,6 +208,11 @@ def desk():
     b += rect(1005, 868, 310, 30, '#7A4727', 3, 2)
     b += rect(1013, 875, 294, 16, '#000000', 0, 2, 'fill-opacity="0.15"')
     b += rect(1135, 877, 50, 9, '#D2A24C', 2, 4)
+    for y in (902, 938):
+        b += rect(1005, y, 310, 32, '#7A4727', 3, 2)
+        b += rect(1013, y + 7, 294, 18, '#000000', 0, 2,
+                  'fill-opacity="0.15"')
+        b += rect(1135, y + 11, 50, 9, '#D2A24C', 2, 4)
     return svg(b, defs)
 
 
@@ -481,7 +525,6 @@ def calendar():  # Abreissblock
     b += rect(802, 646, 70, 76, '#FBF8EE', 2)
     b += rect(802, 646, 70, 24, '#D9362B', 2)
     b += circle(818, 646, 5, '#6b6b6b', 2) + circle(858, 646, 5, '#6b6b6b', 2)
-    b += path('M821 682 H847 L833 716', 'none', '#222222', 7)
     b += rect(802, 718, 70, 6, '#ffffff', 1.5)
     b += poly([(800, 742), (826, 738), (830, 750), (804, 754)], '#F7F3E6', 2)
     b += circle(886, 744, 8, '#D8D4C6', 2)
@@ -522,7 +565,15 @@ def finance():  # Zigarrenkiste mit Taschenrechner
     return svg(b, defs)
 
 
-def deco():  # not clickable: mug, photo frame, paper stack, crest nail
+def frame():  # the trainer's photo frame (the portrait is drawn by the app)
+    b = rect(1214, 604, 64, 86, '#6D4425', 4, 3)
+    b += rect(1224, 614, 44, 66, '#E9DFC6', 2)
+    b += poly([(1236, 690), (1256, 690), (1262, 704), (1230, 704)], '#4a2a12',
+              2)
+    return svg(b)
+
+
+def deco():  # not clickable: mug, paper stack, crest nail
     b = ell(768, 748, 26, 5, '#000000', .25)
     b += rect(750, 700, 36, 46, '#F4EFE2', 3, 6)
     b += path('M786 710 q16 4 0 24', 'none', O, 3.5)
@@ -530,15 +581,10 @@ def deco():  # not clickable: mug, photo frame, paper stack, crest nail
     for dx in (-6, 2, 10):
         b += path('M%d 690 q6 -10 0 -18 q-6 -8 2 -16' % (768 + dx), 'none',
                   '#ffffff', 3, .4)
-    # trainer photo frame
-    b += rect(1214, 604, 64, 86, '#6D4425', 4, 3)
-    b += rect(1224, 614, 44, 66, '#E9DFC6', 2)
-    b += poly([(1236, 690), (1256, 690), (1262, 704), (1230, 704)], '#4a2a12',
-              2)
     # stack of papers
     for i, dx in enumerate((0, 4, -3)):
-        b += rect(888 + dx, 730 - i * 7, 48, 10, '#F7F3E6', 2.5)
-    b += rect(896, 710, 34, 10, '#FFE066', 2)
+        b += rect(960 + dx, 730 - i * 7, 48, 10, '#F7F3E6', 2.5)
+    b += rect(968, 710, 34, 10, '#FFE066', 2)
     # nail and string for the crest
     b += line(800, 366, 772, 396, '#3a2a1a', 2) + line(800, 366, 828, 396,
                                                        '#3a2a1a', 2)
@@ -551,7 +597,7 @@ LAYERS = [
     ('transfers', transfers), ('grounds', grounds), ('stats', stats),
     ('door', door), ('desk', desk), ('drawer', drawer), ('mail', mail),
     ('press', press), ('calendar', calendar), ('finance', finance),
-    ('deco', deco),
+    ('frame', frame), ('deco', deco),
 ]
 
 SAMPLE = {'{{club}}': '#A8232D', '{{clubDark}}': '#5C1319',
@@ -575,16 +621,25 @@ def main():
                'the club colour.\n',
                'const List<(String, String)> officeLayers = [\n']
         for name, fn in LAYERS:
-            out.append("  ('%s', r'''%s'''),\n" % (name, fn()))
-        out.append('];\n')
+            out.append("  ('%s', r'''%s'''),\n" % (name, place(name, fn())))
+        out.append('];\n\n')
+        out.append('/// Size of the room picture and where each layer sits in it '
+                   '(scale, shift x, shift y).\n')
+        out.append('const double officeW = %d;\nconst double officeH = %d;\n'
+                   'const double officeCoreH = %d;\n' % (W, H, CORE_H))
+        out.append('const Map<String, (double, double, double)> officePlace = '
+                   '{\n')
+        for k, (s_, x_, y_) in PLACE.items():
+            out.append("  '%s': (%g, %g, %g),\n" % (k, s_, x_, y_))
+        out.append('};\n')
         (app / 'lib/ui/office_svgs.dart').write_text(''.join(out))
         print('wrote lib/ui/office_svgs.dart')
     else:
         html = ['<html><body style="margin:0;background:#000">'
-                '<div style="position:relative;width:1600px;height:900px">']
+                '<div style="position:relative;width:1500px;height:900px">']
         for name, fn in LAYERS:
             html.append('<div style="position:absolute;inset:0">%s</div>'
-                        % sample(fn()))
+                        % sample(place(name, fn())))
         html.append('</div></body></html>')
         (here / 'preview.html').write_text(''.join(html))
         print('wrote preview.html')
