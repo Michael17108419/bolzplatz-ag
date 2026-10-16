@@ -110,9 +110,8 @@ void _summerBreak(BuildContext context, WidgetRef ref) {
   final end = game?.end;
   if (end == null) return;
   if (end.review.dismissed || end.nextLeague == null) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const DismissalPage()),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const DismissalPage()));
     return;
   }
   if (!ref.read(seasonProvider.notifier).startNextSeason()) return;

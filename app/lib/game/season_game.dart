@@ -265,9 +265,9 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
 
   SeasonGame _fresh(Career career, LoadedWorld loaded, TeamSheet? sheet) {
     final from = ref.read(worldStateProvider);
-    final seed = SeededRandom(
-      career.seed,
-    ).fork('season:${(from?.startYear ?? loaded.world.season.startYear)}').seed;
+    final seed = SeededRandom(career.seed)
+        .fork('season:${(from?.startYear ?? loaded.world.season.startYear)}')
+        .seed;
     final runner = SeasonRunner(
       loaded.rules,
       calendarRules: loaded.calendarRules,
@@ -284,9 +284,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       ownLeague: career.league.id,
       seed: seed,
       ownDays: run.schedules[career.league.id]!.length,
-      today: from == null
-          ? loaded.today
-          : Season(from.startYear).start,
+      today: from == null ? loaded.today : Season(from.startYear).start,
       initialSheet: sheet,
     );
   }

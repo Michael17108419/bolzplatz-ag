@@ -337,9 +337,7 @@ class SaveService {
     // The world of the saved season, then the career in it.
     _ref
         .read(worldStateProvider.notifier)
-        .set(
-          data.base == null ? null : unpackSeasonState(data.base!, clubs),
-        );
+        .set(data.base == null ? null : unpackSeasonState(data.base!, clubs));
     _ref.read(seasonHistoryProvider.notifier).restore(data.seasons);
     _ref
         .read(careerProvider.notifier)
@@ -351,7 +349,9 @@ class SaveService {
         );
     final leagueId = data.leagueId;
     final goal = data.goal;
-    if (leagueId != null && goal != null && leagues[LeagueId(leagueId)] != null) {
+    if (leagueId != null &&
+        goal != null &&
+        leagues[LeagueId(leagueId)] != null) {
       _ref
           .read(careerProvider.notifier)
           .newSeason(

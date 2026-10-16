@@ -2093,14 +2093,20 @@ class AppStringsDe implements AppStrings {
       lines.add('Den Bolzplatzpokal hat $cupWinner gewonnen.');
     }
     if (levelChange < 0 && nextLeague != null) {
-      lines.add('Dein Verein steigt auf in die ${leagueName(nextLeague)}. '
-          'Die Sektkorken sind schon unterwegs.');
+      lines.add(
+        'Dein Verein steigt auf in die ${leagueName(nextLeague)}. '
+        'Die Sektkorken sind schon unterwegs.',
+      );
     } else if (levelChange > 0 && nextLeague != null) {
-      lines.add('Dein Verein steigt ab in die ${leagueName(nextLeague)}. '
-          'Das Gute daran: Es kann nur besser werden.');
+      lines.add(
+        'Dein Verein steigt ab in die ${leagueName(nextLeague)}. '
+        'Das Gute daran: Es kann nur besser werden.',
+      );
     } else if (nextLeague == null) {
-      lines.add('Dein Verein hat die Pyramide nach unten verlassen. '
-          'Weiter runter geht es nicht, außer in den Keller.');
+      lines.add(
+        'Dein Verein hat die Pyramide nach unten verlassen. '
+        'Weiter runter geht es nicht, außer in den Keller.',
+      );
     } else {
       lines.add('Ihr bleibt in der ${leagueName(league)}.');
     }
@@ -2109,21 +2115,27 @@ class AppStringsDe implements AppStrings {
       GoalVerdict.exceeded =>
         'Das Ziel hast du übertroffen. Der Präsident redet schon von '
             'Europa. Es gibt keins.',
-      GoalVerdict.reached => 'Das Ziel hast du erreicht. Das ist die Pflicht, '
-          'aber auch die ist selten.',
-      GoalVerdict.missed => 'Das Ziel hast du knapp verpasst'
-          '${gap > 0 ? ' (um $gap ${gap == 1 ? 'Platz' : 'Plätze'})' : ''}.',
-      GoalVerdict.failed => 'Das Ziel hast du klar verfehlt'
-          '${gap > 0 ? ' (um $gap Plätze)' : ''}.',
+      GoalVerdict.reached =>
+        'Das Ziel hast du erreicht. Das ist die Pflicht, '
+            'aber auch die ist selten.',
+      GoalVerdict.missed =>
+        'Das Ziel hast du knapp verpasst'
+            '${gap > 0 ? ' (um $gap ${gap == 1 ? 'Platz' : 'Plätze'})' : ''}.',
+      GoalVerdict.failed =>
+        'Das Ziel hast du klar verfehlt'
+            '${gap > 0 ? ' (um $gap Plätze)' : ''}.',
     });
     if (dismissed) {
-      lines.add('Der Präsident hat entschieden: Dein Vertrag wird zum '
-          '30. Juni nicht verlängert. Er hat dabei sehr ernst geschaut und '
-          'nur einmal auf die Uhr.');
-    } else if (verdict == GoalVerdict.missed ||
-        verdict == GoalVerdict.failed) {
-      lines.add('Du bleibst. Der Präsident drückt noch einmal ein Auge zu, '
-          'das andere beobachtet dich.');
+      lines.add(
+        'Der Präsident hat entschieden: Dein Vertrag wird zum '
+        '30. Juni nicht verlängert. Er hat dabei sehr ernst geschaut und '
+        'nur einmal auf die Uhr.',
+      );
+    } else if (verdict == GoalVerdict.missed || verdict == GoalVerdict.failed) {
+      lines.add(
+        'Du bleibst. Der Präsident drückt noch einmal ein Auge zu, '
+        'das andere beobachtet dich.',
+      );
     } else {
       lines.add('Dein Vertrag läuft weiter.');
     }

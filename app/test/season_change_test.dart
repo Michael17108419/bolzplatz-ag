@@ -142,7 +142,10 @@ void main() {
     final y = b.read(seasonProvider)!;
     expect(y.today, x.today);
     expect(y.played, x.played);
-    expect(b.read(careerProvider)!.league.id, a.read(careerProvider)!.league.id);
+    expect(
+      b.read(careerProvider)!.league.id,
+      a.read(careerProvider)!.league.id,
+    );
     expect(b.read(careerProvider)!.goal, a.read(careerProvider)!.goal);
     expect(b.read(seasonHistoryProvider), hasLength(1));
     List<String> table(SeasonGame g) => [
