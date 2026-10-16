@@ -24,6 +24,21 @@ class LeagueTable {
 
   final Map<ClubId, TableEntry> _entries;
 
+  /// An independent copy, for example to add live scores to it.
+  LeagueTable copy() {
+    final table = LeagueTable(_entries.keys.toList());
+    for (final e in _entries.values) {
+      table._entries[e.club]!
+        ..played = e.played
+        ..won = e.won
+        ..drawn = e.drawn
+        ..lost = e.lost
+        ..goalsFor = e.goalsFor
+        ..goalsAgainst = e.goalsAgainst;
+    }
+    return table;
+  }
+
   void record(ClubId home, ClubId away, int homeGoals, int awayGoals) {
     final h = _entries[home]!;
     final a = _entries[away]!;

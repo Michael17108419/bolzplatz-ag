@@ -273,6 +273,22 @@ void main() {
     expect(find.byKey(const ValueKey('match-line-0')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('match-pause')));
     await tester.pump();
+    // Conference: clock, matches of the league and the live table.
+    await tester.tap(find.byKey(const ValueKey('match-view-conference')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('conf-clock')), findsOneWidget);
+    expect(find.byKey(const ValueKey('conf-list')), findsOneWidget);
+    expect(find.byKey(const ValueKey('conf-table-0')), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w.key is ValueKey<String> &&
+            (w.key! as ValueKey<String>).value.startsWith('conf-match-'),
+      ),
+      findsWidgets,
+    );
+    await tester.tap(find.byKey(const ValueKey('match-view-own')));
+    await tester.pump();
     // Tactics: change the pressing, the ticker notes it.
     await tester.tap(find.byKey(const ValueKey('match-tactics')));
     await tester.pumpAndSettle();

@@ -92,6 +92,17 @@ abstract interface class AppStrings {
   String get matchSubBenchEmpty;
   String get matchSubKeeperOnly;
   String get infoMatchSpeed;
+  String get matchViewOwn;
+  String get matchViewConference;
+  String get confNotStarted;
+  String confRunning(int minute);
+  String get confFinished;
+  String get confTable;
+  String get confPlayedShort;
+  String get confPointsShort;
+  String get confNoLeagues;
+  String weekdayShort(int weekday);
+  String get infoConference;
   String get infoMatchSubs;
   String get infoMatchTactics;
   String get matchClose;
@@ -645,6 +656,33 @@ class AppStringsDe implements AppStrings {
   String get matchSubKeeperOnly =>
       'Ein Torwart darf nur für einen Torwart, ein Feldspieler nur für '
       'einen Feldspieler. So steht es geschrieben.';
+  @override
+  String get matchViewOwn => 'Mein Spiel';
+  @override
+  String get matchViewConference => 'Konferenz';
+  @override
+  String get confNotStarted => 'noch nicht angepfiffen';
+  @override
+  String confRunning(int minute) => 'läuft · $minute\'';
+  @override
+  String get confFinished => 'abgepfiffen';
+  @override
+  String get confTable => 'Live-Tabelle';
+  @override
+  String get confPlayedShort => 'Sp';
+  @override
+  String get confPointsShort => 'Pkt';
+  @override
+  String get confNoLeagues => 'Heute spielt keine Liga. Ungewohnte Ruhe.';
+  @override
+  String weekdayShort(int weekday) =>
+      const ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][weekday - 1];
+  @override
+  String get infoConference =>
+      'Alle Spiele, die zur gleichen Zeit angepfiffen werden, laufen '
+      'gemeinsam. Hier siehst du ihren Stand, wie in der Radio-Konferenz. '
+      'Die Tabelle rechnet jeden Zwischenstand sofort mit. Reiter gibt es '
+      'nur für Ligen, die heute spielen, deine zuerst.';
   @override
   String get infoMatchSpeed =>
       'Wie schnell die Minuten vergehen. Bei Verletzung, Rot und zur '

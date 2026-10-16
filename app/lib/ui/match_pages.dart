@@ -12,6 +12,7 @@ import '../game/season_game.dart';
 import '../game/ticker.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'conference_view.dart';
 import 'crest.dart';
 import 'info_button.dart';
 import 'screen_frame.dart';
@@ -191,6 +192,8 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
   ];
 
   late final OwnMatch _own;
+  late final ConferenceDay _day;
+  int _view = 0;
   late final LoadedWorld _loaded;
   late final int _ownSide;
   final List<TickerLine> _lines = [];
@@ -208,6 +211,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     super.initState();
     final game = ref.read(seasonProvider)!;
     _own = game.next!;
+    _day = game.day!;
     _loaded = ref.read(loadedWorldProvider).value!;
     _ownSide = _own.fixture.home == game.clubId ? 0 : 1;
     _ingest();
@@ -436,8 +440,36 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
               ],
             ),
             const SizedBox(height: Tokens.gapS),
+            Wrap(
+              spacing: 8,
+              children: [
+                ChoiceChip(
+                  key: const ValueKey('match-view-own'),
+                  label: Text(s.matchViewOwn),
+                  selected: _view == 0,
+                  onSelected: (_) => setState(() => _view = 0),
+                ),
+                ChoiceChip(
+                  key: const ValueKey('match-view-conference'),
+                  label: Text(s.matchViewConference),
+                  selected: _view == 1,
+                  onSelected: (_) => setState(() => _view = 1),
+                ),
+              ],
+            ),
+            const SizedBox(height: Tokens.gapS),
             Expanded(
-              child: DecoratedBox(
+              child: _view == 1 && game != null
+                  ? ConferenceView(
+                      day: _day,
+                      run: game.run,
+                      loaded: _loaded,
+                      strings: s,
+                      ownLeague: game.ownLeague,
+                      ownClub: game.clubId,
+                      ownDone: _done,
+                    )
+                  : DecoratedBox(
                 decoration: BoxDecoration(
                   color: Tokens.panel,
                   borderRadius: BorderRadius.circular(Tokens.radius),
