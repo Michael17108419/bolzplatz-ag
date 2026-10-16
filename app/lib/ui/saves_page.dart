@@ -131,6 +131,7 @@ class _SavesPageState extends ConsumerState<SavesPage> {
     });
     // Let the hint draw once before the replay blocks the thread.
     await Future<void>.delayed(const Duration(milliseconds: 50));
+    if (!mounted) return;
     final ok = await loadAndEnter(context, ref, data);
     if (!mounted) return;
     if (!ok) {
