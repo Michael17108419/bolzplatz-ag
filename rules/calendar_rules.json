@@ -238,5 +238,42 @@
       },
       "midweek_slots": []
     }
+  },
+  "cups": {
+    "bolzplatz_windows": [
+      {
+        "weekday": 2,
+        "time": "18:00"
+      },
+      {
+        "weekday": 2,
+        "time": "20:30"
+      },
+      {
+        "weekday": 3,
+        "time": "18:00"
+      },
+      {
+        "weekday": 3,
+        "time": "20:30"
+      }
+    ],
+    "bolzplatz_final": {
+      "weekday": 6,
+      "time": "20:00"
+    },
+    "bolzplatz_final_weeks_after_last_league_weekend": 1,
+    "pott_months": [
+      9,
+      10,
+      11,
+      12,
+      1
+    ],
+    "pott_first_day_of_month": 12,
+    "pott_window": {
+      "weekday": 3,
+      "time": "18:30"
+    }
   }
 }

@@ -37,6 +37,7 @@ export 'src/season/league_table.dart';
 export 'src/season/schedule.dart';
 export 'src/season/season_runner.dart';
 export 'src/season/season_state.dart';
+export 'src/season/timeline.dart';
 export 'src/world/club_catalog.dart';
 export 'src/world/world.dart';
 export 'src/world/world_generator.dart';
