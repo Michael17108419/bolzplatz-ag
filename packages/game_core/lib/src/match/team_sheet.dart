@@ -18,16 +18,30 @@ class TeamSheet {
        ),
        bench = List.unmodifiable(bench);
 
-  factory TeamSheet.fromJson(Map<String, dynamic> m) => TeamSheet(
-    formationId: m['formation'] as String,
-    systemId: m['system'] as String,
-    startingXi: [for (final v in m['xi'] as List<dynamic>) PlayerId(v as int)],
-    slotRoles: [for (final v in m['roles'] as List<dynamic>) v as String?],
-    bench: [for (final v in m['bench'] as List<dynamic>) PlayerId(v as int)],
-    pressing: m['pressing'] as int,
-    tempo: m['tempo'] as int,
-    defensiveLine: m['line'] as int,
-  );
+  factory TeamSheet.fromJson(Map<String, dynamic> m) {
+    List<PlayerId> ids(String key) {
+      final out = <PlayerId>[];
+      for (final v in m[key] as List<dynamic>) {
+        out.add(PlayerId(v as int));
+      }
+      return out;
+    }
+
+    final roles = <String?>[];
+    for (final v in m['roles'] as List<dynamic>) {
+      roles.add(v as String?);
+    }
+    return TeamSheet(
+      formationId: m['formation'] as String,
+      systemId: m['system'] as String,
+      startingXi: ids('xi'),
+      slotRoles: roles,
+      bench: ids('bench'),
+      pressing: m['pressing'] as int,
+      tempo: m['tempo'] as int,
+      defensiveLine: m['line'] as int,
+    );
+  }
 
   /// Plain JSON for saving; [TeamSheet.fromJson] reads it back.
   Map<String, dynamic> toJson() => {
