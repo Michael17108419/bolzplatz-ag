@@ -15,6 +15,32 @@ import 'office_page.dart';
 import 'screen_frame.dart';
 import 'settings_page.dart';
 
+/// Puts a saved game back and opens the office, and the live match on top
+/// of it if one was under way. False if the game does not fit the world.
+Future<bool> loadAndEnter(
+  BuildContext context,
+  WidgetRef ref,
+  SaveData data,
+) async {
+  final ok = await ref.read(saveServiceProvider).load(data);
+  if (!ok || !context.mounted) return ok;
+  final nav = Navigator.of(context);
+  // A match that was under way is picked up where it stopped.
+  final resume = ref.read(seasonProvider.notifier).resumeLive;
+  unawaited(
+    nav.pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const OfficePage()),
+      (route) => route.isFirst,
+    ),
+  );
+  if (resume) {
+    unawaited(
+      nav.push(MaterialPageRoute<void>(builder: (_) => const LiveMatchPage())),
+    );
+  }
+  return true;
+}
+
 /// The saved games: the automatic slot and three of the player's own. Opened
 /// from the desk (save and load) and from the main menu (load only).
 class SavesPage extends ConsumerStatefulWidget {
@@ -105,28 +131,13 @@ class _SavesPageState extends ConsumerState<SavesPage> {
     });
     // Let the hint draw once before the replay blocks the thread.
     await Future<void>.delayed(const Duration(milliseconds: 50));
-    final ok = await ref.read(saveServiceProvider).load(data);
+    final ok = await loadAndEnter(context, ref, data);
     if (!mounted) return;
     if (!ok) {
       setState(() {
         _busy = false;
         _message = s.savesLoadFailed;
       });
-      return;
-    }
-    final nav = Navigator.of(context);
-    // A match that was under way is picked up where it stopped.
-    final resume = ref.read(seasonProvider.notifier).resumeLive;
-    unawaited(
-      nav.pushAndRemoveUntil(
-        MaterialPageRoute<void>(builder: (_) => const OfficePage()),
-        (route) => route.isFirst,
-      ),
-    );
-    if (resume) {
-      unawaited(
-        nav.push(MaterialPageRoute<void>(builder: (_) => const LiveMatchPage())),
-      );
     }
   }
 
@@ -165,6 +176,14 @@ class _SavesPageState extends ConsumerState<SavesPage> {
                 s.savesSavedAt(_stamp(data.savedAt)),
                 style: theme.textTheme.bodySmall,
               ),
+              if (data.live != null)
+                Text(
+                  s.savesLiveHint(data.live!['minute'] as int),
+                  key: ValueKey('save-live-${view.slot}'),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Tokens.yellow,
+                  ),
+                ),
             ] else
               Text(view.unreadable ? s.savesUnreadable : s.savesEmpty),
             const SizedBox(height: Tokens.gapS),
