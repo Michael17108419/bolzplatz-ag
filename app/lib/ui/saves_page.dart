@@ -125,7 +125,9 @@ class _SavesPageState extends ConsumerState<SavesPage> {
     );
     if (resume) {
       unawaited(
-        nav.push(MaterialPageRoute<void>(builder: (_) => const LiveMatchPage())),
+        nav.push(
+          MaterialPageRoute<void>(builder: (_) => const LiveMatchPage()),
+        ),
       );
     }
   }

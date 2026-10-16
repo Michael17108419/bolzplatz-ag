@@ -159,8 +159,7 @@ void main() {
     final side = own.fixture.home == a.read(careerProvider)!.clubId ? 0 : 1;
     session.advanceTo(38);
     final players = {
-      for (final p in a.read(loadedWorldProvider).value!.world.players)
-        p.id: p,
+      for (final p in a.read(loadedWorldProvider).value!.world.players) p.id: p,
     };
     final off = session
         .onPitch(side)
