@@ -1,0 +1,31 @@
+name: debug-test
+# Runs chosen game_core test files and shows the failure text (manual).
+on:
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'test files, space separated'
+        required: true
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/game_core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      - run: dart pub get
+      - name: Test
+        shell: bash
+        env:
+          FILES: ${{ inputs.files }}
+        run: |
+          set +e
+          dart test $FILES -r expanded > t.txt 2>&1
+          code=$?
+          msg=$(grep -vE '^#[0-9]|package:test|dart:' t.txt | grep -vE '^[0-9:]+ \+[0-9]+: .*(passed|[a-z]$)' | head -60 | cut -c1-300 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}' | cut -c1-3800)
+          echo "::error::${msg}"
+          exit $code
