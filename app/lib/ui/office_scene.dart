@@ -141,6 +141,14 @@ class _OfficeSceneState extends State<OfficeScene> {
     _zone = _nearestStop(_controller.offset);
   }
 
+  /// The name tag stays inside the zone (500 units) its thing stands in.
+  double _tagLeft(double centerX, double scale) {
+    final panel = (centerX ~/ _zoneW) * _zoneW;
+    return (centerX * scale - 75)
+        .clamp(panel * scale + 4, (panel + _zoneW) * scale - 150 - 4)
+        .toDouble();
+  }
+
   int _nearestStop(double offset) {
     var best = 0;
     for (var i = 1; i < _stops.length; i++) {
@@ -430,10 +438,8 @@ class _OfficeSceneState extends State<OfficeScene> {
             for (final item in DeskItem.values)
               if (widget.labels[item] != null)
                 Positioned(
-                  left: (deskSpots[item]!.center.dx * scale - 85)
-                      .clamp(0.0, math.max(0.0, w - 170))
-                      .toDouble(),
-                  width: 170,
+                  left: _tagLeft(deskSpots[item]!.center.dx, scale),
+                  width: 150,
                   top: deskSpots[item]!.bottom * scale - 22,
                   child: IgnorePointer(
                     child: Center(
