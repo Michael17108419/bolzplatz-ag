@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:isolate';
 
+import 'package:archive/archive.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -161,18 +161,27 @@ class SaveData {
 
 /// The state of a season as packed text (gzip, base64).
 String packSeasonState(SeasonState state) =>
-    base64.encode(gzip.encode(utf8.encode(SeasonSnapshot.encode(state))));
+    base64.encode(
+      GZipEncoder().encodeBytes(utf8.encode(SeasonSnapshot.encode(state))),
+    );
 
 /// Reads a state written by [packSeasonState].
 SeasonState unpackSeasonState(String text, Map<ClubId, Club> clubs) =>
-    SeasonSnapshot.decode(utf8.decode(gzip.decode(base64.decode(text))), clubs);
+    SeasonSnapshot.decode(
+      utf8.decode(GZipDecoder().decodeBytes(base64.decode(text))),
+      clubs,
+    );
 
-/// Like [unpackSeasonState], but on another isolate: a saved game of a later
+/// Like [unpackSeasonState], but on another isolate (on the web: in a
+/// worker-less fallback): a saved game of a later
 /// season carries a few megabytes, and the window must not freeze meanwhile.
 Future<SeasonState> unpackSeasonStateInBackground(
   String text,
   Map<ClubId, Club> clubs,
-) => Isolate.run(() => unpackSeasonState(text, clubs));
+) => compute(_unpack, (text, clubs));
+
+SeasonState _unpack((String, Map<ClubId, Club>) args) =>
+    unpackSeasonState(args.$1, args.$2);
 
 /// Where the saved games are kept (one text per slot).
 abstract class SaveRepository {

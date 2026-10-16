@@ -1,5 +1,6 @@
-import 'dart:io';
+import 'dart:io' show exit;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -62,8 +63,13 @@ class MainMenuPage extends ConsumerWidget {
                     onPressed: () => _open(context, const SettingsPage()),
                     child: Text(s.menuSettings),
                   ),
-                  const SizedBox(height: Tokens.gapM),
-                  TextButton(onPressed: () => exit(0), child: Text(s.menuQuit)),
+                  if (!kIsWeb) ...[
+                    const SizedBox(height: Tokens.gapM),
+                    TextButton(
+                      onPressed: () => exit(0),
+                      child: Text(s.menuQuit),
+                    ),
+                  ],
                 ],
               ),
             ),

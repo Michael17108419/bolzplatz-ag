@@ -140,3 +140,58 @@ jobs:
           git add Bolzplatz_AG_Windows.zip
           git commit -m "Windows build $GITHUB_SHA" > /dev/null
           git push -f origin windows-build
+
+  # The web app (phone-friendly test version). Built after the tests and
+  # kept on the branch "web-build"; where it is hosted is decided apart.
+  web:
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    needs: [game_core, app]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: app/pubspec.yaml
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Generate code
+        shell: bash
+        run: dart run build_runner build --delete-conflicting-outputs
+      - name: Web scaffold
+        shell: bash
+        run: |
+          flutter create --platforms=web --project-name bolzplatz_app --org de.bolzplatz .
+          sed -i 's/<title>[^<]*<\/title>/<title>Bolzplatz AG<\/title>/' web/index.html
+          sed -i 's/"name": "[^"]*"/"name": "Bolzplatz AG"/; s/"short_name": "[^"]*"/"short_name": "Bolzplatz"/' web/manifest.json
+      - name: Build web
+        shell: bash
+        run: |
+          set +e
+          flutter build web --release > web.txt 2>&1
+          code=$?
+          cat web.txt
+          grep -iE 'error|unsupported' web.txt | head -15 | while read -r line; do echo "::error::${line}"; done
+          exit $code
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bolzplatz-web
+          path: app/build/web
+      - name: Publish to branch
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          cd build/web
+          touch .nojekyll
+          git init -q
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git checkout -q -b web-build
+          git add -A
+          git commit -qm "Web build $GITHUB_SHA"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" web-build
