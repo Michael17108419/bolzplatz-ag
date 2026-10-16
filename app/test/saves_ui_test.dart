@@ -31,9 +31,18 @@ void main() {
     await tester.tap(find.text('Spiel laden'));
     await tester.pumpAndSettle();
     expect(find.text('Spielstände'), findsWidgets);
-    for (final slot in ['auto', '1', '2', '3']) {
-      expect(find.byKey(ValueKey('save-slot-$slot')), findsOneWidget);
-    }
+    expect(find.byKey(const ValueKey('save-slot-auto')), findsOneWidget);
+    await tester.dragUntilVisible(
+      find.byKey(const ValueKey('save-slot-3')),
+      find.byType(ListView),
+      const Offset(0, -200),
+    );
+    expect(find.byKey(const ValueKey('save-slot-3')), findsOneWidget);
+    await tester.dragUntilVisible(
+      find.textContaining('Noch kein Spielstand'),
+      find.byType(ListView),
+      const Offset(0, 200),
+    );
     expect(find.textContaining('Noch kein Spielstand'), findsOneWidget);
     expect(find.byKey(const ValueKey('load-btn-1')), findsNothing);
     expect(find.byKey(const ValueKey('save-btn-1')), findsNothing);
