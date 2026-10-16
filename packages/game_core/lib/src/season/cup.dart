@@ -3,8 +3,10 @@ import '../rng/seeded_random.dart';
 
 /// One tie of a cup round.
 class CupTie {
-  const CupTie(this.home, this.away, this.winner);
+  const CupTie(this.home, this.away, this.winner, {this.neutral = false});
 
+  /// True for the final: it is played at a neutral venue, nobody is host.
+  final bool neutral;
   final ClubId home;
   final ClubId away;
   final ClubId winner;
@@ -112,6 +114,12 @@ class KnockoutCup {
   final List<List<ClubId>> eliminated = [];
   ClubId? _winner;
 
+  /// True if the pending round is the final (neutral venue).
+  bool _finalPending = false;
+
+  /// The next round is the final and has no home advantage.
+  bool get nextRoundIsNeutral => _finalPending;
+
   ClubId? get winner => _winner;
   bool get isFinished => _winner != null;
   int get roundsPlayed => rounds.length;
@@ -130,6 +138,7 @@ class KnockoutCup {
     ClubId Function(ClubId home, ClubId away) playTie,
   ) {
     if (isFinished) throw StateError('The cup is finished');
+    final neutral = _finalPending;
     final ties = <CupTie>[];
     final out = <ClubId>[];
     final winners = <ClubId>[];
@@ -138,7 +147,7 @@ class KnockoutCup {
       if (w != t.$1 && w != t.$2) {
         throw StateError('Winner is not one of the clubs');
       }
-      ties.add(CupTie(t.$1, t.$2, w));
+      ties.add(CupTie(t.$1, t.$2, w, neutral: neutral));
       winners.add(w);
       out.add(w == t.$1 ? t.$2 : t.$1);
     }
@@ -152,8 +161,14 @@ class KnockoutCup {
       return ties;
     }
     _rng.shuffle(next);
+    _finalPending = next.length == 2;
     for (var i = 0; i + 1 < next.length; i += 2) {
-      _pending.add(_homeFirst(next[i], next[i + 1], _tier));
+      // The final has no host: keep the drawn order, no home right.
+      _pending.add(
+        _finalPending
+            ? (next[i], next[i + 1])
+            : _homeFirst(next[i], next[i + 1], _tier),
+      );
     }
     return ties;
   }
