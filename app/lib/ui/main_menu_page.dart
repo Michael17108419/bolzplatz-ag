@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../game/loaded_world.dart';
+import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'logo.dart';
@@ -42,7 +44,11 @@ class MainMenuPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: Tokens.gapL * 1.5),
                   FilledButton(
-                    onPressed: () => _open(context, const CareerStartPage()),
+                    onPressed: () {
+                      ref.read(worldStateProvider.notifier).set(null);
+                      ref.read(seasonHistoryProvider.notifier).reset();
+                      _open(context, const CareerStartPage());
+                    },
                     child: Text(s.menuNewGame),
                   ),
                   const SizedBox(height: Tokens.gapM),

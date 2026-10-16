@@ -128,7 +128,7 @@ List<OfficeMail> buildMails(
                 a.kind,
                 a.variant,
                 manager: trainer.name,
-                goal: s.seasonGoalText(offer.goal),
+                goal: s.seasonGoalText(career.goal),
                 club: offer.club.name,
               ),
         portrait: presidentPortrait,
@@ -140,7 +140,7 @@ List<OfficeMail> buildMails(
             : const [],
       ),
   ];
-  final verdict = game != null && game.isOver && vacation != null
+  final verdict = game != null && game.end != null && vacation != null
       ? OfficeMail(
           id: vacationVerdictId,
           sender: s.officeSenderAdvisor,
@@ -155,7 +155,37 @@ List<OfficeMail> buildMails(
           actions: [(s.jourFixToCalendar, DeskItem.calendar)],
         )
       : null;
+  final end = game?.end;
+  OfficeMail? seasonEnd;
+  if (end != null) {
+    final leagues = {for (final l in loaded.world.leagues) l.id: l};
+    seasonEnd = OfficeMail(
+      id: seasonEndId,
+      sender: president,
+      subject: s.seasonEndSubject(end.startYear, end.review.dismissed),
+      body: s.seasonEndBody(
+        startYear: end.startYear,
+        league: career.league.name,
+        rank: end.rank,
+        teams: end.teams,
+        champion: loaded.club(end.champion).name,
+        cupWinner: end.cupWinner == null
+            ? null
+            : loaded.club(end.cupWinner!).name,
+        levelChange: end.levelChange,
+        nextLeague: end.nextLeague == null
+            ? null
+            : leagues[end.nextLeague]!.name,
+        verdict: end.review.verdict,
+        gap: end.review.gap,
+        goal: end.review.goal,
+        dismissed: end.review.dismissed,
+      ),
+      portrait: presidentPortrait,
+    );
+  }
   return [
+    ?seasonEnd,
     ?verdict,
     ...appointmentMails,
     OfficeMail(
@@ -188,7 +218,7 @@ List<OfficeMail> buildMails(
       sender: s.officeSenderAdvisor,
       subject: s.officeMailSubjectAdvisor,
       body: s.officeMailBodyAdvisor(
-        goal: s.seasonGoalText(offer.goal),
+        goal: s.seasonGoalText(career.goal),
         budget: s.money(offer.budget),
         squad: view.squadSize,
         opponent: view.opponent.name,

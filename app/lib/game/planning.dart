@@ -8,6 +8,9 @@ import 'season_game.dart';
 /// The mail with the verdict on the vacation plan at the end of the season.
 const String vacationVerdictId = 'vacation-verdict';
 
+/// The mail with the balance of the season.
+const String seasonEndId = 'season-end';
+
 final holidayCalendarProvider = Provider<HolidayCalendar>(
   (ref) => HolidayCalendar(),
 );
@@ -37,9 +40,10 @@ final dueAppointmentsProvider = Provider<List<Appointment>>((ref) {
 final inboxIdsProvider = Provider<List<String>>((ref) {
   final due = ref.watch(dueAppointmentsProvider);
   final recent = due.reversed.take(12).map((a) => a.id).toList();
-  final over = ref.watch(seasonProvider.select((g) => g?.isOver ?? false));
+  final ended = ref.watch(seasonProvider.select((g) => g?.end != null));
   return [
-    if (over) vacationVerdictId,
+    if (ended) seasonEndId,
+    if (ended) vacationVerdictId,
     ...recent,
     'jourfix',
     'president',

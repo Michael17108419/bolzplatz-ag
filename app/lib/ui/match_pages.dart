@@ -121,7 +121,7 @@ class MatchPreviewPage extends ConsumerWidget {
               Flexible(
                 child: Text(
                   '${atHome ? s.officeHome : s.officeAway} · '
-                  '${_isCup(own) ? s.cupName(own.competition) : s.leagueName(ref.watch(careerProvider)!.offer.league.name)}',
+                  '${_isCup(own) ? s.cupName(own.competition) : s.leagueName(ref.watch(careerProvider)!.league.name)}',
                   key: const ValueKey('match-preview-kind'),
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium,

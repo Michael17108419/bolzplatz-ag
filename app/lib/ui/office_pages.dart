@@ -14,6 +14,7 @@ import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'crest.dart';
+import 'dismissal_page.dart';
 import 'info_button.dart';
 import 'office_mail.dart';
 import 'match_pages.dart';
@@ -79,7 +80,11 @@ void openDesk(
 /// "Weiter": on to the next match day.
 void goNext(BuildContext context, WidgetRef ref) {
   final s = ref.read(stringsProvider);
-  final view = ref.read(officeViewProvider);
+  final game = ref.read(seasonProvider);
+  if (game != null && game.isOver) {
+    _summerBreak(context, ref);
+    return;
+  }
   final problem = lineupProblemOf(ref);
   if (problem != LineupProblem.none) {
     ScaffoldMessenger.of(context)
@@ -87,16 +92,46 @@ void goNext(BuildContext context, WidgetRef ref) {
       ..showSnackBar(SnackBar(content: Text(s.lineupProblemText(problem))));
     return;
   }
-  if (view?.seasonOver ?? false) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(s.officeMatchdayOver)));
-    return;
-  }
   final own = ref.read(seasonProvider.notifier).openNext();
   if (own == null) return;
   Navigator.of(context)
       .push(MaterialPageRoute<void>(builder: (_) => const MatchPreviewPage()));
+}
+
+/// The days after the last match: on to the next event, then the new
+/// season (or the dismissal).
+void _summerBreak(BuildContext context, WidgetRef ref) {
+  final events = {
+    for (final a in ref.read(appointmentsProvider)) a.date.epochDay,
+  };
+  final step = ref.read(seasonProvider.notifier).advanceToEvent(events);
+  if (step != DayStep.seasonOver) return;
+  final game = ref.read(seasonProvider);
+  final end = game?.end;
+  if (end == null) return;
+  if (end.review.dismissed || end.nextLeague == null) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const DismissalPage()),
+    );
+    return;
+  }
+  if (!ref.read(seasonProvider.notifier).startNextSeason()) return;
+  final s = ref.read(stringsProvider);
+  final career = ref.read(careerProvider);
+  if (career == null) return;
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(
+          s.seasonStarted(
+            end.startYear + 1,
+            career.league.name,
+            s.seasonGoalText(career.goal),
+          ),
+        ),
+      ),
+    );
 }
 
 Widget _pageFor(DeskItem item) => switch (item) {
@@ -193,7 +228,11 @@ class QuickBar extends ConsumerWidget {
         FilledButton(
           key: const ValueKey('quick-next'),
           onPressed: () => goNext(context, ref),
-          child: Text(s.deskNext(view?.matchday ?? 1)),
+          child: Text(
+            ref.watch(seasonProvider.select((g) => g?.isOver ?? false))
+                ? s.deskNextSeason
+                : s.deskNext(view?.matchday ?? 1),
+          ),
         ),
       ],
     );
@@ -626,7 +665,7 @@ class FinancePage extends ConsumerWidget {
                   ),
                   const SizedBox(height: Tokens.gapS),
                   line(s.offerBudget, s.money(offer.budget), s.infoBudget),
-                  line(s.offerGoal, s.seasonGoalText(offer.goal), s.infoGoal),
+                  line(s.offerGoal, s.seasonGoalText(career.goal), s.infoGoal),
                   const SizedBox(height: 2),
                   Text(
                     s.officeSquad(view.squadSize),

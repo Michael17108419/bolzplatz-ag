@@ -34,6 +34,105 @@ class OwnRecord {
   final bool? wentThrough;
 }
 
+/// How a season ended for the club: the numbers, the verdict of the
+/// president and the state of the world in the next season.
+class SeasonEnd {
+  const SeasonEnd({
+    required this.startYear,
+    required this.outcome,
+    required this.review,
+    required this.rank,
+    required this.teams,
+    required this.next,
+    required this.nextLeague,
+    required this.levelChange,
+    required this.champion,
+    required this.cupWinner,
+  });
+
+  final int startYear;
+  final SeasonOutcome outcome;
+  final SeasonReview review;
+  final int rank;
+  final int teams;
+
+  /// The state of the world in the next season.
+  final SeasonState next;
+
+  /// The league of the club in the next season, null if it left the
+  /// pyramid (pool).
+  final LeagueId? nextLeague;
+
+  /// -1 promoted, 1 relegated, 0 same league.
+  final int levelChange;
+  final ClubId champion;
+  final ClubId? cupWinner;
+}
+
+/// Holds the end of a season; shared by all revisions of the game.
+class SeasonEndBox {
+  SeasonEnd? value;
+}
+
+/// One finished season of the career, kept in the saved game.
+class SeasonRecord {
+  const SeasonRecord({
+    required this.startYear,
+    required this.leagueName,
+    required this.rank,
+    required this.teams,
+    required this.goal,
+    required this.verdict,
+    required this.levelChange,
+  });
+
+  factory SeasonRecord.fromJson(Map<String, dynamic> m) => SeasonRecord(
+    startYear: m['year'] as int,
+    leagueName: m['league'] as String,
+    rank: m['rank'] as int,
+    teams: m['teams'] as int,
+    goal: SeasonGoal.values.byName(m['goal'] as String),
+    verdict: GoalVerdict.values.byName(m['verdict'] as String),
+    levelChange: m['change'] as int,
+  );
+
+  final int startYear;
+  final String leagueName;
+  final int rank;
+  final int teams;
+  final SeasonGoal goal;
+  final GoalVerdict verdict;
+  final int levelChange;
+
+  Map<String, dynamic> toJson() => {
+    'year': startYear,
+    'league': leagueName,
+    'rank': rank,
+    'teams': teams,
+    'goal': goal.name,
+    'verdict': verdict.name,
+    'change': levelChange,
+  };
+}
+
+/// The seasons the career has finished so far, oldest first.
+class SeasonHistoryNotifier extends Notifier<List<SeasonRecord>> {
+  @override
+  List<SeasonRecord> build() => const [];
+
+  void add(SeasonRecord record) => state = [...state, record];
+
+  void restore(Iterable<SeasonRecord> records) =>
+      state = List.unmodifiable(records);
+
+  void reset() => state = const [];
+}
+
+final seasonHistoryProvider =
+    NotifierProvider<SeasonHistoryNotifier, List<SeasonRecord>>(
+      SeasonHistoryNotifier.new,
+    );
+
 /// The running season of the career: the runner of the game core and the
 /// season it plays. The objects of the core change in place, so every
 /// change gets a new [revision] and with it a new state for the screens.
@@ -49,10 +148,12 @@ class SeasonGame {
     required this.initialSheet,
     List<Map<String, dynamic>>? log,
     List<OwnRecord>? history,
+    SeasonEndBox? endBox,
     this.revision = 0,
     this.day,
   }) : log = log ?? [],
-       history = history ?? [];
+       history = history ?? [],
+       endBox = endBox ?? SeasonEndBox();
 
   final SeasonRunner runner;
   final SeasonRun run;
@@ -84,6 +185,12 @@ class SeasonGame {
   /// The matches of the own club so far, oldest first. Shared by all
   /// revisions of the game.
   final List<OwnRecord> history;
+
+  /// How the season ended; null while the club still has matches. Shared by
+  /// all revisions of the game.
+  final SeasonEndBox endBox;
+
+  SeasonEnd? get end => endBox.value;
 
   /// The log as it can be saved: a preview that was opened but not played
   /// is left out (saving happens at the end of a day).
@@ -131,6 +238,7 @@ class SeasonGame {
     initialSheet: initialSheet,
     log: log,
     history: history,
+    endBox: endBox,
     revision: revision + 1,
     day: clearDay ? null : (day ?? this.day),
   );
@@ -143,19 +251,29 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
   @override
   SeasonGame? build() {
     final career = ref.watch(careerProvider);
-    final loaded = ref.watch(loadedWorldProvider).value;
+    final loaded = ref.watch(startWorldProvider).value;
     if (career == null || loaded == null) return null;
-    return _fresh(career, loaded, ref.read(lineupProvider)?.sheet);
+    final from = ref.read(worldStateProvider);
+    final sheet = from == null
+        ? ref.read(lineupProvider)?.sheet
+        : AutoManager(loaded.rules).build(
+            from.squads[career.clubId] ?? const [],
+            benchSize: loaded.rules.tactics.benchSize(career.league.level),
+          );
+    return _fresh(career, loaded, sheet);
   }
 
   SeasonGame _fresh(Career career, LoadedWorld loaded, TeamSheet? sheet) {
-    final seed = seasonSeed(career, loaded);
+    final from = ref.read(worldStateProvider);
+    final seed = SeededRandom(
+      career.seed,
+    ).fork('season:${(from?.startYear ?? loaded.world.season.startYear)}').seed;
     final runner = SeasonRunner(
       loaded.rules,
       calendarRules: loaded.calendarRules,
     );
     final run = runner.begin(
-      SeasonState.fromWorld(loaded.world),
+      from ?? SeasonState.fromWorld(loaded.world),
       seed: seed,
       userSheets: {career.clubId: ?sheet},
     );
@@ -163,10 +281,12 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       runner: runner,
       run: run,
       clubId: career.clubId,
-      ownLeague: career.offer.league.id,
+      ownLeague: career.league.id,
       seed: seed,
-      ownDays: run.schedules[career.offer.league.id]!.length,
-      today: loaded.today,
+      ownDays: run.schedules[career.league.id]!.length,
+      today: from == null
+          ? loaded.today
+          : Season(from.startYear).start,
       initialSheet: sheet,
     );
   }
@@ -175,7 +295,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
   /// world stands then exactly where it stood when the game was saved.
   void restore(TeamSheet? initialSheet, List<Map<String, dynamic>> log) {
     final career = ref.read(careerProvider);
-    final loaded = ref.read(loadedWorldProvider).value;
+    final loaded = ref.read(startWorldProvider).value;
     if (career == null || loaded == null) return;
     state = _fresh(career, loaded, initialSheet);
     for (final entry in log) {
@@ -249,6 +369,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     if (record) {
       game.log.add({'op': 'next', 'sheet': sheet.toJson(), 'day': false});
     }
+    _checkEnd(game);
     state = game._with(clearDay: true, today: last);
     return null;
   }
@@ -260,6 +381,22 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
   DayStep advanceDay() {
     final step = _advanceDay(record: true);
     if (step == DayStep.played) ref.read(saveServiceProvider).autosave();
+    return step;
+  }
+
+  /// Days on until one of [eventDays] (epoch days) is reached, the club has
+  /// a match, or the season is over. One save at the end.
+  DayStep advanceToEvent(Set<int> eventDays) {
+    var step = DayStep.played;
+    var moved = false;
+    while (step == DayStep.played) {
+      step = _advanceDay(record: true);
+      if (step != DayStep.played) break;
+      moved = true;
+      final game = state;
+      if (game != null && eventDays.contains(game.today.epochDay)) break;
+    }
+    if (moved) ref.read(saveServiceProvider).autosave();
     return step;
   }
 
@@ -286,8 +423,123 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       }
     }
     if (record) game.log.add({'op': 'day'});
+    _checkEnd(game);
     state = game._with(today: tomorrow, clearDay: true);
     return DayStep.played;
+  }
+
+  /// When the last day of the season is played, works out how it ended: the
+  /// verdict on the goal and the world of the next season.
+  void _checkEnd(SeasonGame game) {
+    if (game.endBox.value != null || !game.isOver || !game.run.isOver) return;
+    final career = ref.read(careerProvider);
+    final loaded = ref.read(startWorldProvider).value;
+    if (career == null || loaded == null) return;
+    final outcome = game.runner.conclude(game.run);
+    final result = game.runner.nextSeason(
+      game.run.state,
+      outcome,
+      seed: SeededRandom(game.seed).fork('next').seed,
+      names: loaded.names,
+    );
+    final next = result.valueOrNull;
+    if (next == null) return;
+    final table = outcome.standing(game.ownLeague);
+    final rank = table.indexOf(game.clubId) + 1;
+    LeagueId? nextLeague;
+    for (final e in next.members.entries) {
+      if (e.value.contains(game.clubId)) nextLeague = e.key;
+    }
+    final level = {for (final l in loaded.world.leagues) l.id: l.level};
+    final change = nextLeague == null
+        ? 1
+        : level[nextLeague]! - career.league.level;
+    final seed = SeededRandom(game.seed).fork('review').seed;
+    var review = const SeasonReviewer().review(
+      goal: career.goal,
+      rank: rank,
+      teams: table.length,
+      levelChange: change,
+      seed: seed,
+    );
+    if (nextLeague == null) {
+      review = SeasonReview(
+        goal: review.goal,
+        verdict: GoalVerdict.failed,
+        gap: review.gap,
+        rank: rank,
+        teams: table.length,
+        risk: 1,
+        dismissed: true,
+      );
+    }
+    game.endBox.value = SeasonEnd(
+      startYear: game.run.state.startYear,
+      outcome: outcome,
+      review: review,
+      rank: rank,
+      teams: table.length,
+      next: next,
+      nextLeague: nextLeague,
+      levelChange: change,
+      champion: table.first,
+      cupWinner: outcome.bolzplatz.winner,
+    );
+  }
+
+  SeasonRecord _recordOf(SeasonEnd end, Career career) => SeasonRecord(
+    startYear: end.startYear,
+    leagueName: career.league.name,
+    rank: end.rank,
+    teams: end.teams,
+    goal: end.review.goal,
+    verdict: end.review.verdict,
+    levelChange: end.levelChange,
+  );
+
+  /// Starts the next season after the end of this one. False if the season
+  /// is not over, or if the manager was dismissed (see [startJobSearch]).
+  bool startNextSeason() {
+    final game = state;
+    final end = game?.end;
+    final career = ref.read(careerProvider);
+    final loaded = ref.read(startWorldProvider).value;
+    if (game == null || end == null || career == null || loaded == null) {
+      return false;
+    }
+    final leagueId = end.nextLeague;
+    if (end.review.dismissed || leagueId == null) return false;
+    final league = loaded.world.leagues.firstWhere((l) => l.id == leagueId);
+    final nextWorld = SeasonSnapshot.worldOf(end.next, loaded.world);
+    final strengths = ClubStrengths.compute(nextWorld, loaded.rules);
+    final members = [...end.next.members[leagueId]!]
+      ..sort((a, b) {
+        final d = (strengths[b] ?? 0).compareTo(strengths[a] ?? 0);
+        return d != 0 ? d : a.value.compareTo(b.value);
+      });
+    final goal = SeasonReviewer.goalFor(
+      level: league.level,
+      strengthRank: members.indexOf(game.clubId) + 1,
+      teams: league.teamCount,
+    );
+    ref.read(seasonHistoryProvider.notifier).add(_recordOf(end, career));
+    ref.read(worldStateProvider.notifier).set(end.next);
+    // The new career state makes this notifier build the new season.
+    ref.read(careerProvider.notifier).newSeason(league: league, goal: goal);
+    ref.read(saveServiceProvider).autosave();
+    return true;
+  }
+
+  /// After a dismissal: the world moves on to the next season so the job
+  /// offers come from it. The caller then starts a new career.
+  bool startJobSearch() {
+    final game = state;
+    final end = game?.end;
+    final career = ref.read(careerProvider);
+    if (game == null || end == null || career == null) return false;
+    ref.read(seasonHistoryProvider.notifier).add(_recordOf(end, career));
+    ref.read(worldStateProvider.notifier).set(end.next);
+    return true;
   }
 
   /// Closes the matchday: plays all other matches of the day and takes the
@@ -345,6 +597,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
         game.runner.completeDay(game.run, game.runner.openDay(game.run));
       }
     }
+    _checkEnd(game);
     state = game._with(clearDay: true);
   }
 }

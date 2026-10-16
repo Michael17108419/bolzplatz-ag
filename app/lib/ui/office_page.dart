@@ -67,7 +67,9 @@ class _Office extends ConsumerWidget {
     final nextMatch = game == null
         ? null
         : game.runner.nextMatchOf(game.run, game.clubId);
-    final nextText = nextMatch != null && nextMatch.$2 != Competition.league
+    final nextText = game != null && game.isOver
+        ? s.deskNextSeason
+        : nextMatch != null && nextMatch.$2 != Competition.league
         ? s.deskNextCup(s.cupName(nextMatch.$2))
         : s.deskNext(view.matchday);
     final unread = ref
@@ -107,7 +109,7 @@ class _Office extends ConsumerWidget {
                     style: theme.textTheme.titleLarge,
                   ),
                   Text(
-                    '${offer.club.place} · ${s.leagueName(offer.league.name)} '
+                    '${offer.club.place} · ${s.leagueName(career.league.name)} '
                     '· ${s.officeSeason(view.startYear)}',
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium,
@@ -152,7 +154,7 @@ class _Office extends ConsumerWidget {
             onOpen: (item) => openDesk(context, ref, item),
             portrait: (size) =>
                 PersonAvatar(appearance: career.trainer.appearance, size: size),
-            leagueLabel: s.leagueName(offer.league.name),
+            leagueLabel: s.leagueName(career.league.name),
           ),
         ),
         const SizedBox(height: Tokens.gapS),

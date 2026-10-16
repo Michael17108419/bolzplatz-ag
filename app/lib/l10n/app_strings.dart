@@ -379,6 +379,29 @@ abstract interface class AppStrings {
   String get infoStatsScorers;
   String get statsScorersEmpty;
   String get statsAssistsEmpty;
+  String seasonLabel(int startYear);
+  String seasonEndSubject(int startYear, bool dismissed);
+  String seasonEndBody({
+    required int startYear,
+    required String league,
+    required int rank,
+    required int teams,
+    required String champion,
+    required String? cupWinner,
+    required int levelChange,
+    required String? nextLeague,
+    required GoalVerdict verdict,
+    required int gap,
+    required SeasonGoal goal,
+    required bool dismissed,
+  });
+  String get deskNextSeason;
+  String seasonStarted(int startYear, String league, String goal);
+  String get dismissTitle;
+  String dismissBody(String club, int startYear, int rank, int teams);
+  String get dismissSearch;
+  String get dismissMenu;
+  String get infoDismiss;
   String get calLegendVacation;
   String get calLegendAppointment;
   String get vacTitle;
@@ -2039,6 +2062,99 @@ class AppStringsDe implements AppStrings {
   @override
   String get statsAssistsEmpty =>
       'Noch keine Vorlage. Alle haben den Ball behalten.';
+  @override
+  String seasonLabel(int startYear) =>
+      '$startYear/${((startYear + 1) % 100).toString().padLeft(2, '0')}';
+  @override
+  String seasonEndSubject(int startYear, bool dismissed) => dismissed
+      ? 'Saisonbilanz ${seasonLabel(startYear)}: Wir müssen reden'
+      : 'Saisonbilanz ${seasonLabel(startYear)}';
+  @override
+  String seasonEndBody({
+    required int startYear,
+    required String league,
+    required int rank,
+    required int teams,
+    required String champion,
+    required String? cupWinner,
+    required int levelChange,
+    required String? nextLeague,
+    required GoalVerdict verdict,
+    required int gap,
+    required SeasonGoal goal,
+    required bool dismissed,
+  }) {
+    final lines = <String>[
+      'Die Saison ${seasonLabel(startYear)} ist vorbei. Du bist in der '
+          '${leagueName(league)} Platz $rank von $teams geworden. Meister '
+          'ist $champion.',
+    ];
+    if (cupWinner != null) {
+      lines.add('Den Bolzplatzpokal hat $cupWinner gewonnen.');
+    }
+    if (levelChange < 0 && nextLeague != null) {
+      lines.add('Dein Verein steigt auf in die ${leagueName(nextLeague)}. '
+          'Die Sektkorken sind schon unterwegs.');
+    } else if (levelChange > 0 && nextLeague != null) {
+      lines.add('Dein Verein steigt ab in die ${leagueName(nextLeague)}. '
+          'Das Gute daran: Es kann nur besser werden.');
+    } else if (nextLeague == null) {
+      lines.add('Dein Verein hat die Pyramide nach unten verlassen. '
+          'Weiter runter geht es nicht, außer in den Keller.');
+    } else {
+      lines.add('Ihr bleibt in der ${leagueName(league)}.');
+    }
+    lines.add('Das Saisonziel war: ${seasonGoalText(goal)}.');
+    lines.add(switch (verdict) {
+      GoalVerdict.exceeded =>
+        'Das Ziel hast du übertroffen. Der Präsident redet schon von '
+            'Europa. Es gibt keins.',
+      GoalVerdict.reached => 'Das Ziel hast du erreicht. Das ist die Pflicht, '
+          'aber auch die ist selten.',
+      GoalVerdict.missed => 'Das Ziel hast du knapp verpasst'
+          '${gap > 0 ? ' (um $gap ${gap == 1 ? 'Platz' : 'Plätze'})' : ''}.',
+      GoalVerdict.failed => 'Das Ziel hast du klar verfehlt'
+          '${gap > 0 ? ' (um $gap Plätze)' : ''}.',
+    });
+    if (dismissed) {
+      lines.add('Der Präsident hat entschieden: Dein Vertrag wird zum '
+          '30. Juni nicht verlängert. Er hat dabei sehr ernst geschaut und '
+          'nur einmal auf die Uhr.');
+    } else if (verdict == GoalVerdict.missed ||
+        verdict == GoalVerdict.failed) {
+      lines.add('Du bleibst. Der Präsident drückt noch einmal ein Auge zu, '
+          'das andere beobachtet dich.');
+    } else {
+      lines.add('Dein Vertrag läuft weiter.');
+    }
+    return lines.join('\n\n');
+  }
+
+  @override
+  String get deskNextSeason => 'Weiter';
+  @override
+  String seasonStarted(int startYear, String league, String goal) =>
+      'Saison ${seasonLabel(startYear)} beginnt: ${leagueName(league)}. '
+      'Saisonziel: $goal.';
+  @override
+  String get dismissTitle => 'Entlassen';
+  @override
+  String dismissBody(String club, int startYear, int rank, int teams) =>
+      'Die Saison ${seasonLabel(startYear)} endete mit Platz $rank von '
+      '$teams. Das hat dem Präsidenten von $club nicht gereicht. Du räumst '
+      'dein Büro, nimmst die Kaffeetasse mit und gehst. Der Fußball geht '
+      'ohne dich weiter. Er merkt es kaum. Du kannst dich bei anderen '
+      'Vereinen bewerben.';
+  @override
+  String get dismissSearch => 'Neue Stelle suchen';
+  @override
+  String get dismissMenu => 'Zum Hauptmenü';
+  @override
+  String get infoDismiss =>
+      'Wer das Saisonziel verfehlt, kann entlassen werden. Es zählt, wie '
+      'weit du daneben lagst. Später zählen auch das Verhältnis zum '
+      'Präsidenten und zur Mannschaft. Du kannst dich dann bei neuen '
+      'Vereinen bewerben, mit demselben Trainer.';
   @override
   String get calLegendVacation => 'Urlaub (dein Plan)';
   @override

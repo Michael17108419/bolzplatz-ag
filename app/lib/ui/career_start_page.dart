@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
@@ -17,7 +19,11 @@ import 'wish_step.dart';
 
 /// The career start (document 16): trainer, backstory, wish club, offers.
 class CareerStartPage extends ConsumerWidget {
-  const CareerStartPage({super.key});
+  const CareerStartPage({this.jobSearch = false, super.key});
+
+  /// After a dismissal: the same trainer looks for a new club, straight at
+  /// the offers.
+  final bool jobSearch;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,16 +44,17 @@ class CareerStartPage extends ConsumerWidget {
           ),
         ),
         error: (e, _) => Center(child: Text(s.careerLoadFailed)),
-        data: (loaded) => _CareerWizard(loaded: loaded),
+        data: (loaded) => _CareerWizard(loaded: loaded, jobSearch: jobSearch),
       ),
     );
   }
 }
 
 class _CareerWizard extends ConsumerStatefulWidget {
-  const _CareerWizard({required this.loaded});
+  const _CareerWizard({required this.loaded, required this.jobSearch});
 
   final LoadedWorld loaded;
+  final bool jobSearch;
 
   @override
   ConsumerState<_CareerWizard> createState() => _CareerWizardState();
@@ -55,6 +62,29 @@ class _CareerWizard extends ConsumerStatefulWidget {
 
 class _CareerWizardState extends ConsumerState<_CareerWizard> {
   int _step = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.jobSearch) {
+      final trainer = ref.read(careerProvider)?.trainer;
+      if (trainer != null) {
+        _step = 4;
+        Future.microtask(() {
+          ref
+              .read(careerDraftProvider.notifier)
+              .restore(
+                CareerDraft(
+                  seed: Random().nextInt(1 << 30),
+                  name: trainer.name,
+                  appearance: trainer.appearance,
+                  backstoryId: trainer.backstoryId,
+                ),
+              );
+        });
+      }
+    }
+  }
 
   void _go(int step) => setState(() => _step = step);
 
@@ -68,15 +98,22 @@ class _CareerWizardState extends ConsumerState<_CareerWizard> {
           wishClubId: ref.read(careerDraftProvider).wishClubId,
         );
     ref.read(saveServiceProvider).autosave();
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => const OfficePage()),
-    );
+    final route = MaterialPageRoute<void>(builder: (_) => const OfficePage());
+    if (widget.jobSearch) {
+      Navigator.of(context).pushAndRemoveUntil(route, (r) => r.isFirst);
+    } else {
+      Navigator.of(context).pushReplacement(route);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(stringsProvider);
     final loaded = widget.loaded;
+    if (widget.jobSearch &&
+        ref.watch(careerDraftProvider).backstoryId == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     final titles = [
       s.careerStepTrainer,
       s.careerStepLook,

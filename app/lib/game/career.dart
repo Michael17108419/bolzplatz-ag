@@ -10,6 +10,8 @@ class Career {
     required this.offer,
     required this.seed,
     this.wishClubId,
+    this.currentLeague,
+    this.currentGoal,
   });
 
   final Trainer trainer;
@@ -23,6 +25,26 @@ class Career {
   final int seed;
 
   ClubId get clubId => offer.club.id;
+
+  /// The league of the club in the running season (the one of the offer
+  /// until the club moves up or down).
+  final League? currentLeague;
+
+  /// The goal of the president for the running season.
+  final SeasonGoal? currentGoal;
+
+  League get league => currentLeague ?? offer.league;
+  SeasonGoal get goal => currentGoal ?? offer.goal;
+
+  /// The same career in a later season.
+  Career inSeason({required League league, required SeasonGoal goal}) => Career(
+    trainer: trainer,
+    offer: offer,
+    seed: seed,
+    wishClubId: wishClubId,
+    currentLeague: league,
+    currentGoal: goal,
+  );
 }
 
 class CareerNotifier extends Notifier<Career?> {
@@ -41,6 +63,13 @@ class CareerNotifier extends Notifier<Career?> {
       seed: seed,
       wishClubId: wishClubId,
     );
+  }
+
+  /// The club plays on in a new season, maybe in another league.
+  void newSeason({required League league, required SeasonGoal goal}) {
+    final career = state;
+    if (career == null) return;
+    state = career.inSeason(league: league, goal: goal);
   }
 }
 

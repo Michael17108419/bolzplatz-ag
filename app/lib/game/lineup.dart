@@ -26,7 +26,7 @@ class LineupState {
 /// The number of bench places of the own club: it depends on the league
 /// level and comes from the rules.
 int benchPlaces(Rules rules, Career career) =>
-    rules.tactics.benchSize(career.offer.league.level);
+    rules.tactics.benchSize(career.league.level);
 
 /// Checks a sheet against the squad.
 LineupProblem checkLineup(

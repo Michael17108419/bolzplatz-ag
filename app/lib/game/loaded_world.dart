@@ -63,6 +63,19 @@ class LoadedWorld {
   /// The date the screens show the world at (the start of the season).
   GameDate get today => world.season.start;
 
+  /// The same rules and clubs with the squads and leagues of the season
+  /// described by [state].
+  LoadedWorld atSeason(SeasonState state) {
+    final next = SeasonSnapshot.worldOf(state, world);
+    return LoadedWorld(
+      world: next,
+      rules: rules,
+      names: names,
+      calendarRules: calendarRules,
+      strengths: ClubStrengths.compute(next, rules),
+    );
+  }
+
   /// The clubs of a league in the start season, strongest first.
   List<Club> clubsOf(League league) {
     final season = world.leagueSeasons.firstWhere(
@@ -96,6 +109,28 @@ final worldLoaderProvider = Provider<Future<LoadedWorld> Function()>((ref) {
   };
 });
 
-final loadedWorldProvider = FutureProvider<LoadedWorld>((ref) {
+/// The world as it was generated (first season).
+final startWorldProvider = FutureProvider<LoadedWorld>((ref) {
   return ref.watch(worldLoaderProvider)();
+});
+
+/// The state of the world at the start of the current season, null while
+/// the first season runs (the start world is then the current one).
+class WorldStateNotifier extends Notifier<SeasonState?> {
+  @override
+  SeasonState? build() => null;
+
+  void set(SeasonState? state) => this.state = state;
+}
+
+final worldStateProvider = NotifierProvider<WorldStateNotifier, SeasonState?>(
+  WorldStateNotifier.new,
+);
+
+/// The world the screens show: the start world in the first season, later
+/// the one built from the state of the current season.
+final loadedWorldProvider = FutureProvider<LoadedWorld>((ref) async {
+  final base = await ref.watch(startWorldProvider.future);
+  final state = ref.watch(worldStateProvider);
+  return state == null ? base : base.atSeason(state);
 });

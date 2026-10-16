@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
@@ -36,6 +37,11 @@ class SaveData {
     required this.lineupReviewed,
     required this.mailRead,
     this.vacation,
+    this.offerData,
+    this.leagueId,
+    this.goal,
+    this.base,
+    this.seasons = const [],
   });
 
   /// Bump when the format changes; older files are then refused with a hint.
@@ -67,6 +73,14 @@ class SaveData {
       vacation: m['vacation'] == null
           ? null
           : [for (final e in m['vacation'] as List<dynamic>) e as int],
+      offerData: m['offer_data'] as Map<String, dynamic>?,
+      leagueId: m['league_id'] as int?,
+      goal: m['goal'] as String?,
+      base: m['base'] as String?,
+      seasons: [
+        for (final e in (m['seasons'] as List<dynamic>?) ?? const [])
+          SeasonRecord.fromJson(e as Map<String, dynamic>),
+      ],
     );
   }
 
@@ -102,6 +116,20 @@ class SaveData {
   /// The free days of the squad (epoch days); null in older saves.
   final List<int>? vacation;
 
+  /// The accepted offer as it was; older saves regenerate it from the seed.
+  final Map<String, dynamic>? offerData;
+
+  /// League and goal of the running season (null in the first season).
+  final int? leagueId;
+  final String? goal;
+
+  /// The world at the start of the season, packed (gzip, base64). Null in
+  /// the first season of a career.
+  final String? base;
+
+  /// The seasons finished so far.
+  final List<SeasonRecord> seasons;
+
   String get trainerName => trainer['name'] as String;
 
   String encode() => jsonEncode({
@@ -122,8 +150,21 @@ class SaveData {
     'lineup_reviewed': lineupReviewed,
     'mail': mailRead,
     'vacation': vacation,
+    'offer_data': offerData,
+    'league_id': leagueId,
+    'goal': goal,
+    'base': base,
+    'seasons': [for (final r in seasons) r.toJson()],
   });
 }
+
+/// The state of a season as packed text (gzip, base64).
+String packSeasonState(SeasonState state) =>
+    base64.encode(gzip.encode(utf8.encode(SeasonSnapshot.encode(state))));
+
+/// Reads a state written by [packSeasonState].
+SeasonState unpackSeasonState(String text, Map<ClubId, Club> clubs) =>
+    SeasonSnapshot.decode(utf8.decode(gzip.decode(base64.decode(text))), clubs);
 
 /// Where the saved games are kept (one text per slot).
 abstract class SaveRepository {
@@ -179,6 +220,20 @@ class SaveService {
 
   final Ref _ref;
 
+  // The packed state of the current season is kept until the season changes.
+  SeasonState? _packedFor;
+  String? _packed;
+
+  String? _packedBase() {
+    final state = _ref.read(worldStateProvider);
+    if (state == null) return null;
+    if (!identical(state, _packedFor)) {
+      _packed = packSeasonState(state);
+      _packedFor = state;
+    }
+    return _packed;
+  }
+
   /// The game as it stands, or null if there is nothing to save: no career
   /// yet, or a match is open (saving is only possible between matches).
   SaveData? snapshot({DateTime? now}) {
@@ -193,7 +248,7 @@ class SaveService {
       wishClubId: career.wishClubId?.value,
       offerClubId: career.offer.club.id.value,
       clubName: career.offer.club.name,
-      leagueName: career.offer.league.name,
+      leagueName: career.league.name,
       date: game.today,
       matchday: game.played,
       matchdays: game.ownDays,
@@ -203,6 +258,11 @@ class SaveService {
       lineupReviewed: lineup?.reviewed ?? false,
       mailRead: _ref.read(mailReadProvider).toList()..sort(),
       vacation: _ref.read(vacationProvider).toList()..sort(),
+      offerData: career.offer.toJson(),
+      leagueId: career.league.id.value,
+      goal: career.goal.name,
+      base: _packedBase(),
+      seasons: _ref.read(seasonHistoryProvider),
     );
   }
 
@@ -250,18 +310,37 @@ class SaveService {
   /// Puts the game back as it was saved. False if the saved career does
   /// not fit the world any more.
   Future<bool> load(SaveData data) async {
-    final loaded = await _ref.read(loadedWorldProvider.future);
+    final start = await _ref.read(startWorldProvider.future);
+    final world = start.world;
+    final clubs = {for (final c in world.clubs) c.id: c};
+    final leagues = {for (final l in world.leagues) l.id: l};
     final trainer = Trainer.fromJson(data.trainer);
     final wish = data.wishClubId == null ? null : ClubId(data.wishClubId!);
-    final offers = loaded.offerGenerator.generate(
-      trainer: trainer,
-      seed: data.seed,
-      wishClubId: wish,
-    );
-    final offer = offers.offers
-        .where((o) => o.club.id.value == data.offerClubId)
-        .firstOrNull;
+    JobOffer? offer;
+    if (data.offerData != null) {
+      offer = JobOffer.fromJson(
+        data.offerData!,
+        clubs: clubs,
+        leagues: leagues,
+      );
+    } else {
+      final offers = start.offerGenerator.generate(
+        trainer: trainer,
+        seed: data.seed,
+        wishClubId: wish,
+      );
+      offer = offers.offers
+          .where((o) => o.club.id.value == data.offerClubId)
+          .firstOrNull;
+    }
     if (offer == null) return false;
+    // The world of the saved season, then the career in it.
+    _ref
+        .read(worldStateProvider.notifier)
+        .set(
+          data.base == null ? null : unpackSeasonState(data.base!, clubs),
+        );
+    _ref.read(seasonHistoryProvider.notifier).restore(data.seasons);
     _ref
         .read(careerProvider.notifier)
         .start(
@@ -270,6 +349,19 @@ class SaveService {
           seed: data.seed,
           wishClubId: wish,
         );
+    final leagueId = data.leagueId;
+    final goal = data.goal;
+    if (leagueId != null && goal != null && leagues[LeagueId(leagueId)] != null) {
+      _ref
+          .read(careerProvider.notifier)
+          .newSeason(
+            league: leagues[LeagueId(leagueId)]!,
+            goal: SeasonGoal.values.byName(goal),
+          );
+    }
+    // Wait for the screens' world to be built from that state before the
+    // line-up and the season are put back.
+    await _ref.read(loadedWorldProvider.future);
     final lineup = _ref.read(lineupProvider.notifier);
     _ref
         .read(seasonProvider.notifier)

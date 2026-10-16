@@ -27,14 +27,14 @@ class OfficeView {
   }) {
     final offer = career.offer;
     final season = loaded.world.leagueSeasons.firstWhere(
-      (ls) => ls.league.id == offer.league.id,
+      (ls) => ls.league.id == career.league.id,
     );
     final seed = SeededRandom(career.seed)
         .fork('season:${loaded.world.season.startYear}')
         .seed;
     final schedule = SeasonRunner.leagueSchedule(
       season.clubIds,
-      offer.league.id,
+      career.league.id,
       seed,
     );
     final own = offer.club.id;
