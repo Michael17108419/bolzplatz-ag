@@ -160,10 +160,9 @@ class SaveData {
 }
 
 /// The state of a season as packed text (gzip, base64).
-String packSeasonState(SeasonState state) =>
-    base64.encode(
-      GZipEncoder().encodeBytes(utf8.encode(SeasonSnapshot.encode(state))),
-    );
+String packSeasonState(SeasonState state) => base64.encode(
+  GZipEncoder().encodeBytes(utf8.encode(SeasonSnapshot.encode(state))),
+);
 
 /// Reads a state written by [packSeasonState].
 SeasonState unpackSeasonState(String text, Map<ClubId, Club> clubs) =>
