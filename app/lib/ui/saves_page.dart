@@ -40,11 +40,7 @@ class _SavesPageState extends ConsumerState<SavesPage> {
     setState(() => _slots = slots);
   }
 
-  Future<bool> _confirm(
-    String title,
-    String text,
-    String confirmLabel,
-  ) async {
+  Future<bool> _confirm(String title, String text, String confirmLabel) async {
     final s = ref.read(stringsProvider);
     final yes = await showDialog<bool>(
       context: context,
@@ -268,7 +264,9 @@ class _SavesPageState extends ConsumerState<SavesPage> {
             children: [
               TextButton(
                 key: const ValueKey('saves-back'),
-                onPressed: _busy ? null : () => Navigator.of(context).maybePop(),
+                onPressed: _busy
+                    ? null
+                    : () => Navigator.of(context).maybePop(),
                 child: Text(s.back),
               ),
             ],

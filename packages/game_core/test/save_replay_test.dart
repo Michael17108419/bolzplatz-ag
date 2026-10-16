@@ -55,8 +55,12 @@ void main() {
 
   test('a live match can be repeated from its recorded changes', () {
     for (final seed in [3, 11, 42]) {
-      final live = MatchSession(rules: rules, home: home, away: away, seed: seed)
-        ..advanceTo(30);
+      final live = MatchSession(
+        rules: rules,
+        home: home,
+        away: away,
+        seed: seed,
+      )..advanceTo(30);
       final off = live.onPitch(0).firstWhere((id) {
         final p = home.squad.firstWhere((x) => x.id == id);
         return !p.position.isGoalkeeper;
@@ -78,8 +82,12 @@ void main() {
         for (final m in jsonDecode(saved) as List<dynamic>)
           SessionAction.fromJson(m as Map<String, dynamic>),
       ];
-      final again = MatchSession(rules: rules, home: home, away: away, seed: seed)
-        ..replay(loaded);
+      final again = MatchSession(
+        rules: rules,
+        home: home,
+        away: away,
+        seed: seed,
+      )..replay(loaded);
       final repeated = again.finish();
       expect(_lines(repeated), _lines(result), reason: 'seed $seed');
       expect(repeated.homeGoals, result.homeGoals);

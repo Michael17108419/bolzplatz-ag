@@ -21,9 +21,7 @@ class TeamSheet {
   factory TeamSheet.fromJson(Map<String, dynamic> m) => TeamSheet(
     formationId: m['formation'] as String,
     systemId: m['system'] as String,
-    startingXi: [
-      for (final v in m['xi'] as List<dynamic>) PlayerId(v as int),
-    ],
+    startingXi: [for (final v in m['xi'] as List<dynamic>) PlayerId(v as int)],
     slotRoles: [for (final v in m['roles'] as List<dynamic>) v as String?],
     bench: [for (final v in m['bench'] as List<dynamic>) PlayerId(v as int)],
     pressing: m['pressing'] as int,

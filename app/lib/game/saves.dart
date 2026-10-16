@@ -254,7 +254,12 @@ class SaveService {
     if (offer == null) return false;
     _ref
         .read(careerProvider.notifier)
-        .start(trainer: trainer, offer: offer, seed: data.seed, wishClubId: wish);
+        .start(
+          trainer: trainer,
+          offer: offer,
+          seed: data.seed,
+          wishClubId: wish,
+        );
     final lineup = _ref.read(lineupProvider.notifier);
     _ref
         .read(seasonProvider.notifier)

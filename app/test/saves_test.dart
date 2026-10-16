@@ -46,8 +46,7 @@ void _playMatch(ProviderContainer c) {
   final side = own.fixture.home == c.read(careerProvider)!.clubId ? 0 : 1;
   session.advanceTo(40);
   final squad = {
-    for (final p in c.read(loadedWorldProvider).value!.world.players)
-      p.id: p,
+    for (final p in c.read(loadedWorldProvider).value!.world.players) p.id: p,
   };
   final off = session
       .onPitch(side)

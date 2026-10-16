@@ -47,10 +47,8 @@ class MainMenuPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: Tokens.gapM),
                   FilledButton.tonal(
-                    onPressed: () => _open(
-                      context,
-                      const SavesPage(fromMenu: true),
-                    ),
+                    onPressed: () =>
+                        _open(context, const SavesPage(fromMenu: true)),
                     child: Text(s.menuLoadGame),
                   ),
                   const SizedBox(height: Tokens.gapM),
