@@ -528,35 +528,29 @@ class AppStringsDe implements AppStrings {
   @override
   String get settingsLanguage => 'Sprache';
   @override
-  String get settingsTicker =>
-      'Ticker-Tempo';
+  String get settingsTicker => 'Ticker-Tempo';
   @override
   String get settingsTickerText =>
       'So schnell läuft der Ticker beim Anpfiff los. Im Spiel kannst du es jederzeit ändern.';
   @override
-  String get settingsVibration =>
-      'Vibration bei Toren';
+  String get settingsVibration => 'Vibration bei Toren';
   @override
   String get settingsVibrationText =>
       'Dein Handy brummt, wenn deine Mannschaft trifft. Im iPhone-Browser geht das leider nicht, erst in der richtigen App.';
   @override
-  String get settingsSound =>
-      'Ton';
+  String get settingsSound => 'Ton';
   @override
   String get settingsSoundText =>
       'Pfiffe und Jubel. Gibt es noch nicht, der Schalter hält die Stelle warm.';
   @override
-  String get settingsAbout =>
-      'Über das Spiel';
+  String get settingsAbout => 'Über das Spiel';
   @override
   String get settingsAboutText =>
       'Bolzplatz AG. Tipp: In Safari auf „Teilen“ und dann „Zum Home-Bildschirm“, dann startet das Spiel wie eine App.';
   @override
-  String get settingsGeneral =>
-      'Allgemein';
+  String get settingsGeneral => 'Allgemein';
   @override
-  String get settingsMatch =>
-      'Spiel';
+  String get settingsMatch => 'Spiel';
   @override
   String get settingsShortcuts => 'Tastaturkürzel';
   @override
@@ -1513,8 +1507,14 @@ class AppStringsDe implements AppStrings {
       'Sortierung: Position, Stärke (stärkste zuerst), Alter (jüngste '
       'zuerst), Name (A bis Z) oder Vertrag (läuft zuerst aus).';
   @override
-  String profileTab(int index) =>
-      const ['Übersicht', 'Werte', 'Rollen', 'Kopf', 'Karriere', 'Vertrag'][index];
+  String profileTab(int index) => const [
+    'Übersicht',
+    'Werte',
+    'Rollen',
+    'Kopf',
+    'Karriere',
+    'Vertrag',
+  ][index];
   @override
   String get profileBack => 'Zum Kader';
   @override
@@ -1991,8 +1991,7 @@ class AppStringsDe implements AppStrings {
       'Kein Ersatztorwart auf der Bank. Fliegt der Torwart, geht ein '
       'Feldspieler ins Tor.';
   @override
-  String get settingsAutoLineup =>
-      'Assistent stellt um';
+  String get settingsAutoLineup => 'Assistent stellt um';
   @override
   String get settingsAutoLineupText =>
       'Fällt jemand aus deiner Aufstellung aus, baut der Assistent sie neu. Aus: Du musst selbst umstellen, vorher geht es nicht weiter.';
@@ -2000,14 +1999,12 @@ class AppStringsDe implements AppStrings {
   String get lineupBenchEmpty =>
       'Frei. Tipp unten auf einen Spieler, um ihn auf die Bank zu setzen.';
   @override
-  String get lineupBenchRemove =>
-      'Von der Bank nehmen';
+  String get lineupBenchRemove => 'Von der Bank nehmen';
   @override
   String lineupAbsentWarning(int n) =>
       n == 1 ? '1 Spieler fällt aus' : '$n Spieler fallen aus';
   @override
-  String get lineupGoToLineup =>
-      'Aufstellung';
+  String get lineupGoToLineup => 'Aufstellung';
   @override
   String lineupAbsentInSheet(String names) =>
       '$names fällt aus. Stell die Aufstellung um oder schalte in den Einstellungen den Assistenten ein.';
