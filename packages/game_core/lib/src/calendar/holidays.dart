@@ -89,7 +89,10 @@ const Set<Bundesland> _fronleichnam = {
   Bundesland.rheinlandPfalz,
   Bundesland.saarland,
 };
-const Set<Bundesland> _mariaHimmelfahrt = {Bundesland.saarland, Bundesland.bayern};
+const Set<Bundesland> _mariaHimmelfahrt = {
+  Bundesland.saarland,
+  Bundesland.bayern,
+};
 const Set<Bundesland> _weltkindertag = {Bundesland.thueringen};
 const Set<Bundesland> _reformationstag = {
   Bundesland.brandenburg,

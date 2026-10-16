@@ -41,17 +41,14 @@ void main() {
         cal.isHoliday(GameDate(2026, 1, 6), state: Bundesland.hamburg),
         isFalse,
       );
-      expect(
-        cal.holidaysOn(GameDate(2026, 4, 3)).single.key,
-        'goodFriday',
-      );
+      expect(cal.holidaysOn(GameDate(2026, 4, 3)).single.key, 'goodFriday');
     });
 
     test('every year has the nationwide holidays', () {
       for (var year = 2026; year <= 2125; year++) {
-        final nationwide = holidaysOfYear(
-          year,
-        ).where((h) => h.isNationwide).length;
+        final nationwide = holidaysOfYear(year)
+            .where((h) => h.isNationwide)
+            .length;
         expect(nationwide, 9, reason: '$year');
       }
     });
@@ -79,7 +76,10 @@ void main() {
   group('calendar rules', () {
     test('the rules file loads', () {
       final r = _rules();
-      expect(r.leagues.keys, containsAll(['liga1', 'liga2', 'liga3', 'stufe4']));
+      expect(
+        r.leagues.keys,
+        containsAll(['liga1', 'liga2', 'liga3', 'stufe4']),
+      );
       expect(r.leagues['liga3']!.matchdays, 38);
     });
 
@@ -105,14 +105,17 @@ void main() {
       final first = c.matchdays.first;
       expect(first.firstDate, GameDate(2026, 8, 7));
       expect(first.matches, 10);
-      expect([for (final g in first.groups) '${g.date}T${g.timeLabel}x${g.matches}'], [
-        '2026-08-07T19:00x1',
-        '2026-08-08T14:00x5',
-        '2026-08-08T16:30x1',
-        '2026-08-09T13:30x1',
-        '2026-08-09T16:30x1',
-        '2026-08-09T19:30x1',
-      ]);
+      expect(
+        [for (final g in first.groups) '${g.date}T${g.timeLabel}x${g.matches}'],
+        [
+          '2026-08-07T19:00x1',
+          '2026-08-08T14:00x5',
+          '2026-08-08T16:30x1',
+          '2026-08-09T13:30x1',
+          '2026-08-09T16:30x1',
+          '2026-08-09T19:30x1',
+        ],
+      );
     });
 
     test('Liga 3 has four English weeks and ends on 22 May', () {
@@ -226,11 +229,19 @@ void main() {
           GameDate? previous;
           for (final m in c.matchdays) {
             if (previous != null) {
-              expect(m.firstDate.isAfter(previous), isTrue, reason: '$year $key');
+              expect(
+                m.firstDate.isAfter(previous),
+                isTrue,
+                reason: '$year $key',
+              );
             }
             previous = m.lastDate;
             for (final g in m.groups) {
-              expect(cal.isNoFootballDay(g.date), isFalse, reason: '$year $key');
+              expect(
+                cal.isNoFootballDay(g.date),
+                isFalse,
+                reason: '$year $key',
+              );
               expect(g.minuteOfDay % 30, 0);
             }
           }
@@ -245,7 +256,11 @@ void main() {
       for (var year = 2026; year <= 2125; year++) {
         for (final key in gen.leagueKeys) {
           final v = gen.build(Season(year), key).vacation;
-          expect(v.totalWerktage, greaterThanOrEqualTo(30), reason: '$year $key');
+          expect(
+            v.totalWerktage,
+            greaterThanOrEqualTo(30),
+            reason: '$year $key',
+          );
           expect(
             v.longestBlockWerktage,
             greaterThanOrEqualTo(12),

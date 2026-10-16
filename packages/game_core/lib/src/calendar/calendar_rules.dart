@@ -216,7 +216,8 @@ class CalendarRules {
       lastWeekendWeeksBeforeMay31: last['weeks_before_may_31_weekend'] as int,
       lastWeekendOverrides: Map.unmodifiable(overrides),
       winterBreakFirstSaturday: MonthDay.parse(
-        (decoded['winter_break'] as Map<String, dynamic>)['first_saturday_on_or_after']
+        (decoded['winter_break']
+                as Map<String, dynamic>)['first_saturday_on_or_after']
             as String,
       ),
       internationalBreaks: List.unmodifiable([

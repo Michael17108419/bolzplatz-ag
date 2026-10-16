@@ -147,9 +147,8 @@ class CalendarGenerator {
     final firstSaturday = saturdayOnOrAfter(startRule.inYear(year));
     final lastSaturday =
         rules.lastWeekendOverrides[year] ??
-        saturdayOnOrBefore(
-          GameDate(year + 1, 5, 31),
-        ).plusDays(-7 * rules.lastWeekendWeeksBeforeMay31);
+        saturdayOnOrBefore(GameDate(year + 1, 5, 31))
+            .plusDays(-7 * rules.lastWeekendWeeksBeforeMay31);
 
     final breakFirst = saturdayOnOrAfter(
       rules.winterBreakFirstSaturday.inYear(year),
@@ -172,11 +171,7 @@ class CalendarGenerator {
     final intlSet = {for (final d in intlSaturdays) d.epochDay};
 
     final weekends = <GameDate>[];
-    for (
-      var d = firstSaturday;
-      !d.isAfter(lastSaturday);
-      d = d.plusDays(7)
-    ) {
+    for (var d = firstSaturday; !d.isAfter(lastSaturday); d = d.plusDays(7)) {
       if (winterSaturdays.contains(d.epochDay)) continue;
       if (intlSet.contains(d.epochDay)) continue;
       if (holidays.isLabourDayWeekend(d)) continue;
