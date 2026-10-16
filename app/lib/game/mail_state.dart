@@ -6,6 +6,9 @@ class MailReadNotifier extends Notifier<Set<String>> {
   @override
   Set<String> build() => const {};
 
+  /// Takes over the mails read in a saved game.
+  void restore(Set<String> read) => state = Set.unmodifiable(read);
+
   void markRead(String id) {
     if (state.contains(id)) return;
     state = {...state, id};

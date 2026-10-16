@@ -9,10 +9,15 @@ class Career {
     required this.trainer,
     required this.offer,
     required this.seed,
+    this.wishClubId,
   });
 
   final Trainer trainer;
   final JobOffer offer;
+
+  /// The wish club of the career start; together with the seed it brings
+  /// back the same job offers when a saved game is loaded.
+  final ClubId? wishClubId;
 
   /// Seed of the career (the one of the screens that led to it).
   final int seed;
@@ -28,8 +33,14 @@ class CareerNotifier extends Notifier<Career?> {
     required Trainer trainer,
     required JobOffer offer,
     required int seed,
+    ClubId? wishClubId,
   }) {
-    state = Career(trainer: trainer, offer: offer, seed: seed);
+    state = Career(
+      trainer: trainer,
+      offer: offer,
+      seed: seed,
+      wishClubId: wishClubId,
+    );
   }
 }
 
@@ -74,6 +85,9 @@ class CareerDraft {
 class CareerDraftNotifier extends Notifier<CareerDraft> {
   @override
   CareerDraft build() => CareerDraft(seed: Random().nextInt(1 << 30));
+
+  /// Takes over a saved draft (loading a saved game).
+  void restore(CareerDraft draft) => state = draft;
 
   void setName(String name) => state = state.copyWith(name: name);
 

@@ -291,6 +291,12 @@ class LineupNotifier extends Notifier<LineupState?> {
     });
   }
 
+  /// Takes over the line-up of a saved game.
+  void restore(TeamSheet sheet, {required bool reviewed}) {
+    if (state == null) return;
+    state = LineupState(sheet: sheet, reviewed: reviewed);
+  }
+
   /// "Passt so": the manager has looked at the line-up.
   void review() {
     final now = state;

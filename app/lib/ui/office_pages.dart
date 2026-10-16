@@ -18,7 +18,7 @@ import 'office_mail.dart';
 import 'match_pages.dart';
 import 'month_calendar.dart';
 import 'screen_frame.dart';
-import 'settings_page.dart';
+import 'saves_page.dart';
 import 'lineup_page.dart';
 import 'stats_page.dart';
 import 'squad_page.dart';
@@ -118,7 +118,7 @@ Widget _pageFor(DeskItem item) => switch (item) {
   DeskItem.calendar => const CalendarPage(),
   DeskItem.stats => const StatsPage(),
   DeskItem.finance => const FinancePage(),
-  DeskItem.saves => const SettingsPage(),
+  DeskItem.saves => const SavesPage(),
   DeskItem.tactics => const LineupPage(),
   DeskItem.files => const SquadPage(),
   _ => _LaterPage(item),

@@ -4,6 +4,7 @@ import 'package:game_core/game_core.dart';
 
 import '../game/career.dart';
 import '../game/loaded_world.dart';
+import '../game/saves.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'backstory_step.dart';
@@ -64,7 +65,9 @@ class _CareerWizardState extends ConsumerState<_CareerWizard> {
           trainer: trainer,
           offer: offer,
           seed: ref.read(careerDraftProvider).seed,
+          wishClubId: ref.read(careerDraftProvider).wishClubId,
         );
+    ref.read(saveServiceProvider).autosave();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(builder: (_) => const OfficePage()),
     );

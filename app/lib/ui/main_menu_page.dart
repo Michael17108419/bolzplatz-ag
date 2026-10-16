@@ -7,7 +7,7 @@ import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'logo.dart';
 import 'career_start_page.dart';
-import 'placeholder_page.dart';
+import 'saves_page.dart';
 import 'settings_page.dart';
 
 /// First screen: new game, load, settings, quit.
@@ -49,7 +49,7 @@ class MainMenuPage extends ConsumerWidget {
                   FilledButton.tonal(
                     onPressed: () => _open(
                       context,
-                      PlaceholderPage(title: s.menuLoadGame, step: 8),
+                      const SavesPage(fromMenu: true),
                     ),
                     child: Text(s.menuLoadGame),
                   ),

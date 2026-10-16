@@ -4,6 +4,7 @@ import 'package:game_core/game_core.dart';
 import 'career.dart';
 import 'lineup.dart';
 import 'loaded_world.dart';
+import 'saves.dart';
 
 /// The own match of a day: the live match the player coaches.
 typedef OwnMatch = ConferenceMatch;
@@ -20,9 +21,11 @@ class SeasonGame {
     required this.seed,
     required this.ownDays,
     required this.today,
+    required this.initialSheet,
+    List<Map<String, dynamic>>? log,
     this.revision = 0,
     this.day,
-  });
+  }) : log = log ?? [];
 
   final SeasonRunner runner;
   final SeasonRun run;
@@ -41,6 +44,27 @@ class SeasonGame {
 
   /// The date the world stands on.
   final GameDate today;
+
+  /// The line-up the season began with.
+  final TeamSheet? initialSheet;
+
+  /// What the player did, in order: line-up handed in for a match ("next"),
+  /// a day on ("day") and a finished own match with the changes made in it
+  /// ("done"). A saved game keeps this and plays it again when loaded.
+  /// Shared by all revisions of the game.
+  final List<Map<String, dynamic>> log;
+
+  /// The log as it can be saved: a preview that was opened but not played
+  /// is left out (saving happens at the end of a day).
+  List<Map<String, dynamic>> get savableLog {
+    final out = List<Map<String, dynamic>>.of(log);
+    while (out.isNotEmpty &&
+        out.last['op'] == 'next' &&
+        out.last['day'] == true) {
+      out.removeLast();
+    }
+    return out;
+  }
 
   /// The day that is open (preview or live), null between matches.
   final ConferenceDay? day;
@@ -69,6 +93,8 @@ class SeasonGame {
     seed: seed,
     ownDays: ownDays,
     today: today ?? this.today,
+    initialSheet: initialSheet,
+    log: log,
     revision: revision + 1,
     day: clearDay ? null : (day ?? this.day),
   );
@@ -83,12 +109,15 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     final career = ref.watch(careerProvider);
     final loaded = ref.watch(loadedWorldProvider).value;
     if (career == null || loaded == null) return null;
+    return _fresh(career, loaded, ref.read(lineupProvider)?.sheet);
+  }
+
+  SeasonGame _fresh(Career career, LoadedWorld loaded, TeamSheet? sheet) {
     final seed = seasonSeed(career, loaded);
     final runner = SeasonRunner(
       loaded.rules,
       calendarRules: loaded.calendarRules,
     );
-    final sheet = ref.read(lineupProvider)?.sheet;
     final run = runner.begin(
       SeasonState.fromWorld(loaded.world),
       seed: seed,
@@ -102,7 +131,45 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       seed: seed,
       ownDays: run.schedules[career.offer.league.id]!.length,
       today: loaded.today,
+      initialSheet: sheet,
     );
+  }
+
+  /// Builds the season of a saved game and plays the saved log again. The
+  /// world stands then exactly where it stood when the game was saved.
+  void restore(TeamSheet? initialSheet, List<Map<String, dynamic>> log) {
+    final career = ref.read(careerProvider);
+    final loaded = ref.read(loadedWorldProvider).value;
+    if (career == null || loaded == null) return;
+    state = _fresh(career, loaded, initialSheet);
+    for (final entry in log) {
+      switch (entry['op']) {
+        case 'next':
+          final sheet = TeamSheet.fromJson(
+            entry['sheet'] as Map<String, dynamic>,
+          );
+          _openNext(sheet, record: false);
+        case 'day':
+          _advanceDay(record: false);
+        case 'done':
+          final game = state!;
+          final session = game.day?.own?.session;
+          MatchResult? result;
+          if (session != null) {
+            session.replay([
+              for (final a in entry['actions'] as List<dynamic>)
+                SessionAction.fromJson(a as Map<String, dynamic>),
+            ]);
+            result = session.finish();
+          }
+          _complete(result, record: false);
+      }
+    }
+    final game = state!;
+    game.log
+      ..clear()
+      ..addAll(log);
+    state = game._with(clearDay: true);
   }
 
   /// Opens the own match of the next matchday with the current line-up.
@@ -110,9 +177,15 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
   /// club for now) are played in the background first. Null if the season is
   /// over or the line-up is missing.
   OwnMatch? openNext() {
-    final game = state;
     final sheet = ref.read(lineupProvider)?.sheet;
+    final game = state;
     if (game == null || sheet == null || game.isOver) return null;
+    return _openNext(sheet, record: true);
+  }
+
+  OwnMatch? _openNext(TeamSheet sheet, {required bool record}) {
+    final game = state;
+    if (game == null || game.isOver) return null;
     game.runner.setUserSheet(game.clubId, sheet);
     final run = game.run;
     var last = game.today;
@@ -121,12 +194,18 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       if (next == null) break;
       if (next.$1 == run.nextDate && next.$2 == Competition.league) {
         final day = game.runner.openDay(run, own: game.clubId, sheet: sheet);
+        if (record) {
+          game.log.add({'op': 'next', 'sheet': sheet.toJson(), 'day': true});
+        }
         state = game._with(day: day, today: day.date);
         return day.own;
       }
       final played = game.runner.openDay(run);
       game.runner.completeDay(run, played);
       last = played.date;
+    }
+    if (record) {
+      game.log.add({'op': 'next', 'sheet': sheet.toJson(), 'day': false});
     }
     state = game._with(clearDay: true, today: last);
     return null;
@@ -137,6 +216,12 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
   /// not played here: [DayStep.ownMatch] says the match is next, the screen
   /// then opens it like "Weiter".
   DayStep advanceDay() {
+    final step = _advanceDay(record: true);
+    if (step == DayStep.played) ref.read(saveServiceProvider).autosave();
+    return step;
+  }
+
+  DayStep _advanceDay({required bool record}) {
     final game = state;
     if (game == null) return DayStep.seasonOver;
     final tomorrow = game.today.plusDays(1);
@@ -160,6 +245,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
         }
       }
     }
+    if (record) game.log.add({'op': 'day'});
     state = game._with(today: tomorrow, clearDay: true);
     return DayStep.played;
   }
@@ -167,9 +253,23 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
   /// Closes the matchday: plays all other matches of the day and takes the
   /// result of the own match (null if the club has no match that day).
   void complete(MatchResult? ownResult) {
+    _complete(ownResult, record: true);
+    ref.read(saveServiceProvider).autosave();
+  }
+
+  void _complete(MatchResult? ownResult, {required bool record}) {
     final game = state;
     final day = game?.day;
     if (game == null || day == null) return;
+    if (record) {
+      game.log.add({
+        'op': 'done',
+        'actions': [
+          for (final a in day.own?.session?.actions ?? <SessionAction>[])
+            a.toJson(),
+        ],
+      });
+    }
     game.runner.completeDay(game.run, day, ownResult: ownResult);
     // Leagues with more matchdays than the own one play on in the background.
     if (game.isOver) {

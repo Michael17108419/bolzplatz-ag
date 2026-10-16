@@ -379,6 +379,28 @@ abstract interface class AppStrings {
   String get infoStatsScorers;
   String get statsScorersEmpty;
   String get statsAssistsEmpty;
+  String get savesTitle;
+  String get savesAuto;
+  String savesSlot(String slot);
+  String get savesEmpty;
+  String get savesUnreadable;
+  String savesLine1(String trainer, String club);
+  String savesLine2(String league, String date, int matchday, int matchdays);
+  String savesSavedAt(String stamp);
+  String get savesSave;
+  String get savesLoad;
+  String get savesDelete;
+  String get savesCancel;
+  String get savesOverwriteTitle;
+  String get savesOverwriteText;
+  String get savesDeleteTitle;
+  String get savesDeleteText;
+  String get savesDone;
+  String get savesLoadFailed;
+  String get savesLoading;
+  String get savesSettings;
+  String get savesNothingToLoad;
+  String get infoSaves;
 }
 
 /// German, the only language for now.
@@ -1958,6 +1980,56 @@ class AppStringsDe implements AppStrings {
   @override
   String get statsAssistsEmpty =>
       'Noch keine Vorlage. Alle haben den Ball behalten.';
+  @override
+  String get savesTitle => 'Spielstände';
+  @override
+  String get savesAuto => 'Autospeicher';
+  @override
+  String savesSlot(String slot) => 'Platz $slot';
+  @override
+  String get savesEmpty => 'Leer. Hier passt noch eine Karriere rein.';
+  @override
+  String get savesUnreadable =>
+      'Nicht lesbar: andere Version oder beschädigt. Die Datei bleibt liegen.';
+  @override
+  String savesLine1(String trainer, String club) => '$trainer bei $club';
+  @override
+  String savesLine2(String league, String date, int matchday, int matchdays) =>
+      '$league · $date · Spieltag $matchday von $matchdays gespielt';
+  @override
+  String savesSavedAt(String stamp) => 'Gespeichert am $stamp';
+  @override
+  String get savesSave => 'Speichern';
+  @override
+  String get savesLoad => 'Laden';
+  @override
+  String get savesDelete => 'Löschen';
+  @override
+  String get savesCancel => 'Abbrechen';
+  @override
+  String get savesOverwriteTitle => 'Spielstand überschreiben?';
+  @override
+  String get savesOverwriteText =>
+      'Auf diesem Platz liegt schon eine Karriere. Die ist danach weg.';
+  @override
+  String get savesDeleteTitle => 'Spielstand löschen?';
+  @override
+  String get savesDeleteText => 'Weg ist weg. Das gibt es kein Zurück.';
+  @override
+  String get savesDone => 'Gespeichert.';
+  @override
+  String get savesLoadFailed =>
+      'Der Spielstand passt nicht zu dieser Welt. Er bleibt unberührt.';
+  @override
+  String get savesLoading => 'Dein Spielstand wird nachgespielt …';
+  @override
+  String get savesSettings => 'Einstellungen';
+  @override
+  String get savesNothingToLoad =>
+      'Noch kein Spielstand. Erst Karriere starten, dann gibt es etwas zu laden.';
+  @override
+  String get infoSaves =>
+      'Der Autospeicher wird nach jedem Tag und jedem Spiel überschrieben, du musst nichts tun. Auf den Plätzen 1 bis 3 sicherst du Stände, die bleiben, bis du sie überschreibst. Gespeichert wird nur im Büro, nie mitten im Spiel: Erst abpfeifen, dann speichern. Beim Laden spielt das Spiel deine Karriere kurz im Hintergrund nach, das dauert einen Moment.';
 }
 
 /// The strings in use. Later this follows a setting in the settings screen.
