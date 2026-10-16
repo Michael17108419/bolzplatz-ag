@@ -186,17 +186,18 @@ def desk():
     b += circle(470, 662, 7, '#3a1d0c', 0, 'fill-opacity="0.6"')  # burn mark
     b += path('M300 765 Q420 758 520 778', 'none', '#4a2a12', 2, .5)  # crack
     b += poly([(250, 790), (1350, 790), (1350, 812), (250, 812)], '#6A3E22', 4)
-    b += rect(262, 812, 1076, 90, 'url(#dfront)', 4)
-    b += rect(610, 822, 370, 78, 'url(#dknee)', 3)
-    # four long legs down to the floor, with their shadows
-    for lx in (268, 566, 1010, 1300):
-        b += ell(lx + 15, 1046, 30, 8, '#000000', .4)
-        b += rect(lx, 902, 30, 140, '#6A3E22', 4)
-        b += rect(lx + 4, 906, 8, 132, '#ffffff', 0, 0, 'fill-opacity="0.10"')
-        b += rect(lx - 3, 1038, 36, 10, '#3F2412', 3, 2)
-    b += rect(262, 900, 1076, 12, '#4a2a12', 3)  # lower rail
+    # a pedestal desk: two drawer blocks down to the floor, knee space between
+    b += ell(800, 992, 600, 14, '#000000', .38)  # shadow on the floor
+    b += rect(592, 840, 408, 145, 'url(#dknee)', 3)  # knee space, dark
+    b += rect(592, 962, 408, 23, '#000000', 0, 0, 'fill-opacity="0.35"')
+    b += rect(262, 812, 1076, 30, 'url(#dfront)', 4)  # apron over the knees
+    b += rect(262, 812, 330, 173, 'url(#dfront)', 4)  # left block
+    b += rect(1000, 812, 338, 173, 'url(#dfront)', 4)  # right block
+    for x, w in ((262, 330), (1000, 338)):
+        b += rect(x, 972, w, 13, '#3F2412', 3)  # plinth
     # left drawer unit
-    for (y, h, open_) in [(824, 36, True), (864, 34, False)]:
+    for (y, h, open_) in [(824, 36, True), (864, 34, False),
+                           (902, 34, False), (940, 30, False)]:
         b += rect(278, y, 312, h, '#7A4727', 3, 2)
         b += rect(286, y + 7, 296, h - 14, '#000000', 0, 2,
                   'fill-opacity="0.15"')
@@ -207,6 +208,11 @@ def desk():
     b += rect(1005, 868, 310, 30, '#7A4727', 3, 2)
     b += rect(1013, 875, 294, 16, '#000000', 0, 2, 'fill-opacity="0.15"')
     b += rect(1135, 877, 50, 9, '#D2A24C', 2, 4)
+    for y in (902, 938):
+        b += rect(1005, y, 310, 32, '#7A4727', 3, 2)
+        b += rect(1013, y + 7, 294, 18, '#000000', 0, 2,
+                  'fill-opacity="0.15"')
+        b += rect(1135, y + 11, 50, 9, '#D2A24C', 2, 4)
     return svg(b, defs)
 
 
