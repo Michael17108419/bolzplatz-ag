@@ -103,7 +103,7 @@ class _Office extends ConsumerWidget {
           ),
         ),
         if (!narrow) ...[
-          if (dateText != null) dateText,
+          ?dateText,
           InfoButton(message: s.infoDesk),
           const SizedBox(width: Tokens.gapM),
           ConstrainedBox(
