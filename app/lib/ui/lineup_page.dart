@@ -1760,7 +1760,7 @@ class _SlotPickerState extends ConsumerState<_SlotPicker> {
                     loaded: widget.loaded,
                   ),
                   for (final p in players)
-                    _pickRow(context, p, xi, sheet, absent, fit, target),
+                    _pickRow(context, p, xi, sheet, absent, fit, target, pick),
                 ],
               ),
             ),
@@ -1778,6 +1778,7 @@ class _SlotPickerState extends ConsumerState<_SlotPicker> {
     Map<PlayerId, Absence> absent,
     Fit fit,
     Position target,
+    void Function(Player) pick,
   ) {
     final s = ref.read(stringsProvider);
     final theme = Theme.of(context);
