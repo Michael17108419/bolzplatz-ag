@@ -106,8 +106,12 @@ void main() {
     var withAdvantage = 0;
     var neutral = 0;
     for (var seed = 1; seed <= 400; seed++) {
-      final a = MatchSession(rules: rules, home: home, away: away, seed: seed)
-          .finish();
+      final a = MatchSession(
+        rules: rules,
+        home: home,
+        away: away,
+        seed: seed,
+      ).finish();
       final b = MatchSession(
         rules: rules,
         home: home,
