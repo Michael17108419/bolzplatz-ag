@@ -6,11 +6,13 @@
 /// - no player-facing text; use language file keys
 library;
 
+export 'src/calendar/appointments.dart';
 export 'src/calendar/calendar_rules.dart';
 export 'src/calendar/game_date.dart';
 export 'src/calendar/holidays.dart';
 export 'src/calendar/season.dart';
 export 'src/calendar/season_calendar.dart';
+export 'src/calendar/vacation.dart';
 export 'src/career/career_start.dart';
 export 'src/development/development.dart';
 export 'src/development/squad_turnover.dart';
