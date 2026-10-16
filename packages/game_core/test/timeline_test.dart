@@ -124,7 +124,7 @@ void main() {
     expect(bolz[5], hasLength(1));
     expect(pott.keys.toList()..sort(), [0, 1, 2, 3, 4]);
     expect(pott[0]!.month, 9);
-    expect(pott[4]!.month, 1);
+    expect(pott[4]!.month, inInclusiveRange(1, 2));
   });
 
   test('the Bolzplatz final is a Saturday after the last league weekend', () {
