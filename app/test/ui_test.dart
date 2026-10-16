@@ -43,6 +43,8 @@ void main() {
     await _start(tester);
     await tester.tap(find.text('Einstellungen'));
     await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('settings-speed')), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Tastaturkürzel'), 200);
     expect(find.text('Tastaturkürzel'), findsOneWidget);
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pumpAndSettle();
