@@ -1211,7 +1211,10 @@ class _PhoneStrip extends ConsumerWidget {
         color: Tokens.panel,
         borderRadius: BorderRadius.circular(Tokens.radius),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
         children: [
           Text(
             preview.strength.round().toString(),
@@ -1241,6 +1244,9 @@ class _PhoneStrip extends ConsumerWidget {
               ],
             ),
           ),
+          InfoButton(message: s.infoLineupPreview),
+        ],
+          ),
           if (preview.outOfPosition > 0)
             Text(
               s.lineupOutOfPosition(preview.outOfPosition),
@@ -1249,7 +1255,6 @@ class _PhoneStrip extends ConsumerWidget {
                 color: Tokens.orange,
               ),
             ),
-          InfoButton(message: s.infoLineupPreview),
         ],
       ),
     );
