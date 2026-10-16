@@ -25,7 +25,6 @@ class LookStep extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
-    final theme = Theme.of(context);
     final a = ref.watch(careerDraftProvider).appearance;
     final o = loaded.rules.career.appearanceOptions;
     return Column(
@@ -34,40 +33,38 @@ class LookStep extends ConsumerWidget {
         Expanded(
           child: AvatarSplit(
             loaded: loaded,
-            children: [
-                    Text(s.lookHeading, style: theme.textTheme.headlineSmall),
-                    const SizedBox(height: Tokens.gapL),
-                    LookChips(
-                      optionKey: 'glasses',
-                      labels: [
-                        for (var i = 0; i < o['glasses']!; i++)
-                          s.glassesName(i),
-                      ],
-                      value: a.glasses,
-                      change: (a, i) => a.copyWith(glasses: i),
-                    ),
-                    LookChips(
-                      optionKey: 'outfit',
-                      labels: [
-                        for (var i = 0; i < o['outfit']!; i++) s.outfitName(i),
-                      ],
-                      value: a.outfit,
-                      change: (a, i) => a.copyWith(outfit: i),
-                    ),
-                    LookSwatches(
-                      optionKey: 'outfit_colour',
-                      colors: PersonLooks.outfit,
-                      value: a.outfitColour,
-                      change: (a, i) => a.copyWith(outfitColour: i),
-                    ),
-                    if (const [4, 5, 7, 8].contains(a.outfit))
-                      LookSwatches(
-                        label: s.secondColourLabel(a.outfit),
-                        optionKey: 'outfit_colour2',
-                        colors: PersonLooks.outfit,
-                        value: a.outfitColour2,
-                        change: (a, i) => a.copyWith(outfitColour2: i),
-                      ),
+            heading: s.lookHeading,
+            rows: [
+              LookPicker(
+                optionKey: 'glasses',
+                labels: [
+                  for (var i = 0; i < o['glasses']!; i++) s.glassesName(i),
+                ],
+                value: a.glasses,
+                change: (a, i) => a.copyWith(glasses: i),
+              ),
+              LookPicker(
+                optionKey: 'outfit',
+                labels: [
+                  for (var i = 0; i < o['outfit']!; i++) s.outfitName(i),
+                ],
+                value: a.outfit,
+                change: (a, i) => a.copyWith(outfit: i),
+              ),
+              LookPicker(
+                optionKey: 'outfit_colour',
+                colors: PersonLooks.outfit,
+                value: a.outfitColour,
+                change: (a, i) => a.copyWith(outfitColour: i),
+              ),
+              if (const [4, 5, 7, 8].contains(a.outfit))
+                LookPicker(
+                  label: s.secondColourLabel(a.outfit),
+                  optionKey: 'outfit_colour2',
+                  colors: PersonLooks.outfit,
+                  value: a.outfitColour2,
+                  change: (a, i) => a.copyWith(outfitColour2: i),
+                ),
             ],
           ),
         ),

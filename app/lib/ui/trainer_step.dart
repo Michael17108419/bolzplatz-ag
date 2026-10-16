@@ -46,7 +46,6 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
   @override
   Widget build(BuildContext context) {
     final s = ref.watch(stringsProvider);
-    final theme = Theme.of(context);
     final a = ref.watch(careerDraftProvider).appearance;
     final o = widget.loaded.rules.career.appearanceOptions;
     return Column(
@@ -55,70 +54,68 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
         Expanded(
           child: AvatarSplit(
             loaded: widget.loaded,
-            children: [
-                    Text(
-                      s.trainerHeading,
-                      style: theme.textTheme.headlineSmall,
+            heading: s.trainerHeading,
+            rows: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: Tokens.gapS),
+                child: TextField(
+                  controller: _name,
+                  autofocus: !isCompact(context),
+                  onChanged: (v) {
+                    ref.read(careerDraftProvider.notifier).setName(v);
+                    setState(() {});
+                  },
+                  onSubmitted: (_) => _next(),
+                  decoration: InputDecoration(
+                    labelText: s.trainerNameLabel,
+                    filled: true,
+                    isDense: true,
+                    fillColor: Tokens.panel,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(Tokens.radius),
+                      borderSide: BorderSide.none,
                     ),
-                    const SizedBox(height: Tokens.gapM),
-                    TextField(
-                      controller: _name,
-                      autofocus: !isNarrow(context),
-                      onChanged: (v) {
-                        ref.read(careerDraftProvider.notifier).setName(v);
-                        setState(() {});
-                      },
-                      onSubmitted: (_) => _next(),
-                      decoration: InputDecoration(
-                        labelText: s.trainerNameLabel,
-                        filled: true,
-                        fillColor: Tokens.panel,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(Tokens.radius),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: Tokens.gapL),
-                    LookChips(
-                      optionKey: 'gender',
-                      labels: [
-                        for (var i = 0; i < o['gender']!; i++) s.genderName(i),
-                      ],
-                      value: a.gender,
-                      change: (a, i) =>
-                          a.copyWith(gender: i, beard: i == 1 ? 0 : a.beard),
-                    ),
-                    LookSwatches(
-                      optionKey: 'skin',
-                      colors: PersonLooks.skin,
-                      value: a.skin,
-                      change: (a, i) => a.copyWith(skin: i),
-                    ),
-                    LookChips(
-                      optionKey: 'hair_style',
-                      labels: [
-                        for (var i = 0; i < o['hair_style']!; i++)
-                          s.hairStyleName(i),
-                      ],
-                      value: a.hairStyle,
-                      change: (a, i) => a.copyWith(hairStyle: i),
-                    ),
-                    LookSwatches(
-                      optionKey: 'hair_colour',
-                      colors: PersonLooks.hair,
-                      value: a.hairColour,
-                      change: (a, i) => a.copyWith(hairColour: i),
-                    ),
-                    if (a.gender != 1)
-                      LookChips(
-                        optionKey: 'beard',
-                        labels: [
-                          for (var i = 0; i < o['beard']!; i++) s.beardName(i),
-                        ],
-                        value: a.beard,
-                        change: (a, i) => a.copyWith(beard: i),
-                      ),
+                  ),
+                ),
+              ),
+              LookChips(
+                optionKey: 'gender',
+                labels: [
+                  for (var i = 0; i < o['gender']!; i++) s.genderName(i),
+                ],
+                value: a.gender,
+                change: (a, i) =>
+                    a.copyWith(gender: i, beard: i == 1 ? 0 : a.beard),
+              ),
+              LookPicker(
+                optionKey: 'skin',
+                colors: PersonLooks.skin,
+                value: a.skin,
+                change: (a, i) => a.copyWith(skin: i),
+              ),
+              LookPicker(
+                optionKey: 'hair_style',
+                labels: [
+                  for (var i = 0; i < o['hair_style']!; i++) s.hairStyleName(i),
+                ],
+                value: a.hairStyle,
+                change: (a, i) => a.copyWith(hairStyle: i),
+              ),
+              LookPicker(
+                optionKey: 'hair_colour',
+                colors: PersonLooks.hair,
+                value: a.hairColour,
+                change: (a, i) => a.copyWith(hairColour: i),
+              ),
+              if (a.gender != 1)
+                LookPicker(
+                  optionKey: 'beard',
+                  labels: [
+                    for (var i = 0; i < o['beard']!; i++) s.beardName(i),
+                  ],
+                  value: a.beard,
+                  change: (a, i) => a.copyWith(beard: i),
+                ),
             ],
           ),
         ),
