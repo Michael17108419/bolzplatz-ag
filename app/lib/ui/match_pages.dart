@@ -9,6 +9,7 @@ import '../game/lineup.dart';
 import '../game/loaded_world.dart';
 import '../game/office_provider.dart';
 import '../game/saves.dart';
+import '../game/settings.dart';
 import '../game/season_game.dart';
 import '../game/ticker.dart';
 import '../l10n/app_strings.dart';
@@ -224,6 +225,8 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
   int _seen = 0;
   // Slow is the default: the ticker should be readable.
   int _speed = 0;
+  // False while old events are read in (no buzzing for those).
+  bool _live = false;
   bool _running = true;
   bool _pausedByEvent = false;
   bool _done = false;
@@ -242,6 +245,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     _day = game.day!;
     _loaded = ref.read(loadedWorldProvider).value!;
     _ownSide = _own.fixture.home == game.clubId ? 0 : 1;
+    _speed = ref.read(tickerSpeedProvider);
     // A saved match that was under way waits paused, so nothing happens
     // before the player is back.
     final notifier = ref.read(seasonProvider.notifier);
@@ -250,6 +254,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
       _running = false;
     }
     _ingest();
+    _live = true;
     _startTimer();
   }
 
@@ -324,6 +329,13 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
         away: _clubName(_loaded, _own.fixture.away),
       );
       if (line != null) _lines.insert(0, line);
+      if (_live &&
+          line != null &&
+          line.isGoal &&
+          line.side == _ownSide &&
+          ref.read(vibrationProvider)) {
+        unawaited(buzz());
+      }
       if (pausesMatch(e)) stop = true;
     }
     return stop;
@@ -366,6 +378,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
 
   void _skip() {
     _stopTimer();
+    _live = false;
     if (_cup) {
       _session.finishKnockout();
     } else {

@@ -241,7 +241,7 @@ void main() {
     await tester.tap(firstRow);
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('profile-overall')), findsOneWidget);
-    for (var i = 1; i < 5; i++) {
+    for (var i = 1; i < 6; i++) {
       await tester.tap(find.byKey(ValueKey('profile-tab-$i')));
       await tester.pumpAndSettle();
     }

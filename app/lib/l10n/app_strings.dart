@@ -22,6 +22,16 @@ abstract interface class AppStrings {
   String get settingsTitle;
   String get settingsLanguage;
   String get settingsShortcuts;
+  String get settingsTicker;
+  String get settingsTickerText;
+  String get settingsVibration;
+  String get settingsVibrationText;
+  String get settingsSound;
+  String get settingsSoundText;
+  String get settingsAbout;
+  String get settingsAboutText;
+  String get settingsGeneral;
+  String get settingsMatch;
   String get shortcutBack;
   String get shortcutBackKey;
   String comingInStep(int step);
@@ -230,6 +240,11 @@ abstract interface class AppStrings {
   String get squadCount0;
   String squadCount(int n);
   String squadFilterName(SquadFilter filter);
+  String squadFilterButton(String name);
+  String get squadFilterTitle;
+  String squadAgeShort(int age);
+  String squadContractUntil(int year);
+  String get squadNoContract;
   String squadSortName(SquadSort sort);
   String get squadEmpty;
   String get squadColName;
@@ -504,6 +519,36 @@ class AppStringsDe implements AppStrings {
   String get settingsTitle => 'Einstellungen';
   @override
   String get settingsLanguage => 'Sprache';
+  @override
+  String get settingsTicker =>
+      'Ticker-Tempo';
+  @override
+  String get settingsTickerText =>
+      'So schnell läuft der Ticker beim Anpfiff los. Im Spiel kannst du es jederzeit ändern.';
+  @override
+  String get settingsVibration =>
+      'Vibration bei Toren';
+  @override
+  String get settingsVibrationText =>
+      'Dein Handy brummt, wenn deine Mannschaft trifft. Im iPhone-Browser geht das leider nicht, erst in der richtigen App.';
+  @override
+  String get settingsSound =>
+      'Ton';
+  @override
+  String get settingsSoundText =>
+      'Pfiffe und Jubel. Gibt es noch nicht, der Schalter hält die Stelle warm.';
+  @override
+  String get settingsAbout =>
+      'Über das Spiel';
+  @override
+  String get settingsAboutText =>
+      'Bolzplatz AG. Tipp: In Safari auf „Teilen“ und dann „Zum Home-Bildschirm“, dann startet das Spiel wie eine App.';
+  @override
+  String get settingsGeneral =>
+      'Allgemein';
+  @override
+  String get settingsMatch =>
+      'Spiel';
   @override
   String get settingsShortcuts => 'Tastaturkürzel';
   @override
@@ -1398,6 +1443,16 @@ class AppStringsDe implements AppStrings {
   @override
   String squadCount(int n) => n == 1 ? '1 Spieler' : '$n Spieler';
   @override
+  String squadFilterButton(String name) => 'Filter: $name';
+  @override
+  String get squadFilterTitle => 'Wen willst du sehen?';
+  @override
+  String squadAgeShort(int age) => '$age J.';
+  @override
+  String squadContractUntil(int year) => 'bis $year';
+  @override
+  String get squadNoContract => 'ohne Vertrag';
+  @override
   String squadFilterName(SquadFilter filter) => switch (filter) {
     SquadFilter.all => 'Alle',
     SquadFilter.goalkeepers => 'Tor',
@@ -1451,7 +1506,7 @@ class AppStringsDe implements AppStrings {
       'zuerst), Name (A bis Z) oder Vertrag (läuft zuerst aus).';
   @override
   String profileTab(int index) =>
-      const ['Übersicht', 'Werte', 'Rollen', 'Kopf', 'Karriere'][index];
+      const ['Übersicht', 'Werte', 'Rollen', 'Kopf', 'Karriere', 'Vertrag'][index];
   @override
   String get profileBack => 'Zum Kader';
   @override

@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../game/settings.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'screen_frame.dart';
 
-/// Settings: language and the list of keyboard shortcuts.
+/// Settings: help, ticker speed, vibration, sound, language, and (on a
+/// computer) the keyboard shortcuts.
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
@@ -14,6 +16,11 @@ class SettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
     final theme = Theme.of(context);
+    final speed = ref.watch(tickerSpeedProvider);
+    Widget heading(String text) => Padding(
+      padding: const EdgeInsets.only(top: Tokens.gapM, bottom: Tokens.gapS),
+      child: Text(text, style: theme.textTheme.titleMedium),
+    );
     return ScreenFrame(
       title: s.settingsTitle,
       child: Column(
@@ -22,38 +29,115 @@ class SettingsPage extends ConsumerWidget {
           Expanded(
             child: ListView(
               children: [
-                Text(s.settingsLanguage, style: theme.textTheme.titleMedium),
-                const SizedBox(height: Tokens.gapS),
+                heading(s.settingsGeneral),
                 Card(
-                  child: ListTile(
-                    title: Text(s.languageName),
-                    trailing: const Icon(Icons.check, color: Tokens.green),
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        key: const ValueKey('help-switch'),
+                        title: Text(s.helpSettingTitle),
+                        subtitle: Text(s.helpSettingText),
+                        value: ref.watch(helpProvider),
+                        onChanged: (on) =>
+                            ref.read(helpProvider.notifier).set(on),
+                      ),
+                      ListTile(
+                        minTileHeight: 56,
+                        title: Text(s.settingsLanguage),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(s.languageName),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.check, color: Tokens.green),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: Tokens.gapL),
-                Text(s.helpSettingTitle, style: theme.textTheme.titleMedium),
-                const SizedBox(height: Tokens.gapS),
+                heading(s.settingsMatch),
                 Card(
-                  child: SwitchListTile(
-                    key: const ValueKey('help-switch'),
-                    title: Text(s.helpSettingTitle),
-                    subtitle: Text(s.helpSettingText),
-                    value: ref.watch(helpProvider),
-                    onChanged: (on) => ref.read(helpProvider.notifier).set(on),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(Tokens.gapM),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              s.settingsTicker,
+                              style: theme.textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              s.settingsTickerText,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: Tokens.gapS),
+                            SegmentedButton<int>(
+                              key: const ValueKey('settings-speed'),
+                              showSelectedIcon: false,
+                              segments: [
+                                ButtonSegment(
+                                  value: 0,
+                                  label: Text(s.matchSpeedSlow),
+                                ),
+                                ButtonSegment(
+                                  value: 1,
+                                  label: Text(s.matchSpeedNormal),
+                                ),
+                                ButtonSegment(
+                                  value: 2,
+                                  label: Text(s.matchSpeedFast),
+                                ),
+                              ],
+                              selected: {speed},
+                              onSelectionChanged: (v) => ref
+                                  .read(tickerSpeedProvider.notifier)
+                                  .set(v.first),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SwitchListTile(
+                        key: const ValueKey('vibration-switch'),
+                        title: Text(s.settingsVibration),
+                        subtitle: Text(s.settingsVibrationText),
+                        value: ref.watch(vibrationProvider),
+                        onChanged: (on) =>
+                            ref.read(vibrationProvider.notifier).set(on),
+                      ),
+                      SwitchListTile(
+                        key: const ValueKey('sound-switch'),
+                        title: Text(s.settingsSound),
+                        subtitle: Text(s.settingsSoundText),
+                        value: ref.watch(soundProvider),
+                        onChanged: (on) =>
+                            ref.read(soundProvider.notifier).set(on),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: Tokens.gapL),
-                Text(s.settingsShortcuts, style: theme.textTheme.titleMedium),
-                const SizedBox(height: Tokens.gapS),
-                Card(
-                  child: ListTile(
-                    title: Text(s.shortcutBack),
-                    trailing: Text(
-                      s.shortcutBackKey,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: Tokens.yellow,
+                if (!isNarrow(context)) ...[
+                  heading(s.settingsShortcuts),
+                  Card(
+                    child: ListTile(
+                      title: Text(s.shortcutBack),
+                      trailing: Text(
+                        s.shortcutBackKey,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Tokens.yellow,
+                        ),
                       ),
                     ),
+                  ),
+                ],
+                heading(s.settingsAbout),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(Tokens.gapM),
+                    child: Text(s.settingsAboutText),
                   ),
                 ),
               ],
