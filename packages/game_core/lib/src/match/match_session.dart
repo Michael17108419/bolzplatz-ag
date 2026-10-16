@@ -163,12 +163,14 @@ class MatchSession {
     required MatchTeam home,
     required MatchTeam away,
     required int seed,
+    bool neutral = false,
   }) : _rng = SeededRandom(seed),
        _fit = Fit(rules),
        _systemFit = SystemFit(rules),
        _sides = [_Side(home), _Side(away)] {
     _totalMinutes = rules.match.minutes;
-    _sides[0].homeFactor = rules.match.homeAdvantage;
+    // A neutral venue (the cup final) gives nobody the home advantage.
+    _sides[0].homeFactor = neutral ? 1 : rules.match.homeAdvantage;
     for (final side in _sides) {
       _setUp(side);
     }
@@ -1260,12 +1262,14 @@ class MatchEngine {
     MatchTeam home,
     MatchTeam away, {
     required int seed,
+    bool neutral = false,
   }) {
     final session = MatchSession(
       rules: rules,
       home: home,
       away: away,
       seed: seed,
+      neutral: neutral,
     )..advanceTo(rules.match.minutes);
     if (session.homeGoals != session.awayGoals) {
       final result = session.finish();

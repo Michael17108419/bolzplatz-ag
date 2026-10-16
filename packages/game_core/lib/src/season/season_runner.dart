@@ -500,11 +500,18 @@ class SeasonRunner {
     );
   }
 
-  ClubId _playTie(ClubId home, ClubId away, String label, String comp) {
+  ClubId _playTie(
+    ClubId home,
+    ClubId away,
+    String label,
+    String comp, {
+    bool neutral = false,
+  }) {
     final k = _engine.simulateKnockout(
       _team(home, comp),
       _team(away, comp),
       seed: _matchSeed(label),
+      neutral: neutral,
     );
     _afterMatch(home, away, k.match, countForm: false, comp: comp);
     return k.winnerSide == 0 ? home : away;
@@ -662,6 +669,7 @@ class SeasonRunner {
   ) {
     final comp = _compKey(competition);
     final pending = cup.pendingTies;
+    final neutral = cup.nextRoundIsNeutral;
     final ties = <ConferenceMatch>[];
     for (var i = 0; i < pending.length; i++) {
       final (h, a) = pending[i];
@@ -681,6 +689,7 @@ class SeasonRunner {
             _team(h, comp),
             _team(a, comp),
             seed: _matchSeed(label),
+            neutral: neutral,
           ),
           isOwn: own != null && (h == own || a == own),
         ),
@@ -831,16 +840,24 @@ class SeasonRunner {
     // Finish cups that did not finish within the planned rounds.
     while (!bolzplatz.isFinished) {
       final round = bolzRound++;
+      final neutral = bolzplatz.nextRoundIsNeutral;
       bolzplatz.playNextRound(
-        (h, a) => _playTie(h, a, 'bp:$round:${h.value}', 'B'),
+        (h, a) => _playTie(h, a, 'bp:$round:${h.value}', 'B', neutral: neutral),
       );
     }
     for (final region in Region.values) {
       final cup = pott[region]!;
       while (!cup.isFinished) {
         final round = pottRound;
+        final neutral = cup.nextRoundIsNeutral;
         cup.playNextRound(
-          (h, a) => _playTie(h, a, 'pott:${region.id}:$round:${h.value}', 'P'),
+          (h, a) => _playTie(
+            h,
+            a,
+            'pott:${region.id}:$round:${h.value}',
+            'P',
+            neutral: neutral,
+          ),
         );
       }
     }

@@ -101,4 +101,23 @@ void main() {
       ..finish();
     expect(session.actions, isEmpty);
   });
+
+  test('a neutral venue takes the home advantage away', () {
+    var withAdvantage = 0;
+    var neutral = 0;
+    for (var seed = 1; seed <= 400; seed++) {
+      final a = MatchSession(rules: rules, home: home, away: away, seed: seed)
+          .finish();
+      final b = MatchSession(
+        rules: rules,
+        home: home,
+        away: away,
+        seed: seed,
+        neutral: true,
+      ).finish();
+      withAdvantage += a.homeGoals - a.awayGoals;
+      neutral += b.homeGoals - b.awayGoals;
+    }
+    expect(withAdvantage, greaterThan(neutral));
+  });
 }
