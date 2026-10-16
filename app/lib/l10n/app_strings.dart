@@ -343,7 +343,6 @@ abstract interface class AppStrings {
   String get lineupConfirmed;
   String get lineupHint;
   String get infoLineupPitch;
-  String get lineupBenchTitle;
   String get lineupStartXi;
   String get lineupBench;
   String get lineupStand;
@@ -1997,9 +1996,6 @@ class AppStringsDe implements AppStrings {
   @override
   String get settingsAutoLineupText =>
       'Fällt jemand aus deiner Aufstellung aus, baut der Assistent sie neu. Aus: Du musst selbst umstellen, vorher geht es nicht weiter.';
-  @override
-  String get lineupBenchTitle =>
-      'Bank';
   @override
   String get lineupBenchEmpty =>
       'Frei. Tipp unten auf einen Spieler, um ihn auf die Bank zu setzen.';
