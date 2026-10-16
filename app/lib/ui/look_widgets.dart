@@ -49,46 +49,6 @@ class LookRow extends StatelessWidget {
   }
 }
 
-/// A few text choices side by side (one is selected). Only for options with
-/// three or fewer values; longer lists use [LookPicker].
-class LookChips extends ConsumerWidget {
-  const LookChips({
-    required this.optionKey,
-    required this.labels,
-    required this.value,
-    required this.change,
-    super.key,
-  });
-
-  final String optionKey;
-  final List<String> labels;
-  final int value;
-  final TrainerAppearance Function(TrainerAppearance, int) change;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final s = ref.watch(stringsProvider);
-    final a = ref.watch(careerDraftProvider).appearance;
-    return LookRow(
-      label: s.lookLabel(optionKey),
-      child: Wrap(
-        spacing: Tokens.gapS,
-        children: [
-          for (var i = 0; i < labels.length; i++)
-            ChoiceChip(
-              key: ValueKey('$optionKey-$i'),
-              label: Text(labels[i]),
-              selected: i == value,
-              onSelected: (_) => ref
-                  .read(careerDraftProvider.notifier)
-                  .setAppearance(change(a, i)),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
 /// A choice with arrows: `◀ Kurzhaar ▶`. Tapping an arrow shows the next or
 /// previous value (after the last comes the first); the portrait changes at
 /// once. Give [labels] for text values or [colors] for colour values.

@@ -78,7 +78,7 @@ class _TrainerStepState extends ConsumerState<TrainerStep> {
                   ),
                 ),
               ),
-              LookChips(
+              LookPicker(
                 optionKey: 'gender',
                 labels: [
                   for (var i = 0; i < o['gender']!; i++) s.genderName(i),
