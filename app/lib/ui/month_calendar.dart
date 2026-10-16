@@ -106,9 +106,7 @@ class _MonthCalendarState extends ConsumerState<MonthCalendar> {
       final isToday = d == today;
       final off = vacation.contains(d.epochDay);
       final canEdit =
-          _edit &&
-          allowed.contains(d.epochDay) &&
-          !d.isBefore(today);
+          _edit && allowed.contains(d.epochDay) && !d.isBefore(today);
       final Color? fill = off
           ? Tokens.sky.withValues(alpha: 0.7)
           : info.ownMatch
@@ -123,44 +121,44 @@ class _MonthCalendarState extends ConsumerState<MonthCalendar> {
           ? Tokens.panel
           : null;
       Widget cell = Container(
-          key: ValueKey('cal-day-$day'),
-          margin: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            color: fill,
-            borderRadius: BorderRadius.circular(8),
-            border: isToday
-                ? Border.all(color: Tokens.text, width: 2)
-                : info.holiday
-                ? Border.all(color: Tokens.orange)
-                : null,
-          ),
+        key: ValueKey('cal-day-$day'),
+        margin: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          color: fill,
+          borderRadius: BorderRadius.circular(8),
+          border: isToday
+              ? Border.all(color: Tokens.text, width: 2)
+              : info.holiday
+              ? Border.all(color: Tokens.orange)
+              : null,
+        ),
+        alignment: Alignment.center,
+        child: Stack(
           alignment: Alignment.center,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Text(
-                '$day',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: info.ownMatch || off ? Tokens.ink : null,
-                  fontWeight: info.ownMatch || isToday ? FontWeight.bold : null,
-                ),
+          children: [
+            Text(
+              '$day',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: info.ownMatch || off ? Tokens.ink : null,
+                fontWeight: info.ownMatch || isToday ? FontWeight.bold : null,
               ),
-              if (appointments.contains(d.epochDay))
-                Positioned(
-                  bottom: 2,
-                  child: Container(
-                    key: ValueKey('cal-appt-$day'),
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: info.ownMatch || off ? Tokens.ink : Tokens.yellow,
-                      shape: BoxShape.circle,
-                    ),
+            ),
+            if (appointments.contains(d.epochDay))
+              Positioned(
+                bottom: 2,
+                child: Container(
+                  key: ValueKey('cal-appt-$day'),
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: info.ownMatch || off ? Tokens.ink : Tokens.yellow,
+                    shape: BoxShape.circle,
                   ),
                 ),
-            ],
-          ),
-        );
+              ),
+          ],
+        ),
+      );
       if (canEdit || (_edit && _range && _rangeStart != null)) {
         cell = GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -272,10 +270,7 @@ class _MonthCalendarState extends ConsumerState<MonthCalendar> {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      s.vacTitle,
-                      style: theme.textTheme.titleMedium,
-                    ),
+                    child: Text(s.vacTitle, style: theme.textTheme.titleMedium),
                   ),
                   InfoButton(message: s.infoVacation),
                 ],

@@ -71,7 +71,10 @@ class _Office extends ConsumerWidget {
     final nextText = nextMatch != null && nextMatch.$2 != Competition.league
         ? s.deskNextCup(s.cupName(nextMatch.$2))
         : s.deskNext(view.matchday);
-    final unread = ref.watch(inboxIdsProvider).where((id) => !read.contains(id)).length;
+    final unread = ref
+        .watch(inboxIdsProvider)
+        .where((id) => !read.contains(id))
+        .length;
 
     final labels = {
       for (final item in DeskItem.values)

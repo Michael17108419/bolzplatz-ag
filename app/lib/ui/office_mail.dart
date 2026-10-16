@@ -99,9 +99,12 @@ List<OfficeMail> buildMails(
       lines.add(
         s.jourFixAppointments(
           others
-              .map((x) => '${s.apptName(x.kind, x.variant)} '
-                  '(${s.weekdayShort(x.date.weekday)} ${x.date.day}.'
-                  '${x.date.month}.)')
+              .map(
+                (x) =>
+                    '${s.apptName(x.kind, x.variant)} '
+                    '(${s.weekdayShort(x.date.weekday)} ${x.date.day}.'
+                    '${x.date.month}.)',
+              )
               .join(', '),
         ),
       );

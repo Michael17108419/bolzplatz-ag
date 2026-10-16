@@ -157,7 +157,10 @@ class QuickBar extends ConsumerWidget {
     final s = ref.watch(stringsProvider);
     final view = ref.watch(officeViewProvider);
     final read = ref.watch(mailReadProvider);
-    final unread = ref.watch(inboxIdsProvider).where((id) => !read.contains(id)).length;
+    final unread = ref
+        .watch(inboxIdsProvider)
+        .where((id) => !read.contains(id))
+        .length;
     return Row(
       children: [
         TextButton(

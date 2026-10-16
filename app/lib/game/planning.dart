@@ -17,11 +17,8 @@ final appointmentsProvider = Provider<List<Appointment>>((ref) {
   final run = ref.watch(seasonProvider.select((g) => g?.run));
   final club = ref.watch(careerProvider.select((c) => c?.clubId));
   if (run == null || club == null) return const [];
-  return AppointmentPlanner(ref.watch(holidayCalendarProvider)).build(
-    season: run.timeline.season,
-    timeline: run.timeline,
-    club: club,
-  );
+  return AppointmentPlanner(ref.watch(holidayCalendarProvider))
+      .build(season: run.timeline.season, timeline: run.timeline, club: club);
 });
 
 /// The appointments that are already due: their mails have arrived.
