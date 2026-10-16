@@ -9,6 +9,7 @@ import '../game/lineup.dart';
 import '../game/mail_state.dart';
 import '../game/office.dart';
 import '../game/office_provider.dart';
+import '../game/planning.dart';
 import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
@@ -69,7 +70,7 @@ class _Office extends ConsumerWidget {
     final nextText = nextMatch != null && nextMatch.$2 != Competition.league
         ? s.deskNextCup(s.cupName(nextMatch.$2))
         : s.deskNext(view.matchday);
-    final unread = officeMailIds.where((id) => !read.contains(id)).length;
+    final unread = ref.watch(inboxIdsProvider).where((id) => !read.contains(id)).length;
 
     final labels = {
       for (final item in DeskItem.values)

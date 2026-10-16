@@ -9,6 +9,7 @@ import '../game/loaded_world.dart';
 import '../game/mail_state.dart';
 import '../game/office.dart';
 import '../game/office_provider.dart';
+import '../game/planning.dart';
 import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
@@ -156,7 +157,7 @@ class QuickBar extends ConsumerWidget {
     final s = ref.watch(stringsProvider);
     final view = ref.watch(officeViewProvider);
     final read = ref.watch(mailReadProvider);
-    final unread = officeMailIds.where((id) => !read.contains(id)).length;
+    final unread = ref.watch(inboxIdsProvider).where((id) => !read.contains(id)).length;
     return Row(
       children: [
         TextButton(
@@ -362,7 +363,18 @@ class _PostPageState extends ConsumerState<PostPage> {
       item: DeskItem.post,
       child: WithCareer(
         builder: (context, career, loaded, view) {
-          final mails = buildMails(s, career, loaded, view);
+          final due = ref.watch(dueAppointmentsProvider);
+          final mails = buildMails(
+            s,
+            career,
+            loaded,
+            view,
+            due: due.reversed.take(12).toList(),
+            game: ref.watch(seasonProvider),
+            vacation: ref.watch(vacationCheckProvider),
+            all: ref.watch(appointmentsProvider),
+            absent: ref.watch(ownAbsencesProvider).length,
+          );
           final opened = mails.where((m) => m.id == _open).firstOrNull;
           return SingleChildScrollView(
             child: _card(

@@ -8,6 +8,7 @@ import 'career.dart';
 import 'lineup.dart';
 import 'loaded_world.dart';
 import 'mail_state.dart';
+import 'planning.dart';
 import 'season_game.dart';
 
 /// The places a game can be saved to: the automatic one and three of the
@@ -34,6 +35,7 @@ class SaveData {
     required this.lineup,
     required this.lineupReviewed,
     required this.mailRead,
+    this.vacation,
   });
 
   /// Bump when the format changes; older files are then refused with a hint.
@@ -62,6 +64,9 @@ class SaveData {
       lineup: m['lineup'] as Map<String, dynamic>?,
       lineupReviewed: m['lineup_reviewed'] as bool,
       mailRead: [for (final e in m['mail'] as List<dynamic>) e as String],
+      vacation: m['vacation'] == null
+          ? null
+          : [for (final e in m['vacation'] as List<dynamic>) e as int],
     );
   }
 
@@ -94,6 +99,9 @@ class SaveData {
   final bool lineupReviewed;
   final List<String> mailRead;
 
+  /// The free days of the squad (epoch days); null in older saves.
+  final List<int>? vacation;
+
   String get trainerName => trainer['name'] as String;
 
   String encode() => jsonEncode({
@@ -113,6 +121,7 @@ class SaveData {
     'lineup': lineup,
     'lineup_reviewed': lineupReviewed,
     'mail': mailRead,
+    'vacation': vacation,
   });
 }
 
@@ -193,6 +202,7 @@ class SaveService {
       lineup: lineup?.sheet.toJson(),
       lineupReviewed: lineup?.reviewed ?? false,
       mailRead: _ref.read(mailReadProvider).toList()..sort(),
+      vacation: _ref.read(vacationProvider).toList()..sort(),
     );
   }
 
@@ -276,6 +286,10 @@ class SaveService {
       );
     }
     _ref.read(mailReadProvider.notifier).restore(data.mailRead.toSet());
+    final vacation = data.vacation;
+    if (vacation != null) {
+      _ref.read(vacationProvider.notifier).restore(vacation);
+    }
     return true;
   }
 }

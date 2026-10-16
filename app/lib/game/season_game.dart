@@ -9,6 +9,31 @@ import 'saves.dart';
 /// The own match of a day: the live match the player coaches.
 typedef OwnMatch = ConferenceMatch;
 
+/// What came out of a match of the own club, kept for the weekly mail.
+class OwnRecord {
+  const OwnRecord({
+    required this.date,
+    required this.competition,
+    required this.round,
+    required this.opponent,
+    required this.home,
+    required this.goalsFor,
+    required this.goalsAgainst,
+    this.wentThrough,
+  });
+
+  final GameDate date;
+  final Competition competition;
+  final int round;
+  final ClubId opponent;
+  final bool home;
+  final int goalsFor;
+  final int goalsAgainst;
+
+  /// For a cup tie: true if the club is through to the next round.
+  final bool? wentThrough;
+}
+
 /// The running season of the career: the runner of the game core and the
 /// season it plays. The objects of the core change in place, so every
 /// change gets a new [revision] and with it a new state for the screens.
@@ -23,9 +48,11 @@ class SeasonGame {
     required this.today,
     required this.initialSheet,
     List<Map<String, dynamic>>? log,
+    List<OwnRecord>? history,
     this.revision = 0,
     this.day,
-  }) : log = log ?? [];
+  }) : log = log ?? [],
+       history = history ?? [];
 
   final SeasonRunner runner;
   final SeasonRun run;
@@ -53,6 +80,10 @@ class SeasonGame {
   /// ("done"). A saved game keeps this and plays it again when loaded.
   /// Shared by all revisions of the game.
   final List<Map<String, dynamic>> log;
+
+  /// The matches of the own club so far, oldest first. Shared by all
+  /// revisions of the game.
+  final List<OwnRecord> history;
 
   /// The log as it can be saved: a preview that was opened but not played
   /// is left out (saving happens at the end of a day).
@@ -99,6 +130,7 @@ class SeasonGame {
     today: today ?? this.today,
     initialSheet: initialSheet,
     log: log,
+    history: history,
     revision: revision + 1,
     day: clearDay ? null : (day ?? this.day),
   );
@@ -281,6 +313,25 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
             a.toJson(),
         ],
       });
+    }
+    final own = day.own;
+    final played = knockout?.match ?? ownResult;
+    if (own != null && played != null) {
+      final home = own.fixture.home == game.clubId;
+      game.history.add(
+        OwnRecord(
+          date: day.date,
+          competition: own.competition,
+          round: own.round,
+          opponent: home ? own.fixture.away : own.fixture.home,
+          home: home,
+          goalsFor: home ? played.homeGoals : played.awayGoals,
+          goalsAgainst: home ? played.awayGoals : played.homeGoals,
+          wentThrough: knockout == null
+              ? null
+              : (knockout.winnerSide == 0) == home,
+        ),
+      );
     }
     game.runner.completeDay(
       game.run,

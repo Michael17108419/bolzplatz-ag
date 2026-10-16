@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
+import '../game/planning.dart';
 import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
@@ -29,6 +30,9 @@ class MonthCalendar extends ConsumerStatefulWidget {
 
 class _MonthCalendarState extends ConsumerState<MonthCalendar> {
   int? _offset;
+  bool _edit = false;
+  bool _range = false;
+  GameDate? _rangeStart;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +48,12 @@ class _MonthCalendarState extends ConsumerState<MonthCalendar> {
     final month = (index + 6) % 12 + 1;
     final year = month >= 7 ? season.startYear : season.startYear + 1;
 
+    final vacation = ref.watch(vacationProvider);
+    final allowed = ref.watch(vacationAllowedProvider);
+    final check = ref.watch(vacationCheckProvider);
+    final appointments = {
+      for (final a in ref.watch(appointmentsProvider)) a.date.epochDay,
+    };
     final timeline = game.run.timeline;
     final holidays = HolidayCalendar();
     final group = timeline.leagueGroup[game.ownLeague];
@@ -94,7 +104,14 @@ class _MonthCalendarState extends ConsumerState<MonthCalendar> {
       final d = GameDate(year, month, day);
       final info = infoOf(d);
       final isToday = d == today;
-      final Color? fill = info.ownMatch
+      final off = vacation.contains(d.epochDay);
+      final canEdit =
+          _edit &&
+          allowed.contains(d.epochDay) &&
+          !d.isBefore(today);
+      final Color? fill = off
+          ? Tokens.sky.withValues(alpha: 0.7)
+          : info.ownMatch
           ? Tokens.yellow
           : info.leagueDay
           ? Tokens.green.withValues(alpha: 0.35)
@@ -105,8 +122,7 @@ class _MonthCalendarState extends ConsumerState<MonthCalendar> {
           : info.rest
           ? Tokens.panel
           : null;
-      cells.add(
-        Container(
+      Widget cell = Container(
           key: ValueKey('cal-day-$day'),
           margin: const EdgeInsets.all(2),
           decoration: BoxDecoration(
@@ -119,15 +135,50 @@ class _MonthCalendarState extends ConsumerState<MonthCalendar> {
                 : null,
           ),
           alignment: Alignment.center,
-          child: Text(
-            '$day',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: info.ownMatch ? Tokens.ink : null,
-              fontWeight: info.ownMatch || isToday ? FontWeight.bold : null,
-            ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Text(
+                '$day',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: info.ownMatch || off ? Tokens.ink : null,
+                  fontWeight: info.ownMatch || isToday ? FontWeight.bold : null,
+                ),
+              ),
+              if (appointments.contains(d.epochDay))
+                Positioned(
+                  bottom: 2,
+                  child: Container(
+                    key: ValueKey('cal-appt-$day'),
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: info.ownMatch || off ? Tokens.ink : Tokens.yellow,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ),
-      );
+        );
+      if (canEdit || (_edit && _range && _rangeStart != null)) {
+        cell = GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            final notifier = ref.read(vacationProvider.notifier);
+            if (!_range) {
+              notifier.toggle(d);
+            } else if (_rangeStart == null) {
+              if (canEdit) setState(() => _rangeStart = d);
+            } else {
+              notifier.setRange(_rangeStart!, d);
+              setState(() => _rangeStart = null);
+            }
+          },
+          child: cell,
+        );
+      }
+      cells.add(cell);
     }
 
     Widget legend(Color? color, String text, {bool outline = false}) => Row(
@@ -211,9 +262,91 @@ class _MonthCalendarState extends ConsumerState<MonthCalendar> {
                 legend(Tokens.orange, s.calLegendHoliday, outline: true),
                 legend(Tokens.beige.withValues(alpha: 0.5), s.calLegendBreak),
                 legend(Tokens.panel, s.calLegendRest),
+                legend(Tokens.sky.withValues(alpha: 0.7), s.calLegendVacation),
+                legend(Tokens.yellow, s.calLegendAppointment),
                 legend(Tokens.text, s.calToday, outline: true),
               ],
             ),
+            if (check != null) ...[
+              const Divider(height: Tokens.gapL),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      s.vacTitle,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  InfoButton(message: s.infoVacation),
+                ],
+              ),
+              Text(
+                s.vacCounter(
+                  check.total,
+                  check.minTotal,
+                  check.longestBlock,
+                  check.minBlock,
+                ),
+                key: const ValueKey('vac-counter'),
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                s.vacStatus(check.level, check.blockKept, check.minBlock),
+                key: const ValueKey('vac-status'),
+                style: theme.textTheme.bodySmall,
+              ),
+              const SizedBox(height: Tokens.gapS),
+              Wrap(
+                spacing: Tokens.gapS,
+                runSpacing: Tokens.gapS,
+                children: [
+                  FilterChip(
+                    key: const ValueKey('vac-edit'),
+                    label: Text(s.vacEdit),
+                    selected: _edit,
+                    onSelected: (v) => setState(() {
+                      _edit = v;
+                      _rangeStart = null;
+                    }),
+                  ),
+                  if (_edit) ...[
+                    ChoiceChip(
+                      key: const ValueKey('vac-mode-days'),
+                      label: Text(s.vacModeDays),
+                      selected: !_range,
+                      onSelected: (_) => setState(() {
+                        _range = false;
+                        _rangeStart = null;
+                      }),
+                    ),
+                    ChoiceChip(
+                      key: const ValueKey('vac-mode-range'),
+                      label: Text(s.vacModeRange),
+                      selected: _range,
+                      onSelected: (_) => setState(() => _range = true),
+                    ),
+                  ],
+                  OutlinedButton(
+                    key: const ValueKey('vac-suggest'),
+                    onPressed: () =>
+                        ref.read(vacationProvider.notifier).useSuggestion(),
+                    child: Text(s.vacSuggest),
+                  ),
+                  OutlinedButton(
+                    key: const ValueKey('vac-clear'),
+                    onPressed: () =>
+                        ref.read(vacationProvider.notifier).clear(),
+                    child: Text(s.vacClear),
+                  ),
+                ],
+              ),
+              if (_edit && _range)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(s.vacRangeHint, style: theme.textTheme.bodySmall),
+                ),
+            ],
           ],
         ),
       ),

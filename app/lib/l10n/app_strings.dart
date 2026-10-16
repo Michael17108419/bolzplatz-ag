@@ -379,6 +379,49 @@ abstract interface class AppStrings {
   String get infoStatsScorers;
   String get statsScorersEmpty;
   String get statsAssistsEmpty;
+  String get calLegendVacation;
+  String get calLegendAppointment;
+  String get vacTitle;
+  String vacCounter(int total, int minTotal, int block, int minBlock);
+  String vacStatus(VacationLevel level, bool blockKept, int minBlock);
+  String get vacEdit;
+  String get vacModeDays;
+  String get vacModeRange;
+  String get vacRangeHint;
+  String get vacSuggest;
+  String get vacClear;
+  String get infoVacation;
+  String get apptTitle;
+  String get apptNone;
+  String apptName(AppointmentKind kind, int variant);
+  String get infoAppointments;
+  String apptMailSubject(AppointmentKind kind, int variant, int number);
+  String apptMailBody(
+    AppointmentKind kind,
+    int variant, {
+    required String manager,
+    required String goal,
+    required String club,
+  });
+  String jourFixReview({
+    required String opponent,
+    required bool home,
+    required int goalsFor,
+    required int goalsAgainst,
+    required int seed,
+    String? cup,
+    bool? wentThrough,
+  });
+  String get jourFixNoMatch;
+  String jourFixTable(int place, int teams);
+  String jourFixAbsent(int count);
+  String jourFixNext(int matchday, String opponent, bool home);
+  String jourFixAppointments(String list);
+  String jourFixVacation(int total, int minTotal);
+  String vacVerdictSubject(bool kept);
+  String vacVerdictBody(int total, int minTotal, int block, int minBlock);
+  String get jourFixGreeting;
+  String get jourFixSign;
   String cupName(Competition competition);
   String cupRoundName(bool isFinal, int round);
   String matchShootoutLine(String winner, int home, int away);
@@ -756,7 +799,7 @@ class AppStringsDe implements AppStrings {
   @override
   String get calLegendBreak => 'Länderspielpause';
   @override
-  String get calLegendRest => 'Urlaub und Pause';
+  String get calLegendRest => 'Sommer- und Winterpause';
   @override
   String get calToday => 'Heute';
   @override
@@ -1996,6 +2039,218 @@ class AppStringsDe implements AppStrings {
   @override
   String get statsAssistsEmpty =>
       'Noch keine Vorlage. Alle haben den Ball behalten.';
+  @override
+  String get calLegendVacation => 'Urlaub (dein Plan)';
+  @override
+  String get calLegendAppointment => 'Termin (Punkt)';
+  @override
+  String get vacTitle => 'Urlaubsplaner';
+  @override
+  String vacCounter(int total, int minTotal, int block, int minBlock) =>
+      '$total von $minTotal Werktagen geplant · längster Block $block '
+      '(mindestens $minBlock)';
+  @override
+  String vacStatus(VacationLevel level, bool blockKept, int minBlock) {
+    if (!blockKept) {
+      return 'Es fehlt ein Block von mindestens $minBlock Werktagen am '
+          'Stück. So viel Erholung schreibt das Gesetz der Mannschaft vor.';
+    }
+    return switch (level) {
+      VacationLevel.less =>
+        'Zu wenig frei: Die Spieler werden unzufrieden und irgendwann '
+            'ausgebrannt. Der Verband schaut auch hin.',
+      VacationLevel.exact =>
+        'Genau richtig: Die Stimmung bleibt neutral. Das ist bei Fußballern '
+            'schon ein Kompliment.',
+      VacationLevel.more =>
+        'Mehr als genug: Die Mannschaft freut sich, ausgeruht ist sie '
+            'auch. Der Präsident wird es dir vorhalten.',
+    };
+  }
+
+  @override
+  String get vacEdit => 'Urlaub eintragen';
+  @override
+  String get vacModeDays => 'Einzelne Tage';
+  @override
+  String get vacModeRange => 'Zeitraum';
+  @override
+  String get vacRangeHint =>
+      'Tippe den ersten und den letzten Tag. Ist der erste schon Urlaub, '
+      'wird der Zeitraum gestrichen.';
+  @override
+  String get vacSuggest => 'Vorschlag des Assistenten';
+  @override
+  String get vacClear => 'Alles löschen';
+  @override
+  String get infoVacation =>
+      'Du bestimmst, wann die ganze Mannschaft frei hat. Vorgabe: 30 '
+      'Werktage (Montag bis Samstag ohne Feiertage) pro Saison, davon '
+      'mindestens ein Block von 12 am Stück. Frei geben kannst du nur an '
+      'Tagen ohne Pflichtspiel deines Vereins und ohne Pokaltermin. Genau 30 '
+      'Tage lassen die Stimmung neutral, weniger machen die Spieler '
+      'unzufrieden, mehr machen sie glücklich. Wer die Vorgabe verfehlt, '
+      'bekommt am Saisonende eine Verwarnung, später Geldstrafen. Hast du '
+      'nichts geplant, übernimmt der Assistent einen Vorschlag.';
+  @override
+  String get apptTitle => 'Termine';
+  @override
+  String get apptNone => 'Keine Termine in Sicht. Genieß es.';
+  @override
+  String apptName(AppointmentKind kind, int variant) => switch (kind) {
+    AppointmentKind.jourFix => 'Jour Fix mit dem Präsidenten',
+    AppointmentKind.presidentTalk => 'Gespräch mit dem Präsidenten',
+    AppointmentKind.pressTalk =>
+      variant == 0
+          ? 'Pressekonferenz zum Saisonstart'
+          : 'Pressekonferenz zur Winterbilanz',
+    AppointmentKind.sponsorTalk =>
+      variant == 0 ? 'Sponsorentermin (Sommer)' : 'Sponsorentermin (Winter)',
+  };
+  @override
+  String get infoAppointments =>
+      'Deine Termine in den nächsten Tagen. Der Jour Fix ist jede Woche nach '
+      'dem Spiel, der Präsident will dich einmal im Monat sehen, dazu kommen '
+      'Presse und Sponsoren. Zu jedem Termin kommt am Tag selbst eine Mail '
+      'in die Post. Die Tage sind im Kalender mit einem Punkt markiert.';
+  @override
+  String apptMailSubject(AppointmentKind kind, int variant, int number) =>
+      switch (kind) {
+        AppointmentKind.jourFix => 'Jour Fix: Die Woche nach dem Spiel',
+        AppointmentKind.presidentTalk => 'Gespräch beim Präsidenten',
+        AppointmentKind.pressTalk =>
+          variant == 0
+              ? 'Pressekonferenz: Die Saison geht los'
+              : 'Pressekonferenz: Die Winterbilanz',
+        AppointmentKind.sponsorTalk =>
+          variant == 0
+              ? 'Sponsorentermin: Der Sommer-Händedruck'
+              : 'Sponsorentermin: Der Winter-Händedruck',
+      };
+  @override
+  String apptMailBody(
+    AppointmentKind kind,
+    int variant, {
+    required String manager,
+    required String goal,
+    required String club,
+  }) => switch (kind) {
+    AppointmentKind.jourFix => '',
+    AppointmentKind.presidentTalk =>
+      'Lieber $manager,\n\nwir haben uns heute im Büro des Präsidenten '
+          'getroffen. Er hat dreimal gesagt, wie stolz er auf $club ist, '
+          'einmal an das Saisonziel erinnert ($goal) und beim Gehen die '
+          'Kaffeetasse mitgenommen. Entscheiden musstest du nichts. Das '
+          'Gespräch hat trotzdem stattgefunden, das steht jetzt im Protokoll.',
+    AppointmentKind.pressTalk =>
+      variant == 0
+          ? 'Die Presse wollte vor dem ersten Spiel alles wissen: Ziele, '
+                'Neuzugänge, Wetter. Du hast geantwortet, ohne etwas zu '
+                'sagen, das ist die halbe Kunst. Morgen steht trotzdem '
+                'etwas Falsches in der Zeitung. Das ist die andere Hälfte.'
+          : 'Zur Winterpause wollten die Reporter eine Bilanz. Du hast die '
+                'Hinrunde in drei Sätzen erklärt, der vierte kam aus Versehen '
+                'ehrlich. Es wird schon niemand lesen. Doch, alle.',
+    AppointmentKind.sponsorTalk =>
+      variant == 0
+          ? 'Der Sponsor war da, hat dir die Hand geschüttelt und ein Foto '
+                'mit dem Vereinsbus machen lassen. Du musstest lächeln. Die '
+                'Entscheidungen trifft die Kasse, nicht du.'
+          : 'Der Sponsor hat im Winter vorbeigeschaut, den Verein gelobt '
+                'und das Trikot genau geprüft. Das Logo sitzt, die Laune '
+                'auch. Mehr gab es nicht zu besprechen.',
+  };
+  @override
+  String jourFixReview({
+    required String opponent,
+    required bool home,
+    required int goalsFor,
+    required int goalsAgainst,
+    required int seed,
+    String? cup,
+    bool? wentThrough,
+  }) {
+    final where = home ? 'zu Hause' : 'auswärts';
+    final label = cup == null ? '' : ' im $cup';
+    final score = '$goalsFor:$goalsAgainst';
+    final won = goalsFor > goalsAgainst;
+    final draw = goalsFor == goalsAgainst;
+    final verdicts = won
+        ? const [
+            'Das nehme ich gern mit. Mehr davon, aber bitte ohne Herzinfarkt.',
+            'Die Mannschaft war gut, der Gegner noch besser darin, uns '
+                'gewinnen zu lassen.',
+            'Drei Punkte sind drei Punkte. Der Rest ist Geschmackssache.',
+          ]
+        : draw
+        ? const [
+            'Ein Punkt ist ein Punkt. Gelacht wird erst, wenn es ein zweiter '
+                'wird.',
+            'Weder Fisch noch Fleisch, aber immerhin keine Niederlage.',
+            'Das Unentschieden riecht nach verschenktem Sieg, schmeckt aber '
+                'nach Pflichterfüllung.',
+          ]
+        : const [
+            'Das war nichts. Ich sage es nur einmal laut, danach nur noch '
+                'leise.',
+            'Die Niederlage war verdient. Die Ausreden bitte nicht auch noch.',
+            'Wir tun jetzt so, als hätten wir daraus gelernt.',
+          ];
+    final verdict = verdicts[seed.abs() % verdicts.length];
+    final through = wentThrough == null
+        ? ''
+        : (wentThrough ? ' Wir sind eine Runde weiter.' : ' Wir sind raus.');
+    return 'Rückblick: $score gegen $opponent ($where)$label.$through '
+        '$verdict';
+  }
+
+  @override
+  String get jourFixNoMatch =>
+      'Rückblick: Es gab noch kein Spiel. Das Wetter war aber hervorragend.';
+  @override
+  String jourFixTable(int place, int teams) =>
+      'Tabelle: Platz $place von $teams.';
+  @override
+  String jourFixAbsent(int count) => count == 0
+      ? 'Ausfälle: keine. Das ist verdächtig.'
+      : count == 1
+      ? 'Ausfälle: 1 Spieler fehlt im nächsten Spiel.'
+      : 'Ausfälle: $count Spieler fehlen im nächsten Spiel.';
+  @override
+  String jourFixNext(int matchday, String opponent, bool home) =>
+      'Ausblick: Spieltag $matchday gegen $opponent, '
+      '${home ? 'Heimspiel' : 'Auswärtsspiel'}.';
+  @override
+  String jourFixAppointments(String list) => 'Termine dieser Woche: $list.';
+  @override
+  String jourFixVacation(int total, int minTotal) =>
+      'Urlaub: Erst $total von $minTotal Werktagen sind eingetragen. Das '
+      'regelt der Verband, nicht ich, aber ich muss es dir sagen.';
+  @override
+  String vacVerdictSubject(bool kept) => kept
+      ? 'Urlaubsbilanz: Vorgabe erfüllt'
+      : 'Urlaubsbilanz: Verwarnung vom Verband';
+  @override
+  String vacVerdictBody(int total, int minTotal, int block, int minBlock) {
+    final head =
+        'Die Saison ist vorbei. Die Mannschaft hatte $total von $minTotal '
+        'Werktagen frei, der längste Block dauerte $block Werktage '
+        '(Vorgabe: $minBlock).';
+    final kept = total >= minTotal && block >= minBlock;
+    return kept
+        ? '$head\n\nDie Vorgabe ist erfüllt. Der Verband hat nichts zu '
+              'meckern, die Spieler auch nicht. Genieß den Moment.'
+        : '$head\n\nDie Vorgabe ist verfehlt. Das ist eine offizielle '
+              'Verwarnung. Beim nächsten Mal wird es eine Geldstrafe, und '
+              'die Spieler haben es auch gemerkt.';
+  }
+
+  @override
+  String get jourFixGreeting =>
+      'Guten Morgen! Hier ist der wöchentliche Jour Fix, kurz und mit '
+      'Kaffee:';
+  @override
+  String get jourFixSign => 'Mit freundlichen Grüßen, dein Präsident';
   @override
   String cupName(Competition competition) =>
       competition == Competition.pott ? 'Pott der Provinz' : 'Bolzplatzpokal';

@@ -28,6 +28,9 @@ abstract final class Tokens {
   static const Color cream = Color(0xFFF4EFE2);
 
   /// Neutral middle value (for example the middle level of a bar).
+  /// Time off of the squad in the calendar.
+  static const Color sky = Color(0xFF4FC3F7);
+
   static const Color beige = Color(0xFFE2CFA0);
 
   static const String headlineFont = 'SpaceGrotesk';
