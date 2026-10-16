@@ -1,12 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../game/career.dart';
 import '../game/dates.dart';
 import '../game/saves.dart';
+import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'info_button.dart';
+import 'match_pages.dart';
 import 'office_page.dart';
 import 'screen_frame.dart';
 import 'settings_page.dart';
@@ -110,10 +114,20 @@ class _SavesPageState extends ConsumerState<SavesPage> {
       });
       return;
     }
-    await Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute<void>(builder: (_) => const OfficePage()),
-      (route) => route.isFirst,
+    final nav = Navigator.of(context);
+    // A match that was under way is picked up where it stopped.
+    final resume = ref.read(seasonProvider.notifier).resumeLive;
+    unawaited(
+      nav.pushAndRemoveUntil(
+        MaterialPageRoute<void>(builder: (_) => const OfficePage()),
+        (route) => route.isFirst,
+      ),
     );
+    if (resume) {
+      unawaited(
+        nav.push(MaterialPageRoute<void>(builder: (_) => const LiveMatchPage())),
+      );
+    }
   }
 
   String _stamp(DateTime t) {

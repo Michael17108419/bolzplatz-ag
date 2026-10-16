@@ -131,7 +131,7 @@ void main() {
     expect(b.read(seasonProvider)!.today, a.read(seasonProvider)!.today);
   });
 
-  test('saving is not possible while a match is open', () async {
+  test('a preview that is only open is not saved', () async {
     final repo = _MemoryRepository();
     final c = _container(loaded, repo);
     addTearDown(c.dispose);
@@ -139,8 +139,63 @@ void main() {
     startCareer(c);
     c.read(lineupProvider);
     c.read(seasonProvider.notifier).openNext();
-    expect(await c.read(saveServiceProvider).save('1'), isFalse);
-    expect(repo.files, isNot(contains('1')));
+    expect(await c.read(saveServiceProvider).save('1'), isTrue);
+    final data = SaveData.tryParse(repo.files['1']!)!;
+    expect(data.live, isNull);
+    expect(data.log, isEmpty);
+  });
+
+  test('a match under way is saved and goes on from its minute', () async {
+    final repo = _MemoryRepository();
+    final a = _container(loaded, repo);
+    addTearDown(a.dispose);
+    await a.read(loadedWorldProvider.future);
+    startCareer(a);
+    a.read(lineupProvider);
+    _playMatch(a);
+    a.read(seasonProvider.notifier).advanceDay();
+    final own = a.read(seasonProvider.notifier).openNext()!;
+    final session = own.session!;
+    final side = own.fixture.home == a.read(careerProvider)!.clubId ? 0 : 1;
+    session.advanceTo(38);
+    final players = {
+      for (final p in a.read(loadedWorldProvider).value!.world.players)
+        p.id: p,
+    };
+    final off = session
+        .onPitch(side)
+        .firstWhere((id) => !players[id]!.position.isGoalkeeper);
+    final on = session
+        .benchOf(side)
+        .firstWhere((id) => !players[id]!.position.isGoalkeeper);
+    session.substitute(side, off, on);
+    session.advanceTo(57);
+
+    expect(await a.read(saveServiceProvider).save('1'), isTrue);
+    final data = SaveData.tryParse(repo.files['1']!)!;
+    expect(data.live, isNotNull);
+    expect(data.live!['minute'], 57);
+
+    final b = _container(loaded, repo);
+    addTearDown(b.dispose);
+    await b.read(loadedWorldProvider.future);
+    expect(await b.read(saveServiceProvider).load(data), isTrue);
+    expect(b.read(seasonProvider.notifier).resumeLive, isTrue);
+    final again = b.read(seasonProvider)!.next!.session!;
+    expect(again.minute, 57);
+    expect(again.homeGoals, session.homeGoals);
+    expect(again.awayGoals, session.awayGoals);
+    expect(again.events.length, session.events.length);
+    expect(again.actions.length, session.actions.length);
+
+    // Both go on alike: the same result, the same table.
+    final r1 = session.finish();
+    final r2 = again.finish();
+    expect(r2.homeGoals, r1.homeGoals);
+    expect(r2.awayGoals, r1.awayGoals);
+    a.read(seasonProvider.notifier).complete(r1);
+    b.read(seasonProvider.notifier).complete(r2);
+    expect(_table(b), _table(a));
   });
 
   test('the automatic slot is written after a match and after a day', () async {

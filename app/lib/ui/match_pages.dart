@@ -8,6 +8,7 @@ import '../game/career.dart';
 import '../game/lineup.dart';
 import '../game/loaded_world.dart';
 import '../game/office_provider.dart';
+import '../game/saves.dart';
 import '../game/season_game.dart';
 import '../game/ticker.dart';
 import '../l10n/app_strings.dart';
@@ -241,6 +242,13 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     _day = game.day!;
     _loaded = ref.read(loadedWorldProvider).value!;
     _ownSide = _own.fixture.home == game.clubId ? 0 : 1;
+    // A saved match that was under way waits paused, so nothing happens
+    // before the player is back.
+    final notifier = ref.read(seasonProvider.notifier);
+    if (notifier.resumeLive) {
+      notifier.resumeLive = false;
+      _running = false;
+    }
     _ingest();
     _startTimer();
   }
@@ -328,6 +336,10 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     }
     _session.advanceTo(_session.minute + 1);
     final stop = _ingest();
+    // Every quarter of an hour of the match the game is saved.
+    if (_session.minute % 15 == 0) {
+      unawaited(ref.read(saveServiceProvider).autosave());
+    }
     if (_done) {
       _stopTimer();
     } else if (stop) {

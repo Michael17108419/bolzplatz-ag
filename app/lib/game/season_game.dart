@@ -207,6 +207,17 @@ class SeasonGame {
   /// The day that is open (preview or live), null between matches.
   final ConferenceDay? day;
 
+  /// The own match when it is under way (past kick-off): its minute and the
+  /// changes made so far, as a save keeps them. Null for a preview.
+  Map<String, dynamic>? get liveState {
+    final session = day?.own?.session;
+    if (session == null || session.minute <= 0) return null;
+    return {
+      'minute': session.minute,
+      'actions': [for (final a in session.actions) a.toJson()],
+    };
+  }
+
   /// The own match that is open (preview or live), null between matches.
   OwnMatch? get next => day?.own;
 
@@ -291,7 +302,12 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
 
   /// Builds the season of a saved game and plays the saved log again. The
   /// world stands then exactly where it stood when the game was saved.
-  void restore(TeamSheet? initialSheet, List<Map<String, dynamic>> log) {
+  void restore(
+    TeamSheet? initialSheet,
+    List<Map<String, dynamic>> log, {
+    Map<String, dynamic>? live,
+  }) {
+    resumeLive = false;
     final career = ref.read(careerProvider);
     final loaded = ref.read(startWorldProvider).value;
     if (career == null || loaded == null) return;
@@ -329,8 +345,32 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     game.log
       ..clear()
       ..addAll(log);
+    final session = game.day?.own?.session;
+    if (live != null && session != null) {
+      // A match that was under way: bring it back to its minute.
+      final cup = game.day!.own!.competition != Competition.league;
+      session.replay([
+        for (final a in live['actions'] as List<dynamic>)
+          SessionAction.fromJson(a as Map<String, dynamic>),
+      ], knockout: cup);
+      final minute = live['minute'] as int;
+      while (session.minute < minute) {
+        if (session.isFinished) {
+          if (cup && session.startExtraTimeIfLevel()) continue;
+          break;
+        }
+        session.advanceTo(session.minute + 1);
+      }
+      resumeLive = true;
+      state = game._with();
+      return;
+    }
     state = game._with(clearDay: true);
   }
+
+  /// True after a saved game with a match under way was put back: the live
+  /// page then waits paused instead of running on.
+  bool resumeLive = false;
 
   /// Opens the own match of the next matchday with the current line-up.
   /// Days without a league match of the club (other leagues, cup ties of the

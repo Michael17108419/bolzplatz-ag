@@ -43,6 +43,7 @@ class SaveData {
     this.goal,
     this.base,
     this.seasons = const [],
+    this.live,
   });
 
   /// Bump when the format changes; older files are then refused with a hint.
@@ -82,6 +83,7 @@ class SaveData {
         for (final e in (m['seasons'] as List<dynamic>?) ?? const [])
           SeasonRecord.fromJson(e as Map<String, dynamic>),
       ],
+      live: m['live'] as Map<String, dynamic>?,
     );
   }
 
@@ -131,6 +133,11 @@ class SaveData {
   /// The seasons finished so far.
   final List<SeasonRecord> seasons;
 
+  /// A match that was under way when the game was saved: its minute and the
+  /// changes made so far. The log then ends with the line-up it started
+  /// with. Null between matches.
+  final Map<String, dynamic>? live;
+
   String get trainerName => trainer['name'] as String;
 
   String encode() => jsonEncode({
@@ -156,6 +163,7 @@ class SaveData {
     'goal': goal,
     'base': base,
     'seasons': [for (final r in seasons) r.toJson()],
+    'live': live,
   });
 }
 
@@ -250,12 +258,14 @@ class SaveService {
     return _packed;
   }
 
-  /// The game as it stands, or null if there is nothing to save: no career
-  /// yet, or a match is open (saving is only possible between matches).
+  /// The game as it stands, or null if there is nothing to save (no career
+  /// yet). A match under way is saved with its minute and changes; a preview
+  /// that was only opened is not.
   SaveData? snapshot({DateTime? now}) {
     final career = _ref.read(careerProvider);
     final game = _ref.read(seasonProvider);
-    if (career == null || game == null || game.day != null) return null;
+    if (career == null || game == null) return null;
+    final live = game.liveState;
     final lineup = _ref.read(lineupProvider);
     return SaveData(
       savedAt: now ?? DateTime.now(),
@@ -269,7 +279,8 @@ class SaveService {
       matchday: game.played,
       matchdays: game.ownDays,
       initialSheet: game.initialSheet?.toJson(),
-      log: game.savableLog,
+      log: live == null ? game.savableLog : game.log,
+      live: live,
       lineup: lineup?.sheet.toJson(),
       lineupReviewed: lineup?.reviewed ?? false,
       mailRead: _ref.read(mailReadProvider).toList()..sort(),
@@ -388,6 +399,7 @@ class SaveService {
               ? null
               : TeamSheet.fromJson(data.initialSheet!),
           data.log,
+          live: data.live,
         );
     if (data.lineup != null) {
       lineup.restore(
