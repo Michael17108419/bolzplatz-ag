@@ -76,10 +76,14 @@ class SeasonGame {
   int get played => run.matchdaysPlayed(ownLeague);
 
   /// The number of the next matchday; after the last one it stays there.
-  int get matchday => played >= ownDays ? ownDays : played + 1;
+  int get matchday => leagueDone ? ownDays : played + 1;
 
   /// True after the last matchday of the own league.
-  bool get isOver => played >= ownDays;
+  bool get leagueDone => played >= ownDays;
+
+  /// True when the club has no match left: the league is done and so are
+  /// the cups it was in (the cup final can come after the last matchday).
+  bool get isOver => leagueDone && runner.nextMatchOf(run, clubId) == null;
 
   SeasonGame _with({
     ConferenceDay? day,
@@ -153,16 +157,22 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
           _advanceDay(record: false);
         case 'done':
           final game = state!;
-          final session = game.day?.own?.session;
+          final own = game.day?.own;
+          final session = own?.session;
+          final actions = [
+            for (final a in entry['actions'] as List<dynamic>)
+              SessionAction.fromJson(a as Map<String, dynamic>),
+          ];
           MatchResult? result;
-          if (session != null) {
-            session.replay([
-              for (final a in entry['actions'] as List<dynamic>)
-                SessionAction.fromJson(a as Map<String, dynamic>),
-            ]);
+          KnockoutResult? knockout;
+          if (session != null && own!.competition != Competition.league) {
+            session.replay(actions, knockout: true);
+            knockout = session.finishKnockout();
+          } else if (session != null) {
+            session.replay(actions);
             result = session.finish();
           }
-          _complete(result, record: false);
+          _complete(result, knockout: knockout, record: false);
       }
     }
     final game = state!;
@@ -192,7 +202,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     while (!run.isOver) {
       final next = game.runner.nextMatchOf(run, game.clubId);
       if (next == null) break;
-      if (next.$1 == run.nextDate && next.$2 == Competition.league) {
+      if (next.$1 == run.nextDate) {
         final day = game.runner.openDay(run, own: game.clubId, sheet: sheet);
         if (record) {
           game.log.add({'op': 'next', 'sheet': sheet.toJson(), 'day': true});
@@ -233,9 +243,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       final next = game.isOver
           ? null
           : game.runner.nextMatchOf(run, game.clubId);
-      if (next != null &&
-          next.$1 == tomorrow &&
-          next.$2 == Competition.league) {
+      if (next != null && next.$1 == tomorrow) {
         return DayStep.ownMatch;
       }
       game.runner.completeDay(run, game.runner.openDay(run));
@@ -252,12 +260,16 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
 
   /// Closes the matchday: plays all other matches of the day and takes the
   /// result of the own match (null if the club has no match that day).
-  void complete(MatchResult? ownResult) {
-    _complete(ownResult, record: true);
+  void complete(MatchResult? ownResult, {KnockoutResult? knockout}) {
+    _complete(ownResult, knockout: knockout, record: true);
     ref.read(saveServiceProvider).autosave();
   }
 
-  void _complete(MatchResult? ownResult, {required bool record}) {
+  void _complete(
+    MatchResult? ownResult, {
+    KnockoutResult? knockout,
+    required bool record,
+  }) {
     final game = state;
     final day = game?.day;
     if (game == null || day == null) return;
@@ -270,7 +282,12 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
         ],
       });
     }
-    game.runner.completeDay(game.run, day, ownResult: ownResult);
+    game.runner.completeDay(
+      game.run,
+      day,
+      ownResult: ownResult,
+      ownKnockout: knockout,
+    );
     // Leagues with more matchdays than the own one play on in the background.
     if (game.isOver) {
       while (!game.run.isOver) {

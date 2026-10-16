@@ -17,6 +17,8 @@ enum TickerKind {
   tactic,
   halfTime,
   fullTime,
+  extraTime,
+  shootout,
 }
 
 /// Which ticker line an event gets; null for events the ticker leaves out
@@ -51,6 +53,8 @@ TickerKind? tickerKindOf(MatchEvent e) {
       return TickerKind.halfTime;
     case MatchEventType.fullTime:
       return TickerKind.fullTime;
+    case MatchEventType.extraTime:
+      return TickerKind.extraTime;
     default:
       return null;
   }
@@ -62,7 +66,8 @@ bool pausesMatch(MatchEvent e) =>
     e.type == MatchEventType.injury ||
     e.type == MatchEventType.redCard ||
     e.type == MatchEventType.secondYellow ||
-    e.type == MatchEventType.halfTime;
+    e.type == MatchEventType.halfTime ||
+    e.type == MatchEventType.extraTime;
 
 /// One line of the ticker.
 class TickerLine {

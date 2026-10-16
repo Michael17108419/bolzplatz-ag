@@ -49,6 +49,7 @@ class ConferenceView extends StatefulWidget {
 
 class _ConferenceViewState extends State<ConferenceView> {
   LeagueId? _selected;
+  bool _cupTab = false;
 
   int get _now {
     final own = widget.day.own;
@@ -111,23 +112,40 @@ class _ConferenceViewState extends State<ConferenceView> {
       if (b == widget.ownLeague) return 1;
       return a.value.compareTo(b.value);
     });
-    if (leagues.isEmpty) {
+    final cupMatches = [
+      for (final m in widget.day.matches)
+        if (!m.isLeague) m,
+    ];
+    if (leagues.isEmpty && cupMatches.isEmpty) {
       return Center(child: Text(s.confNoLeagues));
     }
-    final league = leagues.contains(_selected) ? _selected! : leagues.first;
-    final lines = [for (final m in widget.day.ofLeague(league)) _lineOf(m)];
-    final table = widget.run.tables[league]!.copy();
-    for (final l in lines) {
-      if (l.status != _Status.notStarted) {
-        table.record(
-          l.match.fixture.home,
-          l.match.fixture.away,
-          l.home,
-          l.away,
-        );
+    // A day with only cup ties, or a cup tie of the own club, starts on the
+    // cup tab.
+    final ownIsCup = widget.day.own != null && !widget.day.own!.isLeague;
+    final showCup =
+        cupMatches.isNotEmpty &&
+        (leagues.isEmpty || (_cupTab || (ownIsCup && _selected == null)));
+    final league = showCup
+        ? null
+        : (leagues.contains(_selected) ? _selected! : leagues.first);
+    final lines = showCup
+        ? [for (final m in cupMatches) _lineOf(m)]
+        : [for (final m in widget.day.ofLeague(league!)) _lineOf(m)];
+    final standing = <TableEntry>[];
+    if (league != null) {
+      final table = widget.run.tables[league]!.copy();
+      for (final l in lines) {
+        if (l.status != _Status.notStarted) {
+          table.record(
+            l.match.fixture.home,
+            l.match.fixture.away,
+            l.home,
+            l.away,
+          );
+        }
       }
+      standing.addAll(table.standing);
     }
-    final standing = table.standing;
 
     String statusText(_Line l) => switch (l.status) {
       _Status.notStarted => s.confNotStarted,
@@ -153,12 +171,22 @@ class _ConferenceViewState extends State<ConferenceView> {
           spacing: 8,
           runSpacing: 8,
           children: [
+            if (cupMatches.isNotEmpty)
+              ChoiceChip(
+                key: const ValueKey('conf-tab-cup'),
+                label: Text(s.confCupTab),
+                selected: showCup,
+                onSelected: (_) => setState(() => _cupTab = true),
+              ),
             for (final l in leagues)
               ChoiceChip(
                 key: ValueKey('conf-tab-${l.value}'),
                 label: Text(_leagueTitle(l)),
                 selected: l == league,
-                onSelected: (_) => setState(() => _selected = l),
+                onSelected: (_) => setState(() {
+                  _selected = l;
+                  _cupTab = false;
+                }),
               ),
           ],
         ),
@@ -216,9 +244,11 @@ class _ConferenceViewState extends State<ConferenceView> {
                       ],
                     ),
                   ),
-                const SizedBox(height: Tokens.gapM),
-                Text(s.confTable, style: theme.textTheme.titleMedium),
-                const SizedBox(height: Tokens.gapS),
+                if (league != null) ...[
+                  const SizedBox(height: Tokens.gapM),
+                  Text(s.confTable, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: Tokens.gapS),
+                ],
                 for (var i = 0; i < standing.length; i++)
                   Padding(
                     key: ValueKey('conf-table-$i'),

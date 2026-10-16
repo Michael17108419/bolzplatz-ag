@@ -379,6 +379,14 @@ abstract interface class AppStrings {
   String get infoStatsScorers;
   String get statsScorersEmpty;
   String get statsAssistsEmpty;
+  String cupName(Competition competition);
+  String cupRoundName(bool isFinal, int round);
+  String matchShootoutLine(String winner, int home, int away);
+  String get confCupTab;
+  String get matchReportExtraTime;
+  String matchReportShootout(int home, int away);
+  String get matchReportThrough;
+  String get matchReportOut;
   String get savesTitle;
   String get savesAuto;
   String savesSlot(String slot);
@@ -928,6 +936,16 @@ class AppStringsDe implements AppStrings {
       'Der Schiedsrichter pfeift zur Pause: {score}. Jetzt ist der Trainer '
           'dran.',
       'Halbzeitpfiff, {score}. Die Würstchen sind der eigentliche Gewinner.',
+    ],
+    TickerKind.extraTime => const [
+      'Verlängerung! Es steht {score}, und die Beine sind schon müde.',
+      'Kein Sieger nach 90 Minuten ({score}). Es gibt Nachschlag: zweimal 15 '
+          'Minuten.',
+      'Unentschieden, {score}. Die Verlängerung beginnt, die Kabinen bleiben '
+          'leer.',
+    ],
+    TickerKind.shootout => const [
+      'Elfmeterschießen!',
     ],
     TickerKind.fullTime => const [
       'Abpfiff! Endstand {score}.',
@@ -1980,6 +1998,29 @@ class AppStringsDe implements AppStrings {
   @override
   String get statsAssistsEmpty =>
       'Noch keine Vorlage. Alle haben den Ball behalten.';
+  @override
+  String cupName(Competition competition) => competition == Competition.pott
+      ? 'Pott der Provinz'
+      : 'Bolzplatzpokal';
+  @override
+  String cupRoundName(bool isFinal, int round) =>
+      isFinal ? 'Finale' : 'Runde ${round + 1}';
+  @override
+  String matchShootoutLine(String winner, int home, int away) =>
+      'Elfmeterschießen entschieden: $winner gewinnt mit $home:$away. '
+      'Die Nerven waren heute nicht im Preis inbegriffen.';
+  @override
+  String get confCupTab => 'Pokal';
+  @override
+  String get matchReportExtraTime => 'nach Verlängerung';
+  @override
+  String matchReportShootout(int home, int away) =>
+      'im Elfmeterschießen $home:$away';
+  @override
+  String get matchReportThrough => 'Du bist eine Runde weiter!';
+  @override
+  String get matchReportOut =>
+      'Ausgeschieden. Der Pokal bleibt ein schönes Wort.';
   @override
   String get savesTitle => 'Spielstände';
   @override

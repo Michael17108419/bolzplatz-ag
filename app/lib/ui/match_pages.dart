@@ -34,6 +34,25 @@ String _listName(LoadedWorld loaded, PlayerId id) {
 
 String _clubName(LoadedWorld loaded, ClubId id) => loaded.club(id).name;
 
+/// True for a cup tie (extra time and shoot-out are possible).
+bool _isCup(OwnMatch own) => own.competition != Competition.league;
+
+/// "Spieltag 5" or "Bolzplatzpokal, Runde 2".
+String _matchTitle(
+  AppStrings s,
+  LoadedWorld loaded,
+  OwnMatch own,
+  SeasonGame game,
+) {
+  if (!_isCup(own)) return s.officeMatchday(game.matchday);
+  final cups = loaded.rules.season.cups;
+  final rounds = own.competition == Competition.pott
+      ? cups.pottAfterMatchday.length
+      : cups.bolzplatzAfterMatchday.length;
+  return '${s.cupName(own.competition)}, '
+      '${s.cupRoundName(own.round == rounds - 1, own.round)}';
+}
+
 /// Preview before the kick-off: opponent, strength, line-up, absences.
 class MatchPreviewPage extends ConsumerWidget {
   const MatchPreviewPage({super.key});
@@ -56,6 +75,10 @@ class MatchPreviewPage extends ConsumerWidget {
     final fixture = own.fixture;
     final home = fixture.home;
     final away = fixture.away;
+    final atHome = home == game.clubId;
+    final opponentStrength = _isCup(own)
+        ? (loaded.strengths[atHome ? away : home] ?? 0)
+        : view.opponentStrength;
     final absent = game.runner.absences(game.run, game.clubId);
     final sheet = lineup?.sheet;
 
@@ -76,7 +99,7 @@ class MatchPreviewPage extends ConsumerWidget {
     );
 
     return ScreenFrame(
-      title: s.officeMatchday(game.matchday),
+      title: _matchTitle(s, loaded, own, game),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -97,8 +120,8 @@ class MatchPreviewPage extends ConsumerWidget {
             children: [
               Flexible(
                 child: Text(
-                  '${view.atHome ? s.officeHome : s.officeAway} · '
-                  '${s.leagueName(ref.watch(careerProvider)!.offer.league.name)}',
+                  '${atHome ? s.officeHome : s.officeAway} · '
+                  '${_isCup(own) ? s.cupName(own.competition) : s.leagueName(ref.watch(careerProvider)!.offer.league.name)}',
                   key: const ValueKey('match-preview-kind'),
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium,
@@ -116,7 +139,7 @@ class MatchPreviewPage extends ConsumerWidget {
           Text(
             s.officeStrengthCompare(
               view.ownStrength.toStringAsFixed(1),
-              view.opponentStrength.toStringAsFixed(1),
+              opponentStrength.toStringAsFixed(1),
             ),
             key: const ValueKey('match-preview-strength'),
             textAlign: TextAlign.center,
@@ -202,9 +225,12 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
   bool _running = true;
   bool _pausedByEvent = false;
   bool _done = false;
+  bool _shootoutShown = false;
   Timer? _timer;
 
   MatchSession get _session => _own.session!;
+
+  bool get _cup => _isCup(_own);
 
   @override
   void initState() {
@@ -236,8 +262,45 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
   }
 
   /// Turns new events of the session into ticker lines. Returns true if one
-  /// of them should stop the match.
+  /// of them should stop the match. A cup tie that is level after full time
+  /// goes into extra time and then to the shoot-out.
   bool _ingest() {
+    var stop = false;
+    while (true) {
+      if (_readEvents()) stop = true;
+      if (!_session.isFinished) break;
+      if (_cup && _session.startExtraTimeIfLevel()) continue;
+      _done = true;
+      break;
+    }
+    if (_done && _cup && _session.isLevel) {
+      final winner = _session.playShootout();
+      if (!_shootoutShown) {
+        _shootoutShown = true;
+        final s = ref.read(stringsProvider);
+        final score = _session.shootoutScore();
+        final fixture = _own.fixture;
+        _lines.insert(
+          0,
+          TickerLine(
+            minute: _session.minute,
+            kind: TickerKind.shootout,
+            side: -1,
+            homeGoals: score[0],
+            awayGoals: score[1],
+            text: s.matchShootoutLine(
+              _clubName(_loaded, winner == 0 ? fixture.home : fixture.away),
+              winner == 0 ? score[0] : score[1],
+              winner == 0 ? score[1] : score[0],
+            ),
+          ),
+        );
+      }
+    }
+    return stop;
+  }
+
+  bool _readEvents() {
     final s = ref.read(stringsProvider);
     final events = _session.events;
     var stop = false;
@@ -254,7 +317,6 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
       if (line != null) _lines.insert(0, line);
       if (pausesMatch(e)) stop = true;
     }
-    if (_session.isFinished) _done = true;
     return stop;
   }
 
@@ -291,7 +353,11 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
 
   void _skip() {
     _stopTimer();
-    _session.finish();
+    if (_cup) {
+      _session.finishKnockout();
+    } else {
+      _session.finish();
+    }
     _ingest();
     _running = false;
     setState(() {});
@@ -304,11 +370,13 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
   }
 
   void _toReport() {
-    final result = _session.finish();
-    ref.read(seasonProvider.notifier).complete(result);
+    final KnockoutResult? knockout = _cup ? _session.finishKnockout() : null;
+    final result = knockout?.match ?? _session.finish();
+    ref.read(seasonProvider.notifier).complete(result, knockout: knockout);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
-        builder: (_) => MatchReportPage(result: result, own: _own),
+        builder: (_) =>
+            MatchReportPage(result: result, own: _own, knockout: knockout),
       ),
     );
   }
@@ -352,7 +420,6 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     final home = _own.fixture.home;
     final away = _own.fixture.away;
     final game = ref.watch(seasonProvider);
-    final day = game?.matchday ?? 1;
 
     Widget team(ClubId id, {required bool right}) => Expanded(
       child: Row(
@@ -398,7 +465,9 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
           ..showSnackBar(SnackBar(content: Text(s.matchLeaveBlocked)));
       },
       child: ScreenFrame(
-        title: s.officeMatchday(day),
+        title: game == null
+            ? s.officeMatchday(1)
+            : _matchTitle(s, _loaded, _own, game),
         maxWidth: 1000,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -818,10 +887,18 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
 
 /// The report after the final whistle.
 class MatchReportPage extends ConsumerWidget {
-  const MatchReportPage({required this.result, required this.own, super.key});
+  const MatchReportPage({
+    required this.result,
+    required this.own,
+    this.knockout,
+    super.key,
+  });
 
   final MatchResult result;
   final OwnMatch own;
+
+  /// Set for a cup tie: extra time and shoot-out.
+  final KnockoutResult? knockout;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -904,6 +981,32 @@ class MatchReportPage extends ConsumerWidget {
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium,
           ),
+          if (knockout != null) ...[
+            if (knockout!.extraTime || knockout!.decidedByShootout)
+              Text(
+                [
+                  if (knockout!.extraTime) s.matchReportExtraTime,
+                  if (knockout!.decidedByShootout)
+                    s.matchReportShootout(
+                      knockout!.shootoutHome!,
+                      knockout!.shootoutAway!,
+                    ),
+                ].join(', '),
+                key: const ValueKey('report-extra'),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium,
+              ),
+            Text(
+              (knockout!.winnerSide == 0) == ownHome
+                  ? s.matchReportThrough
+                  : s.matchReportOut,
+              key: const ValueKey('report-cup'),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: Tokens.yellow,
+              ),
+            ),
+          ],
           Expanded(
             child: ListView(
               children: [
