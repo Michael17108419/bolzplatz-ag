@@ -120,6 +120,32 @@ class _LineupPageState extends ConsumerState<LineupPage> {
   int? _slot;
   int _tab = 0;
 
+  void _openPicker(
+    BuildContext context,
+    LoadedWorld loaded,
+    Map<PlayerId, Player> squad,
+    Map<PlayerId, int> numbers,
+    int crest,
+    int slot,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Tokens.ground,
+      builder: (sheet) => _SlotPicker(
+        slotIndex: slot,
+        loaded: loaded,
+        squad: squad,
+        numbers: numbers,
+        crestColour: crest,
+        onDone: () {
+          Navigator.of(sheet).pop();
+          setState(() => _slot = null);
+        },
+      ),
+    );
+  }
+
   void _openTactics(
     BuildContext context,
     LoadedWorld loaded,
@@ -196,10 +222,32 @@ class _LineupPageState extends ConsumerState<LineupPage> {
             selected: _slot,
             crestColour: crest,
             today: loaded.today,
-            onSelect: (i) => setState(() {
-              _slot = _slot == i ? null : i;
-              if (_slot != null) _tab = 1;
-            }),
+            onSelect: (i) {
+              final lineup = ref.read(lineupProvider);
+              if (_slot != null && _slot != i && lineup != null) {
+                // Two players on the pitch: they swap places.
+                final other = lineup.sheet.startingXi[i];
+                final ok = ref
+                    .read(lineupProvider.notifier)
+                    .assign(_slot!, other);
+                setState(() => _slot = null);
+                if (!ok) {
+                  ScaffoldMessenger.of(context)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(content: Text(s.lineupSwapKeeper)),
+                    );
+                }
+                return;
+              }
+              setState(() {
+                _slot = _slot == i ? null : i;
+                if (_slot != null) _tab = 1;
+              });
+              if (phone && _slot != null) {
+                _openPicker(context, loaded, squad, numbers, crest, i);
+              }
+            },
           );
           final side = _Side(
             phone: phone,
@@ -321,7 +369,7 @@ class _Pitch extends StatelessWidget {
                   left: spots[i].dx * w - 40,
                   top: spots[i].dy * h - 38,
                   width: 80,
-                  height: 76,
+                  height: 84,
                   child: _SlotView(
                     key: ValueKey('slot-$i'),
                     player: squad[sheet.startingXi[i]]!,
@@ -468,6 +516,35 @@ class _SlotView extends StatelessWidget {
                     ),
                   ),
                 Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: -5,
+                  child: Center(
+                    child: Container(
+                      key: ValueKey('slot-pos-${player.id.value}'),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      decoration: BoxDecoration(
+                        color: Tokens.ink,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: positionColor(slot),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        slot.id,
+                        style: TextStyle(
+                          fontFamily: Tokens.headlineFont,
+                          fontSize: 10,
+                          height: 1.3,
+                          fontWeight: FontWeight.w800,
+                          color: positionColor(slot),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
                   right: -10,
                   top: -4,
                   child: Container(
@@ -519,7 +596,7 @@ class _SlotView extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5),
               decoration: BoxDecoration(
@@ -694,7 +771,7 @@ class _Side extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: Tokens.gapS),
-        if (slot != null)
+        if (slot != null && !phone)
           _SlotCard(
             slotIndex: slot!,
             formation: formation,
@@ -732,7 +809,9 @@ class _Side extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: Tokens.gapS),
-        if (tab == 0 && !phone)
+        if (phone)
+          const SizedBox.shrink()
+        else if (tab == 0)
           _TacticsTab(
             loaded: loaded,
             squad: squad,
@@ -1369,39 +1448,19 @@ class _BenchStrip extends ConsumerWidget {
   final int crestColour;
   final GameDate today;
 
-  void _open(BuildContext context, WidgetRef ref, Player p) {
-    final s = ref.read(stringsProvider);
+  void _openPicker(BuildContext context, WidgetRef ref) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Tokens.panel,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(Tokens.gapM),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                p.displayName,
-                style: Theme.of(sheetContext).textTheme.titleMedium,
-              ),
-              if (absent[p.id] != null)
-                Text(
-                  s.matchAbsence(absent[p.id]!),
-                  style: Theme.of(sheetContext).textTheme.bodyMedium
-                      ?.copyWith(color: const Color(0xFFD64545)),
-                ),
-              const SizedBox(height: Tokens.gapM),
-              FilledButton(
-                key: const ValueKey('bench-remove'),
-                onPressed: () {
-                  ref.read(lineupProvider.notifier).toggleBench(p.id);
-                  Navigator.of(sheetContext).pop();
-                },
-                child: Text(s.lineupBenchRemove),
-              ),
-            ],
-          ),
-        ),
+      isScrollControlled: true,
+      backgroundColor: Tokens.ground,
+      builder: (sheet) => _BenchPicker(
+        squad: squad,
+        numbers: numbers,
+        strengths: strengths,
+        places: places,
+        crestColour: crestColour,
+        today: today,
+        onDone: () => Navigator.of(sheet).pop(),
       ),
     );
   }
@@ -1432,11 +1491,7 @@ class _BenchStrip extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.only(right: 10),
                     child: GestureDetector(
-                      onTap: () => ScaffoldMessenger.of(context)
-                        ..hideCurrentSnackBar()
-                        ..showSnackBar(
-                          SnackBar(content: Text(s.lineupBenchEmpty)),
-                        ),
+                      onTap: () => _openPicker(context, ref),
                       child: SizedBox(
                         width: 56,
                         child: Column(
@@ -1498,7 +1553,7 @@ class _BenchStrip extends ConsumerWidget {
       child: GestureDetector(
         key: ValueKey('bench-${p.id.value}'),
         behavior: HitTestBehavior.opaque,
-        onTap: () => _open(context, ref, p),
+        onTap: () => _openPicker(context, ref),
         child: SizedBox(
           width: 64,
           child: Column(
@@ -1576,6 +1631,454 @@ class _BenchStrip extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The sheet for one place on the pitch: the roles of the place and the
+/// players who can play there, best fit first. One tap puts a player there
+/// (a player of the eleven swaps places with him).
+class _SlotPicker extends ConsumerStatefulWidget {
+  const _SlotPicker({
+    required this.slotIndex,
+    required this.loaded,
+    required this.squad,
+    required this.numbers,
+    required this.crestColour,
+    required this.onDone,
+  });
+
+  final int slotIndex;
+  final LoadedWorld loaded;
+  final Map<PlayerId, Player> squad;
+  final Map<PlayerId, int> numbers;
+  final int crestColour;
+  final VoidCallback onDone;
+
+  @override
+  ConsumerState<_SlotPicker> createState() => _SlotPickerState();
+}
+
+class _SlotPickerState extends ConsumerState<_SlotPicker> {
+  bool _all = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = ref.watch(stringsProvider);
+    final theme = Theme.of(context);
+    final lineup = ref.watch(lineupProvider);
+    final absent = ref.watch(ownAbsencesProvider);
+    if (lineup == null) return const SizedBox.shrink();
+    final rules = widget.loaded.rules;
+    final sheet = lineup.sheet;
+    final formation = rules.tactics.formation(sheet.formationId);
+    final target = formation.slots[widget.slotIndex];
+    final fit = Fit(rules);
+    final xi = sheet.startingXi;
+    final notifier = ref.read(lineupProvider.notifier);
+    final current = widget.squad[xi[widget.slotIndex]]!;
+
+    final players = [
+      for (final p in widget.squad.values)
+        if (p.position.isGoalkeeper == target.isGoalkeeper &&
+            (_all ||
+                p.id == current.id ||
+                fit.positionMultiplier(p, target) >= 0.9))
+          p,
+    ]..sort((a, b) =>
+        fit.slotScore(b, target).compareTo(fit.slotScore(a, target)));
+
+    void pick(Player p) {
+      final reason = absent[p.id];
+      if (reason != null) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(s.lineupAbsentBlocked(s.matchAbsence(reason))),
+            ),
+          );
+        return;
+      }
+      notifier.assign(widget.slotIndex, p.id);
+      widget.onDone();
+    }
+
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Tokens.gapM,
+                Tokens.gapM,
+                Tokens.gapM,
+                0,
+              ),
+              child: Row(
+                children: [
+                  PositionChip(target),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${s.positionName(target)} · ${current.lastName}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  ChoiceChip(
+                    key: const ValueKey('picker-fit'),
+                    label: Text(s.lineupPickerFit),
+                    selected: !_all,
+                    onSelected: (_) => setState(() => _all = false),
+                  ),
+                  const SizedBox(width: 6),
+                  ChoiceChip(
+                    key: const ValueKey('picker-all'),
+                    label: Text(s.lineupPickerAll),
+                    selected: _all,
+                    onSelected: (_) => setState(() => _all = true),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(Tokens.gapM),
+                children: [
+                  _SlotCard(
+                    slotIndex: widget.slotIndex,
+                    formation: formation,
+                    sheet: sheet,
+                    squad: widget.squad,
+                    loaded: widget.loaded,
+                  ),
+                  for (final p in players)
+                    _pickRow(context, p, xi, sheet, absent, fit, target),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _pickRow(
+    BuildContext context,
+    Player p,
+    List<PlayerId> xi,
+    TeamSheet sheet,
+    Map<PlayerId, Absence> absent,
+    Fit fit,
+    Position target,
+  ) {
+    final s = ref.read(stringsProvider);
+    final theme = Theme.of(context);
+    final look = PlayerLook.of(
+      p,
+      age: p.ageOn(widget.loaded.today),
+      crestColour: widget.crestColour,
+    );
+    final at = xi.indexOf(p.id);
+    final isCurrent = at == widget.slotIndex;
+    final formation = widget.loaded.rules.tactics.formation(sheet.formationId);
+    final reason = absent[p.id];
+    final value = fit.slotScore(p, target);
+    final number = widget.numbers[p.id];
+    final status = reason != null
+        ? s.matchAbsence(reason)
+        : isCurrent
+        ? s.lineupPickerHere
+        : at >= 0
+        ? s.lineupPickerPlaysOn(formation.slots[at].id)
+        : sheet.bench.contains(p.id)
+        ? s.lineupBench
+        : s.lineupStand;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: isCurrent
+            ? const Color(0xFF28503A)
+            : at >= 0
+            ? const Color(0xFF223F2F)
+            : Tokens.panel,
+        borderRadius: BorderRadius.circular(Tokens.radius),
+        child: InkWell(
+          key: ValueKey('pick-${p.id.value}'),
+          borderRadius: BorderRadius.circular(Tokens.radius),
+          onTap: isCurrent ? widget.onDone : () => pick(p),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 56),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: Tokens.gapS,
+                vertical: 4,
+              ),
+              child: Row(
+                children: [
+                  PersonAvatar(
+                    appearance: look.appearance,
+                    extras: look.extras,
+                    size: 40,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          number == null
+                              ? p.displayName
+                              : '$number  ${p.displayName}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleSmall,
+                        ),
+                        Text(
+                          status,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: reason != null
+                                ? const Color(0xFFD64545)
+                                : at >= 0
+                                ? Tokens.yellow
+                                : Tokens.beige,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PositionChip(p.position),
+                  SizedBox(
+                    width: 44,
+                    child: Text(
+                      value.round().toString(),
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: valueColor(value),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The sheet for the bench: everybody who is not in the eleven, one tap puts
+/// a player on the bench or takes him off. A player who is out can always be
+/// taken off but not put on.
+class _BenchPicker extends ConsumerWidget {
+  const _BenchPicker({
+    required this.squad,
+    required this.numbers,
+    required this.strengths,
+    required this.places,
+    required this.crestColour,
+    required this.today,
+    required this.onDone,
+  });
+
+  final Map<PlayerId, Player> squad;
+  final Map<PlayerId, int> numbers;
+  final Map<PlayerId, double> strengths;
+  final int places;
+  final int crestColour;
+  final GameDate today;
+  final VoidCallback onDone;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(stringsProvider);
+    final theme = Theme.of(context);
+    final lineup = ref.watch(lineupProvider);
+    final absent = ref.watch(ownAbsencesProvider);
+    if (lineup == null) return const SizedBox.shrink();
+    final sheet = lineup.sheet;
+    final notifier = ref.read(lineupProvider.notifier);
+    final players = [
+      for (final p in squad.values)
+        if (!sheet.startingXi.contains(p.id)) p,
+    ]..sort((a, b) {
+        final ab = sheet.bench.contains(a.id) ? 0 : 1;
+        final bb = sheet.bench.contains(b.id) ? 0 : 1;
+        if (ab != bb) return ab.compareTo(bb);
+        return (strengths[b.id] ?? 0).compareTo(strengths[a.id] ?? 0);
+      });
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(Tokens.gapM),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${s.lineupBenchTitle} (${sheet.bench.length}/$places)',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  FilledButton(
+                    key: const ValueKey('bench-done'),
+                    onPressed: onDone,
+                    child: Text(s.lineupBenchDone),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  Tokens.gapM,
+                  0,
+                  Tokens.gapM,
+                  Tokens.gapM,
+                ),
+                children: [
+                  for (final p in players)
+                    Builder(
+                      builder: (context) {
+                        final on = sheet.bench.contains(p.id);
+                        final reason = absent[p.id];
+                        final look = PlayerLook.of(
+                          p,
+                          age: p.ageOn(today),
+                          crestColour: crestColour,
+                        );
+                        final strength = strengths[p.id] ?? 0;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Material(
+                            color: on
+                                ? const Color(0xFF28503A)
+                                : Tokens.panel,
+                            borderRadius: BorderRadius.circular(Tokens.radius),
+                            child: InkWell(
+                              key: ValueKey('benchpick-${p.id.value}'),
+                              borderRadius: BorderRadius.circular(
+                                Tokens.radius,
+                              ),
+                              onTap: () {
+                                if (reason != null && !on) {
+                                  ScaffoldMessenger.of(context)
+                                    ..hideCurrentSnackBar()
+                                    ..showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          s.lineupAbsentBlocked(
+                                            s.matchAbsence(reason),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  return;
+                                }
+                                if (!notifier.toggleBench(p.id)) {
+                                  ScaffoldMessenger.of(context)
+                                    ..hideCurrentSnackBar()
+                                    ..showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          s.lineupBenchFull(
+                                            sheet.bench.length,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                }
+                              },
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  minHeight: 56,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: Tokens.gapS,
+                                    vertical: 4,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      PersonAvatar(
+                                        appearance: look.appearance,
+                                        extras: look.extras,
+                                        size: 40,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              numbers[p.id] == null
+                                                  ? p.displayName
+                                                  : '${numbers[p.id]}  ${p.displayName}',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  theme.textTheme.titleSmall,
+                                            ),
+                                            Text(
+                                              reason != null
+                                                  ? s.matchAbsence(reason)
+                                                  : on
+                                                  ? s.lineupBench
+                                                  : s.lineupStand,
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: reason != null
+                                                        ? const Color(
+                                                            0xFFD64545,
+                                                          )
+                                                        : on
+                                                        ? Tokens.green
+                                                        : Tokens.beige,
+                                                  ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      PositionChip(p.position),
+                                      SizedBox(
+                                        width: 44,
+                                        child: Text(
+                                          strength.round().toString(),
+                                          textAlign: TextAlign.center,
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                                color: valueColor(strength),
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

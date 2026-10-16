@@ -410,6 +410,23 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
 
   Future<void> _openSubs() async {
     _pause();
+    if (isNarrow(context)) {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Tokens.ground,
+        builder: (_) => _SubsSheet(
+          session: _session,
+          side: _ownSide,
+          loaded: _loaded,
+          onDone: () {
+            _ingest();
+            setState(() {});
+          },
+        ),
+      );
+      return;
+    }
     await showDialog<void>(
       context: context,
       builder: (_) => _SubsDialog(
@@ -426,6 +443,24 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
 
   Future<void> _openTactics() async {
     _pause();
+    if (isNarrow(context)) {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Tokens.ground,
+        builder: (_) => _TacticsDialog(
+          asSheet: true,
+          session: _session,
+          side: _ownSide,
+          rules: _loaded.rules,
+          onChanged: () {
+            _ingest();
+            setState(() {});
+          },
+        ),
+      );
+      return;
+    }
     await showDialog<void>(
       context: context,
       builder: (_) => _TacticsDialog(
@@ -949,6 +984,143 @@ class _SubsDialogState extends ConsumerState<_SubsDialog> {
   }
 }
 
+/// Phone: the substitution as one sheet. Who goes off and who comes on are
+/// both on screen, so there is no scrolling from step to step.
+class _SubsSheet extends ConsumerStatefulWidget {
+  const _SubsSheet({
+    required this.session,
+    required this.side,
+    required this.loaded,
+    required this.onDone,
+  });
+
+  final MatchSession session;
+  final int side;
+  final LoadedWorld loaded;
+  final VoidCallback onDone;
+
+  @override
+  ConsumerState<_SubsSheet> createState() => _SubsSheetState();
+}
+
+class _SubsSheetState extends ConsumerState<_SubsSheet> {
+  PlayerId? _off;
+  String? _note;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = ref.watch(stringsProvider);
+    final theme = Theme.of(context);
+    final session = widget.session;
+    final left = session.substitutionsLeft(widget.side);
+    final pitch = session.onPitch(widget.side);
+    final bench = session.benchOf(widget.side);
+    final loaded = widget.loaded;
+
+    Widget playerChip(PlayerId id, {required bool off}) {
+      final p = loaded.player(id);
+      final selected = off && _off == id;
+      return ChoiceChip(
+        key: ValueKey('match-sub-${off ? 'off' : 'on'}-${id.value}'),
+        selected: selected,
+        label: Text(
+          '${p == null ? '' : '${p.position.id} '}${_listName(loaded, id)}',
+          overflow: TextOverflow.ellipsis,
+        ),
+        onSelected: (_) {
+          if (off) {
+            setState(() {
+              _off = selected ? null : id;
+              _note = null;
+            });
+            return;
+          }
+          final out = _off;
+          if (out == null) {
+            setState(() => _note = s.matchSubPickOff);
+            return;
+          }
+          if (session.substitute(widget.side, out, id)) {
+            widget.onDone();
+            Navigator.of(context).pop();
+          } else {
+            setState(() => _note = s.matchSubKeeperOnly);
+          }
+        },
+      );
+    }
+
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(Tokens.gapM),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      s.matchSubs,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  Text(s.matchSubsLeft(left)),
+                ],
+              ),
+              if (left <= 0)
+                Padding(
+                  padding: const EdgeInsets.only(top: Tokens.gapS),
+                  child: Text(s.matchSubNone),
+                )
+              else ...[
+                const SizedBox(height: Tokens.gapS),
+                Text(s.matchSubPickOff, style: theme.textTheme.titleSmall),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [for (final id in pitch) playerChip(id, off: true)],
+                ),
+                const SizedBox(height: Tokens.gapM),
+                Text(s.matchSubPickOn, style: theme.textTheme.titleSmall),
+                const SizedBox(height: 6),
+                if (bench.isEmpty)
+                  Text(s.matchSubBenchEmpty)
+                else
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final id in bench) playerChip(id, off: false),
+                    ],
+                  ),
+                if (_note != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      _note!,
+                      style: const TextStyle(color: Tokens.orange),
+                    ),
+                  ),
+              ],
+              const SizedBox(height: Tokens.gapM),
+              FilledButton(
+                key: const ValueKey('match-dialog-close'),
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(s.matchClose),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// System and sliders during the match.
 class _TacticsDialog extends ConsumerStatefulWidget {
   const _TacticsDialog({
@@ -956,12 +1128,16 @@ class _TacticsDialog extends ConsumerStatefulWidget {
     required this.side,
     required this.rules,
     required this.onChanged,
+    this.asSheet = false,
   });
 
   final MatchSession session;
   final int side;
   final Rules rules;
   final VoidCallback onChanged;
+
+  /// Phone: shown as a sheet from the bottom instead of a dialog.
+  final bool asSheet;
 
   @override
   ConsumerState<_TacticsDialog> createState() => _TacticsDialogState();
@@ -991,12 +1167,7 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
       setState(() {});
     }
 
-    return AlertDialog(
-      title: Text(s.matchTactics),
-      content: SizedBox(
-        width: 420,
-        child: SingleChildScrollView(
-          child: Column(
+    final content = Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1052,7 +1223,37 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
                   ),
                 ),
             ],
+          );
+    if (widget.asSheet) {
+      return SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(Tokens.gapM),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                s.matchTactics,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: Tokens.gapS),
+              content,
+              const SizedBox(height: Tokens.gapM),
+              FilledButton(
+                key: const ValueKey('match-dialog-close'),
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(s.matchClose),
+              ),
+            ],
           ),
+        ),
+      );
+    }
+    return AlertDialog(
+      title: Text(s.matchTactics),
+      content: SizedBox(
+        width: 420,
+        child: SingleChildScrollView(
+          child: content,
         ),
       ),
       actions: [

@@ -348,6 +348,12 @@ abstract interface class AppStrings {
   String get lineupStand;
   String lineupBenchFull(int places);
   String lineupAbsentBlocked(String reason);
+  String get lineupSwapKeeper;
+  String get lineupPickerFit;
+  String get lineupPickerAll;
+  String get lineupPickerHere;
+  String get lineupBenchDone;
+  String lineupPickerPlaysOn(String position);
   String get settingsAutoLineup;
   String get settingsAutoLineupText;
   String get lineupBenchTitle;
@@ -2014,6 +2020,24 @@ class AppStringsDe implements AppStrings {
   @override
   String lineupAutoChanged(String names) =>
       '$names fällt aus, der Assistent hat umgestellt.';
+  @override
+  String get lineupSwapKeeper =>
+      'Torwart und Feldspieler tauschen geht nicht.';
+  @override
+  String get lineupPickerFit =>
+      'Passend';
+  @override
+  String get lineupPickerAll =>
+      'Alle';
+  @override
+  String get lineupPickerHere =>
+      'Spielt hier';
+  @override
+  String get lineupBenchDone =>
+      'Fertig';
+  @override
+  String lineupPickerPlaysOn(String position) =>
+      'Spielt auf $position';
   @override
   String lineupAbsentBlocked(String reason) =>
       'Der Spieler ist $reason und kann nicht spielen. Auch nicht, wenn du '
