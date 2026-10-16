@@ -13,6 +13,7 @@ import '../game/planning.dart';
 import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'crest.dart';
 import 'info_button.dart';
 import 'office_pages.dart';
@@ -124,17 +125,19 @@ class _Office extends ConsumerWidget {
                 style: theme.textTheme.titleMedium,
               ),
             InfoButton(message: s.infoDesk),
-            const SizedBox(width: Tokens.gapM),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 220),
-              child: Text(
-                career.trainer.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleSmall,
-              ),
-            ),
             const SizedBox(width: Tokens.gapS),
+            if (!isNarrow(context)) ...[
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 220),
+                child: Text(
+                  career.trainer.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleSmall,
+                ),
+              ),
+              const SizedBox(width: Tokens.gapS),
+            ],
             PersonAvatar(
               key: const ValueKey('office-trainer'),
               appearance: career.trainer.appearance,

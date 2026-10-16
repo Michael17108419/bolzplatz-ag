@@ -1,10 +1,13 @@
 import 'dart:math' as math;
+import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../game/desk.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'crest.dart';
 import 'office_svgs.dart';
 
@@ -76,10 +79,87 @@ class _OfficeSceneState extends State<OfficeScene> {
   DeskItem? _hover;
   late List<String> _svgs;
 
+  /// Only used when the scene is wider than the screen (a phone held
+  /// upright): the view then snaps to a few zones of the room.
+  final ScrollController _controller = ScrollController();
+  List<double> _stops = const [];
+  double _viewW = 0;
+  double _scale = 0;
+  double _lastScale = 0;
+  int _zone = -1;
+
+  /// The zones of the room, as the left edge in scene units, and the width
+  /// of the view on a phone. Every desk item lies whole in at least one.
+  static const _zoneStarts = [0.0, 460.0, 920.0];
+  static const _narrowViewW = 680.0;
+
   @override
   void initState() {
     super.initState();
     _svgs = _paint(widget.clubId);
+    _controller.addListener(_track);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _track() {
+    if (_stops.isEmpty || !_controller.hasClients) return;
+    _zone = _nearestStop(_controller.offset);
+  }
+
+  int _nearestStop(double offset) {
+    var best = 0;
+    for (var i = 1; i < _stops.length; i++) {
+      if ((_stops[i] - offset).abs() < (_stops[best] - offset).abs()) best = i;
+    }
+    return best;
+  }
+
+  /// The more urgent a thing, the earlier: post, calendar, then the rest.
+  static final List<DeskItem> _priority = [
+    DeskItem.post,
+    DeskItem.calendar,
+    ...DeskItem.values.where(
+      (i) => i != DeskItem.post && i != DeskItem.calendar,
+    ),
+  ];
+
+  /// The zone in which the item lies whole (or the nearest one).
+  int _zoneOf(DeskItem item) {
+    final spot = deskSpots[item]!;
+    for (var i = 0; i < _stops.length; i++) {
+      if (spot.left * _scale >= _stops[i] - 1 &&
+          spot.right * _scale <= _stops[i] + _viewW + 1) {
+        return i;
+      }
+    }
+    return _nearestStop(spot.center.dx * _scale - _viewW / 2);
+  }
+
+  DeskItem? _mostUrgent(Iterable<DeskItem> items) {
+    for (final i in _priority) {
+      if (items.contains(i)) return i;
+    }
+    return null;
+  }
+
+  void _place() {
+    final target = _stops[_zone.clamp(0, _stops.length - 1)];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_controller.hasClients) _controller.jumpTo(target);
+    });
+  }
+
+  void _goTo(int zone) {
+    _controller.animateTo(
+      _stops[zone],
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
@@ -106,9 +186,42 @@ class _OfficeSceneState extends State<OfficeScene> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, box) {
-        final scale = math.min(box.maxWidth / _sceneW, box.maxHeight / _sceneH);
+        // On a phone held upright only a part of the room fits the width:
+        // the scene is then wider than the screen and shows in zones.
+        final narrow = isNarrow(context);
+        final room = box.maxHeight - (narrow ? _dotsH : 0);
+        final scale = math.min(
+          box.maxWidth / (narrow ? _narrowViewW : _sceneW),
+          room / _sceneH,
+        );
         final w = _sceneW * scale;
         final h = _sceneH * scale;
+        final scrolls = w > box.maxWidth + 0.5;
+        final viewW = scrolls ? box.maxWidth : w;
+        if (scrolls) {
+          final stops = <double>[];
+          for (final z in _zoneStarts) {
+            final s = (z * scale).clamp(0.0, w - viewW).toDouble();
+            if (stops.isEmpty || (s - stops.last).abs() > 1) stops.add(s);
+          }
+          _stops = stops;
+          _viewW = viewW;
+          _scale = scale;
+          if (_zone < 0) {
+            // First look: where something waits, otherwise the desk.
+            final urgent = _mostUrgent(widget.badges.keys);
+            _zone = urgent == null
+                ? math.min(1, stops.length - 1)
+                : _zoneOf(urgent);
+            _place();
+          } else if ((scale - _lastScale).abs() > 1e-6) {
+            _place();
+          }
+          _lastScale = scale;
+        } else {
+          _stops = const [];
+          _zone = -1;
+        }
         Rect r(Rect s) => Rect.fromLTWH(
           s.left * scale,
           s.top * scale,
@@ -239,23 +352,210 @@ class _OfficeSceneState extends State<OfficeScene> {
                 ),
               ),
             ),
+          // On a phone the names stand at the things (no hovering there).
+          if (scrolls)
+            for (final item in DeskItem.values)
+              if (widget.labels[item] != null)
+                Positioned(
+                  left: deskSpots[item]!.center.dx * scale - 60,
+                  width: 120,
+                  top: deskSpots[item]!.bottom * scale - 22,
+                  child: IgnorePointer(
+                    child: Center(
+                      child: Container(
+                        key: ValueKey('desk-name-${item.name}'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xCC1B2E22),
+                          borderRadius: BorderRadius.circular(9),
+                        ),
+                        child: Text(
+                          widget.labels[item]!.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: Tokens.headlineFont,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 11,
+                            height: 1.2,
+                            color: Tokens.cream,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
           if (hover != null && widget.labels[hover] != null)
             _label(theme, hover, widget.labels[hover]!, scale, w, h),
         ];
 
-        return Center(
-          child: SizedBox(
-            width: w,
-            height: h,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Stack(clipBehavior: Clip.none, children: children),
+        final stack = SizedBox(
+          width: w,
+          height: h,
+          child: Stack(clipBehavior: Clip.none, children: children),
+        );
+        if (!scrolls) {
+          return Center(
+            child: SizedBox(
+              width: w,
+              height: h,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: stack,
+              ),
             ),
+          );
+        }
+        final stops = _stops;
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: viewW,
+                height: h,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    children: [
+                      ScrollConfiguration(
+                        behavior: ScrollConfiguration.of(context).copyWith(
+                          dragDevices: {
+                            PointerDeviceKind.touch,
+                            PointerDeviceKind.mouse,
+                            PointerDeviceKind.trackpad,
+                          },
+                          scrollbars: false,
+                        ),
+                        child: SingleChildScrollView(
+                          key: const ValueKey('office-zones'),
+                          controller: _controller,
+                          scrollDirection: Axis.horizontal,
+                          physics: _ZoneSnapPhysics(
+                            stops: stops,
+                            parent: const ClampingScrollPhysics(),
+                          ),
+                          child: stack,
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: AnimatedBuilder(
+                          animation: _controller,
+                          builder: (context, _) =>
+                              _edgeHints(viewW, h, stops),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: _dotsH,
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) => _dots(stops),
+                ),
+              ),
+            ],
           ),
         );
       },
     );
   }
+
+  static const _dotsH = 22.0;
+
+  double get _offset => _controller.hasClients
+      ? _controller.offset
+      : (_stops.isEmpty ? 0 : _stops[_zone.clamp(0, _stops.length - 1)]);
+
+  Widget _dots(List<double> stops) {
+    final now = _nearestStop(_offset);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var i = 0; i < stops.length; i++)
+          Container(
+            key: ValueKey('zone-dot-$i'),
+            width: 10,
+            height: 10,
+            margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: i == now ? Tokens.yellow : Tokens.panel,
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// A mark at the edge of the view when something waits in a zone that is
+  /// out of sight; a tap takes you there.
+  Widget _edgeHints(double viewW, double h, List<double> stops) {
+    final offset = _offset;
+    final left = <DeskItem>[];
+    final right = <DeskItem>[];
+    for (final item in widget.badges.keys) {
+      final c = deskSpots[item]!.center.dx * _scale;
+      if (c < offset) {
+        left.add(item);
+      } else if (c > offset + viewW) {
+        right.add(item);
+      }
+    }
+    Widget pill(DeskItem item, bool toRight) => Positioned(
+      left: toRight ? null : 6,
+      right: toRight ? 6 : null,
+      top: h * 0.42,
+      child: GestureDetector(
+        key: ValueKey('zone-hint-${toRight ? 'right' : 'left'}'),
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _goTo(_zoneOf(item)),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: Tokens.yellow,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Tokens.ink, width: 2),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!toRight) _hintArrow(false),
+              Text(
+                '${widget.labels[item]?.title ?? ''} ${widget.badges[item]}',
+                style: const TextStyle(
+                  fontFamily: Tokens.headlineFont,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: Tokens.ink,
+                ),
+              ),
+              if (toRight) _hintArrow(true),
+            ],
+          ),
+        ),
+      ),
+    );
+    final l = _mostUrgent(left);
+    final r = _mostUrgent(right);
+    return Stack(
+      children: [
+        if (l != null) pill(l, false),
+        if (r != null) pill(r, true),
+      ],
+    );
+  }
+
+  Widget _hintArrow(bool forward) => SizedBox(
+    width: 16,
+    height: 16,
+    child: CustomPaint(painter: _HintArrowPainter(forward)),
+  );
 
   Widget _label(
     ThemeData theme,
@@ -353,4 +653,69 @@ class _CupPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_CupPainter old) => false;
+}
+
+class _HintArrowPainter extends CustomPainter {
+  const _HintArrowPainter(this.forward);
+
+  final bool forward;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final d = forward ? 1.0 : -1.0;
+    final c = size.center(Offset.zero);
+    final path = Path()
+      ..moveTo(c.dx - 4 * d, c.dy - 6)
+      ..lineTo(c.dx + 5 * d, c.dy)
+      ..lineTo(c.dx - 4 * d, c.dy + 6)
+      ..close();
+    canvas.drawPath(path, Paint()..color = Tokens.ink);
+  }
+
+  @override
+  bool shouldRepaint(_HintArrowPainter old) => old.forward != forward;
+}
+
+/// Lets the horizontal view come to rest only at one of the zone stops.
+class _ZoneSnapPhysics extends ScrollPhysics {
+  const _ZoneSnapPhysics({required this.stops, super.parent});
+
+  final List<double> stops;
+
+  @override
+  _ZoneSnapPhysics applyTo(ScrollPhysics? ancestor) =>
+      _ZoneSnapPhysics(stops: stops, parent: buildParent(ancestor));
+
+  @override
+  Simulation? createBallisticSimulation(
+    ScrollMetrics position,
+    double velocity,
+  ) {
+    if (position.outOfRange || stops.isEmpty) {
+      return super.createBallisticSimulation(position, velocity);
+    }
+    final tolerance = toleranceFor(position);
+    final pos = position.pixels;
+    double target;
+    if (velocity.abs() < tolerance.velocity) {
+      target = stops.reduce(
+        (a, b) => (a - pos).abs() <= (b - pos).abs() ? a : b,
+      );
+    } else if (velocity > 0) {
+      target = stops.firstWhere((s) => s > pos + 1, orElse: () => stops.last);
+    } else {
+      target = stops.lastWhere((s) => s < pos - 1, orElse: () => stops.first);
+    }
+    if ((target - pos).abs() < tolerance.distance) return null;
+    return ScrollSpringSimulation(
+      spring,
+      pos,
+      target,
+      velocity,
+      tolerance: tolerance,
+    );
+  }
+
+  @override
+  bool get allowImplicitScrolling => false;
 }

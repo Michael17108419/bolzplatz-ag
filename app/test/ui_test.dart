@@ -122,6 +122,18 @@ void main() {
       ),
       findsOneWidget,
     );
+    // A phone held upright: the room shows in three zones; the post and the
+    // tactics board wait in the first one, so no mark points elsewhere.
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('office-zones')), findsOneWidget);
+    expect(find.byKey(const ValueKey('zone-dot-2')), findsOneWidget);
+    expect(find.byKey(const ValueKey('desk-name-post')), findsOneWidget);
+    expect(find.byKey(const ValueKey('zone-hint-left')), findsNothing);
+    expect(find.byKey(const ValueKey('zone-hint-right')), findsNothing);
+    tester.view.physicalSize = const Size(1280, 800);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('office-zones')), findsNothing);
     // The post: a mail can be opened and counts as read.
     await tester.tap(find.byKey(const ValueKey('desk-post')));
     await tester.pumpAndSettle();
