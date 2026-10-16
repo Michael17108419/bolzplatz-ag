@@ -1135,6 +1135,43 @@ class MatchReportPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (isNarrow(context))
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final side in [0, 1]) ...[
+                  if (side == 1)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        '${result.homeGoals} : ${result.awayGoals}',
+                        key: const ValueKey('report-score'),
+                        style: theme.textTheme.displaySmall,
+                      ),
+                    ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        ClubCrest(
+                          clubId: (side == 0 ? home : away).value,
+                          size: 44,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          teamOf(side),
+                          textAlign: TextAlign.center,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleSmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                InfoButton(message: s.infoMatchReport),
+              ],
+            )
+          else
           Row(
             children: [
               ClubCrest(clubId: home.value, size: 40),
