@@ -278,7 +278,6 @@ class _OverviewTab extends ConsumerWidget {
     final familiarity = role == null
         ? RoleFamiliarity.basic
         : (p.roles[role.id] ?? RoleFamiliarity.basic);
-    final c = p.contract;
     return ListView(
       children: [
         _section(
