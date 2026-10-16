@@ -628,6 +628,7 @@ class SeasonRunner {
             w.round,
             windows,
             own,
+            sheet,
           ),
         );
       } else {
@@ -636,14 +637,24 @@ class SeasonRunner {
           final cup = run.pott[region]!;
           if (cup.isFinished) continue;
           cupPlans.add(
-            _planCupRound(Competition.pott, region, cup, w.round, windows, own),
+            _planCupRound(
+              Competition.pott,
+              region,
+              cup,
+              w.round,
+              windows,
+              own,
+              sheet,
+            ),
           );
         }
       }
     }
     for (final cp in cupPlans) {
       for (final t in cp.ties) {
-        if (t.date == plan.date) matches.add(t);
+        if (t.date != plan.date) continue;
+        matches.add(t);
+        if (t.isLive) ownMatch = t;
       }
     }
     matches.addAll(run.carry[plan.date.epochDay] ?? const []);
@@ -666,17 +677,78 @@ class SeasonRunner {
     int round,
     List<(GameDate, CupWindow)> windows,
     ClubId? own,
+    TeamSheet? sheet,
   ) {
     final comp = _compKey(competition);
     final pending = cup.pendingTies;
     final neutral = cup.nextRoundIsNeutral;
+    // The ties are spread over the windows. The tie of the own club goes to
+    // the first window: the round is decided on that day, so the live match
+    // of the player is part of it.
+    final slotOf = [
+      for (var i = 0; i < pending.length; i++)
+        i * windows.length ~/ pending.length,
+    ];
+    final ownIndex = own == null
+        ? -1
+        : pending.indexWhere((t) => t.$1 == own || t.$2 == own);
+    if (ownIndex >= 0 && slotOf[ownIndex] != 0) {
+      final other = slotOf.indexOf(0);
+      slotOf[other] = slotOf[ownIndex];
+      slotOf[ownIndex] = 0;
+    }
+    final today = _today;
+    final out = <PlayerId>{
+      if (own != null && ownIndex >= 0)
+        for (final p in _state.squads[own]!)
+          if (_isOut(p.id, comp, today)) p.id,
+    };
     final ties = <ConferenceMatch>[];
     for (var i = 0; i < pending.length; i++) {
       final (h, a) = pending[i];
       final label = competition == Competition.bolzplatz
           ? 'bp:$round:${h.value}'
           : 'pott:${region!.id}:$round:${h.value}';
-      final window = windows[i * windows.length ~/ pending.length];
+      final window = windows[slotOf[i]];
+      final isOwn = own != null && (h == own || a == own);
+      if (isOwn && sheet != null) {
+        final usable =
+            !sheet.startingXi.any(out.contains) &&
+            !sheet.bench.any(out.contains);
+        MatchTeam team(ClubId c) {
+          final base = _team(c, comp);
+          if (c != own) return base;
+          return MatchTeam(
+            clubId: c,
+            name: base.name,
+            squad: base.squad,
+            sheet: usable ? sheet : base.sheet,
+            form: base.form,
+            autoManage: false,
+          );
+        }
+
+        ties.add(
+          ConferenceMatch(
+            competition: competition,
+            region: region,
+            fixture: Fixture(h, a),
+            date: window.$1,
+            minuteOfDay: window.$2.minuteOfDay,
+            round: round,
+            session: MatchSession(
+              rules: rules,
+              home: team(h),
+              away: team(a),
+              seed: _matchSeed(label),
+              neutral: neutral,
+            ),
+            isOwn: true,
+            sheetReplaced: !usable,
+          ),
+        );
+        continue;
+      }
       ties.add(
         ConferenceMatch(
           competition: competition,
@@ -691,7 +763,7 @@ class SeasonRunner {
             seed: _matchSeed(label),
             neutral: neutral,
           ),
-          isOwn: own != null && (h == own || a == own),
+          isOwn: isOwn,
         ),
       );
     }
@@ -704,8 +776,14 @@ class SeasonRunner {
   }
 
   /// Makes the opened [day] part of the season. [ownResult] is the result
-  /// of the live own league match, if there was one.
-  void completeDay(SeasonRun run, ConferenceDay day, {MatchResult? ownResult}) {
+  /// of the live own league match, [ownKnockout] the one of a live own cup
+  /// tie, if there was one.
+  void completeDay(
+    SeasonRun run,
+    ConferenceDay day, {
+    MatchResult? ownResult,
+    KnockoutResult? ownKnockout,
+  }) {
     if (run.isOver || run.dayIndex != day.openedIndex) {
       throw StateError('This is not the next day of the season');
     }
@@ -742,7 +820,15 @@ class SeasonRunner {
       final comp = _compKey(cp.competition);
       final winners = <(ClubId, ClubId), ClubId>{};
       for (final t in cp.ties) {
-        final k = t.knockout!;
+        final KnockoutResult k;
+        if (t.isLive) {
+          if (ownKnockout == null) {
+            throw StateError('The result of the own cup tie is missing');
+          }
+          k = ownKnockout;
+        } else {
+          k = t.knockout!;
+        }
         final f = t.fixture;
         _afterMatch(f.home, f.away, k.match, countForm: false, comp: comp);
         winners[(f.home, f.away)] = k.winnerSide == 0 ? f.home : f.away;

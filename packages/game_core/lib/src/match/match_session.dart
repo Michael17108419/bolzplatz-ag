@@ -201,6 +201,8 @@ class MatchSession {
   bool _finished = false;
   int _totalMinutes = 0;
   final List<SessionAction> _actions = [];
+  bool _extraTime = false;
+  int? _shootoutWinner;
 
   MatchRules get _m => rules.match;
 
@@ -215,13 +217,39 @@ class MatchSession {
   /// [replay] repeats them in a fresh session of the same match.
   List<SessionAction> get actions => List.unmodifiable(_actions);
 
-  /// Plays the match on, repeating [actions] at their minutes.
-  void replay(List<SessionAction> actions) {
+  /// Plays the match on, repeating [actions] at their minutes. For a cup
+  /// tie ([knockout]) extra time starts when a change falls into it.
+  void replay(List<SessionAction> actions, {bool knockout = false}) {
     for (final a in actions) {
+      if (knockout && a.minute > rules.match.minutes) {
+        advanceTo(rules.match.minutes);
+        _startExtraTimeIfLevel();
+      }
       advanceTo(a.minute);
       a.applyTo(this);
     }
   }
+
+  /// True once extra time has begun.
+  bool get inExtraTime => _extraTime;
+
+  /// True after the shoot-out of a cup tie was played.
+  bool get shootoutPlayed => _shootoutWinner != null;
+
+  /// True if the score is level.
+  bool get isLevel => _goalsHome == _goalsAway;
+
+  /// A finished cup tie that is level goes into extra time. Returns true if
+  /// extra time started.
+  bool _startExtraTimeIfLevel() {
+    if (_extraTime || !_finished || !isLevel) return false;
+    startExtraTime(halfMinutes: rules.season.cups.extraTimeHalfMinutes);
+    return _extraTime;
+  }
+
+  /// The ticker of a cup tie calls this after full time: starts extra time
+  /// if the score is level. Returns true if it did.
+  bool startExtraTimeIfLevel() => _startExtraTimeIfLevel();
 
   /// Ids of the players on the pitch for [side] (0 home, 1 away).
   List<PlayerId> onPitch(int side) => [
@@ -428,12 +456,15 @@ class MatchSession {
     }
     _totalMinutes = _minute + 2 * halfMinutes;
     _finished = false;
+    _extraTime = true;
     _add(MatchEventType.extraTime, -1);
   }
 
   /// Plays a penalty shoot-out and returns the winning side (0 or 1).
   /// Kicks are events but do not count as goals of the match.
-  int playShootout() {
+  int playShootout() => _shootoutWinner ??= _runShootout();
+
+  int _runShootout() {
     final taken = [0, 0];
     final scored = [0, 0];
     final order = [
@@ -504,6 +535,32 @@ class MatchSession {
       if (e.type == MatchEventType.shootoutKick && e.isGoal) score[e.side]++;
     }
     return score;
+  }
+
+  /// Plays a cup tie to its end: extra time if it is level after full time,
+  /// then the shoot-out. Can be called at any point of the tie.
+  KnockoutResult finishKnockout() {
+    advanceTo(rules.match.minutes);
+    _startExtraTimeIfLevel();
+    advanceTo(_totalMinutes);
+    if (_goalsHome != _goalsAway) {
+      final result = finish();
+      return KnockoutResult(
+        match: result,
+        winnerSide: result.homeGoals > result.awayGoals ? 0 : 1,
+        extraTime: _extraTime,
+      );
+    }
+    final winner = playShootout();
+    final score = shootoutScore();
+    final result = finish();
+    return KnockoutResult(
+      match: result,
+      winnerSide: winner,
+      extraTime: true,
+      shootoutHome: score[0],
+      shootoutAway: score[1],
+    );
   }
 
   /// Plays the rest of the match and returns the result.
@@ -1270,35 +1327,7 @@ class MatchEngine {
       away: away,
       seed: seed,
       neutral: neutral,
-    )..advanceTo(rules.match.minutes);
-    if (session.homeGoals != session.awayGoals) {
-      final result = session.finish();
-      return KnockoutResult(
-        match: result,
-        winnerSide: result.homeGoals > result.awayGoals ? 0 : 1,
-        extraTime: false,
-      );
-    }
-    final half = rules.season.cups.extraTimeHalfMinutes;
-    session.startExtraTime(halfMinutes: half);
-    session.advanceTo(rules.match.minutes + 2 * half);
-    if (session.homeGoals != session.awayGoals) {
-      final result = session.finish();
-      return KnockoutResult(
-        match: result,
-        winnerSide: result.homeGoals > result.awayGoals ? 0 : 1,
-        extraTime: true,
-      );
-    }
-    final winner = session.playShootout();
-    final score = session.shootoutScore();
-    final result = session.finish();
-    return KnockoutResult(
-      match: result,
-      winnerSide: winner,
-      extraTime: true,
-      shootoutHome: score[0],
-      shootoutAway: score[1],
     );
+    return session.finishKnockout();
   }
 }

@@ -177,6 +177,48 @@ void main() {
     }
   });
 
+  test('an own cup tie is played live and decides the round', () {
+    final state = SeasonState.fromWorld(world);
+    final runner = SeasonRunner(rules, calendarRules: _calendarRules);
+    final league3 = LeagueId(rules.leagues.firstWhere((l) => l.level == 3).id);
+    final club = state.members[league3]!.first;
+    final sheet = AutoManager(rules)
+        .build(state.squads[club]!, benchSize: rules.tactics.benchSize(3))!;
+    final run = runner.begin(state, seed: 9, userSheets: {club: sheet});
+    var cupTies = 0;
+    while (!run.isOver) {
+      final next = runner.nextMatchOf(run, club);
+      if (next == null || next.$1 != run.nextDate) {
+        runner.completeDay(run, runner.openDay(run));
+        continue;
+      }
+      final day = runner.openDay(run, own: club, sheet: sheet);
+      final own = day.own;
+      if (own == null) {
+        runner.completeDay(run, day);
+        continue;
+      }
+      if (own.competition == Competition.league) {
+        runner.completeDay(run, day, ownResult: own.session!.finish());
+        continue;
+      }
+      expect(own.isLive, isTrue);
+      expect(own.knockout, isNull);
+      final k = own.session!.finishKnockout();
+      expect(k.match.homeGoals != k.match.awayGoals || k.decidedByShootout, isTrue);
+      runner.completeDay(run, day, ownKnockout: k);
+      cupTies++;
+      final cup = own.competition == Competition.bolzplatz
+          ? run.bolzplatz
+          : run.pott[state.clubs[club]!.region]!;
+      final tie = cup.rounds.last.firstWhere(
+        (t) => t.home == own.fixture.home && t.away == own.fixture.away,
+      );
+      expect(tie.winner, k.winnerSide == 0 ? tie.home : tie.away);
+    }
+    expect(cupTies, greaterThan(0));
+  });
+
   test('a conference day shows the score growing to the final result', () {
     final state = SeasonState.fromWorld(world);
     final runner = SeasonRunner(rules, calendarRules: _calendarRules);
