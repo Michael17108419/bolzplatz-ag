@@ -74,9 +74,7 @@ class _Office extends ConsumerWidget {
     final labels = {
       for (final item in DeskItem.values)
         item: DeskLabel(
-          title: item == DeskItem.door
-              ? nextText
-              : s.deskName(item),
+          title: item == DeskItem.door ? nextText : s.deskName(item),
           hint: item == DeskItem.press
               ? '${s.deskHint(item)}\n\n'
                     '„${s.officeMailSubjectNews(offer.situation)}“'
