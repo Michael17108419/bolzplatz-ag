@@ -2258,8 +2258,8 @@
     "counter": {
       "note": "A ball won in these columns (seen from the team that lost it) can start a counter attack from the mirrored column.",
       "from_columns": [1, 2],
-      "chance": 0.5,
-      "system_chance": {"counter": 0.75, "gegenpressing": 0.6},
+      "chance": 0.1,
+      "system_chance": {"counter": 0.18, "gegenpressing": 0.14},
       "disorder": 0.85,
       "disorder_steps": 2,
       "ability_bonus": 0.1

@@ -368,13 +368,21 @@ class MatchSession {
 
   double _energyFactor(_Slot s) => 1 - _m.fatigueScale * (1 - s.energy / 100);
 
-  double _slotMean(_Side side, _Slot s, Iterable<Attribute> attributes) {
+  /// Mean of [attributes] of the player on [s] with all factors of the
+  /// match; without the energy factor when [tired] is false (engine 2 keeps
+  /// those values and applies the energy at the moment of the duel).
+  double _slotMean(
+    _Side side,
+    _Slot s,
+    Iterable<Attribute> attributes, {
+    bool tired = true,
+  }) {
     final tactics = rules.tactics;
     final role = s.role == null ? null : tactics.role(s.role!);
     final mult =
         _fit.positionMultiplier(s.player, s.position) *
         _formFactor(side, s.player) *
-        _energyFactor(s);
+        (tired ? _energyFactor(s) : 1.0);
     return _fit.meanAttributes(
       s.player,
       attributes,
@@ -432,18 +440,23 @@ class MatchSession {
         : _slotMean(side, keeper.first, _m.keeperAttributes) * strength;
     side.ratings = ratings;
     _effects(side);
-    side.zones = _buildZones(side);
   }
 
   /// Builds the zone tables of [side] from the players on the pitch now.
+  /// They stay until a player leaves or comes on; tiredness is applied in
+  /// the duel itself.
   _Zones _buildZones(_Side side) {
     final z = _m.zones;
     final actions = _m.actions.list;
     final slots = List<_Slot>.of(side.pitch);
     for (final s in slots) {
       s
-        ..act = [for (final a in actions) _slotMean(side, s, a.attack)]
-        ..def = [for (final a in actions) _slotMean(side, s, a.defend)];
+        ..act = [
+          for (final a in actions) _slotMean(side, s, a.attack, tired: false),
+        ]
+        ..def = [
+          for (final a in actions) _slotMean(side, s, a.defend, tired: false),
+        ];
     }
     const lanes = ZoneRules.lanes;
     const count = ZoneRules.columns * lanes;
@@ -927,9 +940,9 @@ class MatchSession {
       }
       final tackler = other.slots[_rng.weightedIndex(other.defend[zone])];
       var ratio =
-          (carrier.act[a] / own.actMean[zone][a]) *
+          (carrier.act[a] * _energyFactor(carrier) / own.actMean[zone][a]) *
           _abilityMult(carrier.player, action.abilities, acts.abilityBonus) /
-          ((tackler.def[a] / other.defMean[zone][a]) *
+          ((tackler.def[a] * _energyFactor(tackler) / other.defMean[zone][a]) *
               _abilityMult(
                 tackler.player,
                 action.defendAbilities,
