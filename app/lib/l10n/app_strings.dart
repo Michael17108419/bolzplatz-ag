@@ -119,6 +119,10 @@ abstract interface class AppStrings {
   String get infoNextDay;
   String monthName(int month);
   String get calLegendMatch;
+  String get calModeMonth;
+  String get calModeWeek;
+  String get calLegendTitle;
+  String get calDayEmpty;
   String get calLegendLeague;
   String get calLegendCup;
   String get calLegendHoliday;
@@ -150,6 +154,11 @@ abstract interface class AppStrings {
   String officeSquad(int count);
   String get officeMailTitle;
   String get officeMailPick;
+  String get postFilterCurrent;
+  String get postFilterUnread;
+  String get postFilterArchive;
+  String get postMarkAllRead;
+  String get postEmpty;
   String get officeSenderPresident;
   String get officeSenderAdvisor;
   String get officeSenderNews;
@@ -889,6 +898,19 @@ class AppStringsDe implements AppStrings {
   ][month - 1];
   @override
   String get calLegendMatch => 'Dein Spiel';
+
+  @override
+  String get calModeMonth => 'Monat';
+
+  @override
+  String get calModeWeek => 'Woche';
+
+  @override
+  String get calLegendTitle => 'Legende';
+
+  @override
+  String get calDayEmpty => 'Nichts los. Ungewohnt ruhig.';
+
   @override
   String get calLegendLeague => 'Liga-Spieltag';
   @override
@@ -1104,6 +1126,21 @@ class AppStringsDe implements AppStrings {
   String get officeCashTitle => 'Kasse';
   @override
   String officeSquad(int count) => 'Kader: $count Spieler';
+  @override
+  String get postFilterCurrent => 'Aktuell';
+
+  @override
+  String get postFilterUnread => 'Ungelesen';
+
+  @override
+  String get postFilterArchive => 'Archiv';
+
+  @override
+  String get postMarkAllRead => 'Alle gelesen';
+
+  @override
+  String get postEmpty => 'Hier liegt nichts. Auch das ist Post.';
+
   @override
   String get officeMailTitle => 'Postfach';
   @override

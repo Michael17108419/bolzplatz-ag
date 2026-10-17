@@ -610,6 +610,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
           ..showSnackBar(SnackBar(content: Text(s.matchLeaveBlocked)));
       },
       child: ScreenFrame(
+        showBack: false,
         title: game == null
             ? s.officeMatchday(1)
             : _matchTitle(s, _loaded, _own, game),

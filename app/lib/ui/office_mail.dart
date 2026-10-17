@@ -22,6 +22,7 @@ class OfficeMail {
     required this.body,
     required this.portrait,
     this.actions = const [],
+    this.date,
   });
 
   final String id;
@@ -30,6 +31,9 @@ class OfficeMail {
   final String body;
   final Widget portrait;
   final List<(String, DeskItem)> actions;
+
+  /// The day of the mail, null for the first mails of the career.
+  final GameDate? date;
 }
 
 /// The inbox of the career: the "Jour Fix" before the match day, then the
@@ -132,6 +136,7 @@ List<OfficeMail> buildMails(
                 club: offer.club.name,
               ),
         portrait: presidentPortrait,
+        date: a.date,
         actions: a.kind == AppointmentKind.jourFix
             ? [
                 (s.jourFixToTactics, DeskItem.tactics),

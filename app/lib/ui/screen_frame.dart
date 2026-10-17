@@ -15,6 +15,7 @@ class ScreenFrame extends StatelessWidget {
     this.maxWidth = 720,
     this.padding = const EdgeInsets.all(Tokens.gapL),
     this.extraBindings = const {},
+    this.showBack = true,
     super.key,
   });
 
@@ -26,9 +27,13 @@ class ScreenFrame extends StatelessWidget {
   /// More keyboard shortcuts besides Esc (for example the desk numbers).
   final Map<ShortcutActivator, VoidCallback> extraBindings;
 
+  /// Phone: an arrow top left instead of the logo, if there is a way back.
+  final bool showBack;
+
   @override
   Widget build(BuildContext context) {
     final compact = isCompact(context);
+    final back = showBack && isNarrow(context) && Navigator.canPop(context);
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.escape): () =>
@@ -41,8 +46,18 @@ class ScreenFrame extends StatelessWidget {
           appBar: AppBar(
             toolbarHeight: compact ? 56 : 72,
             automaticallyImplyLeading: false,
-            leadingWidth: compact ? 96 : 130,
-            leading: Padding(
+            leadingWidth: back ? 64 : (compact ? 96 : 130),
+            leading: back
+                ? IconButton(
+                    key: const ValueKey('frame-back'),
+                    iconSize: 28,
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).backButtonTooltip,
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    icon: const Icon(Icons.arrow_back),
+                  )
+                : Padding(
               padding: EdgeInsets.only(
                 left: compact ? Tokens.gapM : Tokens.gapL,
               ),

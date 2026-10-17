@@ -18,6 +18,7 @@ import 'crest.dart';
 import 'dismissal_page.dart';
 import 'info_button.dart';
 import 'office_mail.dart';
+import 'post_phone.dart';
 import 'match_pages.dart';
 import 'month_calendar.dart';
 import 'adaptive.dart';
@@ -209,8 +210,11 @@ class DeskFrame extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(child: child),
-          const SizedBox(height: Tokens.gapS),
-          QuickBar(current: item),
+          // Phone: no bar, the arrow top left leads back to the office.
+          if (!isNarrow(context)) ...[
+            const SizedBox(height: Tokens.gapS),
+            QuickBar(current: item),
+          ],
         ],
       ),
     );
@@ -491,6 +495,13 @@ class _PostPageState extends ConsumerState<PostPage> {
             all: ref.watch(appointmentsProvider),
             absent: ref.watch(ownAbsencesProvider).length,
           );
+          if (isNarrow(context)) {
+            return PostPhone(
+              mails: mails,
+              today: ref.watch(todayProvider),
+              matchday: view.matchday,
+            );
+          }
           final opened = mails.where((m) => m.id == _open).firstOrNull;
           return SingleChildScrollView(
             child: _card(
@@ -625,7 +636,33 @@ class CalendarPage extends ConsumerWidget {
     return DeskFrame(
       item: DeskItem.calendar,
       child: WithCareer(
-        builder: (context, career, loaded, view) => _single(
+        builder: (context, career, loaded, view) => isNarrow(context)
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      ClubCrest(clubId: view.opponent.id.value, size: 32),
+                      const SizedBox(width: Tokens.gapS),
+                      Expanded(
+                        child: Text(
+                          '${s.officeMatchday(view.matchday)}: '
+                          '${view.opponent.name} · '
+                          '${view.atHome ? s.officeHome : s.officeAway}',
+                          key: const ValueKey('office-opponent'),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleSmall,
+                        ),
+                      ),
+                      InfoButton(message: s.infoOfficeNext),
+                    ],
+                  ),
+                  const SizedBox(height: Tokens.gapS),
+                  const Expanded(child: MonthCalendar()),
+                ],
+              )
+            : _single(
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

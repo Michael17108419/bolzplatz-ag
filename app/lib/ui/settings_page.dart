@@ -5,6 +5,7 @@ import '../game/settings.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'adaptive.dart';
+import 'info_button.dart';
 import 'screen_frame.dart';
 
 /// Settings: help, ticker speed, vibration, sound, language, and (on a
@@ -21,6 +22,120 @@ class SettingsPage extends ConsumerWidget {
       padding: const EdgeInsets.only(top: Tokens.gapM, bottom: Tokens.gapS),
       child: Text(text, style: theme.textTheme.titleMedium),
     );
+    if (isNarrow(context)) {
+      Widget flat(
+        String key,
+        String title,
+        String info,
+        bool value,
+        ValueChanged<bool> onChanged,
+      ) => SwitchListTile(
+        key: ValueKey(key),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+        title: Row(
+          children: [
+            Flexible(child: Text(title)),
+            InfoButton(message: info),
+          ],
+        ),
+        value: value,
+        onChanged: onChanged,
+      );
+      return ScreenFrame(
+        title: s.settingsTitle,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            flat(
+              'help-switch',
+              s.helpSettingTitle,
+              s.helpSettingText,
+              ref.watch(helpProvider),
+              (on) => ref.read(helpProvider.notifier).set(on),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+              title: Text(s.settingsLanguage),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(s.languageName),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.check, color: Tokens.green),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: Tokens.gapS),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Row(
+                      children: [
+                        Text(
+                          s.settingsTicker,
+                          style: theme.textTheme.bodyLarge,
+                        ),
+                        InfoButton(message: s.settingsTickerText),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SegmentedButton<int>(
+                      key: const ValueKey('settings-speed'),
+                      showSelectedIcon: false,
+                      segments: [
+                        ButtonSegment(value: 0, label: Text(s.matchSpeedSlow)),
+                        ButtonSegment(
+                          value: 1,
+                          label: Text(s.matchSpeedNormal),
+                        ),
+                        ButtonSegment(value: 2, label: Text(s.matchSpeedFast)),
+                      ],
+                      selected: {speed},
+                      onSelectionChanged: (v) =>
+                          ref.read(tickerSpeedProvider.notifier).set(v.first),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            flat(
+              'autolineup-switch',
+              s.settingsAutoLineup,
+              s.settingsAutoLineupText,
+              ref.watch(autoLineupProvider),
+              (on) => ref.read(autoLineupProvider.notifier).set(on),
+            ),
+            const Divider(height: 1),
+            flat(
+              'vibration-switch',
+              s.settingsVibration,
+              s.settingsVibrationText,
+              ref.watch(vibrationProvider),
+              (on) => ref.read(vibrationProvider.notifier).set(on),
+            ),
+            const Divider(height: 1),
+            flat(
+              'sound-switch',
+              s.settingsSound,
+              s.settingsSoundText,
+              ref.watch(soundProvider),
+              (on) => ref.read(soundProvider.notifier).set(on),
+            ),
+            const Spacer(),
+            Text(s.settingsAboutText, style: theme.textTheme.bodySmall),
+          ],
+        ),
+      );
+    }
     return ScreenFrame(
       title: s.settingsTitle,
       child: Column(

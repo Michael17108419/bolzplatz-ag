@@ -13,6 +13,8 @@ class MailReadNotifier extends Notifier<Set<String>> {
     if (state.contains(id)) return;
     state = {...state, id};
   }
+
+  void markAllRead(Iterable<String> ids) => state = {...state, ...ids};
 }
 
 final mailReadProvider = NotifierProvider<MailReadNotifier, Set<String>>(

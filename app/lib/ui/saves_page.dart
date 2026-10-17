@@ -9,6 +9,7 @@ import '../game/saves.dart';
 import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'info_button.dart';
 import 'match_pages.dart';
 import 'office_page.dart';
@@ -153,6 +154,102 @@ class _SavesPageState extends ConsumerState<SavesPage> {
   Widget _card(AppStrings s, ThemeData theme, SaveSlotView view, bool canSave) {
     final data = view.data;
     final isAuto = view.slot == 'auto';
+    if (isNarrow(context)) {
+      return Card(
+        key: ValueKey('save-slot-${view.slot}'),
+        margin: const EdgeInsets.only(bottom: 8),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _title(s, view.slot),
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    if (data != null) ...[
+                      Text(
+                        s.savesLine1(data.trainerName, data.clubName),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        s.savesLine2(
+                          data.leagueName,
+                          formatDate(s, data.date),
+                          data.matchday,
+                          data.matchdays,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      Text(
+                        data.live != null
+                            ? s.savesLiveHint(data.live!['minute'] as int)
+                            : s.savesSavedAt(_stamp(data.savedAt)),
+                        key: data.live != null
+                            ? ValueKey('save-live-${view.slot}')
+                            : null,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: data.live != null ? Tokens.yellow : null,
+                        ),
+                      ),
+                    ] else
+                      Text(
+                        view.unreadable ? s.savesUnreadable : s.savesEmpty,
+                      ),
+                  ],
+                ),
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (canSave && !isAuto)
+                    FilledButton(
+                      key: ValueKey('save-btn-${view.slot}'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(88, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      onPressed: _busy ? null : () => _save(view),
+                      child: Text(s.savesSave),
+                    ),
+                  if (data != null) ...[
+                    if (canSave && !isAuto) const SizedBox(height: 4),
+                    FilledButton.tonal(
+                      key: ValueKey('load-btn-${view.slot}'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(88, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      onPressed: _busy ? null : () => _load(view),
+                      child: Text(s.savesLoad),
+                    ),
+                  ],
+                ],
+              ),
+              SizedBox(
+                width: 44,
+                child: view.isEmpty
+                    ? null
+                    : IconButton(
+                        key: ValueKey('delete-btn-${view.slot}'),
+                        tooltip: s.savesDelete,
+                        onPressed: _busy ? null : () => _delete(view),
+                        icon: const Icon(Icons.delete_outline),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Card(
       key: ValueKey('save-slot-${view.slot}'),
       child: Padding(
@@ -225,6 +322,7 @@ class _SavesPageState extends ConsumerState<SavesPage> {
     final canSave = !widget.fromMenu && ref.watch(careerProvider) != null;
     final slots = _slots;
     final anything = slots?.any((v) => !v.isEmpty) ?? false;
+    final phone = isNarrow(context);
     return ScreenFrame(
       title: s.savesTitle,
       child: Column(
@@ -232,11 +330,24 @@ class _SavesPageState extends ConsumerState<SavesPage> {
         children: [
           Row(
             children: [
-              Text(s.savesTitle, style: theme.textTheme.headlineSmall),
+              if (!phone)
+                Text(s.savesTitle, style: theme.textTheme.headlineSmall),
               InfoButton(message: s.infoSaves),
+              if (phone) const Spacer(),
+              if (phone && !widget.fromMenu)
+                IconButton(
+                  key: const ValueKey('saves-settings'),
+                  tooltip: s.savesSettings,
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SettingsPage(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.settings_outlined),
+                ),
             ],
           ),
-          const SizedBox(height: Tokens.gapM),
+          SizedBox(height: phone ? 0 : Tokens.gapM),
           if (_busy)
             Padding(
               padding: const EdgeInsets.only(bottom: Tokens.gapM),
@@ -275,7 +386,7 @@ class _SavesPageState extends ConsumerState<SavesPage> {
                           child: Text(s.savesNothingToLoad),
                         ),
                       for (final v in slots) _card(s, theme, v, canSave),
-                      if (!widget.fromMenu) ...[
+                      if (!widget.fromMenu && !phone) ...[
                         const SizedBox(height: Tokens.gapM),
                         Align(
                           alignment: Alignment.centerLeft,
@@ -293,6 +404,7 @@ class _SavesPageState extends ConsumerState<SavesPage> {
                     ],
                   ),
           ),
+          if (!phone) ...[
           const SizedBox(height: Tokens.gapM),
           Row(
             children: [
@@ -305,6 +417,7 @@ class _SavesPageState extends ConsumerState<SavesPage> {
               ),
             ],
           ),
+          ],
         ],
       ),
     );
