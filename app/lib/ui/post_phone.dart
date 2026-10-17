@@ -140,12 +140,13 @@ class _PostPhoneState extends ConsumerState<PostPhone> {
               ),
             ),
             if (anyUnread)
-              TextButton(
+              IconButton(
                 key: const ValueKey('post-mark-all'),
+                tooltip: s.postMarkAllRead,
                 onPressed: () => ref
                     .read(mailReadProvider.notifier)
                     .markAllRead([for (final m in widget.mails) m.id]),
-                child: Text(s.postMarkAllRead),
+                icon: const Icon(Icons.done_all),
               ),
             InfoButton(message: s.infoOfficeMail),
           ],

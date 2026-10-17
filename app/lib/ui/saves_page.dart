@@ -178,7 +178,7 @@ class _SavesPageState extends ConsumerState<SavesPage> {
                       ),
                       Text(
                         s.savesLine2(
-                          data.leagueName,
+                          s.leagueName(data.leagueName),
                           formatDate(s, data.date),
                           data.matchday,
                           data.matchdays,
@@ -263,7 +263,7 @@ class _SavesPageState extends ConsumerState<SavesPage> {
               Text(s.savesLine1(data.trainerName, data.clubName)),
               Text(
                 s.savesLine2(
-                  data.leagueName,
+                  s.leagueName(data.leagueName),
                   formatDate(s, data.date),
                   data.matchday,
                   data.matchdays,

@@ -51,9 +51,6 @@ class ScreenFrame extends StatelessWidget {
                 ? IconButton(
                     key: const ValueKey('frame-back'),
                     iconSize: 28,
-                    tooltip: MaterialLocalizations.of(
-                      context,
-                    ).backButtonTooltip,
                     onPressed: () => Navigator.of(context).maybePop(),
                     icon: const Icon(Icons.arrow_back),
                   )
