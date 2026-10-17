@@ -58,7 +58,7 @@ class _Slot {
 }
 
 /// Who takes part in each zone, seen from one side (engine 2). Lists run
-/// along the pitch of the side, indexed by zone (column * 3 + lane).
+/// along the pitch of the side, indexed by zone (column * lanes + lane).
 class _Zones {
   _Zones({
     required this.slots,
@@ -1083,6 +1083,7 @@ class MatchSession {
     List<PlayerId> chain = const [],
     String? action,
     int? value,
+    int? spot,
   }) {
     _events.add(
       MatchEvent(
@@ -1090,6 +1091,7 @@ class MatchSession {
         added: _added,
         tick: _minute,
         value: value,
+        spot: spot,
         type: type,
         side: side,
         homeGoals: _goalsHome,
@@ -1320,11 +1322,7 @@ class MatchSession {
       lastAction = action;
       lastCarrier = carrier;
       step++;
-      if (_rng.nextDouble() < z.laneChange) {
-        lane = lane == 1
-            ? (_rng.nextDouble() < 0.5 ? 0 : 2)
-            : (_rng.nextDouble() < 0.75 ? 1 : 2 - lane);
-      }
+      if (_rng.nextDouble() < z.laneChange) lane = _newLane(lane);
     }
     _chance(
       t,
@@ -1340,6 +1338,20 @@ class MatchSession {
                     lastCarrier.tx[CharacterTrait.creativity.index]
           : 1,
     );
+  }
+
+  /// The lane after a change: mostly next door, sometimes a switch of play
+  /// over two lanes, never off the pitch.
+  int _newLane(int lane) {
+    const last = ZoneRules.lanes - 1;
+    final step = _rng.nextDouble() < _m.zones.laneJumpTwo ? 2 : 1;
+    final towardsCentre = lane < ZoneRules.centre ? step : -step;
+    final away = -towardsCentre;
+    final goAway = lane != ZoneRules.centre && _rng.nextDouble() < 0.3;
+    final candidate = lane == ZoneRules.centre
+        ? lane + (_rng.nextDouble() < 0.5 ? step : -step)
+        : lane + (goAway ? away : towardsCentre);
+    return candidate.clamp(0, last);
   }
 
   /// The ball of side [t] is lost in [column]: a ball won for the other
@@ -1537,7 +1549,7 @@ class MatchSession {
   /// a header more often).
   void _chance(
     int t, {
-    int lane = 1,
+    int lane = ZoneRules.centre,
     List<Player> chain = const [],
     Player? shooter,
     String? forceType,
@@ -1558,12 +1570,22 @@ class MatchSession {
     final forced = forceType == null
         ? -1
         : _m.shotTypes.indexWhere((type) => type.id == forceType);
+    // Where the chance comes from: edge of the box, box or six-yard box;
+    // the spot sets the quality. A shot the player chose from distance has
+    // no spot and is always a half chance.
+    final spots = _m.zones.chanceSpot;
+    final spot = forced >= 0
+        ? null
+        : _rng.weightedIndex(spots.spotsFor(action));
+    final base = spot == null ? _m.qualityWeights : spots.quality[spot];
     final qualityWeights = [
-      for (var i = 0; i < _m.qualityWeights.length; i++)
-        _m.qualityWeights[i] *
-            (i == _m.qualityWeights.length - 1 ? math.max(0.05, bigChance) : 1),
+      for (var i = 0; i < base.length; i++)
+        base[i] * (i == base.length - 1 ? math.max(0.05, bigChance) : 1),
     ];
     final qualityIndex = forced >= 0 ? 0 : _rng.weightedIndex(qualityWeights);
+    final spotBias = spot == null
+        ? const <String, double>{}
+        : spots.typeBias[spot];
     final quality = ChanceQuality.values[qualityIndex];
 
     final scores = [
@@ -1575,6 +1597,7 @@ class MatchSession {
       for (var i = 0; i < scores.length; i++)
         _m.shotTypes[i].weight *
                 (shotBias[_m.shotTypes[i].id] ?? 1.0) *
+                (spotBias[_m.shotTypes[i].id] ?? 1.0) *
                 math.pow(scores[i] / 50, 2).toDouble() +
             0.0001,
     ];
@@ -1613,6 +1636,7 @@ class MatchSession {
       lane: lane,
       chain: passers,
       action: action,
+      spot: spot,
     );
   }
 
@@ -1626,6 +1650,7 @@ class MatchSession {
     int? lane,
     List<Player> chain = const [],
     String? action,
+    int? spot,
   }) {
     final attacker = _sides[t];
     attacker.stats.shots++;
@@ -1685,6 +1710,7 @@ class MatchSession {
       lane: lane,
       chain: [for (final p in chain) p.id],
       action: action,
+      spot: spot,
     );
   }
 

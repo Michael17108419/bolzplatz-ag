@@ -64,12 +64,13 @@ void main() {
       expect(z.columnWeights[p], hasLength(ZoneRules.columns), reason: p.id);
     }
     expect(z.startColumnWeights.last, 0);
-    expect(z.laneFactor(Position.lv, 0), z.laneSame);
-    expect(z.laneFactor(Position.lv, 1), z.laneAdjacent);
-    expect(z.laneFactor(Position.lv, 2), z.laneFar);
-    expect(z.laneFactor(Position.ra, 2), z.laneSame);
-    expect(z.laneFactor(Position.zm, 1), z.laneSame);
-    expect(z.laneFactor(Position.zm, 0), z.centreOnWing);
+    expect(z.laneFactor(Position.lv, 0), z.wideByDistance[0]);
+    expect(z.laneFactor(Position.lv, 1), z.wideByDistance[1]);
+    expect(z.laneFactor(Position.lv, 4), z.wideByDistance[4]);
+    expect(z.laneFactor(Position.ra, 4), z.wideByDistance[0]);
+    expect(z.laneFactor(Position.zm, ZoneRules.centre), z.centralByDistance[0]);
+    expect(z.laneFactor(Position.zm, 0), z.centralByDistance[2]);
+    expect(z.laneFactor(Position.zom, 3), z.centralByDistance[1]);
     expect(z.lanesFor('wings'), isNot(z.lanesFor('unknown_system')));
     expect(z.lanesFor('unknown_system'), z.laneWeights['default']);
   });
@@ -109,7 +110,7 @@ void main() {
       for (final e in r.events) {
         if (e.type == MatchEventType.shot && e.quality != null) {
           expect(e.column, anyOf(3, 4));
-          expect(e.lane, inInclusiveRange(0, 2));
+          expect(e.lane, inInclusiveRange(0, ZoneRules.lanes - 1));
           for (final id in e.chain) {
             expect(squads[e.side], contains(id));
             expect(id, isNot(e.player));
@@ -183,5 +184,24 @@ void main() {
       'chain=${(chainLength / shots).toStringAsFixed(2)}',
     );
     expect(shots, greaterThan(0));
+  });
+
+  test('chances come from a spot, the spot sets the quality', () {
+    final bySpot = List.generate(3, (_) => List.filled(3, 0));
+    for (final r in play(80, 1)) {
+      for (final e in r.events) {
+        if (e.type != MatchEventType.shot || e.quality == null) continue;
+        if (e.action == 'long_shot') {
+          expect(e.spot, isNull);
+          continue;
+        }
+        expect(e.spot, inInclusiveRange(0, 2));
+        bySpot[e.spot!][e.quality!.index]++;
+      }
+    }
+    stdout.writeln('ZONES-REPORT quality (half/chance/big) by spot $bySpot');
+    double bigShare(List<int> q) => q[2] / (q[0] + q[1] + q[2]);
+    // Big chances come from close to goal.
+    expect(bigShare(bySpot[2]), greaterThan(bigShare(bySpot[0])));
   });
 }

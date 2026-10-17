@@ -64,6 +64,7 @@ class MatchEvent {
     this.added = 0,
     int? tick,
     this.value,
+    this.spot,
   }) : tick = tick ?? minute;
 
   /// Minute on the clock (45 and 90 during stoppage time, see [added]).
@@ -111,6 +112,10 @@ class MatchEvent {
 
   /// A number that belongs to the event: minutes of stoppage time.
   final int? value;
+
+  /// Where a chance from open play came from (engine 2): 0 edge of the box,
+  /// 1 box, 2 six-yard box; null for shots from distance and set pieces.
+  final int? spot;
 
   /// The minute as shown: "45+2" in stoppage time, else "45".
   String get clockLabel => added > 0 ? '$minute+$added' : '$minute';

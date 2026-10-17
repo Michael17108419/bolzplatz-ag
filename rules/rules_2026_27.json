@@ -2131,7 +2131,7 @@
     "attack_rate_reference": 0.3,
     "ability_shot_bonus": 0.05,
     "zones": {
-      "note": "Pitch as 5 columns (own goal to opponent goal) x 3 lanes (left, centre, right), seen from the team on the ball. Engine 2, step 10a.",
+      "note": "Pitch as 5 columns (own goal to opponent goal) x 5 lanes (left wing, left half-space, centre, right half-space, right wing), seen from the team on the ball. Engine 2, steps 10a and 10d2.",
       "start_column_weights": [0.2, 0.5, 0.25, 0.05, 0.0],
       "step_share": [0.1, 0.2, 0.3, 0.4],
       "step_min": 0.02,
@@ -2141,15 +2141,31 @@
       "duel_ratio_max": 1.4,
       "lane_change": 0.25,
       "lane_weights": {
-        "default": [0.3, 0.4, 0.3],
-        "wings": [0.42, 0.16, 0.42],
-        "possession": [0.27, 0.46, 0.27]
+        "default": [0.2, 0.15, 0.3, 0.15, 0.2],
+        "wings": [0.33, 0.1, 0.14, 0.1, 0.33],
+        "possession": [0.14, 0.2, 0.32, 0.2, 0.14]
       },
       "lane_factor": {
-        "same": 1.0,
-        "adjacent": 0.4,
-        "far": 0.08,
-        "centre_on_wing": 0.5
+        "wide_by_distance": [1.0, 0.6, 0.3, 0.12, 0.05],
+        "central_by_distance": [1.0, 0.75, 0.35]
+      },
+      "lane_jump_two": 0.3,
+      "chance_spot": {
+        "note": "Where a chance from open play comes from: edge of the box, box, six-yard box. The spot sets the quality of the chance (half, chance, big).",
+        "by_action": {
+          "default": [0.45, 0.45, 0.1],
+          "short_pass": [0.5, 0.42, 0.08],
+          "through_ball": [0.15, 0.6, 0.25],
+          "long_ball": [0.3, 0.55, 0.15],
+          "cross": [0.1, 0.6, 0.3],
+          "dribble": [0.3, 0.55, 0.15]
+        },
+        "quality": [[0.75, 0.22, 0.03], [0.4, 0.47, 0.13], [0.2, 0.5, 0.3]],
+        "type_bias": [
+          {"close_range": 0.7, "long_shot": 1.5},
+          {},
+          {"close_range": 1.3, "long_shot": 0.0}
+        ]
       },
       "shooter_lane_exponent": 0.5,
       "ball_won_event_from_column": 3,
@@ -2176,7 +2192,7 @@
           "advance": 1,
           "risk": 1.0,
           "weights": [1.0, 1.0, 0.9, 0.6, 0.0],
-          "lanes": [1.0, 1.0, 1.0],
+          "lanes": [1.0, 1.0, 1.0, 1.0, 1.0],
           "attack": ["short_passing", "ball_control", "vision"],
           "defend": ["interceptions", "anticipation"],
           "abilities": ["playmaker", "ball_shield"],
@@ -2189,7 +2205,7 @@
           "advance": 2,
           "risk": 0.85,
           "weights": [0.0, 0.25, 0.35, 0.3, 0.0],
-          "lanes": [0.7, 1.0, 0.7],
+          "lanes": [0.6, 1.0, 1.0, 1.0, 0.6],
           "attack": ["vision", "long_passing", "decision_making"],
           "defend": ["interceptions", "anticipation", "defensive_awareness"],
           "abilities": ["playmaker"],
@@ -2202,7 +2218,7 @@
           "advance": 2,
           "risk": 0.8,
           "weights": [0.45, 0.2, 0.05, 0.0, 0.0],
-          "lanes": [1.0, 1.0, 1.0],
+          "lanes": [1.0, 1.0, 1.0, 1.0, 1.0],
           "attack": ["long_passing", "vision"],
           "defend": ["heading", "jumping", "anticipation"],
           "abilities": ["target_man", "first_touch"],
@@ -2215,7 +2231,7 @@
           "advance": 1,
           "risk": 1.0,
           "weights": [0.0, 0.0, 0.1, 0.45, 0.0],
-          "lanes": [1.0, 0.15, 1.0],
+          "lanes": [1.0, 0.5, 0.1, 0.5, 1.0],
           "attack": ["crossing", "curve"],
           "defend": ["heading", "jumping", "strength"],
           "abilities": ["header_monster", "target_man"],
@@ -2228,7 +2244,7 @@
           "advance": 1,
           "risk": 1.0,
           "weights": [0.15, 0.4, 0.5, 0.5, 0.0],
-          "lanes": [1.0, 1.0, 1.0],
+          "lanes": [1.0, 1.0, 1.0, 1.0, 1.0],
           "attack": ["dribbling", "acceleration", "agility", "balance"],
           "defend": ["standing_tackle", "defensive_awareness", "sliding_tackle"],
           "abilities": ["dribbler", "ball_shield"],
@@ -2241,7 +2257,7 @@
           "advance": 0,
           "risk": 1.0,
           "weights": [0.0, 0.0, 0.0, 0.12, 0.0],
-          "lanes": [0.6, 1.0, 0.6],
+          "lanes": [0.4, 0.9, 1.0, 0.9, 0.4],
           "attack": ["long_shots", "shot_power", "curve"],
           "defend": ["defensive_awareness"],
           "abilities": ["long_shooter"],

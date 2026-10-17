@@ -57,8 +57,10 @@ class SliderLevelEffect {
 }
 
 /// The pitch as a grid of zones (engine 2): [columns] from the own goal to
-/// the goal of the opponent, [lanes] left, centre and right, always seen
-/// from the team that has the ball.
+/// the goal of the opponent, [lanes] left wing, left half-space, centre,
+/// right half-space and right wing, always seen from the team that has the
+/// ball. A chance comes from a [ChanceSpotRules] spot: edge of the box, box
+/// or six-yard box.
 class ZoneRules {
   const ZoneRules({
     required this.startColumnWeights,
@@ -70,10 +72,10 @@ class ZoneRules {
     required this.duelRatioMax,
     required this.laneChange,
     required this.laneWeights,
-    required this.laneSame,
-    required this.laneAdjacent,
-    required this.laneFar,
-    required this.centreOnWing,
+    required this.wideByDistance,
+    required this.centralByDistance,
+    required this.laneJumpTwo,
+    required this.chanceSpot,
     required this.shooterLaneExponent,
     required this.ballWonEventFromColumn,
     required this.columnWeights,
@@ -120,10 +122,20 @@ class ZoneRules {
         for (final e in lanes.entries)
           e.key: numbers(e.value, ZoneRules.lanes, 'lane_weights.${e.key}'),
       }),
-      laneSame: _d(factor['same']),
-      laneAdjacent: _d(factor['adjacent']),
-      laneFar: _d(factor['far']),
-      centreOnWing: _d(factor['centre_on_wing']),
+      wideByDistance: numbers(
+        factor['wide_by_distance'],
+        ZoneRules.lanes,
+        'lane_factor.wide_by_distance',
+      ),
+      centralByDistance: numbers(
+        factor['central_by_distance'],
+        ZoneRules.centre + 1,
+        'lane_factor.central_by_distance',
+      ),
+      laneJumpTwo: _d(m['lane_jump_two']),
+      chanceSpot: ChanceSpotRules.fromJson(
+        m['chance_spot'] as Map<String, dynamic>,
+      ),
       shooterLaneExponent: _d(m['shooter_lane_exponent']),
       ballWonEventFromColumn: (m['ball_won_event_from_column'] as num).toInt(),
       columnWeights: Map.unmodifiable(columnWeights),
@@ -146,8 +158,12 @@ class ZoneRules {
   /// Number of columns from the own goal (0) to the goal of the opponent.
   static const int columns = 5;
 
-  /// Number of lanes: left (0), centre (1), right (2).
-  static const int lanes = 3;
+  /// Number of lanes: left wing (0), left half-space (1), centre (2),
+  /// right half-space (3), right wing (4).
+  static const int lanes = 5;
+
+  /// The centre lane.
+  static const int centre = lanes ~/ 2;
 
   /// Where attacks start (the last column must be zero).
   final List<double> startColumnWeights;
@@ -170,12 +186,17 @@ class ZoneRules {
   /// Lane weights at the start of an attack by system id (`default` for
   /// systems without an own entry).
   final Map<String, List<double>> laneWeights;
-  final double laneSame;
-  final double laneAdjacent;
-  final double laneFar;
 
-  /// Weight of a central position on a wing lane.
-  final double centreOnWing;
+  /// Involvement of a wide position by distance of the lane from its own
+  /// wing (0 to 4), and of a central position by distance from the centre.
+  final List<double> wideByDistance;
+  final List<double> centralByDistance;
+
+  /// Share of lane changes that jump two lanes (a switch of play).
+  final double laneJumpTwo;
+
+  /// Where chances come from and how good they are.
+  final ChanceSpotRules chanceSpot;
   final double shooterLaneExponent;
 
   /// Lost balls from this column on are written as events.
@@ -213,15 +234,67 @@ class ZoneRules {
   /// How much a player on [position] is involved in [lane] (own view).
   double laneFactor(Position position, int lane) {
     final side = position.wideSide;
-    if (side == null) return lane == 1 ? laneSame : centreOnWing;
-    final home = side == Foot.left ? 0 : 2;
-    final distance = (home - lane).abs();
-    return distance == 0
-        ? laneSame
-        : distance == 1
-        ? laneAdjacent
-        : laneFar;
+    if (side == null) return centralByDistance[(lane - centre).abs()];
+    final home = side == Foot.left ? 0 : lanes - 1;
+    return wideByDistance[(home - lane).abs()];
   }
+}
+
+/// Where a chance from open play comes from (engine 2, 10d2): the edge of
+/// the box (0), the box (1) or the six-yard box (2). The last action of the
+/// attack sets the weights of the spots, the spot sets the quality.
+class ChanceSpotRules {
+  const ChanceSpotRules({
+    required this.byAction,
+    required this.quality,
+    required this.typeBias,
+  });
+
+  factory ChanceSpotRules.fromJson(Map<String, dynamic> m) {
+    List<double> three(Object? raw, String name) {
+      final list = [for (final v in raw! as List<dynamic>) _d(v)];
+      if (list.length != spots || list.any((v) => v < 0)) {
+        throw RulesError('match.zones.chance_spot.$name needs 3 values');
+      }
+      return List.unmodifiable(list);
+    }
+
+    final by = m['by_action'] as Map<String, dynamic>;
+    if (!by.containsKey('default')) {
+      throw const RulesError('match.zones.chance_spot.by_action: default');
+    }
+    final quality = [
+      for (final q in m['quality'] as List<dynamic>) three(q, 'quality'),
+    ];
+    final bias = [
+      for (final b in m['type_bias'] as List<dynamic>) _numbers(b),
+    ];
+    if (quality.length != spots || bias.length != spots) {
+      throw const RulesError('match.zones.chance_spot needs 3 spots');
+    }
+    return ChanceSpotRules(
+      byAction: Map.unmodifiable({
+        for (final e in by.entries) e.key: three(e.value, 'by_action'),
+      }),
+      quality: List.unmodifiable(quality),
+      typeBias: List.unmodifiable(bias),
+    );
+  }
+
+  /// Edge of the box, box, six-yard box.
+  static const int spots = 3;
+
+  /// Weights of the spots by the last action of the attack.
+  final Map<String, List<double>> byAction;
+
+  /// Weights of half chance, chance and big chance per spot.
+  final List<List<double>> quality;
+
+  /// Factors on the shot types per spot.
+  final List<Map<String, double>> typeBias;
+
+  List<double> spotsFor(String? action) =>
+      byAction[action] ?? byAction['default']!;
 }
 
 /// One thing the player on the ball can do in a zone (engine 2).
