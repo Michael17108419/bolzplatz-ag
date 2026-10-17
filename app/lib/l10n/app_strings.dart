@@ -99,6 +99,8 @@ abstract interface class AppStrings {
   String matchSubsLeft(int n);
   String get matchSubPickOff;
   String get matchSubPickOn;
+  String matchSubStats(int energy, int form);
+  String get matchSubFits;
   String get matchSubNone;
   String get matchSubBenchEmpty;
   String get matchSubKeeperOnly;
@@ -478,6 +480,14 @@ abstract interface class AppStrings {
   String cupRoundName(bool isFinal, int round);
   String matchShootoutLine(String winner, int home, int away);
   String get confCupTab;
+  String get confTabLive;
+  String get confTabResults;
+  String get confTabTable;
+  String get confNoLive;
+  String get confNoResults;
+  String get confGoalsShort;
+  String get confDiffShort;
+  String confKickoffAt(String time);
   String get matchReportExtraTime;
   String matchReportShootout(int home, int away);
   String get matchReportThrough;
@@ -815,6 +825,12 @@ class AppStringsDe implements AppStrings {
   String get matchSubPickOff => 'Wer geht raus?';
   @override
   String get matchSubPickOn => 'Wer kommt rein?';
+
+  @override
+  String matchSubStats(int energy, int form) => 'Kraft $energy % · Form $form';
+
+  @override
+  String get matchSubFits => 'passt';
   @override
   String get matchSubNone => 'Du hast alle Wechsel verbraucht.';
   @override
@@ -2502,6 +2518,30 @@ class AppStringsDe implements AppStrings {
       'Die Nerven waren heute nicht im Preis inbegriffen.';
   @override
   String get confCupTab => 'Pokal';
+
+  @override
+  String get confTabLive => 'Live';
+
+  @override
+  String get confTabResults => 'Ergebnisse';
+
+  @override
+  String get confTabTable => 'Tabelle';
+
+  @override
+  String get confNoLive => 'Alles abgepfiffen. Hier läuft nichts mehr.';
+
+  @override
+  String get confNoResults => 'Noch nichts abgepfiffen. Geduld.';
+
+  @override
+  String get confGoalsShort => 'Tore';
+
+  @override
+  String get confDiffShort => 'Diff.';
+
+  @override
+  String confKickoffAt(String time) => 'Anstoß $time';
   @override
   String get matchReportExtraTime => 'nach Verlängerung';
   @override

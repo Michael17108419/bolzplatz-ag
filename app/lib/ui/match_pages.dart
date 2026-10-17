@@ -18,6 +18,8 @@ import 'adaptive.dart';
 import 'conference_view.dart';
 import 'crest.dart';
 import 'info_button.dart';
+import 'player_widgets.dart';
+import 'round_play_button.dart';
 import 'screen_frame.dart';
 import 'stats_page.dart';
 import 'step_buttons.dart';
@@ -708,6 +710,11 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                         itemBuilder: (context, i) => _TickerRow(
                           key: ValueKey('match-line-${_lines.length - 1 - i}'),
                           line: _lines[i],
+                          crestId: switch (_lines[i].side) {
+                            0 => home.value,
+                            1 => away.value,
+                            _ => null,
+                          },
                         ),
                       ),
                     ),
@@ -725,21 +732,11 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
             else if (phone)
               Row(
                 children: [
-                  Expanded(
-                    child: FilledButton(
-                      key: const ValueKey('match-pause'),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(0, 52),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                      ),
-                      onPressed: _running ? _pause : _resume,
-                      child: FittedBox(
-                        child: Text(
-                          _running ? s.matchPause : s.matchResume,
-                          maxLines: 1,
-                        ),
-                      ),
-                    ),
+                  RoundPlayButton(
+                    key: const ValueKey('match-pause'),
+                    pause: _running,
+                    semanticLabel: _running ? s.matchPause : s.matchResume,
+                    onTap: _running ? _pause : _resume,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -800,10 +797,11 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                       onSelected: (_) => _setSpeed(i),
                     ),
                   InfoButton(message: s.infoMatchSpeed),
-                  FilledButton(
+                  RoundPlayButton(
                     key: const ValueKey('match-pause'),
-                    onPressed: _running ? _pause : _resume,
-                    child: Text(_running ? s.matchPause : s.matchResume),
+                    pause: _running,
+                    semanticLabel: _running ? s.matchPause : s.matchResume,
+                    onTap: _running ? _pause : _resume,
                   ),
                   OutlinedButton(
                     key: const ValueKey('match-subs'),
@@ -832,9 +830,12 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
 }
 
 class _TickerRow extends StatelessWidget {
-  const _TickerRow({required this.line, super.key});
+  const _TickerRow({required this.line, this.crestId, super.key});
 
   final TickerLine line;
+
+  /// The club the line is about: its crest stands before the text.
+  final int? crestId;
 
   @override
   Widget build(BuildContext context) {
@@ -860,6 +861,15 @@ class _TickerRow extends StatelessWidget {
               ),
             ),
           ),
+          SizedBox(
+            width: 30,
+            child: crestId == null
+                ? null
+                : Align(
+                    alignment: Alignment.centerLeft,
+                    child: ClubCrest(clubId: crestId!, size: 22),
+                  ),
+          ),
           Expanded(
             child: Text(
               line.text,
@@ -873,6 +883,154 @@ class _TickerRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// One player in the substitution list: position, name, role, energy and
+/// form, and the strength on the right.
+class _SubRow extends StatelessWidget {
+  const _SubRow({
+    required this.player,
+    required this.position,
+    required this.strength,
+    required this.energy,
+    required this.form,
+    required this.strings,
+    required this.onTap,
+    this.role,
+    this.fits = false,
+    this.selected = false,
+    super.key,
+  });
+
+  final Player player;
+
+  /// The position shown in the chip: the place on the pitch, or his own.
+  final Position position;
+  final double strength;
+  final double energy;
+  final double form;
+  final AppStrings strings;
+  final VoidCallback onTap;
+  final String? role;
+  final bool fits;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final first = player.firstName.isEmpty ? '' : '${player.firstName[0]}. ';
+    final low = energy < 50;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Material(
+        color: selected ? Tokens.panel : Tokens.panel.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(Tokens.radius),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(Tokens.radius),
+          onTap: onTap,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 56),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(Tokens.radius),
+              border: selected
+                  ? Border.all(color: Tokens.yellow, width: 2)
+                  : null,
+            ),
+            child: Row(
+              children: [
+                PositionChip(position, width: 42),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$first${player.lastName}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall,
+                      ),
+                      Text(
+                        [
+                          if (role != null) strings.roleName(role!),
+                          strings.matchSubStats(energy.round(), form.round()),
+                        ].join(' · '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: low ? Tokens.orange : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (fits)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      strings.matchSubFits,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Tokens.green,
+                      ),
+                    ),
+                  ),
+                Text(
+                  strength.round().toString(),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: valueColor(strength),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The list rows of the substitution: [off] true for the pitch, false for
+/// the bench (then [offId] is the one who goes and decides what "fits").
+List<Widget> _subRows({
+  required MatchSession session,
+  required int side,
+  required LoadedWorld loaded,
+  required AppStrings s,
+  required bool off,
+  required PlayerId? offId,
+  required void Function(PlayerId id) onTap,
+}) {
+  final ids = off ? session.onPitch(side) : session.benchOf(side);
+  final want = offId == null ? null : session.slotPositionOf(side, offId);
+  final entries = <(PlayerId, Player)>[
+    for (final id in ids)
+      if (loaded.player(id) != null) (id, loaded.player(id)!),
+  ];
+  if (!off) {
+    entries.sort((a, b) {
+      final fa = want != null && a.$2.position == want ? 0 : 1;
+      final fb = want != null && b.$2.position == want ? 0 : 1;
+      if (fa != fb) return fa - fb;
+      return loaded.overall(b.$2).compareTo(loaded.overall(a.$2));
+    });
+  }
+  return [
+    for (final (id, p) in entries)
+      _SubRow(
+        key: ValueKey('match-sub-${off ? 'off' : 'on'}-${id.value}'),
+        player: p,
+        position: off ? (session.slotPositionOf(side, id) ?? p.position) : p.position,
+        strength: loaded.overall(p),
+        energy: session.energyOf(side, id),
+        form: session.formOf(side, id),
+        role: off ? session.roleOf(side, id) : null,
+        fits: !off && want != null && p.position == want,
+        selected: off && offId == id,
+        strings: s,
+        onTap: () => onTap(id),
+      ),
+  ];
 }
 
 /// Substitution: first who goes, then who comes.
@@ -902,21 +1060,8 @@ class _SubsDialogState extends ConsumerState<_SubsDialog> {
     final s = ref.watch(stringsProvider);
     final session = widget.session;
     final left = session.substitutionsLeft(widget.side);
-    final pitch = session.onPitch(widget.side);
     final bench = session.benchOf(widget.side);
     final loaded = widget.loaded;
-
-    Widget row(PlayerId id, {required VoidCallback onTap, bool? selected}) {
-      final p = loaded.player(id);
-      return ListTile(
-        key: ValueKey('match-sub-${_off == null ? 'off' : 'on'}-${id.value}'),
-        dense: true,
-        selected: selected ?? false,
-        title: Text(_listName(loaded, id), overflow: TextOverflow.ellipsis),
-        trailing: p == null ? null : Text(s.positionName(p.position)),
-        onTap: onTap,
-      );
-    }
 
     final String title;
     final List<Widget> body;
@@ -925,29 +1070,37 @@ class _SubsDialogState extends ConsumerState<_SubsDialog> {
       body = [Text(s.matchSubNone)];
     } else if (_off == null) {
       title = s.matchSubPickOff;
-      body = [
-        for (final id in pitch) row(id, onTap: () => setState(() => _off = id)),
-      ];
+      body = _subRows(
+        session: session,
+        side: widget.side,
+        loaded: loaded,
+        s: s,
+        off: true,
+        offId: null,
+        onTap: (id) => setState(() => _off = id),
+      );
     } else if (bench.isEmpty) {
       title = s.matchSubPickOn;
       body = [Text(s.matchSubBenchEmpty)];
     } else {
       title = s.matchSubPickOn;
-      body = [
-        for (final id in bench)
-          row(
-            id,
-            onTap: () {
-              final ok = session.substitute(widget.side, _off!, id);
-              if (ok) {
-                widget.onDone();
-                Navigator.of(context).pop();
-              } else {
-                setState(() => _note = s.matchSubKeeperOnly);
-              }
-            },
-          ),
-      ];
+      body = _subRows(
+        session: session,
+        side: widget.side,
+        loaded: loaded,
+        s: s,
+        off: false,
+        offId: _off,
+        onTap: (id) {
+          final ok = session.substitute(widget.side, _off!, id);
+          if (ok) {
+            widget.onDone();
+            Navigator.of(context).pop();
+          } else {
+            setState(() => _note = s.matchSubKeeperOnly);
+          }
+        },
+      );
     }
 
     return AlertDialog(
@@ -1013,42 +1166,8 @@ class _SubsSheetState extends ConsumerState<_SubsSheet> {
     final theme = Theme.of(context);
     final session = widget.session;
     final left = session.substitutionsLeft(widget.side);
-    final pitch = session.onPitch(widget.side);
     final bench = session.benchOf(widget.side);
     final loaded = widget.loaded;
-
-    Widget playerChip(PlayerId id, {required bool off}) {
-      final p = loaded.player(id);
-      final selected = off && _off == id;
-      return ChoiceChip(
-        key: ValueKey('match-sub-${off ? 'off' : 'on'}-${id.value}'),
-        selected: selected,
-        label: Text(
-          '${p == null ? '' : '${p.position.id} '}${_listName(loaded, id)}',
-          overflow: TextOverflow.ellipsis,
-        ),
-        onSelected: (_) {
-          if (off) {
-            setState(() {
-              _off = selected ? null : id;
-              _note = null;
-            });
-            return;
-          }
-          final out = _off;
-          if (out == null) {
-            setState(() => _note = s.matchSubPickOff);
-            return;
-          }
-          if (session.substitute(widget.side, out, id)) {
-            widget.onDone();
-            Navigator.of(context).pop();
-          } else {
-            setState(() => _note = s.matchSubKeeperOnly);
-          }
-        },
-      );
-    }
 
     return SafeArea(
       child: ConstrainedBox(
@@ -1078,26 +1197,62 @@ class _SubsSheetState extends ConsumerState<_SubsSheet> {
                 )
               else ...[
                 const SizedBox(height: Tokens.gapS),
-                Text(s.matchSubPickOff, style: theme.textTheme.titleSmall),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [for (final id in pitch) playerChip(id, off: true)],
-                ),
-                const SizedBox(height: Tokens.gapM),
-                Text(s.matchSubPickOn, style: theme.textTheme.titleSmall),
-                const SizedBox(height: 6),
-                if (bench.isEmpty)
-                  Text(s.matchSubBenchEmpty)
-                else
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      for (final id in bench) playerChip(id, off: false),
-                    ],
+                if (_off == null) ...[
+                  Text(s.matchSubPickOff, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 4),
+                  ..._subRows(
+                    session: session,
+                    side: widget.side,
+                    loaded: loaded,
+                    s: s,
+                    off: true,
+                    offId: null,
+                    onTap: (id) => setState(() {
+                      _off = id;
+                      _note = null;
+                    }),
                   ),
+                ] else ...[
+                  Text(s.matchSubPickOn, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 4),
+                  _SubRow(
+                    key: const ValueKey('match-sub-off-chosen'),
+                    player: loaded.player(_off!)!,
+                    position:
+                        session.slotPositionOf(widget.side, _off!) ??
+                        loaded.player(_off!)!.position,
+                    strength: loaded.overall(loaded.player(_off!)!),
+                    energy: session.energyOf(widget.side, _off!),
+                    form: session.formOf(widget.side, _off!),
+                    role: session.roleOf(widget.side, _off!),
+                    selected: true,
+                    strings: s,
+                    onTap: () => setState(() {
+                      _off = null;
+                      _note = null;
+                    }),
+                  ),
+                  const SizedBox(height: 4),
+                  if (bench.isEmpty)
+                    Text(s.matchSubBenchEmpty)
+                  else
+                    ..._subRows(
+                      session: session,
+                      side: widget.side,
+                      loaded: loaded,
+                      s: s,
+                      off: false,
+                      offId: _off,
+                      onTap: (id) {
+                        if (session.substitute(widget.side, _off!, id)) {
+                          widget.onDone();
+                          Navigator.of(context).pop();
+                        } else {
+                          setState(() => _note = s.matchSubKeeperOnly);
+                        }
+                      },
+                    ),
+                ],
                 if (_note != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
@@ -1114,6 +1269,49 @@ class _SubsSheetState extends ConsumerState<_SubsSheet> {
                 child: Text(s.matchClose),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One option of the tactics sheet: same height and look everywhere, the
+/// chosen one is filled.
+class _TacticOption extends StatelessWidget {
+  const _TacticOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    super.key,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? Tokens.yellow : Tokens.panel,
+      borderRadius: BorderRadius.circular(Tokens.radius),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(Tokens.radius),
+        onTap: onTap,
+        child: Container(
+          height: 48,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              maxLines: 1,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: selected ? Tokens.ground : Tokens.text,
+              ),
+            ),
           ),
         ),
       ),
@@ -1167,63 +1365,66 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
       setState(() {});
     }
 
+    final titleStyle = Theme.of(context).textTheme.titleSmall;
     final content = Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                s.lineupSystem,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final sys in tactics.systems)
-                    ChoiceChip(
-                      key: ValueKey('match-system-${sys.id}'),
-                      label: Text(s.systemName(sys.id)),
-                      selected: sys.id == sheet.systemId,
-                      onSelected: (_) {
-                        if (sys.id != sheet.systemId) change(system: sys.id);
-                      },
-                    ),
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(s.lineupSystem, style: titleStyle),
+        const SizedBox(height: 6),
+        for (var i = 0; i < tactics.systems.length; i += 2)
+          Padding(
+            padding: EdgeInsets.only(top: i == 0 ? 0 : 8),
+            child: Row(
+              children: [
+                for (var j = i; j < i + 2; j++) ...[
+                  if (j > i) const SizedBox(width: 8),
+                  Expanded(
+                    child: j < tactics.systems.length
+                        ? _TacticOption(
+                            key: ValueKey(
+                              'match-system-${tactics.systems[j].id}',
+                            ),
+                            label: s.systemName(tactics.systems[j].id),
+                            selected:
+                                tactics.systems[j].id == sheet.systemId,
+                            onTap: () {
+                              final id = tactics.systems[j].id;
+                              if (id != sheet.systemId) change(system: id);
+                            },
+                          )
+                        : const SizedBox.shrink(),
+                  ),
                 ],
-              ),
-              const SizedBox(height: Tokens.gapM),
-              for (final slider in tactics.sliders)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3),
-                  child: Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 100,
-                        child: Text(
-                          s.sliderName(slider.id),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      for (var l = 0; l < slider.levels.length; l++)
-                        ChoiceChip(
-                          key: ValueKey('match-slider-${slider.id}-$l'),
-                          label: Text(s.sliderLevelName(slider.id, l)),
-                          selected: levels[slider.id] == l,
-                          onSelected: (_) {
-                            if (levels[slider.id] != l) {
-                              change(slider: slider.id, level: l);
-                            }
-                          },
-                        ),
-                    ],
+              ],
+            ),
+          ),
+        for (final slider in tactics.sliders) ...[
+          const SizedBox(height: Tokens.gapM),
+          Text(s.sliderName(slider.id), style: titleStyle),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              for (var l = 0; l < slider.levels.length; l++) ...[
+                if (l > 0) const SizedBox(width: 8),
+                Expanded(
+                  child: _TacticOption(
+                    key: ValueKey('match-slider-${slider.id}-$l'),
+                    label: s.sliderLevelName(slider.id, l),
+                    selected: levels[slider.id] == l,
+                    onTap: () {
+                      if (levels[slider.id] != l) {
+                        change(slider: slider.id, level: l);
+                      }
+                    },
                   ),
                 ),
+              ],
             ],
-          );
+          ),
+        ],
+      ],
+    );
     if (widget.asSheet) {
       return SafeArea(
         child: SingleChildScrollView(

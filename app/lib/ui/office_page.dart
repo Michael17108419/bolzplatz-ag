@@ -17,6 +17,7 @@ import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'crest.dart';
 import 'office_pages.dart';
+import 'round_play_button.dart';
 import 'office_scene.dart';
 import 'person_avatar.dart';
 
@@ -125,7 +126,8 @@ class _Office extends ConsumerWidget {
         Positioned(
           right: 10,
           bottom: 6,
-          child: _PlayButton(
+          child: RoundPlayButton(
+            key: const ValueKey('office-play'),
             semanticLabel: nextText,
             onTap: () => goNext(context, ref),
           ),
@@ -275,71 +277,4 @@ class _MenuPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_MenuPainter old) => false;
-}
-
-/// The round yellow play button: on to the next day. A shadow, an outline and
-/// a plain triangle, like the rest of the room.
-class _PlayButton extends StatelessWidget {
-  const _PlayButton({required this.semanticLabel, required this.onTap});
-
-  final String semanticLabel;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: semanticLabel,
-      child: GestureDetector(
-        key: const ValueKey('office-play'),
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: const SizedBox(
-          width: 56,
-          height: 56,
-          child: CustomPaint(painter: _PlayPainter()),
-        ),
-      ),
-    );
-  }
-}
-
-class _PlayPainter extends CustomPainter {
-  const _PlayPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = Offset(size.width / 2, size.height / 2 - 2);
-    const ink = Color(0xFF2B1B12);
-    canvas.drawOval(
-      Rect.fromCenter(center: c + const Offset(0, 25), width: 40, height: 8),
-      Paint()..color = const Color(0x55000000),
-    );
-    canvas.drawCircle(c, 24, Paint()..color = Tokens.yellow);
-    canvas.drawCircle(
-      c,
-      24,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3
-        ..color = ink,
-    );
-    final tri = Path()
-      ..moveTo(c.dx - 7, c.dy - 12)
-      ..lineTo(c.dx + 13, c.dy)
-      ..lineTo(c.dx - 7, c.dy + 12)
-      ..close();
-    canvas.drawPath(tri, Paint()..color = ink);
-    canvas.drawPath(
-      tri,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..strokeJoin = StrokeJoin.round
-        ..color = ink,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_PlayPainter old) => false;
 }

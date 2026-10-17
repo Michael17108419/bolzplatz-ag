@@ -265,6 +265,36 @@ class MatchSession {
   /// follow every [changeTactics].
   TeamSheet sheetOf(int side) => _sides[side].sheet;
 
+  /// Energy (0 to 100) of a player now: tired on the pitch, the fitness he
+  /// came with on the bench.
+  double energyOf(int side, PlayerId id) {
+    for (final s in _sides[side].pitch) {
+      if (s.player.id == id) return s.energy;
+    }
+    return _sides[side].team.fitness[id] ?? 100.0;
+  }
+
+  /// Form (0 to 100) of a player of [side].
+  double formOf(int side, PlayerId id) =>
+      _sides[side].team.form[id] ?? _m.defaultForm;
+
+  /// The position of the place on the pitch where [id] plays now, or null
+  /// for a substitute.
+  Position? slotPositionOf(int side, PlayerId id) {
+    for (final s in _sides[side].pitch) {
+      if (s.player.id == id) return s.position;
+    }
+    return null;
+  }
+
+  /// The role of [id] on the pitch, or null (no role, or on the bench).
+  String? roleOf(int side, PlayerId id) {
+    for (final s in _sides[side].pitch) {
+      if (s.player.id == id) return s.role;
+    }
+    return null;
+  }
+
   int substitutionsLeft(int side) =>
       rules.tactics.maxSubstitutions - _sides[side].subsUsed;
 

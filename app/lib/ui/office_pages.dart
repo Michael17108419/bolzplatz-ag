@@ -299,14 +299,13 @@ class QuickBar extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: Tokens.gapS),
-        FilledButton(
+        RoundPlayButton(
           key: const ValueKey('quick-next'),
-          onPressed: () => goNext(context, ref),
-          child: Text(
-            ref.watch(seasonProvider.select((g) => g?.isOver ?? false))
-                ? s.deskNextSeason
-                : s.deskNext(view?.matchday ?? 1),
-          ),
+          semanticLabel:
+              ref.watch(seasonProvider.select((g) => g?.isOver ?? false))
+              ? s.deskNextSeason
+              : s.deskNext(view?.matchday ?? 1),
+          onTap: () => goNext(context, ref),
         ),
       ],
     );

@@ -4,6 +4,7 @@ import 'package:game_core/game_core.dart';
 import '../game/loaded_world.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
+import 'adaptive.dart';
 import 'crest.dart';
 import 'info_button.dart';
 
@@ -50,6 +51,9 @@ class ConferenceView extends StatefulWidget {
 class _ConferenceViewState extends State<ConferenceView> {
   LeagueId? _selected;
   bool _cupTab = false;
+
+  /// Phone: 0 live, 1 results, 2 table.
+  int _tab = 0;
 
   int get _now {
     final own = widget.day.own;
@@ -152,6 +156,17 @@ class _ConferenceViewState extends State<ConferenceView> {
       _Status.running => s.confRunning(l.minute),
       _Status.finished => s.confFinished,
     };
+
+    if (isNarrow(context)) {
+      return _phone(
+        leagues: leagues,
+        hasCup: cupMatches.isNotEmpty,
+        showCup: showCup,
+        league: league,
+        lines: lines,
+        standing: standing,
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -285,6 +300,277 @@ class _ConferenceViewState extends State<ConferenceView> {
                   ),
               ],
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _kickoff(_Line l) {
+    final m = l.match.minuteOfDay;
+    return '${(m ~/ 60).toString().padLeft(2, '0')}:'
+        '${(m % 60).toString().padLeft(2, '0')}';
+  }
+
+  /// Phone: league chips in one swipeable row, then three tabs: live games,
+  /// results and the live table.
+  Widget _phone({
+    required List<LeagueId> leagues,
+    required bool hasCup,
+    required bool showCup,
+    required LeagueId? league,
+    required List<_Line> lines,
+    required List<TableEntry> standing,
+  }) {
+    final s = widget.strings;
+    final theme = Theme.of(context);
+
+    Widget crestName(ClubId id, {required bool right}) {
+      final name = Text(
+        widget.loaded.club(id).name,
+        maxLines: 2,
+        textAlign: right ? TextAlign.start : TextAlign.end,
+        overflow: TextOverflow.ellipsis,
+        style: _own(theme, id),
+      );
+      final crest = ClubCrest(clubId: id.value, size: 26);
+      return Expanded(
+        child: Row(
+          mainAxisAlignment: right
+              ? MainAxisAlignment.start
+              : MainAxisAlignment.end,
+          children: right
+              ? [crest, const SizedBox(width: 6), Flexible(child: name)]
+              : [Flexible(child: name), const SizedBox(width: 6), crest],
+        ),
+      );
+    }
+
+    Widget matchRow(_Line l, {required String note}) {
+      final own =
+          l.match.fixture.home == widget.ownClub ||
+          l.match.fixture.away == widget.ownClub;
+      return Container(
+        key: ValueKey('conf-match-${l.match.fixture.home.value}'),
+        margin: const EdgeInsets.symmetric(vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Tokens.ground.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(Tokens.radius),
+          border: own ? Border.all(color: Tokens.yellow, width: 2) : null,
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                crestName(l.match.fixture.home, right: false),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    l.status == _Status.notStarted
+                        ? '– : –'
+                        : '${l.home} : ${l.away}',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                ),
+                crestName(l.match.fixture.away, right: true),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              note,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Tokens.text.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final open = [for (final l in lines) if (l.status != _Status.finished) l];
+    open.sort((a, b) {
+      final ra = a.status == _Status.running ? 0 : 1;
+      final rb = b.status == _Status.running ? 0 : 1;
+      return ra != rb ? ra - rb : a.match.minuteOfDay - b.match.minuteOfDay;
+    });
+    final done = [for (final l in lines) if (l.status == _Status.finished) l];
+
+    final Widget body;
+    if (_tab == 0) {
+      body = open.isEmpty
+          ? Center(child: Text(s.confNoLive))
+          : ListView(
+              key: const ValueKey('conf-list'),
+              padding: const EdgeInsets.all(Tokens.gapS),
+              children: [
+                for (final l in open)
+                  matchRow(
+                    l,
+                    note: l.status == _Status.running
+                        ? s.confRunning(l.minute)
+                        : s.confKickoffAt(_kickoff(l)),
+                  ),
+              ],
+            );
+    } else if (_tab == 1) {
+      body = done.isEmpty
+          ? Center(child: Text(s.confNoResults))
+          : ListView(
+              key: const ValueKey('conf-list'),
+              padding: const EdgeInsets.all(Tokens.gapS),
+              children: [
+                for (final l in done) matchRow(l, note: s.confFinished),
+              ],
+            );
+    } else if (league == null) {
+      body = Center(child: Text(s.confNoLive));
+    } else {
+      Widget cell(String t, double w, {bool bold = false}) => SizedBox(
+        width: w,
+        child: Text(
+          t,
+          textAlign: TextAlign.end,
+          maxLines: 1,
+          style: bold ? const TextStyle(fontWeight: FontWeight.bold) : null,
+        ),
+      );
+      body = ListView(
+        key: const ValueKey('conf-list'),
+        padding: const EdgeInsets.all(Tokens.gapS),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                const SizedBox(width: 34),
+                const SizedBox(width: 30),
+                const Expanded(child: SizedBox.shrink()),
+                cell(s.confPlayedShort, 30),
+                cell(s.confGoalsShort, 46),
+                cell(s.confDiffShort, 38),
+                cell(s.confPointsShort, 34, bold: true),
+              ],
+            ),
+          ),
+          for (var i = 0; i < standing.length; i++)
+            Container(
+              key: ValueKey('conf-table-$i'),
+              constraints: const BoxConstraints(minHeight: 40),
+              child: Row(
+                children: [
+                  SizedBox(width: 34, child: Text('${i + 1}.')),
+                  ClubCrest(clubId: standing[i].club.value, size: 22),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.loaded.club(standing[i].club).name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _own(theme, standing[i].club),
+                    ),
+                  ),
+                  cell('${standing[i].played}', 30),
+                  cell(
+                    '${standing[i].goalsFor}:${standing[i].goalsAgainst}',
+                    46,
+                  ),
+                  cell('${standing[i].goalDifference}', 38),
+                  cell('${standing[i].points}', 34, bold: true),
+                ],
+              ),
+            ),
+        ],
+      );
+    }
+
+    Widget tabButton(int i, String label) => Expanded(
+      child: InkWell(
+        key: ValueKey('conf-subtab-$i'),
+        onTap: () => setState(() => _tab = i),
+        child: Container(
+          height: 40,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: _tab == i ? Tokens.yellow : Colors.transparent,
+                width: 3,
+              ),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: _tab == i ? Tokens.yellow : Tokens.text,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Text(
+              _clock(),
+              key: const ValueKey('conf-clock'),
+              style: theme.textTheme.titleSmall,
+            ),
+            InfoButton(message: s.infoConference),
+          ],
+        ),
+        SizedBox(
+          height: 40,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              if (hasCup)
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    key: const ValueKey('conf-tab-cup'),
+                    visualDensity: VisualDensity.compact,
+                    label: Text(s.confCupTab),
+                    selected: showCup,
+                    onSelected: (_) => setState(() => _cupTab = true),
+                  ),
+                ),
+              for (final l in leagues)
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: ChoiceChip(
+                    key: ValueKey('conf-tab-${l.value}'),
+                    visualDensity: VisualDensity.compact,
+                    label: Text(_leagueTitle(l)),
+                    selected: l == league,
+                    onSelected: (_) => setState(() {
+                      _selected = l;
+                      _cupTab = false;
+                    }),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        Row(
+          children: [
+            tabButton(0, s.confTabLive),
+            tabButton(1, s.confTabResults),
+            if (!showCup) tabButton(2, s.confTabTable),
+          ],
+        ),
+        const SizedBox(height: Tokens.gapS),
+        Expanded(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Tokens.panel,
+              borderRadius: BorderRadius.circular(Tokens.radius),
+            ),
+            child: body,
           ),
         ),
       ],
