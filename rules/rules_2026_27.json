@@ -1836,7 +1836,7 @@
     "home_advantage": 1.02,
     "possession_exponent": 1.0,
     "breakthrough": {
-      "base": 0.16,
+      "base": 0.155,
       "exponent": 1.2,
       "min": 0.04,
       "max": 0.6
