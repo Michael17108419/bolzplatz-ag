@@ -661,62 +661,65 @@ class CalendarPage extends ConsumerWidget {
                 ],
               )
             : _single(
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _card(
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _heading(theme, s.officeNextTitle, s.infoOfficeNext),
-                    const SizedBox(height: Tokens.gapS),
-                    Row(
-                      children: [
-                        ClubCrest(clubId: view.opponent.id.value, size: 44),
-                        const SizedBox(width: Tokens.gapM),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    _card(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _heading(theme, s.officeNextTitle, s.infoOfficeNext),
+                          const SizedBox(height: Tokens.gapS),
+                          Row(
                             children: [
-                              Text(
-                                view.opponent.name,
-                                key: const ValueKey('office-opponent'),
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.titleMedium,
+                              ClubCrest(
+                                clubId: view.opponent.id.value,
+                                size: 44,
                               ),
-                              Text(
-                                '${s.officeMatchday(view.matchday)} · '
-                                '${view.atHome ? s.officeHome : s.officeAway}',
-                                style: theme.textTheme.bodyMedium,
+                              const SizedBox(width: Tokens.gapM),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      view.opponent.name,
+                                      key: const ValueKey('office-opponent'),
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.titleMedium,
+                                    ),
+                                    Text(
+                                      '${s.officeMatchday(view.matchday)} · '
+                                      '${view.atHome ? s.officeHome : s.officeAway}',
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: Tokens.gapS),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            s.officeStrengthCompare(
-                              _num(view.ownStrength),
-                              _num(view.opponentStrength),
-                            ),
-                            style: theme.textTheme.bodyMedium,
+                          const SizedBox(height: Tokens.gapS),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  s.officeStrengthCompare(
+                                    _num(view.ownStrength),
+                                    _num(view.opponentStrength),
+                                  ),
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                              InfoButton(message: s.infoStrength),
+                            ],
                           ),
-                        ),
-                        InfoButton(message: s.infoStrength),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: Tokens.gapM),
+                    const MonthCalendar(),
                   ],
                 ),
               ),
-              const SizedBox(height: Tokens.gapM),
-              const MonthCalendar(),
-            ],
-          ),
-        ),
       ),
     );
   }

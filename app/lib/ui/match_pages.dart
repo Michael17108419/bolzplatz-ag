@@ -1014,7 +1014,9 @@ List<Widget> _subRows({
       _SubRow(
         key: ValueKey('match-sub-${off ? 'off' : 'on'}-${id.value}'),
         player: p,
-        position: off ? (session.slotPositionOf(side, id) ?? p.position) : p.position,
+        position: off
+            ? (session.slotPositionOf(side, id) ?? p.position)
+            : p.position,
         strength: loaded.overall(p),
         energy: session.energyOf(side, id),
         form: session.formOf(side, id),
@@ -1380,8 +1382,7 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
                               'match-system-${tactics.systems[j].id}',
                             ),
                             label: s.systemName(tactics.systems[j].id),
-                            selected:
-                                tactics.systems[j].id == sheet.systemId,
+                            selected: tactics.systems[j].id == sheet.systemId,
                             onTap: () {
                               final id = tactics.systems[j].id;
                               if (id != sheet.systemId) change(system: id);
@@ -1447,9 +1448,7 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
       title: Text(s.matchTactics),
       content: SizedBox(
         width: 420,
-        child: SingleChildScrollView(
-          child: content,
-        ),
+        child: SingleChildScrollView(child: content),
       ),
       actions: [
         TextButton(

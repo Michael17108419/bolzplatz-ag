@@ -234,9 +234,7 @@ class _LineupPageState extends ConsumerState<LineupPage> {
                 if (!ok) {
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      SnackBar(content: Text(s.lineupSwapKeeper)),
-                    );
+                    ..showSnackBar(SnackBar(content: Text(s.lineupSwapKeeper)));
                 }
                 return;
               }
@@ -1669,15 +1667,18 @@ class _SlotPickerState extends ConsumerState<_SlotPicker> {
     final notifier = ref.read(lineupProvider.notifier);
     final current = widget.squad[xi[widget.slotIndex]]!;
 
-    final players = [
-      for (final p in widget.squad.values)
-        if (p.position.isGoalkeeper == target.isGoalkeeper &&
-            (_all ||
-                p.id == current.id ||
-                fit.positionMultiplier(p, target) >= 0.9))
-          p,
-    ]..sort((a, b) =>
-        fit.slotScore(b, target).compareTo(fit.slotScore(a, target)));
+    final players =
+        [
+          for (final p in widget.squad.values)
+            if (p.position.isGoalkeeper == target.isGoalkeeper &&
+                (_all ||
+                    p.id == current.id ||
+                    fit.positionMultiplier(p, target) >= 0.9))
+              p,
+        ]..sort(
+          (a, b) =>
+              fit.slotScore(b, target).compareTo(fit.slotScore(a, target)),
+        );
 
     void pick(Player p) {
       final reason = absent[p.id];
@@ -1898,15 +1899,16 @@ class _BenchPicker extends ConsumerWidget {
     if (lineup == null) return const SizedBox.shrink();
     final sheet = lineup.sheet;
     final notifier = ref.read(lineupProvider.notifier);
-    final players = [
-      for (final p in squad.values)
-        if (!sheet.startingXi.contains(p.id)) p,
-    ]..sort((a, b) {
-        final ab = sheet.bench.contains(a.id) ? 0 : 1;
-        final bb = sheet.bench.contains(b.id) ? 0 : 1;
-        if (ab != bb) return ab.compareTo(bb);
-        return (strengths[b.id] ?? 0).compareTo(strengths[a.id] ?? 0);
-      });
+    final players =
+        [
+          for (final p in squad.values)
+            if (!sheet.startingXi.contains(p.id)) p,
+        ]..sort((a, b) {
+          final ab = sheet.bench.contains(a.id) ? 0 : 1;
+          final bb = sheet.bench.contains(b.id) ? 0 : 1;
+          if (ab != bb) return ab.compareTo(bb);
+          return (strengths[b.id] ?? 0).compareTo(strengths[a.id] ?? 0);
+        });
     return SafeArea(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -1955,9 +1957,7 @@ class _BenchPicker extends ConsumerWidget {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 4),
                           child: Material(
-                            color: on
-                                ? const Color(0xFF28503A)
-                                : Tokens.panel,
+                            color: on ? const Color(0xFF28503A) : Tokens.panel,
                             borderRadius: BorderRadius.circular(Tokens.radius),
                             child: InkWell(
                               key: ValueKey('benchpick-${p.id.value}'),
@@ -1985,9 +1985,7 @@ class _BenchPicker extends ConsumerWidget {
                                     ..showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          s.lineupBenchFull(
-                                            sheet.bench.length,
-                                          ),
+                                          s.lineupBenchFull(sheet.bench.length),
                                         ),
                                       ),
                                     );
@@ -2021,8 +2019,7 @@ class _BenchPicker extends ConsumerWidget {
                                                   : '${numbers[p.id]}  ${p.displayName}',
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
-                                              style:
-                                                  theme.textTheme.titleSmall,
+                                              style: theme.textTheme.titleSmall,
                                             ),
                                             Text(
                                               reason != null

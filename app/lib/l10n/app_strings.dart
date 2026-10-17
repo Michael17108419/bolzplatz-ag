@@ -2071,23 +2071,17 @@ class AppStringsDe implements AppStrings {
   String lineupAutoChanged(String names) =>
       '$names fällt aus, der Assistent hat umgestellt.';
   @override
-  String get lineupSwapKeeper =>
-      'Torwart und Feldspieler tauschen geht nicht.';
+  String get lineupSwapKeeper => 'Torwart und Feldspieler tauschen geht nicht.';
   @override
-  String get lineupPickerFit =>
-      'Passend';
+  String get lineupPickerFit => 'Passend';
   @override
-  String get lineupPickerAll =>
-      'Alle';
+  String get lineupPickerAll => 'Alle';
   @override
-  String get lineupPickerHere =>
-      'Spielt hier';
+  String get lineupPickerHere => 'Spielt hier';
   @override
-  String get lineupBenchDone =>
-      'Fertig';
+  String get lineupBenchDone => 'Fertig';
   @override
-  String lineupPickerPlaysOn(String position) =>
-      'Spielt auf $position';
+  String lineupPickerPlaysOn(String position) => 'Spielt auf $position';
   @override
   String lineupAbsentBlocked(String reason) =>
       'Der Spieler ist $reason und kann nicht spielen. Auch nicht, wenn du '

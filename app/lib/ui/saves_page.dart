@@ -201,9 +201,7 @@ class _SavesPageState extends ConsumerState<SavesPage> {
                         ),
                       ),
                     ] else
-                      Text(
-                        view.unreadable ? s.savesUnreadable : s.savesEmpty,
-                      ),
+                      Text(view.unreadable ? s.savesUnreadable : s.savesEmpty),
                   ],
                 ),
               ),
@@ -405,18 +403,18 @@ class _SavesPageState extends ConsumerState<SavesPage> {
                   ),
           ),
           if (!phone) ...[
-          const SizedBox(height: Tokens.gapM),
-          Row(
-            children: [
-              TextButton(
-                key: const ValueKey('saves-back'),
-                onPressed: _busy
-                    ? null
-                    : () => Navigator.of(context).maybePop(),
-                child: Text(s.back),
-              ),
-            ],
-          ),
+            const SizedBox(height: Tokens.gapM),
+            Row(
+              children: [
+                TextButton(
+                  key: const ValueKey('saves-back'),
+                  onPressed: _busy
+                      ? null
+                      : () => Navigator.of(context).maybePop(),
+                  child: Text(s.back),
+                ),
+              ],
+            ),
           ],
         ],
       ),

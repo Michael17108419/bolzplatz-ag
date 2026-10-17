@@ -55,16 +55,16 @@ class ScreenFrame extends StatelessWidget {
                     icon: const Icon(Icons.arrow_back),
                   )
                 : Padding(
-              padding: EdgeInsets.only(
-                left: compact ? Tokens.gapM : Tokens.gapL,
-              ),
-              child: SvgPicture.string(
-                bolzplatzLogoSvg,
-                key: const ValueKey('app-logo'),
-                alignment: Alignment.centerLeft,
-                semanticsLabel: 'Bolzplatz AG',
-              ),
-            ),
+                    padding: EdgeInsets.only(
+                      left: compact ? Tokens.gapM : Tokens.gapL,
+                    ),
+                    child: SvgPicture.string(
+                      bolzplatzLogoSvg,
+                      key: const ValueKey('app-logo'),
+                      alignment: Alignment.centerLeft,
+                      semanticsLabel: 'Bolzplatz AG',
+                    ),
+                  ),
             title: Text(
               title,
               style: compact
