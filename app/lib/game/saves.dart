@@ -47,7 +47,9 @@ class SaveData {
   });
 
   /// Bump when the format changes; older files are then refused with a hint.
-  static const int version = 1;
+  /// 2: engine 2 (zones, protocol, stoppage time) replays matches
+  /// differently, so saves of version 1 can not be continued.
+  static const int version = 2;
 
   factory SaveData.fromJson(Map<String, dynamic> m) {
     if (m['version'] != version) {
