@@ -350,6 +350,7 @@ class _Pitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final spots = slotPositions(formation);
+    final captain = captainOf(sheet, squad);
     return ClipRRect(
       borderRadius: BorderRadius.circular(Tokens.radius),
       child: LayoutBuilder(
@@ -379,6 +380,7 @@ class _Pitch extends StatelessWidget {
                     slot: formation.slots[i],
                     fit: preview.slotFits[i],
                     selected: selected == i,
+                    captain: captain == sheet.startingXi[i],
                     crestColour: crestColour,
                     today: today,
                     onTap: () => onSelect(i),
@@ -431,6 +433,7 @@ class _SlotView extends StatelessWidget {
     required this.crestColour,
     required this.today,
     required this.onTap,
+    this.captain = false,
     super.key,
   });
 
@@ -444,6 +447,9 @@ class _SlotView extends StatelessWidget {
   final int crestColour;
   final GameDate today;
   final VoidCallback onTap;
+
+  /// Wears the armband: a yellow "C" at the head.
+  final bool captain;
 
   @override
   Widget build(BuildContext context) {
@@ -570,6 +576,14 @@ class _SlotView extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (captain)
+                  Positioned(
+                    right: -8,
+                    bottom: 8,
+                    child: CaptainBadge(
+                      key: ValueKey('slot-captain-${player.id.value}'),
+                    ),
+                  ),
                 if (off)
                   Positioned(
                     left: -8,
@@ -1213,6 +1227,19 @@ Player _leader(List<Player> eleven) {
   }
   return best;
 }
+
+/// Who wears the armband with [sheet]: the named captain if he starts,
+/// else the leader of the eleven.
+PlayerId? captainOf(TeamSheet sheet, Map<PlayerId, Player> squad) {
+  final named = sheet.captain;
+  if (named != null && sheet.startingXi.contains(named)) return named;
+  final eleven = [
+    for (final id in sheet.startingXi)
+      if (squad[id] != null) squad[id]!,
+  ];
+  return eleven.isEmpty ? null : _leader(eleven).id;
+}
+
 
 class _SquadTab extends ConsumerWidget {
   const _SquadTab({

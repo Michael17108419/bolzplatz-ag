@@ -893,6 +893,7 @@ class _SubRow extends StatelessWidget {
     this.role,
     this.fits = false,
     this.selected = false,
+    this.captain = false,
     super.key,
   });
 
@@ -908,6 +909,9 @@ class _SubRow extends StatelessWidget {
   final String? role;
   final bool fits;
   final bool selected;
+
+  /// Wears the armband.
+  final bool captain;
 
   @override
   Widget build(BuildContext context) {
@@ -939,11 +943,24 @@ class _SubRow extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '$first${player.lastName}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              '$first${player.lastName}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall,
+                            ),
+                          ),
+                          if (captain) ...[
+                            const SizedBox(width: 6),
+                            CaptainBadge(
+                              key: ValueKey('match-sub-captain-${player.id.value}'),
+                              size: 16,
+                            ),
+                          ],
+                        ],
                       ),
                       Text(
                         [
@@ -1021,6 +1038,7 @@ List<Widget> _subRows({
         role: off ? session.roleOf(side, id) : null,
         fits: !off && want != null && p.position == want,
         selected: off && offId == id,
+        captain: off && session.captainOf(side) == id,
         strings: s,
         onTap: () => onTap(id),
       ),
@@ -1059,9 +1077,9 @@ class _SubsDialogState extends ConsumerState<_SubsDialog> {
 
     final String title;
     final List<Widget> body;
-    if (left <= 0) {
+    if (left <= 0 || !session.canSubstitute(widget.side)) {
       title = s.matchSubs;
-      body = [Text(s.matchSubNone)];
+      body = [Text(left <= 0 ? s.matchSubNone : s.matchSubNoWindow)];
     } else if (_off == null) {
       title = s.matchSubPickOff;
       body = _subRows(
@@ -1106,7 +1124,13 @@ class _SubsDialogState extends ConsumerState<_SubsDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(s.matchSubsLeft(left)),
+              Text(
+                s.matchSubsAndWindows(
+                  left,
+                  session.windowsLeft(widget.side),
+                  breakNow: session.inBreak,
+                ),
+              ),
               if (_note != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
@@ -1181,13 +1205,21 @@ class _SubsSheetState extends ConsumerState<_SubsSheet> {
                       style: theme.textTheme.titleMedium,
                     ),
                   ),
-                  Text(s.matchSubsLeft(left)),
+                  Text(
+                    s.matchSubsAndWindows(
+                      left,
+                      session.windowsLeft(widget.side),
+                      breakNow: session.inBreak,
+                    ),
+                  ),
                 ],
               ),
-              if (left <= 0)
+              if (left <= 0 || !session.canSubstitute(widget.side))
                 Padding(
                   padding: const EdgeInsets.only(top: Tokens.gapS),
-                  child: Text(s.matchSubNone),
+                  child: Text(
+                    left <= 0 ? s.matchSubNone : s.matchSubNoWindow,
+                  ),
                 )
               else ...[
                 const SizedBox(height: Tokens.gapS),

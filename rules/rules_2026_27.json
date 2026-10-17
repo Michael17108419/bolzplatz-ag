@@ -1822,6 +1822,9 @@
       "high": 80.0
     },
     "max_substitutions": 5,
+    "substitution_windows": 3,
+    "extra_time_extra_substitutions": 1,
+    "extra_time_extra_windows": 1,
     "bench_size_by_level": {"1": 9, "2": 9, "3": 9, "4": 7}
   },
   "match": {
@@ -2359,6 +2362,7 @@
   "season": {
     "injury_days_per_matchday": 7,
     "suspension_yellow_cards": 5,
+    "straight_red_ban_matches": 2,
     "form_win": 2.0,
     "form_loss": -2.0,
     "form_drift": 0.08,

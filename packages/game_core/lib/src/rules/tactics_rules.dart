@@ -145,6 +145,9 @@ class TacticsRules {
     required this.playerFitLow,
     required this.playerFitHigh,
     required this.maxSubstitutions,
+    required this.substitutionWindows,
+    required this.extraTimeExtraSubstitutions,
+    required this.extraTimeExtraWindows,
     required this.benchSizeByLevel,
   });
 
@@ -262,6 +265,9 @@ class TacticsRules {
       playerFitHigh: ((m['player_fit'] as Map<String, dynamic>)['high'] as num)
           .toDouble(),
       maxSubstitutions: m['max_substitutions'] as int,
+      substitutionWindows: m['substitution_windows'] as int,
+      extraTimeExtraSubstitutions: m['extra_time_extra_substitutions'] as int,
+      extraTimeExtraWindows: m['extra_time_extra_windows'] as int,
       benchSizeByLevel: _benchSizes(m['bench_size_by_level']),
       talks: List.unmodifiable((m['talks'] as List<dynamic>).cast<String>()),
     );
@@ -402,6 +408,14 @@ class TacticsRules {
   final double playerFitLow;
   final double playerFitHigh;
   final int maxSubstitutions;
+
+  /// Times a team may stop the game to substitute (IFAB Law 3); changes at
+  /// half time and before extra time do not count.
+  final int substitutionWindows;
+
+  /// Extra substitutions and windows in extra time (IFAB Law 3 option).
+  final int extraTimeExtraSubstitutions;
+  final int extraTimeExtraWindows;
 
   /// Number of substitutes in the match squad per league level (1 to 4).
   final Map<int, int> benchSizeByLevel;

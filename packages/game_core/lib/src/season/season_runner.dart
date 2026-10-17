@@ -279,9 +279,14 @@ class SeasonRunner {
         }
       }
       final key = e.player == null ? '' : '$comp:${e.player!.value}';
-      if (e.type == MatchEventType.secondYellow ||
-          e.type == MatchEventType.redCard) {
+      if (e.type == MatchEventType.secondYellow) {
         _bans[key] = math.max(_bans[key] ?? 0, 1);
+      }
+      if (e.type == MatchEventType.redCard) {
+        _bans[key] = math.max(
+          _bans[key] ?? 0,
+          rules.season.straightRedBanMatches,
+        );
       }
       if (e.type == MatchEventType.yellowCard ||
           e.type == MatchEventType.secondYellow) {

@@ -97,6 +97,8 @@ abstract interface class AppStrings {
   String get matchFinal;
   String get matchPaused;
   String matchSubsLeft(int n);
+  String get matchSubNoWindow;
+  String matchSubsAndWindows(int subs, int windows, {required bool breakNow});
   String get matchSubPickOff;
   String get matchSubPickOn;
   String matchSubStats(int energy, int form);
@@ -835,6 +837,18 @@ class AppStringsDe implements AppStrings {
   @override
   String matchSubsLeft(int n) => n == 1 ? 'Noch 1 Wechsel' : 'Noch $n Wechsel';
   @override
+  String get matchSubNoWindow =>
+      'Alle drei Wechselfenster sind verbraucht. Regel ist Regel, auch für '
+      'dich. Erst in der Pause oder vor der Verlängerung geht wieder was.';
+  @override
+  String matchSubsAndWindows(int subs, int windows, {required bool breakNow}) {
+    final changes = matchSubsLeft(subs);
+    if (breakNow) return '$changes · Pause, kostet kein Fenster';
+    return windows == 1
+        ? '$changes · 1 Fenster'
+        : '$changes · $windows Fenster';
+  }
+  @override
   String get matchSubPickOff => 'Wer geht raus?';
   @override
   String get matchSubPickOn => 'Wer kommt rein?';
@@ -942,9 +956,12 @@ class AppStringsDe implements AppStrings {
       '"Bis zum Ende" spielt den Rest sofort, ohne dass du noch eingreifst.';
   @override
   String get infoMatchSubs =>
-      'Fünf Wechsel pro Spiel. Wer rausgeht, kommt nicht wieder. Wer '
-      'verletzt rausmuss, wird vom Assistenten ersetzt und zählt als '
-      'Wechsel mit.';
+      'Fünf Wechsel pro Spiel, aber nur in drei Unterbrechungen. Mehrere '
+      'Wechsel auf einmal kosten ein Fenster, die Halbzeit kostet keins. In '
+      'der Verlängerung gibt es einen Wechsel und ein Fenster obendrauf. Wer '
+      'rausgeht, kommt nicht wieder. Wer verletzt rausmuss, wird vom '
+      'Assistenten ersetzt und zählt als Wechsel mit, sofern noch ein '
+      'Fenster frei ist.';
   @override
   String get infoMatchTactics =>
       'System und Regler kannst du im Spiel ändern. In den ersten Minuten '

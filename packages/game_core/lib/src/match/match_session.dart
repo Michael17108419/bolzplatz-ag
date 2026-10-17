@@ -33,6 +33,21 @@ class _Slot {
   /// Form on the day (engine 2): a factor around 1, smaller spread for
   /// consistent players.
   double dayForm = 1;
+
+  /// Means of attribute lists without tiredness, keyed by the list of the
+  /// rules (identity): they only change when the place changes.
+  final Map<Object, double> base = Map<Object, double>.identity();
+
+  /// Fit of the player in his role on this place, once computed.
+  double? fit;
+
+  /// Forgets the cached values after the place or role changed.
+  void reset() {
+    base.clear();
+    fit = null;
+    act = const [];
+    def = const [];
+  }
 }
 
 /// Who takes part in each zone, seen from one side (engine 2). Lists run
@@ -78,6 +93,11 @@ class _Side {
   final Map<PlayerId, int> entered = {};
   final Map<PlayerId, int> played = {};
   int subsUsed = 0;
+
+  /// Substitution windows used (IFAB Law 3) and the minute of the last one:
+  /// several changes in the same stoppage are one window.
+  int windowsUsed = 0;
+  int? windowMinute;
   int countedChanges = 0;
   int missing = 0;
   double momentum = 0;
@@ -93,6 +113,10 @@ class _Side {
 
   /// Captain of the match: named on the sheet or the leader of the eleven.
   PlayerId? captain;
+
+  /// System and slider effects need a new computation (players or tactics
+  /// changed); tiredness alone does not change them.
+  bool fxStale = true;
 }
 
 /// One match in progress. Call [advanceTo] to play minutes; between calls the
@@ -334,8 +358,42 @@ class MatchSession {
     return null;
   }
 
-  int substitutionsLeft(int side) =>
-      rules.tactics.maxSubstitutions - _sides[side].subsUsed;
+  int substitutionsLeft(int side) => _maxSubs - _sides[side].subsUsed;
+
+  /// Substitution windows left for [side]; changes in a break (half time,
+  /// before extra time) do not use one.
+  int windowsLeft(int side) => _maxWindows - _sides[side].windowsUsed;
+
+  /// True in a break of the match: before kick-off, at half time and
+  /// before extra time. Changes there use no window.
+  bool get inBreak =>
+      _minute == 0 ||
+      _minute == _m.halfTimeMinute ||
+      (_extraTime && _minute == _m.minutes);
+
+  /// True if [side] may substitute now: changes and a window left (or the
+  /// window of this stoppage is already open).
+  bool canSubstitute(int side) => !_finished && _canSub(_sides[side]);
+
+  int get _maxSubs =>
+      rules.tactics.maxSubstitutions +
+      (_extraTime ? rules.tactics.extraTimeExtraSubstitutions : 0);
+
+  int get _maxWindows =>
+      rules.tactics.substitutionWindows +
+      (_extraTime ? rules.tactics.extraTimeExtraWindows : 0);
+
+  bool _canSub(_Side side) =>
+      side.subsUsed < _maxSubs &&
+      (inBreak ||
+          side.windowMinute == _minute ||
+          side.windowsUsed < _maxWindows);
+
+  void _useWindow(_Side side) {
+    if (inBreak || side.windowMinute == _minute) return;
+    side.windowsUsed++;
+    side.windowMinute = _minute;
+  }
 
   // ---------------------------------------------------------------- setup
 
@@ -439,13 +497,18 @@ class MatchSession {
     Iterable<Attribute> attributes, {
     bool tired = true,
   }) {
+    final base = s.base[attributes] ??= _slotBase(side, s, attributes);
+    return tired ? base * _energyFactor(s) : base;
+  }
+
+  /// [_slotMean] without tiredness (the mean is linear in its factors).
+  double _slotBase(_Side side, _Slot s, Iterable<Attribute> attributes) {
     final tactics = rules.tactics;
     final role = s.role == null ? null : tactics.role(s.role!);
     final mult =
         _fit.positionMultiplier(s.player, s.position) *
         _formFactor(side, s.player) *
-        s.dayForm *
-        (tired ? _energyFactor(s) : 1.0);
+        s.dayForm;
     return _fit.meanAttributes(
       s.player,
       attributes,
@@ -483,7 +546,7 @@ class MatchSession {
     final tactics = rules.tactics;
     var fitSum = 0.0;
     for (final s in side.pitch) {
-      fitSum += _fit.playerFit(s.player, s.position, s.role);
+      fitSum += s.fit ??= _fit.playerFit(s.player, s.position, s.role);
     }
     final teamFit = side.pitch.isEmpty ? 0.0 : fitSum / side.pitch.length;
     final unsettled =
@@ -502,7 +565,10 @@ class MatchSession {
         ? 20
         : _slotMean(side, keeper.first, _m.keeperAttributes) * strength;
     side.ratings = ratings;
-    _effects(side);
+    if (side.fxStale) {
+      _effects(side);
+      side.fxStale = false;
+    }
   }
 
   /// Builds the zone tables of [side] from the players on the pitch now.
@@ -1726,9 +1792,10 @@ class MatchSession {
         (side.played[s.player.id] ?? 0) + _minute - s.since;
     side.pitch.remove(s);
     side.zones = null;
+    side.fxStale = true;
     _dirty = true;
     final wasKeeper = s.position.isGoalkeeper;
-    if (replace && side.subsUsed < rules.tactics.maxSubstitutions) {
+    if (replace && _canSub(side)) {
       final candidates = [
         for (final p in side.bench)
           if (p.position.isGoalkeeper == wasKeeper) p,
@@ -1746,7 +1813,7 @@ class MatchSession {
     side.missing++;
     if (wasKeeper) {
       final spare = side.bench.where((p) => p.position.isGoalkeeper);
-      if (spare.isNotEmpty && side.subsUsed < rules.tactics.maxSubstitutions) {
+      if (spare.isNotEmpty && _canSub(side)) {
         // Keeper comes on for the weakest outfield player.
         _Slot? weakest;
         var weakestScore = double.infinity;
@@ -1770,6 +1837,9 @@ class MatchSession {
         final field = side.pitch.last;
         field.position = Position.tw;
         field.role = null;
+        field.reset();
+        side.zones = null;
+        side.fxStale = true;
       }
     }
   }
@@ -1783,10 +1853,12 @@ class MatchSession {
   ) {
     final side = _sides[i];
     side.bench.remove(player);
+    _useWindow(side);
     side.subsUsed++;
     side.stats.substitutions++;
     side.pitch.add(_newSlot(side, player, position, role));
     side.zones = null;
+    side.fxStale = true;
     side.entered[player.id] = _minute;
     _add(MatchEventType.substitution, i, player: player, other: off);
     _dirty = true;
@@ -1803,7 +1875,7 @@ class MatchSession {
 
   bool _substitute(int side, PlayerId off, PlayerId on) {
     final s = _sides[side];
-    if (_finished || s.subsUsed >= rules.tactics.maxSubstitutions) return false;
+    if (_finished || !_canSub(s)) return false;
     final slot = s.pitch.where((x) => x.player.id == off).firstOrNull;
     final incoming = s.bench.where((p) => p.id == on).firstOrNull;
     if (slot == null || incoming == null) return false;
@@ -1844,6 +1916,7 @@ class MatchSession {
       tempo: tempo,
       defensiveLine: defensiveLine,
     );
+    s.fxStale = true;
     final free =
         _minute <= rules.tactics.warmupMinutes || _minute == _m.halfTimeMinute;
     if (!free) s.countedChanges++;
@@ -1853,7 +1926,7 @@ class MatchSession {
 
   void _assistant(_Side side) {
     final i = _sides.indexOf(side);
-    if (side.subsUsed >= rules.tactics.maxSubstitutions || side.bench.isEmpty) {
+    if (!_canSub(side) || side.bench.isEmpty) {
       return;
     }
     if (_minute >= _m.aiSubTiredMinute) {

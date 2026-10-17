@@ -207,3 +207,32 @@ class _CaretPainter extends CustomPainter {
   @override
   bool shouldRepaint(_CaretPainter old) => old.up != up;
 }
+
+/// The yellow "C" of the captain.
+class CaptainBadge extends StatelessWidget {
+  const CaptainBadge({super.key, this.size = 18});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: Tokens.yellow,
+      border: Border.all(color: Tokens.ink, width: 1.5),
+    ),
+    child: Text(
+      'C',
+      style: TextStyle(
+        fontFamily: Tokens.headlineFont,
+        fontSize: size * 0.62,
+        height: 1,
+        fontWeight: FontWeight.w900,
+        color: Tokens.ink,
+      ),
+    ),
+  );
+}

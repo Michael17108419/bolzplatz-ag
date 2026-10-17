@@ -65,6 +65,7 @@ class SeasonRules {
   const SeasonRules({
     required this.injuryDaysPerMatchday,
     required this.suspensionYellowCards,
+    required this.straightRedBanMatches,
     required this.formWin,
     required this.formLoss,
     required this.formDrift,
@@ -75,6 +76,7 @@ class SeasonRules {
   factory SeasonRules.fromJson(Map<String, dynamic> m) => SeasonRules(
     injuryDaysPerMatchday: (m['injury_days_per_matchday'] as num).toDouble(),
     suspensionYellowCards: m['suspension_yellow_cards'] as int,
+    straightRedBanMatches: m['straight_red_ban_matches'] as int,
     formWin: (m['form_win'] as num).toDouble(),
     formLoss: (m['form_loss'] as num).toDouble(),
     formDrift: (m['form_drift'] as num).toDouble(),
@@ -85,6 +87,10 @@ class SeasonRules {
   /// One matchday stands for this many days of recovery.
   final double injuryDaysPerMatchday;
   final int suspensionYellowCards;
+
+  /// Matches banned after a straight red card (DFB: at least two, the
+  /// sports court decides; yellow-red is one match).
+  final int straightRedBanMatches;
   final double formWin;
   final double formLoss;
   final double formDrift;
