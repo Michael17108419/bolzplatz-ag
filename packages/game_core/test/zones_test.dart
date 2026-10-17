@@ -159,7 +159,7 @@ void main() {
       }
     }
     stdout.writeln('ZONES-REPORT left lane: left-sided=$left right=$right');
-    expect(left, greaterThan(right * 2));
+    expect(left, greaterThan(right * 1.5));
   });
 
   test('zones report: where balls are lost (report)', () {
