@@ -646,13 +646,6 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                   key: const ValueKey('match-minute'),
                   style: theme.textTheme.titleMedium,
                 ),
-                if (!_done && !_running && !_pausedByEvent) ...[
-                  const SizedBox(width: Tokens.gapS),
-                  Text(
-                    '${_session.minute}\'',
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ],
               ],
             ),
             if (phone) ...[
