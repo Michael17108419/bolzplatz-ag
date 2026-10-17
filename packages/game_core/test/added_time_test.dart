@@ -111,7 +111,8 @@ void main() {
       for (final e in r.events) {
         if (e.type != MatchEventType.timeWasting) continue;
         wasted++;
-        expect(e.minute, greaterThanOrEqualTo(rules.match.timeWasting.fromMinute));
+        final from = rules.match.timeWasting.fromMinute;
+        expect(e.minute, greaterThanOrEqualTo(from));
         final lead = e.side == 0
             ? e.homeGoals - e.awayGoals
             : e.awayGoals - e.homeGoals;
