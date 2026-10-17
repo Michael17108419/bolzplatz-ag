@@ -6,6 +6,7 @@ import '../game/lineup.dart';
 import '../game/squad.dart';
 import '../game/stats.dart';
 import '../game/ticker.dart';
+import 'reporter_strings.dart';
 
 /// All texts of the user interface. A screen asks this interface and never
 /// holds a literal; another language is one more implementation.
@@ -149,6 +150,9 @@ abstract interface class AppStrings {
   String matchInjuryLine(int days);
   String get infoMatchReport;
   List<String> tickerTemplates(TickerKind kind);
+
+  /// The texts of the radio reporter (step 10d2).
+  ReporterStrings get reporter;
 
   /// Short sentence before a shot that tells the build-up ({q} is the last
   /// player on the ball), by action id of the rules; empty for none.
@@ -1034,6 +1038,8 @@ class AppStringsDe implements AppStrings {
       'Verletzte und Gesperrte fehlen im nächsten Spiel und stehen im '
       'Kader und in der Aufstellung markiert.';
   @override
+  ReporterStrings get reporter => const ReporterStringsDe();
+  @override
   List<String> tickerTemplates(TickerKind kind) => switch (kind) {
     TickerKind.kickOff => const [
       'Anpfiff! {home} gegen {away}. Möge der Bessere gewinnen – oder '
@@ -1173,6 +1179,12 @@ class AppStringsDe implements AppStrings {
       'Der Schiri zählt beim Einwurf runter, {p} zählt nicht mit. Ballbesitz '
           '{opp}.',
     ],
+    // The radio reporter has its own texts (reporter_strings.dart).
+    TickerKind.play ||
+    TickerKind.shotUp ||
+    TickerKind.freeKick ||
+    TickerKind.colour ||
+    TickerKind.calm => const [],
     TickerKind.captainOff => const [
       '{p} verlässt den Platz, die Kapitänsbinde wandert weiter.',
       'Ohne {p} fehlt {team} die Stimme auf dem Platz. Wer redet jetzt mit '

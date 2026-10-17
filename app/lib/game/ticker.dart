@@ -48,7 +48,25 @@ enum TickerKind {
 
   /// The captain leaves the pitch (substitution, injury, sending-off).
   captainOff,
+
+  /// Lines only the radio reporter writes (step 10d2): a step of an attack,
+  /// the moment before the shot, a free kick, colour (memory, wit, what a
+  /// goal means) and a line for a quiet phase.
+  play,
+  shotUp,
+  freeKick,
+  colour,
+  calm,
 }
+
+/// The kinds only the reporter writes; the plain ticker has no texts for them.
+const reporterOnlyKinds = {
+  TickerKind.play,
+  TickerKind.shotUp,
+  TickerKind.freeKick,
+  TickerKind.colour,
+  TickerKind.calm,
+};
 
 /// The symbol before a highlight; plain story lines have none.
 enum TickerSymbol {
@@ -102,6 +120,7 @@ TickerWeight _weightOf(TickerKind kind) => switch (kind) {
   TickerKind.halfTime ||
   TickerKind.fullTime ||
   TickerKind.captainOff ||
+  TickerKind.shotUp ||
   TickerKind.keeperEightSeconds ||
   TickerKind.goalKickCountdown => TickerWeight.normal,
   _ => TickerWeight.light,
@@ -316,9 +335,9 @@ List<TickerLine> tickerLinesOf(
 Duration readingTime(TickerLine line, int speed) {
   const factor = [1.0, 0.6, 0.3];
   final ms = switch (line.weight) {
-    TickerWeight.heavy => 2200,
-    TickerWeight.normal => 1200,
-    TickerWeight.light => 500,
+    TickerWeight.heavy => 2400,
+    TickerWeight.normal => 1500,
+    TickerWeight.light => 900,
   };
   return Duration(milliseconds: (ms * factor[speed.clamp(0, 2)]).round());
 }

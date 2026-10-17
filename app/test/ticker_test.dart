@@ -72,6 +72,7 @@ void main() {
     };
     final placeholder = RegExp(r'\{[a-z]+\}');
     for (final kind in TickerKind.values) {
+      if (reporterOnlyKinds.contains(kind)) continue;
       final texts = s.tickerTemplates(kind);
       expect(texts, isNotEmpty, reason: kind.name);
       for (final t in texts) {

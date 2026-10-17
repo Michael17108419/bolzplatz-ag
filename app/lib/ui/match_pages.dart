@@ -8,6 +8,7 @@ import '../game/career.dart';
 import '../game/lineup.dart';
 import '../game/loaded_world.dart';
 import '../game/office_provider.dart';
+import '../game/reporter.dart';
 import '../game/saves.dart';
 import '../game/settings.dart';
 import '../game/season_game.dart';
@@ -224,7 +225,20 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
   int _view = 0;
   late final LoadedWorld _loaded;
   late final int _ownSide;
+  late final Reporter _reporter;
   final List<TickerLine> _lines = [];
+
+  /// Lines of the reporter still to be shown, one after the other with a
+  /// pause each (a scene: build-up, shot, the end).
+  final List<TickerLine> _queue = [];
+
+  /// An event that stops the match came in: stop once its lines are shown.
+  bool _stopAfterQueue = false;
+
+  /// The score of the newest line shown: while a scene is told the board
+  /// does not give the goal away.
+  int _shownHome = 0;
+  int _shownAway = 0;
   int _seen = 0;
   // Slow is the default: the ticker should be readable.
   int _speed = 0;
@@ -233,6 +247,9 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
   bool _running = true;
   bool _pausedByEvent = false;
   bool _done = false;
+
+  /// The match is over and the reporter has said everything.
+  bool get _over => _done && _queue.isEmpty;
   bool _shootoutShown = false;
   Timer? _timer;
 
@@ -249,6 +266,20 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     _loaded = ref.read(loadedWorldProvider).value!;
     _ownSide = _own.fixture.home == game.clubId ? 0 : 1;
     _speed = ref.read(tickerSpeedProvider);
+    final home = _loaded.club(_own.fixture.home);
+    final league = _loaded.world.leagues
+        .where((l) => l.id == home.leagueId)
+        .firstOrNull;
+    _reporter = Reporter(
+      strings: ref.read(stringsProvider).reporter,
+      ownSide: _ownSide,
+      home: home.name,
+      away: _clubName(_loaded, _own.fixture.away),
+      playerName: (id) => _shortName(_loaded, id),
+      player: _loaded.player,
+      captainOf: _session.captainOf,
+      tier: league?.level ?? 1,
+    );
     // A saved match that was under way waits paused, so nothing happens
     // before the player is back.
     final notifier = ref.read(seasonProvider.notifier);
@@ -269,21 +300,8 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
 
   void _startTimer([Duration? wait]) {
     _timer?.cancel();
-    if (!_running || _done) return;
+    if (!_running || _over) return;
     _timer = Timer(wait ?? _speeds[_speed], _tick);
-  }
-
-  /// Lines that came in with the last minute: the next minute waits until
-  /// they can be read (big moments longer, quiet minutes fast).
-  final List<TickerLine> _fresh = [];
-
-  Duration get _wait {
-    var wait = _speeds[_speed];
-    for (final line in _fresh) {
-      wait += readingTime(line, _speed);
-    }
-    const most = Duration(seconds: 7);
-    return wait > most ? most : wait;
   }
 
   void _stopTimer() {
@@ -310,8 +328,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
         final s = ref.read(stringsProvider);
         final score = _session.shootoutScore();
         final fixture = _own.fixture;
-        _lines.insert(
-          0,
+        _show(
           TickerLine(
             minute: _session.clock,
             kind: TickerKind.shootout,
@@ -331,68 +348,99 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
   }
 
   bool _readEvents() {
-    final s = ref.read(stringsProvider);
     final events = _session.events;
     var stop = false;
     for (; _seen < events.length; _seen++) {
       final e = events[_seen];
-      final lines = tickerLinesOf(
-        e,
-        _seen,
-        templates: s.tickerTemplates,
-        playerName: (id) => _shortName(_loaded, id),
-        home: _clubName(_loaded, _own.fixture.home),
-        away: _clubName(_loaded, _own.fixture.away),
-        lead: s.tickerLead,
-        captainOf: _session.captainOf,
-      );
-      // Newest on top; a goal keeps its scorer and assist lines below it.
-      _lines.insertAll(0, lines);
-      if (_live) _fresh.addAll(lines);
-      if (_live &&
-          lines.isNotEmpty &&
-          lines.first.isGoal &&
-          lines.first.side == _ownSide &&
-          ref.read(vibrationProvider)) {
-        unawaited(buzz());
+      for (final line in _reporter.linesOf(e, _seen)) {
+        _show(line);
       }
       if (pausesMatch(e)) stop = true;
     }
     return stop;
   }
 
+  /// A line of the reporter: while the match runs live it waits in the
+  /// queue for its turn, otherwise (reading in, paused, skipped) it goes
+  /// straight to the top of the ticker.
+  void _show(TickerLine line) {
+    if (_live && _running) {
+      _queue.add(line);
+    } else {
+      _put(line);
+    }
+  }
+
+  /// Puts a line on top of the ticker (newest first); a goal of the own
+  /// club buzzes.
+  void _put(TickerLine line) {
+    _lines.insert(0, line);
+    if (line.kind != TickerKind.shootout) {
+      _shownHome = line.homeGoals;
+      _shownAway = line.awayGoals;
+    }
+    if (_live &&
+        line.isGoal &&
+        line.side == _ownSide &&
+        ref.read(vibrationProvider)) {
+      unawaited(buzz());
+    }
+  }
+
+  /// Shows the waiting lines at once (pause, skip, a change).
+  void _flush() {
+    for (final line in _queue) {
+      _put(line);
+    }
+    _queue.clear();
+  }
+
+  /// One beat of the live match: the next waiting line of the reporter,
+  /// or, with none waiting, the next minute.
   void _tick() {
-    if (_done) {
-      _stopTimer();
-      return;
+    if (_queue.isEmpty && !_done) {
+      _session.advanceTo(_session.minute + 1);
+      if (_ingest()) _stopAfterQueue = true;
+      final quiet = _reporter.quiet(
+        _session.minute,
+        _session.clock,
+        _session.clockLabel,
+      );
+      if (quiet != null) _queue.add(quiet);
+      // Every quarter of an hour of the match the game is saved.
+      if (_session.minute % 15 == 0) {
+        unawaited(ref.read(saveServiceProvider).autosave());
+      }
     }
-    _fresh.clear();
-    _session.advanceTo(_session.minute + 1);
-    final stop = _ingest();
-    // Every quarter of an hour of the match the game is saved.
-    if (_session.minute % 15 == 0) {
-      unawaited(ref.read(saveServiceProvider).autosave());
+    var wait = _speeds[_speed];
+    if (_queue.isNotEmpty) {
+      final line = _queue.removeAt(0);
+      _put(line);
+      wait += readingTime(line, _speed);
     }
-    if (_done) {
-      _stopTimer();
-    } else if (stop) {
+    if (_queue.isEmpty && _stopAfterQueue) {
+      _stopAfterQueue = false;
       _running = false;
       _pausedByEvent = true;
       _stopTimer();
+    } else if (_queue.isEmpty && _done) {
+      _stopTimer();
     } else {
-      _startTimer(_wait);
+      _startTimer(wait);
     }
     setState(() {});
   }
 
   void _pause() {
     _running = false;
+    _stopAfterQueue = false;
+    _flush();
     _stopTimer();
     setState(() {});
   }
 
   void _resume() {
-    if (_done) return;
+    if (_over) return;
     _running = true;
     _pausedByEvent = false;
     _startTimer();
@@ -401,6 +449,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
 
   void _skip() {
     _stopTimer();
+    _flush();
     _live = false;
     if (_cup) {
       _session.finishKnockout();
@@ -622,7 +671,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     final subsLeft = _session.substitutionsLeft(_ownSide);
 
     return PopScope(
-      canPop: _done,
+      canPop: _over,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         ScaffoldMessenger.of(context)
@@ -644,7 +693,9 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: Tokens.gapM),
                   child: Text(
-                    '${_session.homeGoals} : ${_session.awayGoals}',
+                    _queue.isEmpty
+                        ? '${_session.homeGoals} : ${_session.awayGoals}'
+                        : '$_shownHome : $_shownAway',
                     key: const ValueKey('match-score'),
                     style: phone
                         ? theme.textTheme.displaySmall
@@ -659,7 +710,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  _done
+                  _over
                       ? s.matchFinal
                       : _pausedByEvent
                       ? s.matchPaused
@@ -676,7 +727,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                 child: LinearProgressIndicator(
                   key: const ValueKey('match-progress'),
                   minHeight: 6,
-                  value: (_done ? 90 : _session.clock.clamp(0, 90)) / 90,
+                  value: (_over ? 90 : _session.clock.clamp(0, 90)) / 90,
                   color: Tokens.yellow,
                   backgroundColor: Tokens.panel,
                 ),
@@ -710,7 +761,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                       strings: s,
                       ownLeague: game.ownLeague,
                       ownClub: game.clubId,
-                      ownDone: _done,
+                      ownDone: _over,
                     )
                   : DecoratedBox(
                       decoration: BoxDecoration(
@@ -734,7 +785,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                     ),
             ),
             const SizedBox(height: Tokens.gapS),
-            if (_done)
+            if (_over)
               Align(
                 alignment: Alignment.centerRight,
                 child: FilledButton(
