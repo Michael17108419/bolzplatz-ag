@@ -123,6 +123,6 @@ void main() {
       card(MatchEventType.redCard, 3),
       card(MatchEventType.redCard, 4),
     ];
-    expect(countedYellowCards(events), [PlayerId(1)]);
+    expect(countedYellowCards(events), [const PlayerId(1)]);
   });
 }
