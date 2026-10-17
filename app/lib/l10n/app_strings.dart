@@ -340,6 +340,10 @@ abstract interface class AppStrings {
   String systemHint(String id);
   String get lineupSliders;
   String get infoLineupSliders;
+  String get lineupCaptain;
+  String get infoLineupCaptain;
+  String get lineupCaptainAuto;
+  String lineupCaptainAutoIs(String name);
   String sliderName(String id);
   String sliderLevelName(String id, int level);
   String get lineupPreview;
@@ -1971,6 +1975,19 @@ class AppStringsDe implements AppStrings {
   };
   @override
   String get lineupSliders => 'Regler';
+  @override
+  String get lineupCaptain => 'Kapitän';
+  @override
+  String get infoLineupCaptain =>
+      'Der Kapitän trägt die Binde und hält den Laden zusammen. Ein echter '
+      'Anführer fängt die Mannschaft nach einem Gegentor auf. Fliegt er vom '
+      'Platz oder sitzt draußen, wackelt der Haufen sichtbar. Lässt du das '
+      'Feld leer, nimmt der Assistent den mit der größten Klappe in der Kabine.';
+  @override
+  String get lineupCaptainAuto => 'Assistent';
+  @override
+  String lineupCaptainAutoIs(String name) =>
+      'Ohne deine Wahl trägt $name die Binde.';
   @override
   String get infoLineupSliders =>
       'Drei Regler, drei Stufen. Hohes Pressing und hohes Tempo kosten '

@@ -408,6 +408,97 @@ class CounterRules {
   double chanceFor(String systemId) => systemChance[systemId] ?? chance;
 }
 
+/// How hidden character traits work in the match (engine 2). A trait
+/// counts as (value - [reference]) / [scale], limited to -1 and 1.
+class CharacterMatchRules {
+  const CharacterMatchRules(this._v);
+
+  factory CharacterMatchRules.fromJson(Map<String, dynamic> m) {
+    const keys = [
+      'reference',
+      'scale',
+      'egoism_self_shot',
+      'egoism_long_shot',
+      'creativity_through_ball',
+      'creativity_risk',
+      'creativity_big_chance',
+      'aggression_duel',
+      'card_traits_weight',
+      'card_team_weight',
+      'red_temper_weight',
+      'pressure_from_minute',
+      'pressure_max_diff',
+      'pressure_duel',
+      'pressure_goal',
+      'pressure_penalty',
+      'leadership_momentum',
+      'missing_captain_momentum',
+      'ambition_trailing',
+      'day_form_spread',
+      'consistency_effect',
+      'party_energy',
+    ];
+    final v = <String, double>{};
+    for (final k in keys) {
+      final raw = m[k];
+      if (raw is! num) throw RulesError('match.character.$k is missing');
+      v[k] = raw.toDouble();
+    }
+    if (v['scale']! <= 0) {
+      throw const RulesError('match.character.scale must be positive');
+    }
+    if (v['day_form_spread']! < 0 || v['day_form_spread']! > 0.3) {
+      throw const RulesError('match.character.day_form_spread 0 to 0.3');
+    }
+    return CharacterMatchRules(Map.unmodifiable(v));
+  }
+
+  final Map<String, double> _v;
+
+  double get reference => _v['reference']!;
+  double get scale => _v['scale']!;
+
+  /// Weight of an egoist to shoot himself instead of passing.
+  double get egoismSelfShot => _v['egoism_self_shot']!;
+  double get egoismLongShot => _v['egoism_long_shot']!;
+  double get creativityThroughBall => _v['creativity_through_ball']!;
+
+  /// Creative passes fail more often ...
+  double get creativityRisk => _v['creativity_risk']!;
+
+  /// ... but lead to big chances more often.
+  double get creativityBigChance => _v['creativity_big_chance']!;
+  double get aggressionDuel => _v['aggression_duel']!;
+  double get cardTraitsWeight => _v['card_traits_weight']!;
+
+  /// A team of hotheads collects more yellow cards.
+  double get cardTeamWeight => _v['card_team_weight']!;
+  double get redTemperWeight => _v['red_temper_weight']!;
+
+  /// Pressure moments: from this minute when the score is close (or in
+  /// extra time), and every penalty.
+  int get pressureFromMinute => _v['pressure_from_minute']!.round();
+  int get pressureMaxDiff => _v['pressure_max_diff']!.round();
+  double get pressureDuel => _v['pressure_duel']!;
+  double get pressureGoal => _v['pressure_goal']!;
+  double get pressurePenalty => _v['pressure_penalty']!;
+
+  /// A strong captain softens the blow of a goal against.
+  double get leadershipMomentum => _v['leadership_momentum']!;
+
+  /// Extra blow when the captain is no longer on the pitch.
+  double get missingCaptainMomentum => _v['missing_captain_momentum']!;
+  double get ambitionTrailing => _v['ambition_trailing']!;
+
+  /// Spread of the form on the day (plus or minus); consistent players
+  /// vary less.
+  double get dayFormSpread => _v['day_form_spread']!;
+  double get consistencyEffect => _v['consistency_effect']!;
+
+  /// Energy points a party animal lacks at kick-off.
+  double get partyEnergy => _v['party_energy']!;
+}
+
 /// Numbers of the match simulation, read from the `match` section.
 class MatchRules {
   const MatchRules({
@@ -495,6 +586,7 @@ class MatchRules {
     required this.zones,
     required this.actions,
     required this.counter,
+    required this.character,
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -673,6 +765,9 @@ class MatchRules {
       zones: ZoneRules.fromJson(m['zones'] as Map<String, dynamic>),
       actions: ActionRules.fromJson(m['actions'] as Map<String, dynamic>),
       counter: CounterRules.fromJson(m['counter'] as Map<String, dynamic>),
+      character: CharacterMatchRules.fromJson(
+        m['character'] as Map<String, dynamic>,
+      ),
     );
     result._validate();
     return result;
@@ -835,4 +930,7 @@ class MatchRules {
 
   /// Counter attacks (engine 2).
   final CounterRules counter;
+
+  /// Character traits in the match (engine 2).
+  final CharacterMatchRules character;
 }

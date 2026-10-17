@@ -273,6 +273,17 @@ class LineupNotifier extends Notifier<LineupState?> {
     _set(now.sheet.copyWith(slotRoles: roles));
   }
 
+  /// Names the captain; null lets the assistant choose (most leadership).
+  void setCaptain(PlayerId? id) {
+    final now = state;
+    if (now == null) return;
+    _set(
+      id == null
+          ? now.sheet.copyWith(clearCaptain: true)
+          : now.sheet.copyWith(captain: id),
+    );
+  }
+
   void setSystem(String id) {
     final now = state;
     if (now == null) return;

@@ -12,6 +12,7 @@ class TeamSheet {
     this.pressing = 1,
     this.tempo = 1,
     this.defensiveLine = 1,
+    this.captain,
   }) : startingXi = List.unmodifiable(startingXi),
        slotRoles = List.unmodifiable(
          slotRoles ?? List<String?>.filled(startingXi.length, null),
@@ -40,6 +41,7 @@ class TeamSheet {
       pressing: m['pressing'] as int,
       tempo: m['tempo'] as int,
       defensiveLine: m['line'] as int,
+      captain: m['captain'] == null ? null : PlayerId(m['captain'] as int),
     );
   }
 
@@ -53,6 +55,7 @@ class TeamSheet {
     'pressing': pressing,
     'tempo': tempo,
     'line': defensiveLine,
+    if (captain != null) 'captain': captain!.value,
   };
 
   final String formationId;
@@ -70,6 +73,10 @@ class TeamSheet {
   final int tempo;
   final int defensiveLine;
 
+  /// The captain named by the manager, or null: then the player with the
+  /// most leadership in the starting eleven wears the armband.
+  final PlayerId? captain;
+
   TeamSheet copyWith({
     String? formationId,
     String? systemId,
@@ -79,6 +86,8 @@ class TeamSheet {
     int? pressing,
     int? tempo,
     int? defensiveLine,
+    PlayerId? captain,
+    bool clearCaptain = false,
   }) {
     return TeamSheet(
       formationId: formationId ?? this.formationId,
@@ -89,6 +98,7 @@ class TeamSheet {
       pressing: pressing ?? this.pressing,
       tempo: tempo ?? this.tempo,
       defensiveLine: defensiveLine ?? this.defensiveLine,
+      captain: clearCaptain ? null : captain ?? this.captain,
     );
   }
 }

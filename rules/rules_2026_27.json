@@ -2264,6 +2264,31 @@
       "disorder_steps": 2,
       "ability_bonus": 0.1
     },
+    "character": {
+      "note": "Hidden character traits in the match (engine 2, step 10c). A trait counts as (value - reference) / scale, from -1 to 1.",
+      "reference": 50.0,
+      "scale": 50.0,
+      "egoism_self_shot": 0.8,
+      "egoism_long_shot": 0.6,
+      "creativity_through_ball": 0.5,
+      "creativity_risk": 0.06,
+      "creativity_big_chance": 0.4,
+      "aggression_duel": 0.05,
+      "card_traits_weight": 0.6,
+      "card_team_weight": 0.5,
+      "red_temper_weight": 1.0,
+      "pressure_from_minute": 75,
+      "pressure_max_diff": 1,
+      "pressure_duel": 0.06,
+      "pressure_goal": 0.08,
+      "pressure_penalty": 0.12,
+      "leadership_momentum": 0.4,
+      "missing_captain_momentum": 0.25,
+      "ambition_trailing": 0.05,
+      "day_form_spread": 0.05,
+      "consistency_effect": 0.8,
+      "party_energy": 8.0
+    },
     "team_rating": {
       "build": {
         "positions": [

@@ -1068,6 +1068,8 @@ class _TacticsTab extends ConsumerWidget {
     final sheet = lineup.sheet;
     final notifier = ref.read(lineupProvider.notifier);
     final eleven = [for (final id in sheet.startingXi) squad[id]!];
+    final named =
+        sheet.captain != null && sheet.startingXi.contains(sheet.captain);
     final systemFit = SystemFit(loaded.rules);
     final levels = {
       'pressing': sheet.pressing,
@@ -1154,6 +1156,34 @@ class _TacticsTab extends ConsumerWidget {
               ],
             ),
           ),
+        head(s.lineupCaptain, s.infoLineupCaptain),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            ChoiceChip(
+              key: const ValueKey('lineup-captain-auto'),
+              label: Text(s.lineupCaptainAuto),
+              selected: !named,
+              onSelected: (_) => notifier.setCaptain(null),
+            ),
+            for (final p in eleven)
+              ChoiceChip(
+                key: ValueKey('lineup-captain-${p.id.value}'),
+                label: Text(p.lastName),
+                selected: named && sheet.captain == p.id,
+                onSelected: (_) => notifier.setCaptain(p.id),
+              ),
+          ],
+        ),
+        if (!named && eleven.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              s.lineupCaptainAutoIs(_leader(eleven).lastName),
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
         const SizedBox(height: Tokens.gapM),
         Align(
           alignment: Alignment.centerLeft,
@@ -1169,6 +1199,19 @@ class _TacticsTab extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// The player of [eleven] with the most leadership: the captain when the
+/// manager names none (the match engine picks the same one).
+Player _leader(List<Player> eleven) {
+  var best = eleven.first;
+  for (final p in eleven) {
+    if ((p.traits[CharacterTrait.leadership] ?? 0) >
+        (best.traits[CharacterTrait.leadership] ?? 0)) {
+      best = p;
+    }
+  }
+  return best;
 }
 
 class _SquadTab extends ConsumerWidget {
