@@ -17,7 +17,9 @@ class _Line {
   final int home;
   final int away;
   final _Status status;
-  final int minute;
+
+  /// The clock of the match: "67" or "90+3".
+  final String minute;
 }
 
 /// The conference of one day: all league matches that run now, with live
@@ -74,17 +76,17 @@ class _ConferenceViewState extends State<ConferenceView> {
         session.homeGoals,
         session.awayGoals,
         status,
-        session.minute,
+        session.clockLabel,
       );
     }
     final elapsed = _now - m.minuteOfDay;
-    if (elapsed < 0) return _Line(m, 0, 0, _Status.notStarted, 0);
+    if (elapsed < 0) return _Line(m, 0, 0, _Status.notStarted, '0');
     final r = m.finalResult!;
     if (elapsed >= m.lengthMinutes) {
-      return _Line(m, r.homeGoals, r.awayGoals, _Status.finished, elapsed);
+      return _Line(m, r.homeGoals, r.awayGoals, _Status.finished, '');
     }
     final (h, a) = m.scoreAt(elapsed);
-    return _Line(m, h, a, _Status.running, elapsed);
+    return _Line(m, h, a, _Status.running, m.clockAt(elapsed) ?? '0');
   }
 
   String _leagueTitle(LeagueId id) {

@@ -499,6 +499,89 @@ class CharacterMatchRules {
   double get partyEnergy => _v['party_energy']!;
 }
 
+/// Stoppage time (IFAB Law 7), from what happened in a half.
+class AddedTimeRules {
+  const AddedTimeRules({
+    required this.expected,
+    required this.firstHalfBase,
+    required this.secondHalfBase,
+    required this.extraTimeBase,
+    required this.perGoal,
+    required this.perSubstitution,
+    required this.perInjury,
+    required this.perCard,
+    required this.perTimeWasting,
+    required this.random,
+    required this.max,
+  });
+
+  factory AddedTimeRules.fromJson(Map<String, dynamic> m) {
+    final r = AddedTimeRules(
+      expected: _d(m['expected']),
+      firstHalfBase: _d(m['first_half_base']),
+      secondHalfBase: _d(m['second_half_base']),
+      extraTimeBase: _d(m['extra_time_base']),
+      perGoal: _d(m['per_goal']),
+      perSubstitution: _d(m['per_substitution']),
+      perInjury: _d(m['per_injury']),
+      perCard: _d(m['per_card']),
+      perTimeWasting: _d(m['per_time_wasting']),
+      random: _d(m['random']),
+      max: (m['max'] as num).toInt(),
+    );
+    if (r.expected < 0 || r.max < 0) {
+      throw const RulesError('match.added_time must not be negative');
+    }
+    return r;
+  }
+
+  /// Mean stoppage time of a match in minutes; per-minute rates of the
+  /// match are scaled with minutes / (minutes + expected).
+  final double expected;
+  final double firstHalfBase;
+  final double secondHalfBase;
+  final double extraTimeBase;
+  final double perGoal;
+  final double perSubstitution;
+  final double perInjury;
+  final double perCard;
+  final double perTimeWasting;
+
+  /// Random part (0 to this many minutes).
+  final double random;
+  final int max;
+}
+
+/// Delays punished by the Laws of the Game (engine 2): the keeper holding
+/// the ball over eight seconds and the countdown at throw-ins and goal
+/// kicks. Chances per minute for a leading team from [fromMinute] on.
+class TimeWastingRules {
+  const TimeWastingRules({
+    required this.fromMinute,
+    required this.keeperEightSeconds,
+    required this.goalKickCountdown,
+    required this.throwInCountdown,
+    required this.instructionFactor,
+  });
+
+  factory TimeWastingRules.fromJson(Map<String, dynamic> m) =>
+      TimeWastingRules(
+        fromMinute: (m['from_minute'] as num).toInt(),
+        keeperEightSeconds: _d(m['keeper_eight_seconds']),
+        goalKickCountdown: _d(m['goal_kick_countdown']),
+        throwInCountdown: _d(m['throw_in_countdown']),
+        instructionFactor: _d(m['instruction_factor']),
+      );
+
+  final int fromMinute;
+  final double keeperEightSeconds;
+  final double goalKickCountdown;
+  final double throwInCountdown;
+
+  /// Factor for a team told to waste time (individual instruction, 10g).
+  final double instructionFactor;
+}
+
 /// Numbers of the match simulation, read from the `match` section.
 class MatchRules {
   const MatchRules({
@@ -587,6 +670,8 @@ class MatchRules {
     required this.actions,
     required this.counter,
     required this.character,
+    required this.addedTime,
+    required this.timeWasting,
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -768,6 +853,12 @@ class MatchRules {
       character: CharacterMatchRules.fromJson(
         m['character'] as Map<String, dynamic>,
       ),
+      addedTime: AddedTimeRules.fromJson(
+        m['added_time'] as Map<String, dynamic>,
+      ),
+      timeWasting: TimeWastingRules.fromJson(
+        m['time_wasting'] as Map<String, dynamic>,
+      ),
     );
     result._validate();
     return result;
@@ -933,4 +1024,10 @@ class MatchRules {
 
   /// Character traits in the match (engine 2).
   final CharacterMatchRules character;
+
+  /// Stoppage time (engine 2).
+  final AddedTimeRules addedTime;
+
+  /// Time wasting punished by the Laws (engine 2).
+  final TimeWastingRules timeWasting;
 }

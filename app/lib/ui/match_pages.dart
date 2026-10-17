@@ -267,10 +267,23 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     super.dispose();
   }
 
-  void _startTimer() {
+  void _startTimer([Duration? wait]) {
     _timer?.cancel();
     if (!_running || _done) return;
-    _timer = Timer.periodic(_speeds[_speed], (_) => _tick());
+    _timer = Timer(wait ?? _speeds[_speed], _tick);
+  }
+
+  /// Lines that came in with the last minute: the next minute waits until
+  /// they can be read (big moments longer, quiet minutes fast).
+  final List<TickerLine> _fresh = [];
+
+  Duration get _wait {
+    var wait = _speeds[_speed];
+    for (final line in _fresh) {
+      wait += readingTime(line, _speed);
+    }
+    const most = Duration(seconds: 7);
+    return wait > most ? most : wait;
   }
 
   void _stopTimer() {
@@ -300,7 +313,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
         _lines.insert(
           0,
           TickerLine(
-            minute: _session.minute,
+            minute: _session.clock,
             kind: TickerKind.shootout,
             side: -1,
             homeGoals: score[0],
@@ -323,19 +336,23 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     var stop = false;
     for (; _seen < events.length; _seen++) {
       final e = events[_seen];
-      final line = tickerLineOf(
+      final lines = tickerLinesOf(
         e,
         _seen,
         templates: s.tickerTemplates,
         playerName: (id) => _shortName(_loaded, id),
         home: _clubName(_loaded, _own.fixture.home),
         away: _clubName(_loaded, _own.fixture.away),
+        lead: s.tickerLead,
+        captainOf: _session.captainOf,
       );
-      if (line != null) _lines.insert(0, line);
+      // Newest on top; a goal keeps its scorer and assist lines below it.
+      _lines.insertAll(0, lines);
+      if (_live) _fresh.addAll(lines);
       if (_live &&
-          line != null &&
-          line.isGoal &&
-          line.side == _ownSide &&
+          lines.isNotEmpty &&
+          lines.first.isGoal &&
+          lines.first.side == _ownSide &&
           ref.read(vibrationProvider)) {
         unawaited(buzz());
       }
@@ -349,6 +366,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
       _stopTimer();
       return;
     }
+    _fresh.clear();
     _session.advanceTo(_session.minute + 1);
     final stop = _ingest();
     // Every quarter of an hour of the match the game is saved.
@@ -361,6 +379,8 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
       _running = false;
       _pausedByEvent = true;
       _stopTimer();
+    } else {
+      _startTimer(_wait);
     }
     setState(() {});
   }
@@ -643,7 +663,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                       ? s.matchFinal
                       : _pausedByEvent
                       ? s.matchPaused
-                      : '${_session.minute}\'',
+                      : '${_session.clockLabel}\'',
                   key: const ValueKey('match-minute'),
                   style: theme.textTheme.titleMedium,
                 ),
@@ -656,7 +676,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                 child: LinearProgressIndicator(
                   key: const ValueKey('match-progress'),
                   minHeight: 6,
-                  value: (_done ? 90 : _session.minute.clamp(0, 90)) / 90,
+                  value: (_done ? 90 : _session.clock.clamp(0, 90)) / 90,
                   color: Tokens.yellow,
                   backgroundColor: Tokens.panel,
                 ),
@@ -835,12 +855,16 @@ class _TickerRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = switch (line.kind) {
-      TickerKind.goal || TickerKind.goalAssist => Tokens.yellow,
+      TickerKind.goal ||
+      TickerKind.goalAssist ||
+      TickerKind.scorer ||
+      TickerKind.assist => Tokens.yellow,
       TickerKind.red || TickerKind.secondYellow => Tokens.orange,
       TickerKind.injury => Tokens.orange,
       _ => null,
     };
     final bold = line.isGoal || line.kind == TickerKind.fullTime;
+    final symbol = line.symbol;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -849,7 +873,7 @@ class _TickerRow extends StatelessWidget {
           SizedBox(
             width: 44,
             child: Text(
-              '${line.minute}\'',
+              '${line.clockLabel}\'',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: Tokens.text.withValues(alpha: 0.6),
               ),
@@ -864,6 +888,18 @@ class _TickerRow extends StatelessWidget {
                     child: ClubCrest(clubId: crestId!, size: 22),
                   ),
           ),
+          SizedBox(
+            width: 24,
+            child: symbol == null
+                ? null
+                : Align(
+                    alignment: Alignment.topLeft,
+                    child: TickerSymbolView(
+                      symbol,
+                      key: ValueKey('ticker-symbol-${symbol.name}'),
+                    ),
+                  ),
+          ),
           Expanded(
             child: Text(
               line.text,
@@ -876,6 +912,82 @@ class _TickerRow extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// The symbol of a highlight in the ticker: ball, cards, whistle, clock.
+class TickerSymbolView extends StatelessWidget {
+  const TickerSymbolView(this.symbol, {super.key});
+
+  final TickerSymbol symbol;
+
+  static Widget _card(Color color) => Container(
+    width: 10,
+    height: 14,
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(2),
+      border: Border.all(color: Tokens.ink, width: 0.8),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    const yellow = Color(0xFFF2C94C);
+    const red = Color(0xFFD64545);
+    return switch (symbol) {
+      TickerSymbol.goal => const Icon(
+        Icons.sports_soccer,
+        size: 18,
+        color: Tokens.yellow,
+      ),
+      TickerSymbol.yellow => Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: _card(yellow),
+      ),
+      TickerSymbol.red => Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: _card(red),
+      ),
+      TickerSymbol.yellowRed => Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: SizedBox(
+          width: 18,
+          height: 16,
+          child: Stack(
+            children: [
+              _card(yellow),
+              Positioned(left: 6, top: 2, child: _card(red)),
+            ],
+          ),
+        ),
+      ),
+      TickerSymbol.injury => const Icon(
+        Icons.local_hospital,
+        size: 17,
+        color: Tokens.orange,
+      ),
+      TickerSymbol.sub => const Icon(
+        Icons.swap_horiz,
+        size: 18,
+        color: Tokens.green,
+      ),
+      TickerSymbol.time => const Icon(
+        Icons.timer_outlined,
+        size: 17,
+        color: Tokens.text,
+      ),
+      TickerSymbol.whistle => const Icon(
+        Icons.sports,
+        size: 17,
+        color: Tokens.text,
+      ),
+      TickerSymbol.bigChance => const Icon(
+        Icons.priority_high,
+        size: 18,
+        color: Tokens.orange,
+      ),
+    };
   }
 }
 
@@ -1663,14 +1775,14 @@ class MatchReportPage extends ConsumerWidget {
                 else
                   for (final e in goals)
                     Text(
-                      "${e.minute}'  ${_listName(loaded, e.player!)} "
+                      "${e.clockLabel}'  ${_listName(loaded, e.player!)} "
                       '(${teamOf(e.side)}) ${e.homeGoals}:${e.awayGoals}',
                       overflow: TextOverflow.ellipsis,
                     ),
                 if (cards.isNotEmpty) head(s.matchReportCards),
                 for (final e in cards)
                   Text(
-                    "${e.minute}'  ${_listName(loaded, e.player!)} "
+                    "${e.clockLabel}'  ${_listName(loaded, e.player!)} "
                     '(${teamOf(e.side)}) – ${s.matchCardLine(tickerKindOf(e)!)}',
                     overflow: TextOverflow.ellipsis,
                   ),

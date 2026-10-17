@@ -110,7 +110,7 @@ abstract interface class AppStrings {
   String get matchViewOwn;
   String get matchViewConference;
   String get confNotStarted;
-  String confRunning(int minute);
+  String confRunning(String minute);
   String get confFinished;
   String get confTable;
   String get confPlayedShort;
@@ -149,6 +149,10 @@ abstract interface class AppStrings {
   String matchInjuryLine(int days);
   String get infoMatchReport;
   List<String> tickerTemplates(TickerKind kind);
+
+  /// Short sentence before a shot that tells the build-up ({q} is the last
+  /// player on the ball), by action id of the rules; empty for none.
+  String tickerLead(String action);
   String get officeHome;
   String get officeAway;
   String officeStrengthCompare(String mine, String theirs);
@@ -873,7 +877,7 @@ class AppStringsDe implements AppStrings {
   @override
   String get confNotStarted => 'noch nicht angepfiffen';
   @override
-  String confRunning(int minute) => 'läuft · $minute\'';
+  String confRunning(String minute) => 'läuft · $minute\'';
   @override
   String get confFinished => 'abgepfiffen';
   @override
@@ -1042,17 +1046,34 @@ class AppStringsDe implements AppStrings {
           'Wirklichkeit.',
     ],
     TickerKind.goal => const [
-      'TOR! {p} trifft für {team}. Es steht {score}.',
-      '{p} schiebt ein, und {team} jubelt. {score}.',
-      'Einschlag! {p} netzt für {team} ein, {score}.',
-      'Das Netz zappelt: {p} für {team}. Neuer Stand {score}.',
-      '{p} macht das Ding. {team} führt den Torwart vor, {score}.',
+      'TOR für {team}! Es steht {score}.',
+      'Drin! {team} jubelt, {score}.',
+      'Einschlag! Das Netz zappelt, {team} trifft zum {score}.',
+      'TOOOR! {team} macht das Ding, {score}.',
+      'Und der ist drin! {team} lässt das Stadion beben, {score}.',
+      'Tor für {team}. Der Torwart guckt dem Ball hinterher wie einem '
+          'abfahrenden Zug. {score}.',
     ],
     TickerKind.goalAssist => const [
-      'TOR! {p} trifft für {team}, aufgelegt von {q}. Es steht {score}.',
-      '{q} flankt, {p} vollendet. {team} jubelt, {score}.',
-      'Schöner Pass von {q}, {p} muss nur noch einschieben. {score}.',
-      'Zusammenarbeit zahlt sich aus: {q} bereitet vor, {p} trifft. {score}.',
+      'TOR für {team}! Es steht {score}.',
+      'Drin! Schön herausgespielt von {team}, {score}.',
+      'TOOOR! {team} kombiniert sich durch, {score}.',
+      'Einschlag! Das war Teamwork bei {team}, {score}.',
+      'Tor für {team}, und zwar eins zum Einrahmen. {score}.',
+      'Der sitzt! {team} jubelt, {score}.',
+    ],
+    TickerKind.scorer => const [
+      'Torschütze: {p}.',
+      'Torschütze: {p}. Er wird es heute Abend noch dreimal erzählen.',
+      'Torschütze: {p}. Kurzer Jubel, langer Instagram-Post.',
+      'Torschütze: {p}. Hat er so trainiert, behauptet er hinterher.',
+      'Torschütze: {p}. Das Trikot fliegt fast, die Gelbe gerade noch nicht.',
+    ],
+    TickerKind.assist => const [
+      'Vorlage: {q}.',
+      'Vorlage: {q}. Der eigentliche Künstler, wie immer unterbezahlt.',
+      'Vorlage: {q}. Ohne ihn wäre das nur ein Gerücht gewesen.',
+      'Vorlage: {q}. Bekommt einen Klaps und keine Schlagzeile.',
     ],
     TickerKind.penalty => const [
       'Elfmeter für {team}! Der Schiedsrichter zeigt auf den Punkt.',
@@ -1072,7 +1093,91 @@ class AppStringsDe implements AppStrings {
       'Vorbei! {p} zielt, trifft aber nur die Landschaft.',
       '{p} vergibt für {team}. Die Bank hält sich den Kopf.',
       'Das war eine Chance für {team}: {p} schießt knapp daneben.',
-      '{p} wird im letzten Moment geblockt. Knapp, aber zählt nicht.',
+      '{p} jagt den Ball über die Latte. Reihe 27 sagt danke.',
+      'Riesenchance für {p}! Und daneben. Der Rasen war schuld, sagt er.',
+    ],
+    TickerKind.blocked => const [
+      '{p} zieht ab, aber ein Bein von {opp} ist im Weg.',
+      'Schuss von {p}, geblockt. Da hat sich einer todesmutig reingeworfen.',
+      '{p} probiert es, die Abwehr von {opp} stellt sich in den Weg.',
+      'Abgefälscht! Der Versuch von {p} landet im Nirgendwo.',
+    ],
+    TickerKind.halfChance => const [
+      '{p} versucht es mal. Harmlos.',
+      'Halbe Chance für {team}: {p} schießt, der Torwart gähnt.',
+      '{p} mit einem Versuch, der eher eine Frage war als eine Antwort.',
+      'Abschluss {p}. Gut gemeint, schlecht getroffen.',
+      '{p} probiert es aus der zweiten Reihe. Die zweite Reihe bleibt '
+          'ungefährlich.',
+    ],
+    TickerKind.corner => const [
+      'Ecke für {team}. {p} läuft an.',
+      '{p} bringt die Ecke für {team} rein.',
+      'Eckball {team}. Im Strafraum wird geschubst wie beim Schlussverkauf.',
+      'Ecke von {p}. Die Großen gehen mit nach vorn.',
+    ],
+    TickerKind.lostCross => const [
+      'Flanke von {q}, {p} köpft sie raus.',
+      '{q} flankt, {p} ist zuerst dran und klärt für {team}.',
+      'Die Hereingabe von {q} landet bei {p}. Kein Problem für {team}.',
+      '{q} schlägt die Flanke, aber {p} steht goldrichtig.',
+    ],
+    TickerKind.lostThroughBall => const [
+      '{q} will steil schicken, {p} liest das und fängt ab.',
+      'Steilpass von {q}, eine Spur zu steil. {p} sagt danke.',
+      '{q} sucht die Lücke, {p} macht sie zu.',
+      'Der tödliche Pass von {q} stirbt bei {p}.',
+    ],
+    TickerKind.lostDribble => const [
+      '{q} versucht es im Dribbling, {p} grätscht sauber dazwischen.',
+      '{q} will an {p} vorbei. Will.',
+      'Übersteiger von {q}, Ballgewinn {p}. Schön anzusehen war nur der '
+          'Übersteiger.',
+      '{q} verstolpert sich, {p} nimmt dankend an.',
+    ],
+    TickerKind.lostLongBall => const [
+      '{q} schlägt ihn lang, {p} ist zuerst dran.',
+      'Langer Ball von {q}, {p} köpft ihn zurück.',
+      '{q} mit dem Befreiungsschlag, {p} bleibt Herr der Lage.',
+    ],
+    TickerKind.counter => const [
+      'Ballgewinn {p}! {team} schaltet blitzschnell um.',
+      '{p} erobert den Ball, und ab geht die Post: Konter {team}!',
+      '{q} verliert die Kugel an {p}. Jetzt wird es schnell.',
+      'Konter! {p} klaut den Ball, {team} rennt los, {opp} rennt hinterher.',
+    ],
+    TickerKind.addedTime => const [
+      'Der vierte Offizielle zeigt {n} Minuten Nachspielzeit.',
+      '{n} Minuten gibt es obendrauf.',
+      'Nachspielzeit: {n} Minuten. Die Tafel leuchtet, die Nerven auch.',
+      'Es gibt {n} Minuten Nachschlag.',
+    ],
+    TickerKind.keeperEightSeconds => const [
+      '{p} hält den Ball zu lange fest. Acht Sekunden sind um: Ecke für '
+          '{opp}.',
+      '{p} kuschelt mit dem Ball, der Schiri zählt bis acht. Ecke für {opp}.',
+      'Zeitspiel von {p}! Ab acht Sekunden gibt es eine Ecke, und die '
+          'bekommt {opp}.',
+    ],
+    TickerKind.goalKickCountdown => const [
+      '{p} lässt sich beim Abstoß Zeit, der Schiri zählt runter: Ecke für '
+          '{opp}.',
+      'Countdown beim Abstoß abgelaufen. {p} schaut entgeistert, {opp} hat '
+          'eine Ecke.',
+      '{p} legt sich den Ball zurecht. Und nochmal. Und nochmal. Ecke für '
+          '{opp}.',
+    ],
+    TickerKind.throwInCountdown => const [
+      '{p} trödelt beim Einwurf. Fünf Sekunden sind rum, Einwurf für {opp}.',
+      'Einwurf {team}, aber {p} sucht noch die Brille. Jetzt wirft {opp}.',
+      'Der Schiri zählt beim Einwurf runter, {p} zählt nicht mit. Ballbesitz '
+          '{opp}.',
+    ],
+    TickerKind.captainOff => const [
+      '{p} verlässt den Platz, die Kapitänsbinde wandert weiter.',
+      'Ohne {p} fehlt {team} die Stimme auf dem Platz. Wer redet jetzt mit '
+          'dem Schiri?',
+      'Der Kapitän geht. {team} muss sich neu sortieren.',
     ],
     TickerKind.yellow => const [
       'Gelbe Karte für {p}. Der Schiedsrichter notiert eifrig.',
@@ -1135,6 +1240,15 @@ class AppStringsDe implements AppStrings {
       'Abpfiff beim Stand von {score}. Alle dürfen jetzt so tun, als hätten '
           'sie es kommen sehen.',
     ],
+  };
+  @override
+  String tickerLead(String action) => switch (action) {
+    'short_pass' => '{q} spielt kurz.',
+    'through_ball' => '{q} steckt durch.',
+    'long_ball' => '{q} mit dem langen Ball.',
+    'cross' => 'Flanke von {q}.',
+    'dribble' => '{q} tankt sich durch.',
+    _ => '',
   };
   @override
   String get officeHome => 'Heimspiel';

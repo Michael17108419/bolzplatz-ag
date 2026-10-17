@@ -71,27 +71,49 @@ class ConferenceMatch {
   /// The match result seen so far, or null for a live own match.
   MatchResult? get finalResult => knockout?.match ?? result;
 
-  /// Score after [minute] minutes of play. For matches that are played
-  /// live, use the session instead.
+  /// Score after [minute] minutes of play (stoppage time included). For
+  /// matches that are played live, use the session instead.
   (int, int) scoreAt(int minute) {
     final r = finalResult;
     if (r == null) return (0, 0);
     var home = 0;
     var away = 0;
     for (final e in r.events) {
-      if (e.minute > minute) break;
+      if (e.tick > minute) break;
       home = e.homeGoals;
       away = e.awayGoals;
     }
     return (home, away);
   }
 
-  /// Minutes after kickoff at which the match is over (90, or 120 after
-  /// extra time).
-  int get lengthMinutes {
-    final k = knockout;
-    return k != null && k.extraTime ? 120 : 90;
+  /// The clock of this match after [minute] minutes of play: "67" or
+  /// "90+3", or null before kick-off.
+  String? clockAt(int minute) {
+    final r = finalResult;
+    if (r == null || minute <= 0) return null;
+    var clock = minute;
+    MatchEvent? last;
+    for (final e in r.events) {
+      if (e.tick > minute) break;
+      last = e;
+    }
+    if (last == null) return '$clock';
+    // Minutes since the last event run on its clock (or its stoppage).
+    final since = minute - last.tick;
+    if (last.type == MatchEventType.halfTime ||
+        last.type == MatchEventType.extraTime) {
+      return '${last.minute + since}';
+    }
+    if (last.added > 0 || last.type == MatchEventType.addedTime) {
+      return '${last.minute}+${last.added + since}';
+    }
+    clock = last.minute + since;
+    return '$clock';
   }
+
+  /// Minutes after kickoff at which the match is over, with stoppage time
+  /// (and extra time).
+  int get lengthMinutes => finalResult?.length ?? 90;
 }
 
 /// All matches of one calendar day in kickoff order, ready to be shown as a

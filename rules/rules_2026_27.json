@@ -2292,6 +2292,28 @@
       "consistency_effect": 0.8,
       "party_energy": 8.0
     },
+    "added_time": {
+      "note": "Stoppage time per half (IFAB Law 7): from what happened in the half. Bundesliga recently about 10 minutes per match. Per-minute rates of the match are scaled by minutes / (minutes + expected), so the longer clock does not add goals.",
+      "expected": 9.5,
+      "first_half_base": 1.0,
+      "second_half_base": 2.0,
+      "extra_time_base": 0.5,
+      "per_goal": 0.5,
+      "per_substitution": 0.5,
+      "per_injury": 1.0,
+      "per_card": 0.25,
+      "per_time_wasting": 0.5,
+      "random": 1.5,
+      "max": 15
+    },
+    "time_wasting": {
+      "note": "Delays punished by the Laws: keeper holds the ball over 8 seconds (corner, IFAB 2025/26), five-second countdown at throw-in and goal kick (IFAB 2026/27). Chance per minute for a leading team from the minute on.",
+      "from_minute": 70,
+      "keeper_eight_seconds": 0.006,
+      "goal_kick_countdown": 0.006,
+      "throw_in_countdown": 0.012,
+      "instruction_factor": 3.0
+    },
     "team_rating": {
       "build": {
         "positions": [

@@ -254,7 +254,7 @@ class MatchSession {
        _fit = Fit(rules),
        _systemFit = SystemFit(rules),
        _sides = [_Side(home), _Side(away)] {
-    _totalMinutes = rules.match.minutes;
+    _halfEnds = [rules.match.halfTimeMinute, rules.match.minutes];
     // A neutral venue (the cup final) gives nobody the home advantage.
     _sides[0].homeFactor = neutral ? 1 : rules.match.homeAdvantage;
     for (final side in _sides) {
@@ -281,19 +281,55 @@ class MatchSession {
   final List<_Side> _sides;
   final List<MatchEvent> _events = [];
   final List<MatchInjury> _injuries = [];
+  /// Minutes played including stoppage time (the clock of the session).
   int _minute = 0;
+
+  /// Minute on the clock (stays at 45 or 90 in stoppage time) and the
+  /// minute of stoppage time.
+  int _clock = 0;
+  int _added = 0;
+
+  /// Announced stoppage time of the running half, null before it is shown.
+  int? _stoppage;
+
+  /// Clock minutes at which the halves end: 45 and 90, then the halves of
+  /// extra time.
+  List<int> _halfEnds = const [];
+  int _half = 0;
+
+  /// True between two halves (half time, before extra time).
+  bool _breakNow = false;
+
+  /// What happened in the running half, for the stoppage time.
+  int _halfGoals = 0;
+  int _halfSubs = 0;
+  int _halfInjuries = 0;
+  int _halfCards = 0;
+  int _halfWasted = 0;
   int _goalsHome = 0;
   int _goalsAway = 0;
   bool _finished = false;
-  int _totalMinutes = 0;
   final List<SessionAction> _actions = [];
   bool _extraTime = false;
   int? _shootoutWinner;
 
   MatchRules get _m => rules.match;
 
-  /// Minutes played so far.
+  /// Minutes played so far, stoppage time included. [advanceTo] and saved
+  /// actions count in these minutes.
   int get minute => _minute;
+
+  /// Minute on the clock (45 and 90 during stoppage time).
+  int get clock => _clock;
+
+  /// Minute of stoppage time, 0 outside it.
+  int get added => _added;
+
+  /// The clock as shown: "45+2" in stoppage time.
+  String get clockLabel => _added > 0 ? '$_clock+$_added' : '$_clock';
+
+  /// Announced stoppage time of the running half, or null.
+  int? get stoppage => _stoppage;
   bool get isFinished => _finished;
   int get homeGoals => _goalsHome;
   int get awayGoals => _goalsAway;
@@ -307,11 +343,11 @@ class MatchSession {
   /// tie ([knockout]) extra time starts when a change falls into it.
   void replay(List<SessionAction> actions, {bool knockout = false}) {
     for (final a in actions) {
-      if (knockout && a.minute > rules.match.minutes) {
-        advanceTo(rules.match.minutes);
-        _startExtraTimeIfLevel();
-      }
       advanceTo(a.minute);
+      if (knockout && _finished && _minute < a.minute) {
+        _startExtraTimeIfLevel();
+        advanceTo(a.minute);
+      }
       a.applyTo(this);
     }
   }
@@ -389,10 +425,7 @@ class MatchSession {
 
   /// True in a break of the match: before kick-off, at half time and
   /// before extra time. Changes there use no window.
-  bool get inBreak =>
-      _minute == 0 ||
-      _minute == _m.halfTimeMinute ||
-      (_extraTime && _minute == _m.minutes);
+  bool get inBreak => _minute == 0 || _breakNow;
 
   /// True if [side] may substitute now: changes and a window left (or the
   /// window of this stoppage is already open).
@@ -502,7 +535,7 @@ class MatchSession {
   bool get _pressure {
     final c = _m.character;
     if (_extraTime) return true;
-    return _minute >= c.pressureFromMinute &&
+    return _clock >= c.pressureFromMinute &&
         (_goalsHome - _goalsAway).abs() <= c.pressureMaxDiff;
   }
 
@@ -822,21 +855,68 @@ class MatchSession {
 
   // ------------------------------------------------------------ main loop
 
-  /// Plays all minutes up to and including [target] (at most the full time).
+  /// Plays all minutes up to and including [target] (minutes played with
+  /// stoppage time, see [minute]); stops at the final whistle.
   void advanceTo(int target) {
-    final end = math.min(target, _totalMinutes);
-    while (_minute < end && !_finished) {
+    while (_minute < target && !_finished) {
       _minute++;
+      _breakNow = false;
+      if (_stoppage == null) {
+        _clock++;
+      } else {
+        _added++;
+      }
       _playMinute(_minute);
-      if (_minute == _m.halfTimeMinute) {
-        _add(MatchEventType.halfTime, -1);
+      if (_stoppage == null && _clock >= _halfEnds[_half]) {
+        _stoppage = _stoppageTime();
+        _add(MatchEventType.addedTime, -1, value: _stoppage);
       }
-      if (_minute == _totalMinutes) {
-        _add(MatchEventType.fullTime, -1);
-        _closeBooks();
-        _finished = true;
-      }
+      if (_stoppage != null && _added >= _stoppage!) _endHalf();
     }
+  }
+
+  static const int _whistle = 1 << 30;
+
+  /// Plays on to the next final whistle.
+  void _playOut() => advanceTo(_whistle);
+
+  /// Stoppage time of the running half from what happened in it.
+  int _stoppageTime() {
+    final a = _m.addedTime;
+    final base = _extraTime
+        ? a.extraTimeBase
+        : _half == 0
+        ? a.firstHalfBase
+        : a.secondHalfBase;
+    final minutes =
+        base +
+        a.perGoal * _halfGoals +
+        a.perSubstitution * _halfSubs +
+        a.perInjury * _halfInjuries +
+        a.perCard * _halfCards +
+        a.perTimeWasting * _halfWasted +
+        a.random * _rng.nextDouble();
+    return minutes.round().clamp(0, a.max);
+  }
+
+  void _endHalf() {
+    final last = _half == _halfEnds.length - 1;
+    _halfGoals = 0;
+    _halfSubs = 0;
+    _halfInjuries = 0;
+    _halfCards = 0;
+    _halfWasted = 0;
+    if (last) {
+      _add(MatchEventType.fullTime, -1);
+      _closeBooks();
+      _finished = true;
+    } else {
+      _add(MatchEventType.halfTime, -1);
+      _half++;
+      _breakNow = true;
+    }
+    _stoppage = null;
+    _added = 0;
   }
 
   /// Adds extra time to a finished match (two halves of [halfMinutes]).
@@ -848,9 +928,11 @@ class MatchSession {
         s.since = _minute;
       }
     }
-    _totalMinutes = _minute + 2 * halfMinutes;
+    _halfEnds = [_clock + halfMinutes, _clock + 2 * halfMinutes];
+    _half = 0;
     _finished = false;
     _extraTime = true;
+    _breakNow = true;
     _add(MatchEventType.extraTime, -1);
   }
 
@@ -894,7 +976,9 @@ class MatchSession {
       if (goal) scored[t]++;
       _events.add(
         MatchEvent(
-          minute: _minute,
+          minute: _clock,
+          added: _added,
+          tick: _minute,
           type: MatchEventType.shootoutKick,
           side: t,
           homeGoals: _goalsHome,
@@ -938,9 +1022,9 @@ class MatchSession {
   /// Plays a cup tie to its end: extra time if it is level after full time,
   /// then the shoot-out. Can be called at any point of the tie.
   KnockoutResult finishKnockout() {
-    advanceTo(rules.match.minutes);
+    _playOut();
     _startExtraTimeIfLevel();
-    advanceTo(_totalMinutes);
+    _playOut();
     if (_goalsHome != _goalsAway) {
       final result = finish();
       return KnockoutResult(
@@ -963,7 +1047,7 @@ class MatchSession {
 
   /// Plays the rest of the match and returns the result.
   MatchResult finish() {
-    advanceTo(_totalMinutes);
+    _playOut();
     return MatchResult(
       homeGoals: _goalsHome,
       awayGoals: _goalsAway,
@@ -972,6 +1056,7 @@ class MatchSession {
       awayStats: _sides[1].stats,
       injuries: List.unmodifiable(_injuries),
       minutesPlayed: {for (final side in _sides) ...side.played},
+      length: _minute,
     );
   }
 
@@ -997,10 +1082,14 @@ class MatchSession {
     int? lane,
     List<PlayerId> chain = const [],
     String? action,
+    int? value,
   }) {
     _events.add(
       MatchEvent(
-        minute: _minute,
+        minute: _clock,
+        added: _added,
+        tick: _minute,
+        value: value,
         type: type,
         side: side,
         homeGoals: _goalsHome,
@@ -1025,12 +1114,14 @@ class MatchSession {
     }
     _cardsAndInjuries(minute);
     _standards();
+    _timeWasting();
     final tempo = [
       for (final side in _sides)
         _m.tempoPhaseFactor[rules.tactics.sliders[1].levels[side.sheet.tempo
             .limit(0, 2)]]!,
     ];
-    final phases = _m.phasesPerMatch / _m.minutes * (tempo[0] + tempo[1]) / 2;
+    final phases =
+        _m.phasesPerMatch / _m.minutes * _rate * (tempo[0] + tempo[1]) / 2;
     var n = phases.floor();
     if (_rng.nextDouble() < phases - n) n++;
     for (var i = 0; i < n; i++) {
@@ -1048,9 +1139,14 @@ class MatchSession {
 
   bool _dirty = false;
 
+  /// Per-minute rates of the match are scaled down a little, so that the
+  /// stoppage time does not make matches richer in goals and cards.
+  double get _rate =>
+      _m.minutes / (_m.minutes + _m.addedTime.expected);
+
   void _tire(int minute) {
     for (final side in _sides) {
-      final phase = minute < _m.fatigueStartMinute ? 0.5 : 1.5;
+      final phase = _clock < _m.fatigueStartMinute ? 0.5 : 1.5;
       for (final s in side.pitch) {
         final stamina = s.player.attributes[Attribute.stamina];
         final factor = (_m.staminaReference / stamina).limit(
@@ -1122,7 +1218,7 @@ class MatchSession {
         defender.homeFactor *
         (1 + _m.momentumEffect * defender.momentum);
     var state = 1.0;
-    if (_minute >= _m.gameStateFromMinute) {
+    if (_clock >= _m.gameStateFromMinute) {
       final diff =
           ((t == 0 ? _goalsHome - _goalsAway : _goalsAway - _goalsHome)).limit(
             -_m.gameStateMaxDiff,
@@ -1552,6 +1648,7 @@ class MatchSession {
     }
     if (outcome == ShotOutcome.goal) {
       attacker.stats.goals++;
+      _halfGoals++;
       if (t == 0) {
         _goalsHome++;
       } else {
@@ -1618,7 +1715,7 @@ class MatchSession {
   }
 
   void _standards() {
-    final minutes = _m.minutes.toDouble();
+    final minutes = _m.minutes / _rate;
     if (_rng.nextDouble() < _m.freeKicksPerMatch / minutes) {
       _freeKick(_attackingSide());
     }
@@ -1628,6 +1725,45 @@ class MatchSession {
     if (_rng.nextDouble() < _m.penaltiesPerMatch / minutes) {
       _penalty(_attackingSide());
     }
+  }
+
+  /// A leading team late in the match plays for time; the Laws punish it
+  /// (IFAB 2025/26 and 2026/27): a keeper who holds the ball over eight
+  /// seconds or a late goal kick gives a corner, a late throw-in goes to
+  /// the opponent.
+  void _timeWasting() {
+    final w = _m.timeWasting;
+    if (_clock < w.fromMinute || _goalsHome == _goalsAway) return;
+    final t = _goalsHome > _goalsAway ? 0 : 1;
+    final side = _sides[t];
+    if (side.pitch.isEmpty) return;
+    final keeper = side.pitch
+        .where((s) => s.position.isGoalkeeper)
+        .firstOrNull;
+    final r = _rng.nextDouble();
+    String? kind;
+    _Slot? culprit;
+    if (r < w.keeperEightSeconds && keeper != null) {
+      kind = 'keeper_eight_seconds';
+      culprit = keeper;
+    } else if (r < w.keeperEightSeconds + w.goalKickCountdown &&
+        keeper != null) {
+      kind = 'goal_kick_countdown';
+      culprit = keeper;
+    } else if (r <
+        w.keeperEightSeconds + w.goalKickCountdown + w.throwInCountdown) {
+      kind = 'throw_in_countdown';
+      final field = [
+        for (final s in side.pitch)
+          if (!s.position.isGoalkeeper) s,
+      ];
+      if (field.isEmpty) return;
+      culprit = field[_rng.nextInt(field.length)];
+    }
+    if (kind == null || culprit == null) return;
+    _halfWasted++;
+    _add(MatchEventType.timeWasting, t, player: culprit.player, action: kind);
+    if (kind != 'throw_in_countdown') _corner(1 - t);
   }
 
   /// Best player of the side for the given attributes, with a bonus for the
@@ -1770,6 +1906,7 @@ class MatchSession {
       final p = math.max(
         0.0,
         (_m.yellowPerMinutePerTeam + (side.fx['yellow'] ?? 0)) *
+            _rate *
             math.max(0.2, 1 + _m.character.cardTeamWeight * temper),
       );
       if (side.pitch.length > 1 && _rng.nextDouble() < p) {
@@ -1798,7 +1935,7 @@ class MatchSession {
         if (slots.isNotEmpty) _yellow(i, slots[_rng.weightedIndex(weights)]);
       }
     }
-    if (_rng.nextDouble() < _m.straightRedPerMinute) {
+    if (_rng.nextDouble() < _m.straightRedPerMinute * _rate) {
       final i = _rng.nextInt(2);
       final side = _sides[i];
       if (side.pitch.length > 7) {
@@ -1820,6 +1957,7 @@ class MatchSession {
         final proneness = s.player.injuryProneness / 50;
         final chance =
             _m.injuryPerPlayerMinute *
+            _rate *
             proneness *
             (1 + _m.injuryFatigueFactor * (1 - s.energy / 100));
         if (_rng.nextDouble() < chance) _injure(i, s);
@@ -1828,6 +1966,7 @@ class MatchSession {
   }
 
   void _yellow(int i, _Slot s) {
+    _halfCards++;
     final side = _sides[i];
     final id = s.player.id;
     final count = (side.yellows[id] ?? 0) + 1;
@@ -1842,6 +1981,7 @@ class MatchSession {
   }
 
   void _sendOff(int i, _Slot s, bool secondYellow) {
+    if (!secondYellow) _halfCards++;
     final side = _sides[i];
     side.stats.redCards++;
     if (!secondYellow) _add(MatchEventType.redCard, i, player: s.player);
@@ -1849,13 +1989,14 @@ class MatchSession {
   }
 
   void _injure(int i, _Slot s) {
+    _halfInjuries++;
     final side = _sides[i];
     side.stats.injuries++;
     final severity = _rng.weightedIndex(_m.injurySeverityWeights);
     final range = _m.injuryDays[severity];
     final days = _rng.nextIntInRange(range[0], range[1]);
     _injuries.add(
-      MatchInjury(player: s.player.id, minute: _minute, days: days),
+      MatchInjury(player: s.player.id, minute: _clock, days: days),
     );
     _add(MatchEventType.injury, i, player: s.player, days: days);
     _remove(i, s, replace: true);
@@ -1929,6 +2070,7 @@ class MatchSession {
   ) {
     final side = _sides[i];
     side.bench.remove(player);
+    if (!inBreak) _halfSubs++;
     _useWindow(side);
     side.subsUsed++;
     side.stats.substitutions++;
@@ -1995,7 +2137,7 @@ class MatchSession {
     s.fxStale = true;
     s.zones = null;
     final free =
-        _minute <= rules.tactics.warmupMinutes || _minute == _m.halfTimeMinute;
+        _clock <= rules.tactics.warmupMinutes || inBreak;
     if (!free) s.countedChanges++;
     _add(MatchEventType.tacticChange, side);
     _refresh(s);
@@ -2006,7 +2148,7 @@ class MatchSession {
     if (!_canSub(side) || side.bench.isEmpty) {
       return;
     }
-    if (_minute >= _m.aiSubTiredMinute) {
+    if (_clock >= _m.aiSubTiredMinute) {
       _Slot? tired;
       for (final s in side.pitch) {
         if (s.position.isGoalkeeper) continue;
@@ -2034,7 +2176,7 @@ class MatchSession {
     }
     final own = i == 0 ? _goalsHome : _goalsAway;
     final other = i == 0 ? _goalsAway : _goalsHome;
-    if (own < other && _minute >= _m.aiSubTrailingMinute) {
+    if (own < other && _clock >= _m.aiSubTrailingMinute) {
       final attackers = [
         for (final p in side.bench)
           if (p.position == Position.st ||

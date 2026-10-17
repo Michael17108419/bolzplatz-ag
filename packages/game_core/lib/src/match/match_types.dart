@@ -27,6 +27,16 @@ enum MatchEventType {
   /// [MatchEvent.otherPlayer] lost it; column and lane are where the
   /// counter starts, seen from the countering team.
   counterAttack,
+
+  /// The fourth official shows the stoppage time (engine 2): [MatchEvent.value]
+  /// is the number of minutes added to the half.
+  addedTime,
+
+  /// A delay punished by the Laws (engine 2): [side] is the team that
+  /// wasted time, [MatchEvent.action] says how (`keeper_eight_seconds`,
+  /// `goal_kick_countdown`, `throw_in_countdown`), [MatchEvent.player] is
+  /// the culprit.
+  timeWasting,
 }
 
 enum ShotOutcome { goal, saved, blocked, offTarget }
@@ -51,9 +61,20 @@ class MatchEvent {
     this.lane,
     this.chain = const [],
     this.action,
-  });
+    this.added = 0,
+    int? tick,
+    this.value,
+  }) : tick = tick ?? minute;
 
+  /// Minute on the clock (45 and 90 during stoppage time, see [added]).
   final int minute;
+
+  /// Minute of stoppage time (45+2 is minute 45, added 2), 0 otherwise.
+  final int added;
+
+  /// Minutes played since kick-off including stoppage time: orders events
+  /// and lets other matches of a conference follow the own clock.
+  final int tick;
   final MatchEventType type;
 
   /// 0 for the home team, 1 for the away team, -1 for neutral events.
@@ -87,6 +108,12 @@ class MatchEvent {
   /// of the attack before it (`long_shot` for a shot from distance the
   /// player chose), for a lost ball the action that failed.
   final String? action;
+
+  /// A number that belongs to the event: minutes of stoppage time.
+  final int? value;
+
+  /// The minute as shown: "45+2" in stoppage time, else "45".
+  String get clockLabel => added > 0 ? '$minute+$added' : '$minute';
 
   bool get isGoal => outcome == ShotOutcome.goal;
 }
@@ -132,6 +159,7 @@ class MatchResult {
     required this.awayStats,
     required this.injuries,
     required this.minutesPlayed,
+    this.length = 90,
   });
 
   final int homeGoals;
@@ -143,6 +171,9 @@ class MatchResult {
 
   /// Minutes played by each player who took part.
   final Map<PlayerId, int> minutesPlayed;
+
+  /// Minutes the match lasted including stoppage and extra time.
+  final int length;
 
   bool get isDraw => homeGoals == awayGoals;
 }
