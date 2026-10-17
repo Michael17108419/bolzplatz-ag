@@ -56,6 +56,152 @@ class SliderLevelEffect {
   final Set<String> scaled;
 }
 
+/// The pitch as a grid of zones (engine 2): [columns] from the own goal to
+/// the goal of the opponent, [lanes] left, centre and right, always seen
+/// from the team that has the ball.
+class ZoneRules {
+  const ZoneRules({
+    required this.startColumnWeights,
+    required this.stepShare,
+    required this.stepMin,
+    required this.stepMax,
+    required this.duelExponent,
+    required this.duelRatioMin,
+    required this.duelRatioMax,
+    required this.laneChange,
+    required this.laneWeights,
+    required this.laneSame,
+    required this.laneAdjacent,
+    required this.laneFar,
+    required this.centreOnWing,
+    required this.shooterLaneExponent,
+    required this.ballWonEventFromColumn,
+    required this.columnWeights,
+  });
+
+  factory ZoneRules.fromJson(Map<String, dynamic> m) {
+    List<double> numbers(Object? raw, int length, String name) {
+      final list = [for (final v in raw! as List<dynamic>) _d(v)];
+      if (list.length != length) {
+        throw RulesError('match.zones.$name needs $length values');
+      }
+      if (list.any((v) => v < 0)) {
+        throw RulesError('match.zones.$name must not be negative');
+      }
+      return List.unmodifiable(list);
+    }
+
+    final lanes = m['lane_weights'] as Map<String, dynamic>;
+    if (!lanes.containsKey('default')) {
+      throw const RulesError('match.zones.lane_weights needs "default"');
+    }
+    final factor = m['lane_factor'] as Map<String, dynamic>;
+    final columnsRaw = m['column_weights'] as Map<String, dynamic>;
+    final columnWeights = <Position, List<double>>{};
+    for (final p in Position.values) {
+      final raw = columnsRaw[p.id];
+      if (raw == null) throw RulesError('match.zones misses ${p.id}');
+      columnWeights[p] = numbers(raw, columns, 'column_weights.${p.id}');
+    }
+    final result = ZoneRules(
+      startColumnWeights: numbers(
+        m['start_column_weights'],
+        columns,
+        'start_column_weights',
+      ),
+      stepShare: numbers(m['step_share'], columns - 1, 'step_share'),
+      stepMin: _d(m['step_min']),
+      stepMax: _d(m['step_max']),
+      duelExponent: _d(m['duel_exponent']),
+      duelRatioMin: _d(m['duel_ratio_min']),
+      duelRatioMax: _d(m['duel_ratio_max']),
+      laneChange: _d(m['lane_change']),
+      laneWeights: Map.unmodifiable({
+        for (final e in lanes.entries)
+          e.key: numbers(e.value, ZoneRules.lanes, 'lane_weights.${e.key}'),
+      }),
+      laneSame: _d(factor['same']),
+      laneAdjacent: _d(factor['adjacent']),
+      laneFar: _d(factor['far']),
+      centreOnWing: _d(factor['centre_on_wing']),
+      shooterLaneExponent: _d(m['shooter_lane_exponent']),
+      ballWonEventFromColumn: (m['ball_won_event_from_column'] as num).toInt(),
+      columnWeights: Map.unmodifiable(columnWeights),
+    );
+    if (result.startColumnWeights.last != 0) {
+      throw const RulesError('match.zones: no attack starts in the last zone');
+    }
+    if (result.stepShare.any((s) => s <= 0)) {
+      throw const RulesError('match.zones.step_share must be positive');
+    }
+    if (result.stepMin <= 0 || result.stepMin >= result.stepMax) {
+      throw const RulesError('match.zones.step_min must be below step_max');
+    }
+    if (result.duelRatioMin <= 0 || result.duelRatioMin > result.duelRatioMax) {
+      throw const RulesError('match.zones.duel_ratio_min/max invalid');
+    }
+    return result;
+  }
+
+  /// Number of columns from the own goal (0) to the goal of the opponent.
+  static const int columns = 5;
+
+  /// Number of lanes: left (0), centre (1), right (2).
+  static const int lanes = 3;
+
+  /// Where attacks start (the last column must be zero).
+  final List<double> startColumnWeights;
+
+  /// Share of the breakthrough chance that each step from column c to c + 1
+  /// carries (as an exponent): the steps of one attack multiply to the
+  /// breakthrough chance of the team.
+  final List<double> stepShare;
+  final double stepMin;
+  final double stepMax;
+
+  /// How strongly the duel of the two players bends one step.
+  final double duelExponent;
+  final double duelRatioMin;
+  final double duelRatioMax;
+
+  /// Chance that the ball changes the lane in one step.
+  final double laneChange;
+
+  /// Lane weights at the start of an attack by system id (`default` for
+  /// systems without an own entry).
+  final Map<String, List<double>> laneWeights;
+  final double laneSame;
+  final double laneAdjacent;
+  final double laneFar;
+
+  /// Weight of a central position on a wing lane.
+  final double centreOnWing;
+  final double shooterLaneExponent;
+
+  /// Lost balls from this column on are written as events.
+  final int ballWonEventFromColumn;
+
+  /// How much each position is involved in each column (own view).
+  final Map<Position, List<double>> columnWeights;
+
+  /// Lane weights at the start of an attack for the system [systemId].
+  List<double> lanesFor(String systemId) =>
+      laneWeights[systemId] ?? laneWeights['default']!;
+
+  /// How much a player on [position] is involved in [lane] (own view).
+  double laneFactor(Position position, int lane) {
+    final side = position.wideSide;
+    if (side == null) return lane == 1 ? laneSame : centreOnWing;
+    final home = side == Foot.left ? 0 : 2;
+    final distance = (home - lane).abs();
+    return distance == 0
+        ? laneSame
+        : distance == 1
+        ? laneAdjacent
+        : laneFar;
+  }
+}
+
 /// Numbers of the match simulation, read from the `match` section.
 class MatchRules {
   const MatchRules({
@@ -140,6 +286,7 @@ class MatchRules {
     required this.abilityShotBonus,
     required this.ratingAttributes,
     required this.ratingPositions,
+    required this.zones,
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -315,6 +462,7 @@ class MatchRules {
               ),
           ]),
       }),
+      zones: ZoneRules.fromJson(m['zones'] as Map<String, dynamic>),
     );
     result._validate();
     return result;
@@ -468,4 +616,7 @@ class MatchRules {
   /// and `duel_header`.
   final Map<String, List<Attribute>> ratingAttributes;
   final Map<String, List<Position>> ratingPositions;
+
+  /// The zones of the pitch (engine 2).
+  final ZoneRules zones;
 }

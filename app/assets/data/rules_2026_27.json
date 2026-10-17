@@ -2127,6 +2127,42 @@
     },
     "attack_rate_reference": 0.3,
     "ability_shot_bonus": 0.05,
+    "zones": {
+      "note": "Pitch as 5 columns (own goal to opponent goal) x 3 lanes (left, centre, right), seen from the team on the ball. Engine 2, step 10a.",
+      "start_column_weights": [0.2, 0.5, 0.25, 0.05, 0.0],
+      "step_share": [0.1, 0.2, 0.3, 0.4],
+      "step_min": 0.02,
+      "step_max": 0.98,
+      "duel_exponent": 0.5,
+      "duel_ratio_min": 0.7,
+      "duel_ratio_max": 1.4,
+      "lane_change": 0.25,
+      "lane_weights": {
+        "default": [0.3, 0.4, 0.3],
+        "wings": [0.42, 0.16, 0.42],
+        "possession": [0.27, 0.46, 0.27]
+      },
+      "lane_factor": {
+        "same": 1.0,
+        "adjacent": 0.4,
+        "far": 0.08,
+        "centre_on_wing": 0.5
+      },
+      "shooter_lane_exponent": 0.5,
+      "ball_won_event_from_column": 3,
+      "column_weights": {
+        "TW": [1.0, 0.0, 0.0, 0.0, 0.0],
+        "IV": [1.0, 0.8, 0.25, 0.05, 0.0],
+        "LV": [0.6, 1.0, 0.7, 0.3, 0.05],
+        "RV": [0.6, 1.0, 0.7, 0.3, 0.05],
+        "ZDM": [0.5, 1.0, 0.8, 0.25, 0.05],
+        "ZM": [0.15, 0.7, 1.0, 0.6, 0.15],
+        "ZOM": [0.0, 0.2, 0.7, 1.0, 0.5],
+        "LA": [0.0, 0.15, 0.6, 1.0, 0.6],
+        "RA": [0.0, 0.15, 0.6, 1.0, 0.6],
+        "ST": [0.0, 0.05, 0.3, 0.9, 1.0]
+      }
+    },
     "team_rating": {
       "build": {
         "positions": [

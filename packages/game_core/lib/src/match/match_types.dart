@@ -16,6 +16,11 @@ enum MatchEventType {
   extraTime,
   shootoutKick,
   fullTime,
+
+  /// The defending team won the ball in a dangerous zone (engine 2): [side]
+  /// is the team that won it, [MatchEvent.player] the winner and
+  /// [MatchEvent.otherPlayer] the player who lost it.
+  ballWon,
 }
 
 enum ShotOutcome { goal, saved, blocked, offTarget }
@@ -36,6 +41,9 @@ class MatchEvent {
     this.quality,
     this.outcome,
     this.injuryDays,
+    this.column,
+    this.lane,
+    this.chain = const [],
   });
 
   final int minute;
@@ -58,6 +66,16 @@ class MatchEvent {
   final ShotOutcome? outcome;
   final int? injuryDays;
 
+  /// Zone of the action (engine 2), seen from the team that had the ball:
+  /// column 0 (own goal) to 4 (goal of the opponent), lane 0 left, 1 centre,
+  /// 2 right. Null for events without a place.
+  final int? column;
+  final int? lane;
+
+  /// Players of the attacking team who carried the ball in this attack, in
+  /// order (shots only). The shooter is not part of it.
+  final List<PlayerId> chain;
+
   bool get isGoal => outcome == ShotOutcome.goal;
 }
 
@@ -74,6 +92,9 @@ class TeamStats {
   int redCards = 0;
   int injuries = 0;
   int substitutions = 0;
+
+  /// Balls won from the opponent in open play (engine 2).
+  int ballsWon = 0;
 }
 
 /// An injury that came out of a match.
