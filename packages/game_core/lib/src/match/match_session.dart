@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import '../model/attribute.dart';
 import '../model/character.dart';
@@ -41,6 +42,12 @@ class _Slot {
   /// Fit of the player in his role on this place, once computed.
   double? fit;
 
+  /// Character traits as -1 to 1, indexed by [CharacterTrait.index].
+  Float64List tx = Float64List(CharacterTrait.values.length);
+
+  /// Factor of a counter player on the ball during a counter attack.
+  double counterMult = 1;
+
   /// Forgets the cached values after the place or role changed.
   void reset() {
     base.clear();
@@ -53,21 +60,37 @@ class _Slot {
 /// Who takes part in each zone, seen from one side (engine 2). Lists run
 /// along the pitch of the side, indexed by zone (column * 3 + lane).
 class _Zones {
-  _Zones(this.slots, this.carry, this.actMean, this.defend, this.defMean);
+  _Zones({
+    required this.slots,
+    required this.carry,
+    required this.defend,
+    required this.choice,
+    required this.attRel,
+    required this.defRel,
+    required this.shooter,
+  });
 
   final List<_Slot> slots;
 
   /// Weights of the players to have the ball in a zone of the own view.
-  final List<List<double>> carry;
-
-  /// Weighted mean value of the ball carriers per zone and action.
-  final List<List<double>> actMean;
+  final List<Float64List> carry;
 
   /// Weights of the players to defend a zone of the opponent's view.
-  final List<List<double>> defend;
+  final List<Float64List> defend;
 
-  /// Weighted mean defending value per zone (opponent's view) and action.
-  final List<List<double>> defMean;
+  /// Per zone and player: weights of the actions (column, lane, system,
+  /// skill, abilities, character).
+  final List<List<Float64List>> choice;
+
+  /// Per zone and player: value for each action compared with those
+  /// usually there, with abilities (without tiredness).
+  final List<List<Float64List>> attRel;
+
+  /// The same for defending (with abilities and hard tackling).
+  final List<List<Float64List>> defRel;
+
+  /// Per lane: weights of the players to take a chance (keeper 0).
+  final List<Float64List> shooter;
 }
 
 class _Ratings {
@@ -420,7 +443,7 @@ class MatchSession {
     } else if (side.pitch.isNotEmpty) {
       var best = side.pitch.first.player;
       for (final s in side.pitch) {
-        if (_trait(s.player, CharacterTrait.leadership) >
+        if (s.tx[CharacterTrait.leadership.index] >
             _trait(best, CharacterTrait.leadership)) {
           best = s.player;
         }
@@ -454,6 +477,14 @@ class MatchSession {
         (1 - c.consistencyEffect * _trait(player, CharacterTrait.consistency))
             .limit(0.1, 2.0);
     slot.dayForm = 1 + spread * (2 * _rng.nextDouble() - 1);
+    for (final t in CharacterTrait.values) {
+      slot.tx[t.index] = _trait(player, t);
+    }
+    slot.counterMult = _abilityMult(
+      player,
+      const [SpecialAbilityType.counterPlayer],
+      _m.counter.abilityBonus,
+    );
     return slot;
   }
 
@@ -576,53 +607,139 @@ class MatchSession {
   /// the duel itself.
   _Zones _buildZones(_Side side) {
     final z = _m.zones;
-    final actions = _m.actions.list;
+    final acts = _m.actions;
+    final actions = acts.list;
+    final c = _m.character;
+    final n = actions.length;
     final slots = List<_Slot>.of(side.pitch);
     for (final s in slots) {
-      s
-        ..act = [
-          for (final a in actions) _slotMean(side, s, a.attack, tired: false),
-        ]
-        ..def = [
-          for (final a in actions) _slotMean(side, s, a.defend, tired: false),
-        ];
+      if (s.act.isEmpty) {
+        s
+          ..act = [
+            for (final a in actions) _slotMean(side, s, a.attack, tired: false),
+          ]
+          ..def = [
+            for (final a in actions) _slotMean(side, s, a.defend, tired: false),
+          ];
+      }
     }
+    // Static factors per player and action: abilities and character.
+    final attStatic = [
+      for (final s in slots)
+        Float64List.fromList([
+          for (final a in actions)
+            _abilityMult(s.player, a.abilities, acts.abilityBonus),
+        ]),
+    ];
+    final choiceStatic = [
+      for (var i = 0; i < slots.length; i++)
+        Float64List.fromList([
+          for (var k = 0; k < n; k++)
+            attStatic[i][k] * _characterWeight(slots[i], actions[k].id),
+        ]),
+    ];
+    final defStatic = [
+      for (final s in slots)
+        Float64List.fromList([
+          for (final a in actions)
+            _abilityMult(s.player, a.defendAbilities, acts.abilityBonus) *
+                (1 +
+                    c.aggressionDuel *
+                        s.tx[CharacterTrait.aggression.index]),
+        ]),
+    ];
+    final system = [
+      for (final a in actions) acts.systemWeight(side.sheet.systemId, a.id),
+    ];
     const lanes = ZoneRules.lanes;
     const count = ZoneRules.columns * lanes;
-    final carry = <List<double>>[];
-    final actMean = <List<double>>[];
-    final defend = <List<double>>[];
-    final defMean = <List<double>>[];
+    final carry = <Float64List>[];
+    final defend = <Float64List>[];
+    final choice = <List<Float64List>>[];
+    final attRel = <List<Float64List>>[];
+    final defRel = <List<Float64List>>[];
     for (var zone = 0; zone < count; zone++) {
       final column = zone ~/ lanes;
       final lane = zone % lanes;
       // As carrier the zone is seen from this side, as defender from the
       // other side: column and lane are mirrored.
-      final c = [
+      final cw = Float64List.fromList([
         for (final s in slots)
           z.columnWeights[s.position]![column] * z.laneFactor(s.position, lane),
-      ];
-      final d = [
+      ]);
+      final dw = Float64List.fromList([
         for (final s in slots)
           s.position.isGoalkeeper
               ? 0.0
               : z.columnWeights[s.position]![ZoneRules.columns - 1 - column] *
                     z.laneFactor(s.position, lanes - 1 - lane),
+      ]);
+      _fallback(cw, slots);
+      _fallback(dw, slots);
+      carry.add(cw);
+      defend.add(dw);
+      final actMean = [
+        for (var k = 0; k < n; k++)
+          _weightedMean(cw, [for (final s in slots) s.act[k]]),
       ];
-      _fallback(c, slots);
-      _fallback(d, slots);
-      carry.add(c);
-      defend.add(d);
-      actMean.add([
-        for (var a = 0; a < actions.length; a++)
-          _weightedMean(c, [for (final s in slots) s.act[a]]),
-      ]);
-      defMean.add([
-        for (var a = 0; a < actions.length; a++)
-          _weightedMean(d, [for (final s in slots) s.def[a]]),
-      ]);
+      final defMean = [
+        for (var k = 0; k < n; k++)
+          _weightedMean(dw, [for (final s in slots) s.def[k]]),
+      ];
+      final zoneChoice = <Float64List>[];
+      final zoneAtt = <Float64List>[];
+      final zoneDef = <Float64List>[];
+      for (var i = 0; i < slots.length; i++) {
+        final s = slots[i];
+        final w = Float64List(n);
+        final att = Float64List(n);
+        final def = Float64List(n);
+        for (var k = 0; k < n; k++) {
+          final a = actions[k];
+          final rel = s.act[k] / actMean[k];
+          att[k] = rel * attStatic[i][k];
+          def[k] = s.def[k] / defMean[k] * defStatic[i][k];
+          final base = a.weights[column] * a.lanes[lane] * system[k];
+          w[k] = base <= 0
+              ? 0
+              : base *
+                    math.pow(rel, acts.skillExponent).toDouble() *
+                    choiceStatic[i][k];
+        }
+        zoneChoice.add(w);
+        zoneAtt.add(att);
+        zoneDef.add(def);
+      }
+      choice.add(zoneChoice);
+      attRel.add(zoneAtt);
+      defRel.add(zoneDef);
     }
-    return _Zones(slots, carry, actMean, defend, defMean);
+    final shooter = [
+      for (var lane = 0; lane < lanes; lane++)
+        Float64List.fromList([
+          for (final s in slots)
+            s.position.isGoalkeeper
+                ? 0.0
+                : _m.shooterSlotWeight[s.position]! *
+                          s.player.attributes[Attribute.goalInstinct] *
+                          math
+                              .pow(
+                                z.laneFactor(s.position, lane),
+                                z.shooterLaneExponent,
+                              )
+                              .toDouble() +
+                      0.001,
+        ]),
+    ];
+    return _Zones(
+      slots: slots,
+      carry: carry,
+      defend: defend,
+      choice: choice,
+      attRel: attRel,
+      defRel: defRel,
+      shooter: shooter,
+    );
   }
 
   /// A zone nobody covers (after red cards, for example) is shared by all
@@ -767,7 +884,7 @@ class MatchSession {
       final nerves =
           1 +
           _m.character.pressurePenalty *
-              _trait(slot.player, CharacterTrait.pressureResistance);
+              slot.tx[CharacterTrait.pressureResistance.index];
       final p = (_m.penaltyGoal * math.pow(score / keeper, 0.5) * nerves).limit(
         0.2,
         0.95,
@@ -1053,8 +1170,9 @@ class MatchSession {
     _Slot? lastCarrier;
     while (column < last) {
       final zone = column * lanes + lane;
-      final carrier = own.slots[_rng.weightedIndex(own.carry[zone])];
-      final a = _chooseAction(attacker, own, carrier, zone, column, lane);
+      final ci = _rng.weightedIndex(own.carry[zone]);
+      final carrier = own.slots[ci];
+      final a = _chooseAction(own.choice[zone][ci]);
       final action = acts.list[a];
       if (action.isShot) {
         _chance(
@@ -1071,25 +1189,16 @@ class MatchSession {
       if (chain.isEmpty || chain.last.id != carrier.player.id) {
         chain.add(carrier.player);
       }
-      final tackler = other.slots[_rng.weightedIndex(other.defend[zone])];
+      final ti = _rng.weightedIndex(other.defend[zone]);
+      final tackler = other.slots[ti];
       var ratio =
-          (carrier.act[a] * _energyFactor(carrier) / own.actMean[zone][a]) *
-          _abilityMult(carrier.player, action.abilities, acts.abilityBonus) /
-          ((tackler.def[a] * _energyFactor(tackler) / other.defMean[zone][a]) *
-              _abilityMult(
-                tackler.player,
-                action.defendAbilities,
-                acts.abilityBonus,
-              ));
+          own.attRel[zone][ci][a] *
+          _energyFactor(carrier) /
+          (other.defRel[zone][ti][a] * _energyFactor(tackler));
       if (counter != null && step < _m.counter.disorderSteps) {
-        ratio /= _m.counter.disorder;
-        ratio *= _abilityMult(
-          carrier.player,
-          const [SpecialAbilityType.counterPlayer],
-          _m.counter.abilityBonus,
-        );
+        ratio *= carrier.counterMult / _m.counter.disorder;
       }
-      ratio *= _characterDuel(t, carrier.player, tackler.player);
+      ratio *= _characterDuel(t, carrier, tackler);
       final duel = math
           .pow(ratio, z.duelExponent)
           .toDouble()
@@ -1099,7 +1208,7 @@ class MatchSession {
       final creative = action.id == 'through_ball'
           ? 1 -
                 _m.character.creativityRisk *
-                    _trait(carrier.player, CharacterTrait.creativity)
+                    carrier.tx[CharacterTrait.creativity.index]
           : 1.0;
       final p =
           (math.pow(q, share / reference).toDouble() *
@@ -1132,7 +1241,7 @@ class MatchSession {
       bigChance: lastAction?.id == 'through_ball' && lastCarrier != null
           ? 1 +
                 _m.character.creativityBigChance *
-                    _trait(lastCarrier.player, CharacterTrait.creativity)
+                    lastCarrier.tx[CharacterTrait.creativity.index]
           : 1,
     );
   }
@@ -1184,54 +1293,29 @@ class MatchSession {
   /// Picks what the player in [slot] does with the ball: the weight of an
   /// action comes from the column and lane, the system of the team and how
   /// good the player is at it compared with those usually in the zone.
-  int _chooseAction(
-    _Side side,
-    _Zones zones,
-    _Slot slot,
-    int zone,
-    int column,
-    int lane,
-  ) {
-    final acts = _m.actions;
-    final weights = <double>[];
-    for (var i = 0; i < acts.list.length; i++) {
-      final a = acts.list[i];
-      final base =
-          a.weights[column] *
-          a.lanes[lane] *
-          acts.systemWeight(side.sheet.systemId, a.id);
-      if (base <= 0) {
-        weights.add(0);
-        continue;
-      }
-      final skill = slot.act[i] / zones.actMean[zone][i];
-      weights.add(
-        base *
-            math.pow(skill, acts.skillExponent).toDouble() *
-            _abilityMult(slot.player, a.abilities, acts.abilityBonus) *
-            _characterWeight(slot.player, a.id),
-      );
+  int _chooseAction(Float64List weights) {
+    var total = 0.0;
+    for (final w in weights) {
+      total += w;
     }
-    if (weights.every((w) => w <= 0)) {
-      return acts.list.indexWhere((a) => !a.isShot);
-    }
+    if (total <= 0) return _m.actions.list.indexWhere((a) => !a.isShot);
     return _rng.weightedIndex(weights);
   }
 
   /// How the character of [p] changes the weight of the action [id]:
   /// egoists shoot from distance, creative players try the through ball.
-  double _characterWeight(Player p, String id) {
+  double _characterWeight(_Slot s, String id) {
     final c = _m.character;
     switch (id) {
       case 'long_shot':
         return math.max(
           0.05,
-          1 + c.egoismLongShot * _trait(p, CharacterTrait.egoism),
+          1 + c.egoismLongShot * s.tx[CharacterTrait.egoism.index],
         );
       case 'through_ball':
         return math.max(
           0.05,
-          1 + c.creativityThroughBall * _trait(p, CharacterTrait.creativity),
+          1 + c.creativityThroughBall * s.tx[CharacterTrait.creativity.index],
         );
       default:
         return 1;
@@ -1241,23 +1325,22 @@ class MatchSession {
   /// Character in a duel between [carrier] and [tackler] of side [t]:
   /// hard tacklers win more balls, ambitious players fight harder when
   /// behind, and nerves count in tight moments.
-  double _characterDuel(int t, Player carrier, Player tackler) {
+  double _characterDuel(int t, _Slot carrier, _Slot tackler) {
     final c = _m.character;
-    var ratio =
-        1 / (1 + c.aggressionDuel * _trait(tackler, CharacterTrait.aggression));
-    if (_lead(t) < 0) {
-      ratio *= 1 + c.ambitionTrailing * _trait(carrier, CharacterTrait.ambition);
-    } else if (_lead(t) > 0) {
-      ratio /= 1 + c.ambitionTrailing * _trait(tackler, CharacterTrait.ambition);
+    var ratio = 1.0;
+    final lead = _lead(t);
+    if (lead < 0) {
+      ratio *=
+          1 + c.ambitionTrailing * carrier.tx[CharacterTrait.ambition.index];
+    } else if (lead > 0) {
+      ratio /=
+          1 + c.ambitionTrailing * tackler.tx[CharacterTrait.ambition.index];
     }
     if (_pressure) {
+      const pr = CharacterTrait.pressureResistance;
       ratio *=
-          (1 +
-              c.pressureDuel *
-                  _trait(carrier, CharacterTrait.pressureResistance)) /
-          (1 +
-              c.pressureDuel *
-                  _trait(tackler, CharacterTrait.pressureResistance));
+          (1 + c.pressureDuel * carrier.tx[pr.index]) /
+          (1 + c.pressureDuel * tackler.tx[pr.index]);
     }
     return ratio;
   }
@@ -1285,31 +1368,24 @@ class MatchSession {
     Player? carrier,
     double selfShot = 1,
   }) {
-    final z = _m.zones;
-    final slots = [
-      for (final s in side.pitch)
-        if (!s.position.isGoalkeeper) s,
-    ];
-    if (slots.isEmpty) return null;
-    final weights = [
-      for (final s in slots)
-        _m.shooterSlotWeight[s.position]! *
-                s.player.attributes[Attribute.goalInstinct] *
-                math
-                    .pow(z.laneFactor(s.position, lane), z.shooterLaneExponent)
-                    .toDouble() *
-                (s.player.id == carrier?.id
-                    ? selfShot *
-                          math.max(
-                            0.05,
-                            1 +
-                                _m.character.egoismSelfShot *
-                                    _trait(s.player, CharacterTrait.egoism),
-                          )
-                    : 1.0) +
-            0.001,
-    ];
-    return slots[_rng.weightedIndex(weights)].player;
+    final zones = _zonesOf(side);
+    final weights = Float64List.fromList(zones.shooter[lane]);
+    var any = false;
+    for (var i = 0; i < weights.length; i++) {
+      final s = zones.slots[i];
+      if (s.position.isGoalkeeper) continue;
+      any = true;
+      if (s.player.id == carrier?.id) {
+        weights[i] *=
+            selfShot *
+            math.max(
+              0.05,
+              1 + _m.character.egoismSelfShot * s.tx[CharacterTrait.egoism.index],
+            );
+      }
+    }
+    if (!any) return null;
+    return zones.slots[_rng.weightedIndex(weights)].player;
   }
 
   /// The player who made the pass for a goal, or null without an assist.
@@ -1529,7 +1605,7 @@ class MatchSession {
     return _m.momentumGoalAgainst *
         (1 -
                 c.leadershipMomentum *
-                    _trait(onPitch.player, CharacterTrait.leadership))
+                    onPitch.tx[CharacterTrait.leadership.index])
             .limit(0.2, 2.0);
   }
 
@@ -1686,8 +1762,8 @@ class MatchSession {
       var temper = 0.0;
       for (final s in side.pitch) {
         temper +=
-            (_trait(s.player, CharacterTrait.temper) +
-                _trait(s.player, CharacterTrait.aggression)) /
+            (s.tx[CharacterTrait.temper.index] +
+                s.tx[CharacterTrait.aggression.index]) /
             2;
       }
       if (side.pitch.isNotEmpty) temper /= side.pitch.length;
@@ -1708,8 +1784,8 @@ class MatchSession {
                   0.1,
                   1 +
                       _m.character.cardTraitsWeight *
-                          (_trait(s.player, CharacterTrait.temper) +
-                              _trait(s.player, CharacterTrait.aggression)) /
+                          (s.tx[CharacterTrait.temper.index] +
+                              s.tx[CharacterTrait.aggression.index]) /
                           2,
                 ) *
                 (s.position == Position.iv || s.position == Position.zdm
@@ -1732,7 +1808,7 @@ class MatchSession {
               0.1,
               1 +
                   _m.character.redTemperWeight *
-                      _trait(s.player, CharacterTrait.temper),
+                      s.tx[CharacterTrait.temper.index],
             ),
         ];
         _sendOff(i, side.pitch[_rng.weightedIndex(weights)], false);
@@ -1917,6 +1993,7 @@ class MatchSession {
       defensiveLine: defensiveLine,
     );
     s.fxStale = true;
+    s.zones = null;
     final free =
         _minute <= rules.tactics.warmupMinutes || _minute == _m.halfTimeMinute;
     if (!free) s.countedChanges++;
