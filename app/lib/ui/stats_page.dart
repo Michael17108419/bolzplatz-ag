@@ -325,69 +325,81 @@ class _TableTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           onTap: narrow ? () => _details(context) : null,
           child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: own ? Border.all(color: Tokens.yellow, width: 1) : null,
-          ),
-          padding: EdgeInsets.fromLTRB(0, narrow ? 10 : 4, Tokens.gapS, narrow ? 10 : 4),
-          child: Row(
-            children: [
-              Container(
-                width: 4,
-                height: narrow ? 30 : 24,
-                margin: const EdgeInsets.only(right: 8),
-                color: zoneColor(zone),
-              ),
-              if (narrow)
-                SizedBox(
-                  width: 16,
-                  child: trend == null || trend == 0
-                      ? null
-                      : Icon(
-                          trend! > 0
-                              ? Icons.arrow_upward
-                              : Icons.arrow_downward,
-                          key: ValueKey('trend-${club.id.value}'),
-                          size: 14,
-                          color: trend! > 0
-                              ? Tokens.green
-                              : const Color(0xFFD64545),
-                        ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: own ? Border.all(color: Tokens.yellow, width: 1) : null,
+            ),
+            padding: EdgeInsets.fromLTRB(
+              0,
+              narrow ? 10 : 4,
+              Tokens.gapS,
+              narrow ? 10 : 4,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: narrow ? 30 : 24,
+                  margin: const EdgeInsets.only(right: 8),
+                  color: zoneColor(zone),
                 ),
-              cell('$place', (narrow ? 30 : _wPlace), style: theme.textTheme.titleSmall),
-              ClubCrest(clubId: club.id.value, size: narrow ? 30 : 24),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  club.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: own
-                      ? theme.textTheme.titleSmall?.copyWith(
-                          color: Tokens.yellow,
-                        )
-                      : theme.textTheme.titleSmall,
+                if (narrow)
+                  SizedBox(
+                    width: 16,
+                    child: trend == null || trend == 0
+                        ? null
+                        : Icon(
+                            trend! > 0
+                                ? Icons.arrow_upward
+                                : Icons.arrow_downward,
+                            key: ValueKey('trend-${club.id.value}'),
+                            size: 14,
+                            color: trend! > 0
+                                ? Tokens.green
+                                : const Color(0xFFD64545),
+                          ),
+                  ),
+                cell(
+                  '$place',
+                  (narrow ? 30 : _wPlace),
+                  style: theme.textTheme.titleSmall,
                 ),
-              ),
-              cell('${entry.played}', (narrow ? 32 : _wNumber)),
-              if (!narrow) ...[
-                cell('${entry.won}', (narrow ? 32 : _wNumber)),
-                cell('${entry.drawn}', (narrow ? 32 : _wNumber)),
-                cell('${entry.lost}', (narrow ? 32 : _wNumber)),
+                ClubCrest(clubId: club.id.value, size: narrow ? 30 : 24),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    club.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: own
+                        ? theme.textTheme.titleSmall?.copyWith(
+                            color: Tokens.yellow,
+                          )
+                        : theme.textTheme.titleSmall,
+                  ),
+                ),
+                cell('${entry.played}', (narrow ? 32 : _wNumber)),
+                if (!narrow) ...[
+                  cell('${entry.won}', (narrow ? 32 : _wNumber)),
+                  cell('${entry.drawn}', (narrow ? 32 : _wNumber)),
+                  cell('${entry.lost}', (narrow ? 32 : _wNumber)),
+                ],
+                cell(
+                  '${entry.goalsFor}:${entry.goalsAgainst}',
+                  (narrow ? 52 : _wGoals),
+                ),
+                cell(diff > 0 ? '+$diff' : '$diff', (narrow ? 38 : _wDiff)),
+                cell(
+                  '${entry.points}',
+                  (narrow ? 38 : _wPoints),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: Tokens.yellow,
+                  ),
+                ),
+                SizedBox(width: narrow ? 0 : 14),
               ],
-              cell('${entry.goalsFor}:${entry.goalsAgainst}', (narrow ? 52 : _wGoals)),
-              cell(diff > 0 ? '+$diff' : '$diff', (narrow ? 38 : _wDiff)),
-              cell(
-                '${entry.points}',
-                (narrow ? 38 : _wPoints),
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: Tokens.yellow,
-                ),
-              ),
-              SizedBox(width: narrow ? 0 : 14),
-            ],
+            ),
           ),
-        ),
         ),
       ),
     );

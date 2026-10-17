@@ -234,9 +234,7 @@ class _LineupPageState extends ConsumerState<LineupPage> {
                 if (!ok) {
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      SnackBar(content: Text(s.lineupSwapKeeper)),
-                    );
+                    ..showSnackBar(SnackBar(content: Text(s.lineupSwapKeeper)));
                 }
                 return;
               }
@@ -402,11 +400,7 @@ class _Pitch extends StatelessWidget {
                             ?.copyWith(color: Tokens.text),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(
-                        Icons.tune,
-                        size: 18,
-                        color: Tokens.yellow,
-                      ),
+                      const Icon(Icons.tune, size: 18, color: Tokens.yellow),
                       const SizedBox(width: 8),
                       ClubCrest(clubId: clubId, size: 30),
                     ],
@@ -618,9 +612,7 @@ class _SlotView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                number == null
-                    ? player.lastName
-                    : '$number ${player.lastName}',
+                number == null ? player.lastName : '$number ${player.lastName}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -1450,45 +1442,43 @@ class _PhoneStrip extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-        children: [
-          Text(
-            preview.strength.round().toString(),
-            key: const ValueKey('lineup-strength'),
-            style: theme.textTheme.headlineMedium?.copyWith(
-              color: valueColor(preview.strength),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(s.lineupStrength, style: theme.textTheme.bodySmall),
-                Text(
-                  '${s.lineupRoleFit} ${roleFit.round()} %',
-                  key: const ValueKey('lineup-rolefit'),
-                  style: theme.textTheme.bodySmall,
+            children: [
+              Text(
+                preview.strength.round().toString(),
+                key: const ValueKey('lineup-strength'),
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  color: valueColor(preview.strength),
                 ),
-                Text(
-                  s.lineupSystemFitName(preview.systemFit),
-                  key: const ValueKey('lineup-systemfit'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(s.lineupStrength, style: theme.textTheme.bodySmall),
+                    Text(
+                      '${s.lineupRoleFit} ${roleFit.round()} %',
+                      key: const ValueKey('lineup-rolefit'),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    Text(
+                      s.lineupSystemFitName(preview.systemFit),
+                      key: const ValueKey('lineup-systemfit'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          InfoButton(message: s.infoLineupPreview),
-        ],
+              ),
+              InfoButton(message: s.infoLineupPreview),
+            ],
           ),
           if (preview.outOfPosition > 0)
             Text(
               s.lineupOutOfPosition(preview.outOfPosition),
               key: const ValueKey('lineup-outofposition'),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: Tokens.orange,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: Tokens.orange),
             ),
         ],
       ),
@@ -1577,10 +1567,7 @@ class _BenchStrip extends ConsumerWidget {
                                   width: 2,
                                 ),
                               ),
-                              child: const Icon(
-                                Icons.add,
-                                color: Tokens.beige,
-                              ),
+                              child: const Icon(Icons.add, color: Tokens.beige),
                             ),
                           ],
                         ),
@@ -1750,15 +1737,18 @@ class _SlotPickerState extends ConsumerState<_SlotPicker> {
     final notifier = ref.read(lineupProvider.notifier);
     final current = widget.squad[xi[widget.slotIndex]]!;
 
-    final players = [
-      for (final p in widget.squad.values)
-        if (p.position.isGoalkeeper == target.isGoalkeeper &&
-            (_all ||
-                p.id == current.id ||
-                fit.positionMultiplier(p, target) >= 0.9))
-          p,
-    ]..sort((a, b) =>
-        fit.slotScore(b, target).compareTo(fit.slotScore(a, target)));
+    final players =
+        [
+          for (final p in widget.squad.values)
+            if (p.position.isGoalkeeper == target.isGoalkeeper &&
+                (_all ||
+                    p.id == current.id ||
+                    fit.positionMultiplier(p, target) >= 0.9))
+              p,
+        ]..sort(
+          (a, b) =>
+              fit.slotScore(b, target).compareTo(fit.slotScore(a, target)),
+        );
 
     void pick(Player p) {
       final reason = absent[p.id];
@@ -1979,15 +1969,16 @@ class _BenchPicker extends ConsumerWidget {
     if (lineup == null) return const SizedBox.shrink();
     final sheet = lineup.sheet;
     final notifier = ref.read(lineupProvider.notifier);
-    final players = [
-      for (final p in squad.values)
-        if (!sheet.startingXi.contains(p.id)) p,
-    ]..sort((a, b) {
-        final ab = sheet.bench.contains(a.id) ? 0 : 1;
-        final bb = sheet.bench.contains(b.id) ? 0 : 1;
-        if (ab != bb) return ab.compareTo(bb);
-        return (strengths[b.id] ?? 0).compareTo(strengths[a.id] ?? 0);
-      });
+    final players =
+        [
+          for (final p in squad.values)
+            if (!sheet.startingXi.contains(p.id)) p,
+        ]..sort((a, b) {
+          final ab = sheet.bench.contains(a.id) ? 0 : 1;
+          final bb = sheet.bench.contains(b.id) ? 0 : 1;
+          if (ab != bb) return ab.compareTo(bb);
+          return (strengths[b.id] ?? 0).compareTo(strengths[a.id] ?? 0);
+        });
     return SafeArea(
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -2036,9 +2027,7 @@ class _BenchPicker extends ConsumerWidget {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 4),
                           child: Material(
-                            color: on
-                                ? const Color(0xFF28503A)
-                                : Tokens.panel,
+                            color: on ? const Color(0xFF28503A) : Tokens.panel,
                             borderRadius: BorderRadius.circular(Tokens.radius),
                             child: InkWell(
                               key: ValueKey('benchpick-${p.id.value}'),
@@ -2066,9 +2055,7 @@ class _BenchPicker extends ConsumerWidget {
                                     ..showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          s.lineupBenchFull(
-                                            sheet.bench.length,
-                                          ),
+                                          s.lineupBenchFull(sheet.bench.length),
                                         ),
                                       ),
                                     );
@@ -2102,8 +2089,7 @@ class _BenchPicker extends ConsumerWidget {
                                                   : '${numbers[p.id]}  ${p.displayName}',
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
-                                              style:
-                                                  theme.textTheme.titleSmall,
+                                              style: theme.textTheme.titleSmall,
                                             ),
                                             Text(
                                               reason != null

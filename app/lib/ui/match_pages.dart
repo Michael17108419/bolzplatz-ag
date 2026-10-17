@@ -636,37 +636,37 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
             ),
           )
         : Expanded(
-      child: Row(
-        mainAxisAlignment: right
-            ? MainAxisAlignment.start
-            : MainAxisAlignment.end,
-        children: [
-          if (!right) ...[
-            Flexible(
-              child: Text(
-                _clubName(_loaded, id),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium,
-              ),
+            child: Row(
+              mainAxisAlignment: right
+                  ? MainAxisAlignment.start
+                  : MainAxisAlignment.end,
+              children: [
+                if (!right) ...[
+                  Flexible(
+                    child: Text(
+                      _clubName(_loaded, id),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  const SizedBox(width: Tokens.gapS),
+                ],
+                ClubCrest(clubId: id.value, size: 40),
+                if (right) ...[
+                  const SizedBox(width: Tokens.gapS),
+                  Flexible(
+                    child: Text(
+                      _clubName(_loaded, id),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(width: Tokens.gapS),
-          ],
-          ClubCrest(clubId: id.value, size: 40),
-          if (right) ...[
-            const SizedBox(width: Tokens.gapS),
-            Flexible(
-              child: Text(
-                _clubName(_loaded, id),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
+          );
 
     final subsLeft = _session.substitutionsLeft(_ownSide);
 
@@ -1194,7 +1194,9 @@ List<Widget> _subRows({
       _SubRow(
         key: ValueKey('match-sub-${off ? 'off' : 'on'}-${id.value}'),
         player: p,
-        position: off ? (session.slotPositionOf(side, id) ?? p.position) : p.position,
+        position: off
+            ? (session.slotPositionOf(side, id) ?? p.position)
+            : p.position,
         strength: loaded.overall(p),
         energy: session.energyOf(side, id),
         form: session.formOf(side, id),
@@ -1575,8 +1577,7 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
                               'match-system-${tactics.systems[j].id}',
                             ),
                             label: s.systemName(tactics.systems[j].id),
-                            selected:
-                                tactics.systems[j].id == sheet.systemId,
+                            selected: tactics.systems[j].id == sheet.systemId,
                             onTap: () {
                               final id = tactics.systems[j].id;
                               if (id != sheet.systemId) change(system: id);
@@ -1642,9 +1643,7 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
       title: Text(s.matchTactics),
       content: SizedBox(
         width: 420,
-        child: SingleChildScrollView(
-          child: content,
-        ),
+        child: SingleChildScrollView(child: content),
       ),
       actions: [
         TextButton(
@@ -1763,26 +1762,26 @@ class MatchReportPage extends ConsumerWidget {
               ],
             )
           else
-          Row(
-            children: [
-              ClubCrest(clubId: home.value, size: 40),
-              const SizedBox(width: Tokens.gapS),
-              Expanded(
-                child: Text(
-                  '${teamOf(0)}  ${result.homeGoals} : ${result.awayGoals}  '
-                  '${teamOf(1)}',
-                  key: const ValueKey('report-score'),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleLarge,
+            Row(
+              children: [
+                ClubCrest(clubId: home.value, size: 40),
+                const SizedBox(width: Tokens.gapS),
+                Expanded(
+                  child: Text(
+                    '${teamOf(0)}  ${result.homeGoals} : ${result.awayGoals}  '
+                    '${teamOf(1)}',
+                    key: const ValueKey('report-score'),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleLarge,
+                  ),
                 ),
-              ),
-              const SizedBox(width: Tokens.gapS),
-              ClubCrest(clubId: away.value, size: 40),
-              InfoButton(message: s.infoMatchReport),
-            ],
-          ),
+                const SizedBox(width: Tokens.gapS),
+                ClubCrest(clubId: away.value, size: 40),
+                InfoButton(message: s.infoMatchReport),
+              ],
+            ),
           const SizedBox(height: Tokens.gapS),
           Text(
             s.matchReportVerdict(mine, theirs),

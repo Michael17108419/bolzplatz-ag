@@ -346,10 +346,7 @@ class _MonthCalendarState extends ConsumerState<MonthCalendar> {
                             ),
                             Expanded(
                               child: lines.isEmpty
-                                  ? Text(
-                                      '–',
-                                      style: theme.textTheme.bodySmall,
-                                    )
+                                  ? Text('–', style: theme.textTheme.bodySmall)
                                   : Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
@@ -399,7 +396,8 @@ class _MonthCalendarState extends ConsumerState<MonthCalendar> {
               Expanded(
                 child: Row(
                   children: [
-                    for (var c = 0; c < 7; c++) Expanded(child: padded[r * 7 + c]),
+                    for (var c = 0; c < 7; c++)
+                      Expanded(child: padded[r * 7 + c]),
                   ],
                 ),
               ),
@@ -583,12 +581,14 @@ class _MonthCalendarState extends ConsumerState<MonthCalendar> {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                _edit && _range ? s.vacRangeHint : s.vacCounter(
-                  check.total,
-                  check.minTotal,
-                  check.longestBlock,
-                  check.minBlock,
-                ),
+                _edit && _range
+                    ? s.vacRangeHint
+                    : s.vacCounter(
+                        check.total,
+                        check.minTotal,
+                        check.longestBlock,
+                        check.minBlock,
+                      ),
                 key: const ValueKey('vac-counter'),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,

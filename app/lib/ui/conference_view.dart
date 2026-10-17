@@ -390,13 +390,19 @@ class _ConferenceViewState extends State<ConferenceView> {
       );
     }
 
-    final open = [for (final l in lines) if (l.status != _Status.finished) l];
+    final open = [
+      for (final l in lines)
+        if (l.status != _Status.finished) l,
+    ];
     open.sort((a, b) {
       final ra = a.status == _Status.running ? 0 : 1;
       final rb = b.status == _Status.running ? 0 : 1;
       return ra != rb ? ra - rb : a.match.minuteOfDay - b.match.minuteOfDay;
     });
-    final done = [for (final l in lines) if (l.status == _Status.finished) l];
+    final done = [
+      for (final l in lines)
+        if (l.status == _Status.finished) l,
+    ];
 
     final Widget body;
     if (_tab == 0) {

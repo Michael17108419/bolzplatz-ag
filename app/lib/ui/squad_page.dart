@@ -76,13 +76,13 @@ class _SquadPageState extends ConsumerState<SquadPage> {
                   onSort: _pick,
                 )
               else ...[
-              _Toolbar(
-                filter: _filter,
-                count: rows.length,
-                onFilter: (f) => setState(() => _filter = f),
-              ),
-              const SizedBox(height: Tokens.gapS),
-              _HeaderRow(sort: _sort, reversed: _reversed, onSort: _pick),
+                _Toolbar(
+                  filter: _filter,
+                  count: rows.length,
+                  onFilter: (f) => setState(() => _filter = f),
+                ),
+                const SizedBox(height: Tokens.gapS),
+                _HeaderRow(sort: _sort, reversed: _reversed, onSort: _pick),
               ],
               const SizedBox(height: 4),
               Expanded(
