@@ -64,8 +64,11 @@ void main() {
     // A second change in the same stoppage uses no new window.
     expect(subOne(s), isTrue);
     expect(s.windowsLeft(0), w0 - 1);
-    s.advanceTo(rules.match.halfTimeMinute);
-    expect(s.inBreak, isTrue);
+    // Half time comes after the stoppage time of the first half.
+    while (!s.inBreak) {
+      s.advanceTo(s.minute + 1);
+    }
+    expect(s.clock, rules.match.halfTimeMinute);
     final w1 = s.windowsLeft(0);
     expect(subOne(s), isTrue);
     expect(s.windowsLeft(0), w1);
@@ -93,7 +96,7 @@ void main() {
 
   test('extra time gives one more change and one more window', () {
     final s = MatchSession(rules: rules, home: home, away: away, seed: 13)
-      ..advanceTo(rules.match.minutes);
+      ..finish();
     final subsBefore = s.substitutionsLeft(0);
     final windowsBefore = s.windowsLeft(0);
     s.startExtraTime();
