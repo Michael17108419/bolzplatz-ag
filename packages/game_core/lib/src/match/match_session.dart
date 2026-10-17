@@ -1084,6 +1084,7 @@ class MatchSession {
     String? action,
     int? value,
     int? spot,
+    List<AttackStep> steps = const [],
   }) {
     _events.add(
       MatchEvent(
@@ -1092,6 +1093,7 @@ class MatchSession {
         tick: _minute,
         value: value,
         spot: spot,
+        steps: steps.isEmpty ? const [] : List.unmodifiable(steps),
         type: type,
         side: side,
         homeGoals: _goalsHome,
@@ -1263,6 +1265,7 @@ class MatchSession {
         _rng.weightedIndex(z.lanesFor(attacker.sheet.systemId));
     final reference = z.referenceShare;
     final chain = <Player>[];
+    final steps = <AttackStep>[];
     var step = 0;
     ActionRule? lastAction;
     _Slot? lastCarrier;
@@ -1281,6 +1284,7 @@ class MatchSession {
           forceType: action.id == 'long_shot' ? 'long_shot' : null,
           column: column,
           action: action.id,
+          steps: steps,
         );
         return;
       }
@@ -1314,8 +1318,37 @@ class MatchSession {
                   creative *
                   duel)
               .limit(z.stepMin, z.stepMax);
-      if (_rng.nextDouble() >= p) {
-        _lost(t, carrier, tackler, column, lane, action.id);
+      final roll = _rng.nextDouble();
+      final won = roll < p;
+      // What the reporter can tell about this step, from the numbers the
+      // duel used anyway (no extra dice).
+      var flags = 0;
+      if (other.defRel[zone][ti][a] > 1.15 || p < 0.45) {
+        flags |= AttackStep.pressure;
+      }
+      if (won ? duel >= 1.25 : duel <= 0.8) flags |= AttackStep.clear;
+      if ((roll - p).abs() < 0.08) flags |= AttackStep.close;
+      if (won && own.attRel[zone][ci][a] >= 1.2 && action.id != 'short_pass') {
+        flags |= AttackStep.pretty;
+      }
+      if ((counter != null && step < _m.counter.disorderSteps) ||
+          (action.advance > 1 &&
+              carrier.player.attributes[Attribute.acceleration] >= 75)) {
+        flags |= AttackStep.fast;
+      }
+      steps.add(
+        AttackStep(
+          player: carrier.player.id,
+          action: action.id,
+          column: column,
+          lane: lane,
+          won: won,
+          opponent: tackler.player.id,
+          flags: flags,
+        ),
+      );
+      if (!won) {
+        _lost(t, carrier, tackler, column, lane, action.id, steps);
         return;
       }
       column = target;
@@ -1332,6 +1365,7 @@ class MatchSession {
       selfShot: lastAction?.selfShot ?? 1,
       shotBias: lastAction?.shotBias ?? const {},
       action: lastAction?.id,
+      steps: steps,
       bigChance: lastAction?.id == 'through_ball' && lastCarrier != null
           ? 1 +
                 _m.character.creativityBigChance *
@@ -1363,6 +1397,7 @@ class MatchSession {
     int column,
     int lane,
     String action,
+    List<AttackStep> steps,
   ) {
     final o = 1 - t;
     final z = _m.zones;
@@ -1382,6 +1417,7 @@ class MatchSession {
         column: last - column,
         lane: ZoneRules.lanes - 1 - lane,
         action: action,
+        steps: steps,
       );
       return;
     }
@@ -1394,6 +1430,7 @@ class MatchSession {
         column: column,
         lane: lane,
         action: action,
+        steps: steps,
       );
     }
   }
@@ -1559,6 +1596,7 @@ class MatchSession {
     Map<String, double> shotBias = const {},
     String? action,
     double bigChance = 1,
+    List<AttackStep> steps = const [],
   }) {
     final o = 1 - t;
     final attacker = _sides[t];
@@ -1637,6 +1675,7 @@ class MatchSession {
       chain: passers,
       action: action,
       spot: spot,
+      steps: steps,
     );
   }
 
@@ -1651,6 +1690,7 @@ class MatchSession {
     List<Player> chain = const [],
     String? action,
     int? spot,
+    List<AttackStep> steps = const [],
   }) {
     final attacker = _sides[t];
     attacker.stats.shots++;
@@ -1711,6 +1751,7 @@ class MatchSession {
       chain: [for (final p in chain) p.id],
       action: action,
       spot: spot,
+      steps: steps,
     );
   }
 

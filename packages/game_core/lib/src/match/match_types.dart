@@ -43,6 +43,53 @@ enum ShotOutcome { goal, saved, blocked, offTarget }
 
 enum ChanceQuality { half, chance, big }
 
+/// One step of an attack (engine 2): the player on the ball, what he did,
+/// where, against whom and how it went. The ticker tells attacks from these.
+class AttackStep {
+  const AttackStep({
+    required this.player,
+    required this.action,
+    required this.column,
+    required this.lane,
+    required this.won,
+    this.opponent,
+    this.flags = 0,
+  });
+
+  /// Under pressure from the defender.
+  static const int pressure = 1;
+
+  /// Clearly won or clearly lost.
+  static const int clear = 2;
+
+  /// Only just (won or lost by a hair).
+  static const int close = 4;
+
+  /// Nicely done.
+  static const int pretty = 8;
+
+  /// At speed (counter attack, a sprinter on the ball).
+  static const int fast = 16;
+
+  final PlayerId player;
+
+  /// Action id of the rules (short_pass, dribble, cross ...).
+  final String action;
+
+  /// Column and lane where the step started (view of the team on the ball).
+  final int column;
+  final int lane;
+
+  /// True if the step got through.
+  final bool won;
+
+  /// The defender of the zone.
+  final PlayerId? opponent;
+  final int flags;
+
+  bool has(int flag) => flags & flag != 0;
+}
+
 /// One thing that happened in a match. Texts are made later from these.
 class MatchEvent {
   const MatchEvent({
@@ -65,6 +112,7 @@ class MatchEvent {
     int? tick,
     this.value,
     this.spot,
+    this.steps = const [],
   }) : tick = tick ?? minute;
 
   /// Minute on the clock (45 and 90 during stoppage time, see [added]).
@@ -116,6 +164,10 @@ class MatchEvent {
   /// Where a chance from open play came from (engine 2): 0 edge of the box,
   /// 1 box, 2 six-yard box; null for shots from distance and set pieces.
   final int? spot;
+
+  /// The steps of the attack that led to a shot, a lost ball or a counter
+  /// (engine 2); empty for other events.
+  final List<AttackStep> steps;
 
   /// The minute as shown: "45+2" in stoppage time, else "45".
   String get clockLabel => added > 0 ? '$minute+$added' : '$minute';
