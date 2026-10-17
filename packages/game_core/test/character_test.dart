@@ -12,7 +12,11 @@ late List<MatchTeam> tier1;
 String _rulesFile() =>
     File('../../rules/rules_2026_27.json').readAsStringSync();
 
-MatchTeam _with(MatchTeam t, {Map<CharacterTrait, double>? set, TeamSheet? sheet}) {
+MatchTeam _with(
+  MatchTeam t, {
+  Map<CharacterTrait, double>? set,
+  TeamSheet? sheet,
+}) {
   final squad = [
     for (final p in t.squad)
       set == null ? p : p.copyWith(traits: {...p.traits, ...set}),
@@ -112,8 +116,8 @@ void main() {
     // ignored.
     final json = withCaptain.sheet.toJson();
     expect(TeamSheet.fromJson(json).captain, named);
-    expect(team.sheet.copyWith(captain: named, clearCaptain: true).captain,
-        isNull);
+    final cleared = team.sheet.copyWith(captain: named, clearCaptain: true);
+    expect(cleared.captain, isNull);
     final benchCaptain = _with(
       team,
       sheet: team.sheet.copyWith(captain: team.sheet.bench.first),
@@ -128,11 +132,15 @@ void main() {
   });
 
   test('egoists shoot from distance more often than team players', () {
-    int longShots(double egoism) => homeEvents(
-      _with(tier1[0], set: {CharacterTrait.egoism: egoism}),
-      40,
-    ).where((e) => e.type == MatchEventType.shot && e.action == 'long_shot')
-        .length;
+    int longShots(double egoism) {
+      final team = _with(tier1[0], set: {CharacterTrait.egoism: egoism});
+      var n = 0;
+      for (final e in homeEvents(team, 40)) {
+        if (e.type == MatchEventType.shot && e.action == 'long_shot') n++;
+      }
+      return n;
+    }
+
     final egoists = longShots(95);
     final teamPlayers = longShots(5);
     stdout.writeln(
@@ -143,18 +151,23 @@ void main() {
   });
 
   test('hotheads see more cards than calm players', () {
-    int cards(double value) => homeEvents(
-      _with(
+    int cards(double value) {
+      final team = _with(
         tier1[0],
         set: {CharacterTrait.temper: value, CharacterTrait.aggression: value},
-      ),
-      60,
-    ).where(
-      (e) =>
-          e.type == MatchEventType.yellowCard ||
-          e.type == MatchEventType.secondYellow ||
-          e.type == MatchEventType.redCard,
-    ).length;
+      );
+      const kinds = {
+        MatchEventType.yellowCard,
+        MatchEventType.secondYellow,
+        MatchEventType.redCard,
+      };
+      var n = 0;
+      for (final e in homeEvents(team, 60)) {
+        if (kinds.contains(e.type)) n++;
+      }
+      return n;
+    }
+
     // The share within one team moves: a team of hotheads against normal
     // opponents. Compare a whole team of hotheads with the same team calm.
     final hot = cards(95);
@@ -164,16 +177,15 @@ void main() {
   });
 
   test('creative players play more through balls', () {
-    int throughBalls(double value) => homeEvents(
-      _with(tier1[0], set: {CharacterTrait.creativity: value}),
-      40,
-    ).where(
-      (e) =>
-          (e.type == MatchEventType.shot ||
-              e.type == MatchEventType.ballWon ||
-              e.type == MatchEventType.counterAttack) &&
-          e.action == 'through_ball',
-    ).length;
+    int throughBalls(double value) {
+      final team = _with(tier1[0], set: {CharacterTrait.creativity: value});
+      var n = 0;
+      for (final e in homeEvents(team, 40)) {
+        if (e.action == 'through_ball') n++;
+      }
+      return n;
+    }
+
     final creative = throughBalls(95);
     final plain = throughBalls(5);
     stdout.writeln(
