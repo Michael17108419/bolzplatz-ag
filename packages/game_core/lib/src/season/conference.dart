@@ -100,6 +100,7 @@ class ConferenceMatch {
     if (last == null) return '$clock';
     // Minutes since the last event run on its clock (or its stoppage).
     final since = minute - last.tick;
+    if (since == 0) return last.clockLabel;
     if (last.type == MatchEventType.halfTime ||
         last.type == MatchEventType.extraTime) {
       return '${last.minute + since}';
