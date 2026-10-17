@@ -105,7 +105,10 @@ void main() {
   test('a neutral venue takes the home advantage away', () {
     var withAdvantage = 0;
     var neutral = 0;
-    for (var seed = 1; seed <= 400; seed++) {
+    // Engine 2: attacks have a varying number of steps, so the two matches
+    // of one seed drift apart quickly. The small home advantage needs many
+    // matches to show above the noise.
+    for (var seed = 1; seed <= 2000; seed++) {
       final a = MatchSession(
         rules: rules,
         home: home,
