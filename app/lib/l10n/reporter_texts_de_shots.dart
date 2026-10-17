@@ -171,11 +171,7 @@ const Map<String, List<String>> reporterShotsDe = {
     "{p} hat getroffen. Man muss es anerkennen.",
     "Das Tor erzielt {p}, sauber gemacht, leider.",
   ],
-  "scorer": [
-    "Torschütze: {p}.",
-    "Getroffen hat {p}.",
-    "{p} war's.",
-  ],
+  "scorer": ["Torschütze: {p}.", "Getroffen hat {p}.", "{p} war's."],
   "assist.own": [
     "Die Vorlage kam von {q}, bitte auch klatschen!",
     "{q} hat ihn aufgelegt, ganz feine Arbeit.",
@@ -191,10 +187,7 @@ const Map<String, List<String>> reporterShotsDe = {
     "Die Vorarbeit leistete {q}.",
     "{q} mit dem Pass, den keiner verhindert hat.",
   ],
-  "assist": [
-    "Vorlage: {q}.",
-    "Aufgelegt hat {q}.",
-  ],
+  "assist": ["Vorlage: {q}.", "Aufgelegt hat {q}."],
 
   // ------------------------------------------------------ what a goal means
   "ctx.lead.own": [

@@ -284,7 +284,10 @@ void main() {
               ...strings.texts(key),
         };
         expect(
-          pool.any((t) => goal == t.replaceAll('{team}', e.side == 0 ? 'Heim' : 'Gast')),
+          pool.any(
+            (t) =>
+                goal == t.replaceAll('{team}', e.side == 0 ? 'Heim' : 'Gast'),
+          ),
           isTrue,
           reason: goal,
         );

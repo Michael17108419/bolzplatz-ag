@@ -36,7 +36,12 @@ void main() {
   });
 
   test('both halves get stoppage time, the clock shows 45+x and 90+x', () {
-    final s = MatchSession(rules: rules, home: tier1[0], away: tier1[1], seed: 4);
+    final s = MatchSession(
+      rules: rules,
+      home: tier1[0],
+      away: tier1[1],
+      seed: 4,
+    );
     final r = s.finish();
     final added = [
       for (final e in r.events)
@@ -84,8 +89,12 @@ void main() {
   });
 
   test('extra time has its own stoppage and ends after 120 plus', () {
-    final s = MatchSession(rules: rules, home: tier1[2], away: tier1[3], seed: 9)
-      ..finish();
+    final s = MatchSession(
+      rules: rules,
+      home: tier1[2],
+      away: tier1[3],
+      seed: 9,
+    )..finish();
     s.startExtraTime();
     expect(s.inBreak, isTrue);
     expect(s.clock, 90);

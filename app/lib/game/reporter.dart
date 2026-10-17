@@ -75,7 +75,12 @@ class Reporter {
   String _pick(List<String> keys, {bool Function(String text)? ok}) {
     for (final key in keys) {
       final all = strings.texts(key);
-      final texts = ok == null ? all : [for (final t in all) if (ok(t)) t];
+      final texts = ok == null
+          ? all
+          : [
+              for (final t in all)
+                if (ok(t)) t,
+            ];
       if (texts.isEmpty) continue;
       _seed = (_seed * 1103515245 + 12345) & 0x3fffffff;
       final start = (_seed + _hash(key)) % texts.length;
@@ -180,7 +185,6 @@ class Reporter {
       text: text,
     );
   }
-
 
   /// Adds a line from the first key with texts; nothing if none has any.
   void _say(
@@ -374,8 +378,7 @@ class Reporter {
     if (kind == null) return;
     final w = _who(e.side);
     final prev = _previous;
-    final setPiece =
-        prev != null && prev.tick == e.tick && prev.side == e.side
+    final setPiece = prev != null && prev.tick == e.tick && prev.side == e.side
         ? prev.type
         : null;
     final pen = setPiece == MatchEventType.penalty;
@@ -514,10 +517,7 @@ class Reporter {
         : e.minute <= 3
         ? '.early'
         : '';
-    _say(out, e, TickerKind.colour, [
-      'ctx.$what$when.$w',
-      'ctx.$what.$w',
-    ]);
+    _say(out, e, TickerKind.colour, ['ctx.$what$when.$w', 'ctx.$what.$w']);
     // Memory: two or three today.
     final scorer = e.player;
     final goals = scorer == null ? 0 : _bump('goals.${scorer.value}');
@@ -541,8 +541,7 @@ class Reporter {
       if (_trait(scorer, CharacterTrait.mediaHunger) >= 75)
         'wit.goal.media_hunger',
       if (_trait(scorer, CharacterTrait.egoism) >= 75) 'wit.goal.egoism',
-      if (_trait(scorer, CharacterTrait.partyFactor) >= 75)
-        'wit.goal.party',
+      if (_trait(scorer, CharacterTrait.partyFactor) >= 75) 'wit.goal.party',
       if (_trait(scorer, CharacterTrait.consistency) <= 25)
         'wit.goal.consistency',
     ];

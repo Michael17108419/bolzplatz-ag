@@ -1232,7 +1232,6 @@ PlayerId? captainOf(TeamSheet sheet, Map<PlayerId, Player> squad) {
   return eleven.isEmpty ? null : _leader(eleven).id;
 }
 
-
 class _SquadTab extends ConsumerWidget {
   const _SquadTab({
     required this.numbers,

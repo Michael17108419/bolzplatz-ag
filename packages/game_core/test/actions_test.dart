@@ -82,8 +82,9 @@ void main() {
 
     final unknown = jsonDecode(_rulesFile()) as Map<String, dynamic>;
     ((_match(unknown)['actions'] as Map<String, dynamic>)['system_weights']
-            as Map<String, dynamic>)['wings'] =
-        {'flying_kick': 2.0};
+        as Map<String, dynamic>)['wings'] = {
+      'flying_kick': 2.0,
+    };
     expect(Rules.parse(jsonEncode(unknown)).errorOrNull, isNotNull);
 
     final badCounter = jsonDecode(_rulesFile()) as Map<String, dynamic>;

@@ -850,6 +850,7 @@ class AppStringsDe implements AppStrings {
         ? '$changes · 1 Fenster'
         : '$changes · $windows Fenster';
   }
+
   @override
   String get matchSubPickOff => 'Wer geht raus?';
   @override

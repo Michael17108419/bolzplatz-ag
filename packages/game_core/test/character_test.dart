@@ -81,10 +81,7 @@ void main() {
   test('the captain: named on the sheet, else the leader of the eleven', () {
     final team = tier1[0];
     final named = team.sheet.startingXi[5];
-    final withCaptain = _with(
-      team,
-      sheet: team.sheet.copyWith(captain: named),
-    );
+    final withCaptain = _with(team, sheet: team.sheet.copyWith(captain: named));
     final a = MatchSession(
       rules: rules,
       home: withCaptain,

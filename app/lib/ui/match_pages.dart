@@ -1119,7 +1119,9 @@ class _SubRow extends StatelessWidget {
                           if (captain) ...[
                             const SizedBox(width: 6),
                             CaptainBadge(
-                              key: ValueKey('match-sub-captain-${player.id.value}'),
+                              key: ValueKey(
+                                'match-sub-captain-${player.id.value}',
+                              ),
                               size: 16,
                             ),
                           ],
@@ -1382,9 +1384,7 @@ class _SubsSheetState extends ConsumerState<_SubsSheet> {
               if (left <= 0 || !session.canSubstitute(widget.side))
                 Padding(
                   padding: const EdgeInsets.only(top: Tokens.gapS),
-                  child: Text(
-                    left <= 0 ? s.matchSubNone : s.matchSubNoWindow,
-                  ),
+                  child: Text(left <= 0 ? s.matchSubNone : s.matchSubNoWindow),
                 )
               else ...[
                 const SizedBox(height: Tokens.gapS),

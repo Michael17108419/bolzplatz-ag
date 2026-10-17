@@ -281,6 +281,7 @@ class MatchSession {
   final List<_Side> _sides;
   final List<MatchEvent> _events = [];
   final List<MatchInjury> _injuries = [];
+
   /// Minutes played including stoppage time (the clock of the session).
   int _minute = 0;
 
@@ -513,11 +514,9 @@ class MatchSession {
     for (final t in CharacterTrait.values) {
       slot.tx[t.index] = _trait(player, t);
     }
-    slot.counterMult = _abilityMult(
-      player,
-      const [SpecialAbilityType.counterPlayer],
-      _m.counter.abilityBonus,
-    );
+    slot.counterMult = _abilityMult(player, const [
+      SpecialAbilityType.counterPlayer,
+    ], _m.counter.abilityBonus);
     return slot;
   }
 
@@ -540,7 +539,8 @@ class MatchSession {
   }
 
   /// Goal difference from the view of side [t].
-  int _lead(int t) => t == 0 ? _goalsHome - _goalsAway : _goalsAway - _goalsHome;
+  int _lead(int t) =>
+      t == 0 ? _goalsHome - _goalsAway : _goalsAway - _goalsHome;
 
   // -------------------------------------------------------------- ratings
 
@@ -676,9 +676,7 @@ class MatchSession {
         Float64List.fromList([
           for (final a in actions)
             _abilityMult(s.player, a.defendAbilities, acts.abilityBonus) *
-                (1 +
-                    c.aggressionDuel *
-                        s.tx[CharacterTrait.aggression.index]),
+                (1 + c.aggressionDuel * s.tx[CharacterTrait.aggression.index]),
         ]),
     ];
     final system = [
@@ -1145,8 +1143,7 @@ class MatchSession {
 
   /// Per-minute rates of the match are scaled down a little, so that the
   /// stoppage time does not make matches richer in goals and cards.
-  double get _rate =>
-      _m.minutes / (_m.minutes + _m.addedTime.expected);
+  double get _rate => _m.minutes / (_m.minutes + _m.addedTime.expected);
 
   void _tire(int minute) {
     for (final side in _sides) {
@@ -1258,11 +1255,9 @@ class MatchSession {
     if (own.slots.isEmpty || other.slots.isEmpty) return;
     const lanes = ZoneRules.lanes;
     const last = ZoneRules.columns - 1;
-    var column =
-        counter?.$2 ?? _rng.weightedIndex(z.startColumnWeights);
+    var column = counter?.$2 ?? _rng.weightedIndex(z.startColumnWeights);
     var lane =
-        counter?.$3 ??
-        _rng.weightedIndex(z.lanesFor(attacker.sheet.systemId));
+        counter?.$3 ?? _rng.weightedIndex(z.lanesFor(attacker.sheet.systemId));
     final reference = z.referenceShare;
     final chain = <Player>[];
     final steps = <AttackStep>[];
@@ -1492,11 +1487,7 @@ class MatchSession {
 
   /// 1 plus [bonus] for every ability of [p] among [types], scaled by its
   /// tier (bronze, silver, gold).
-  double _abilityMult(
-    Player p,
-    List<SpecialAbilityType> types,
-    double bonus,
-  ) {
+  double _abilityMult(Player p, List<SpecialAbilityType> types, double bonus) {
     if (types.isEmpty) return 1;
     var factor = 1.0;
     for (final a in p.abilities) {
@@ -1525,7 +1516,9 @@ class MatchSession {
             selfShot *
             math.max(
               0.05,
-              1 + _m.character.egoismSelfShot * s.tx[CharacterTrait.egoism.index],
+              1 +
+                  _m.character.egoismSelfShot *
+                      s.tx[CharacterTrait.egoism.index],
             );
       }
     }
@@ -1760,16 +1753,12 @@ class MatchSession {
   double _blow(_Side side) {
     final c = _m.character;
     final captain = side.captain;
-    final onPitch = side.pitch
-        .where((s) => s.player.id == captain)
-        .firstOrNull;
+    final onPitch = side.pitch.where((s) => s.player.id == captain).firstOrNull;
     if (onPitch == null) {
       return _m.momentumGoalAgainst * (1 + c.missingCaptainMomentum);
     }
     return _m.momentumGoalAgainst *
-        (1 -
-                c.leadershipMomentum *
-                    onPitch.tx[CharacterTrait.leadership.index])
+        (1 - c.leadershipMomentum * onPitch.tx[CharacterTrait.leadership.index])
             .limit(0.2, 2.0);
   }
 
@@ -1804,9 +1793,7 @@ class MatchSession {
     final t = _goalsHome > _goalsAway ? 0 : 1;
     final side = _sides[t];
     if (side.pitch.isEmpty) return;
-    final keeper = side.pitch
-        .where((s) => s.position.isGoalkeeper)
-        .firstOrNull;
+    final keeper = side.pitch.where((s) => s.position.isGoalkeeper).firstOrNull;
     final r = _rng.nextDouble();
     String? kind;
     _Slot? culprit;
@@ -2062,9 +2049,7 @@ class MatchSession {
     final severity = _rng.weightedIndex(_m.injurySeverityWeights);
     final range = _m.injuryDays[severity];
     final days = _rng.nextIntInRange(range[0], range[1]);
-    _injuries.add(
-      MatchInjury(player: s.player.id, minute: _clock, days: days),
-    );
+    _injuries.add(MatchInjury(player: s.player.id, minute: _clock, days: days));
     _add(MatchEventType.injury, i, player: s.player, days: days);
     _remove(i, s, replace: true);
   }
@@ -2203,8 +2188,7 @@ class MatchSession {
     );
     s.fxStale = true;
     s.zones = null;
-    final free =
-        _clock <= rules.tactics.warmupMinutes || inBreak;
+    final free = _clock <= rules.tactics.warmupMinutes || inBreak;
     if (!free) s.countedChanges++;
     _add(MatchEventType.tacticChange, side);
     _refresh(s);

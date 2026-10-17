@@ -266,9 +266,7 @@ class ChanceSpotRules {
     final quality = [
       for (final q in m['quality'] as List<dynamic>) three(q, 'quality'),
     ];
-    final bias = [
-      for (final b in m['type_bias'] as List<dynamic>) _numbers(b),
-    ];
+    final bias = [for (final b in m['type_bias'] as List<dynamic>) _numbers(b)];
     if (quality.length != spots || bias.length != spots) {
       throw const RulesError('match.zones.chance_spot needs 3 spots');
     }
@@ -637,14 +635,13 @@ class TimeWastingRules {
     required this.instructionFactor,
   });
 
-  factory TimeWastingRules.fromJson(Map<String, dynamic> m) =>
-      TimeWastingRules(
-        fromMinute: (m['from_minute'] as num).toInt(),
-        keeperEightSeconds: _d(m['keeper_eight_seconds']),
-        goalKickCountdown: _d(m['goal_kick_countdown']),
-        throwInCountdown: _d(m['throw_in_countdown']),
-        instructionFactor: _d(m['instruction_factor']),
-      );
+  factory TimeWastingRules.fromJson(Map<String, dynamic> m) => TimeWastingRules(
+    fromMinute: (m['from_minute'] as num).toInt(),
+    keeperEightSeconds: _d(m['keeper_eight_seconds']),
+    goalKickCountdown: _d(m['goal_kick_countdown']),
+    throwInCountdown: _d(m['throw_in_countdown']),
+    instructionFactor: _d(m['instruction_factor']),
+  );
 
   final int fromMinute;
   final double keeperEightSeconds;
