@@ -2362,7 +2362,7 @@
   "season": {
     "injury_days_per_matchday": 7,
     "suspension_yellow_cards": 5,
-    "straight_red_ban_matches": 2,
+    "straight_red_ban_matches": 1,
     "form_win": 2.0,
     "form_loss": -2.0,
     "form_drift": 0.08,

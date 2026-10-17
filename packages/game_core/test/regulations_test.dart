@@ -5,7 +5,8 @@ import 'package:test/test.dart';
 
 // Rules of the game from IFAB Law 3 and the DFB (see the project document
 // "Regelwerk_Abgleich"): five substitutions in three windows plus breaks,
-// one more of each in extra time, a straight red card bans two matches.
+// one more of each in extra time, a yellow card of a player sent off in the
+// same match does not count.
 
 late Rules rules;
 late MatchTeam home;
@@ -51,7 +52,7 @@ void main() {
     expect(rules.tactics.substitutionWindows, 3);
     expect(rules.tactics.extraTimeExtraSubstitutions, 1);
     expect(rules.tactics.extraTimeExtraWindows, 1);
-    expect(rules.season.straightRedBanMatches, 2);
+    expect(rules.season.straightRedBanMatches, 1);
   });
 
   test('windows: same stoppage is one window, half time is free', () {
@@ -103,5 +104,25 @@ void main() {
     expect(s.inBreak, isTrue);
     expect(subOne(s), isTrue);
     expect(s.windowsLeft(0), windowsBefore + 1);
+  });
+
+  test('a yellow before a sending-off is used up (DFB § 43 Nr. 4)', () {
+    MatchEvent card(MatchEventType type, int player) => MatchEvent(
+      minute: 10,
+      type: type,
+      side: 0,
+      homeGoals: 0,
+      awayGoals: 0,
+      player: PlayerId(player),
+    );
+    final events = [
+      card(MatchEventType.yellowCard, 1),
+      card(MatchEventType.yellowCard, 2),
+      card(MatchEventType.secondYellow, 2),
+      card(MatchEventType.yellowCard, 3),
+      card(MatchEventType.redCard, 3),
+      card(MatchEventType.redCard, 4),
+    ];
+    expect(countedYellowCards(events), [PlayerId(1)]);
   });
 }

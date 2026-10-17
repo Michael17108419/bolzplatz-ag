@@ -88,8 +88,9 @@ class SeasonRules {
   final double injuryDaysPerMatchday;
   final int suspensionYellowCards;
 
-  /// Matches banned after a straight red card (DFB: at least two, the
-  /// sports court decides; yellow-red is one match).
+  /// Matches banned after a straight red card for now (DFB: at least one;
+  /// the sports court sets the length by the offence, see 10e). Yellow-red
+  /// is one match.
   final int straightRedBanMatches;
   final double formWin;
   final double formLoss;

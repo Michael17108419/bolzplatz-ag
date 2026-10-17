@@ -288,13 +288,13 @@ class SeasonRunner {
           rules.season.straightRedBanMatches,
         );
       }
-      if (e.type == MatchEventType.yellowCard ||
-          e.type == MatchEventType.secondYellow) {
-        final n = (_cardsByCompetition[key] ?? 0) + 1;
-        _cardsByCompetition[key] = n;
-        if (n % rules.season.suspensionYellowCards == 0) {
-          _bans[key] = math.max(_bans[key] ?? 0, 1);
-        }
+    }
+    for (final id in countedYellowCards(r.events)) {
+      final key = '$comp:${id.value}';
+      final n = (_cardsByCompetition[key] ?? 0) + 1;
+      _cardsByCompetition[key] = n;
+      if (n % rules.season.suspensionYellowCards == 0) {
+        _bans[key] = math.max(_bans[key] ?? 0, 1);
       }
     }
     for (final inj in r.injuries) {
@@ -1200,4 +1200,24 @@ class SeasonRunner {
       previousRank: rank,
     );
   }
+}
+
+/// The yellow cards of one match that count towards a yellow-card ban.
+/// A yellow card of a player who was sent off in the same match (yellow-red
+/// or red) is used up and not registered (DFB-Spielordnung § 43 Nr. 4).
+List<PlayerId> countedYellowCards(Iterable<MatchEvent> events) {
+  final sentOff = {
+    for (final e in events)
+      if ((e.type == MatchEventType.secondYellow ||
+              e.type == MatchEventType.redCard) &&
+          e.player != null)
+        e.player!,
+  };
+  return [
+    for (final e in events)
+      if (e.type == MatchEventType.yellowCard &&
+          e.player != null &&
+          !sentOff.contains(e.player))
+        e.player!,
+  ];
 }
