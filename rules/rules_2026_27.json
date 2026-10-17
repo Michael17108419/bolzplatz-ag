@@ -2163,6 +2163,107 @@
         "ST": [0.0, 0.05, 0.3, 0.9, 1.0]
       }
     },
+    "actions": {
+      "note": "What the player on the ball does in a zone (engine 2, step 10b). weights per column 0..4, lanes left/centre/right.",
+      "skill_exponent": 1.5,
+      "ability_bonus": 0.08,
+      "list": [
+        {
+          "id": "short_pass",
+          "advance": 1,
+          "risk": 1.0,
+          "weights": [1.0, 1.0, 0.9, 0.6, 0.0],
+          "lanes": [1.0, 1.0, 1.0],
+          "attack": ["short_passing", "ball_control", "vision"],
+          "defend": ["interceptions", "anticipation"],
+          "abilities": ["playmaker", "ball_shield"],
+          "defend_abilities": ["pass_reader", "pressing_machine"],
+          "self_shot": 0.3,
+          "shot_bias": {}
+        },
+        {
+          "id": "through_ball",
+          "advance": 2,
+          "risk": 0.85,
+          "weights": [0.0, 0.25, 0.35, 0.3, 0.0],
+          "lanes": [0.7, 1.0, 0.7],
+          "attack": ["vision", "long_passing", "decision_making"],
+          "defend": ["interceptions", "anticipation", "defensive_awareness"],
+          "abilities": ["playmaker"],
+          "defend_abilities": ["pass_reader"],
+          "self_shot": 0.2,
+          "shot_bias": {"one_on_one": 3.0}
+        },
+        {
+          "id": "long_ball",
+          "advance": 2,
+          "risk": 0.8,
+          "weights": [0.45, 0.2, 0.05, 0.0, 0.0],
+          "lanes": [1.0, 1.0, 1.0],
+          "attack": ["long_passing", "vision"],
+          "defend": ["heading", "jumping", "anticipation"],
+          "abilities": ["target_man", "first_touch"],
+          "defend_abilities": ["header_monster"],
+          "self_shot": 0.3,
+          "shot_bias": {}
+        },
+        {
+          "id": "cross",
+          "advance": 1,
+          "risk": 1.0,
+          "weights": [0.0, 0.0, 0.1, 0.45, 0.0],
+          "lanes": [1.0, 0.15, 1.0],
+          "attack": ["crossing", "curve"],
+          "defend": ["heading", "jumping", "strength"],
+          "abilities": ["header_monster", "target_man"],
+          "defend_abilities": ["header_monster"],
+          "self_shot": 0.1,
+          "shot_bias": {"header": 3.0, "volley": 1.5}
+        },
+        {
+          "id": "dribble",
+          "advance": 1,
+          "risk": 1.0,
+          "weights": [0.15, 0.4, 0.5, 0.5, 0.0],
+          "lanes": [1.0, 1.0, 1.0],
+          "attack": ["dribbling", "acceleration", "agility", "balance"],
+          "defend": ["standing_tackle", "defensive_awareness", "sliding_tackle"],
+          "abilities": ["dribbler", "ball_shield"],
+          "defend_abilities": ["vacuum_cleaner", "pressing_machine"],
+          "self_shot": 3.0,
+          "shot_bias": {"close_range": 1.3, "one_on_one": 1.5}
+        },
+        {
+          "id": "long_shot",
+          "advance": 0,
+          "risk": 1.0,
+          "weights": [0.0, 0.0, 0.0, 0.12, 0.0],
+          "lanes": [0.6, 1.0, 0.6],
+          "attack": ["long_shots", "shot_power", "curve"],
+          "defend": ["defensive_awareness"],
+          "abilities": ["long_shooter"],
+          "defend_abilities": [],
+          "self_shot": 1.0,
+          "shot_bias": {}
+        }
+      ],
+      "system_weights": {
+        "possession": {"short_pass": 1.4, "long_ball": 0.5, "dribble": 0.9},
+        "counter": {"through_ball": 1.4, "long_ball": 1.3, "short_pass": 0.8},
+        "gegenpressing": {"through_ball": 1.2, "dribble": 1.1},
+        "wings": {"cross": 1.6, "dribble": 1.1},
+        "wall": {"long_ball": 1.5, "short_pass": 0.8}
+      }
+    },
+    "counter": {
+      "note": "A ball won in these columns (seen from the team that lost it) can start a counter attack from the mirrored column.",
+      "from_columns": [1, 2],
+      "chance": 0.5,
+      "system_chance": {"counter": 0.75, "gegenpressing": 0.6},
+      "disorder": 0.85,
+      "disorder_steps": 2,
+      "ability_bonus": 0.1
+    },
     "team_rating": {
       "build": {
         "positions": [

@@ -21,6 +21,12 @@ enum MatchEventType {
   /// is the team that won it, [MatchEvent.player] the winner and
   /// [MatchEvent.otherPlayer] the player who lost it.
   ballWon,
+
+  /// A ball won in midfield starts a counter attack (engine 2): [side] is
+  /// the countering team, [MatchEvent.player] won the ball and
+  /// [MatchEvent.otherPlayer] lost it; column and lane are where the
+  /// counter starts, seen from the countering team.
+  counterAttack,
 }
 
 enum ShotOutcome { goal, saved, blocked, offTarget }
@@ -44,6 +50,7 @@ class MatchEvent {
     this.column,
     this.lane,
     this.chain = const [],
+    this.action,
   });
 
   final int minute;
@@ -75,6 +82,11 @@ class MatchEvent {
   /// Players of the attacking team who carried the ball in this attack, in
   /// order (shots only). The shooter is not part of it.
   final List<PlayerId> chain;
+
+  /// Id of the action from the rules (engine 2): for a shot the last action
+  /// of the attack before it (`long_shot` for a shot from distance the
+  /// player chose), for a lost ball the action that failed.
+  final String? action;
 
   bool get isGoal => outcome == ShotOutcome.goal;
 }

@@ -184,6 +184,28 @@ class ZoneRules {
   /// How much each position is involved in each column (own view).
   final Map<Position, List<double>> columnWeights;
 
+  /// Sum of the step shares from [column] to the last column.
+  double shareFrom(int column) {
+    var sum = 0.0;
+    for (var c = column; c < columns - 1; c++) {
+      sum += stepShare[c];
+    }
+    return sum;
+  }
+
+  /// Mean share of a normal attack over its start columns. An attack that
+  /// starts further up (a counter) needs fewer steps and has a better chance
+  /// than the team's breakthrough chance.
+  double get referenceShare {
+    var sum = 0.0;
+    var total = 0.0;
+    for (var c = 0; c < columns; c++) {
+      sum += startColumnWeights[c] * shareFrom(c);
+      total += startColumnWeights[c];
+    }
+    return sum / total;
+  }
+
   /// Lane weights at the start of an attack for the system [systemId].
   List<double> lanesFor(String systemId) =>
       laneWeights[systemId] ?? laneWeights['default']!;
@@ -200,6 +222,190 @@ class ZoneRules {
         ? laneAdjacent
         : laneFar;
   }
+}
+
+/// One thing the player on the ball can do in a zone (engine 2).
+class ActionRule {
+  const ActionRule({
+    required this.id,
+    required this.advance,
+    required this.risk,
+    required this.weights,
+    required this.lanes,
+    required this.attack,
+    required this.defend,
+    required this.abilities,
+    required this.defendAbilities,
+    required this.selfShot,
+    required this.shotBias,
+  });
+
+  factory ActionRule.fromJson(Map<String, dynamic> m) {
+    final id = m['id'] as String;
+    List<double> numbers(String key, int length) {
+      final list = [for (final v in m[key] as List<dynamic>) _d(v)];
+      if (list.length != length || list.any((v) => v < 0)) {
+        throw RulesError('match.actions.$id.$key needs $length values >= 0');
+      }
+      return List.unmodifiable(list);
+    }
+
+    final rule = ActionRule(
+      id: id,
+      advance: (m['advance'] as num).toInt(),
+      risk: _d(m['risk']),
+      weights: numbers('weights', ZoneRules.columns),
+      lanes: numbers('lanes', ZoneRules.lanes),
+      attack: _attributes(m['attack']),
+      defend: _attributes(m['defend']),
+      abilities: _abilities(m['abilities']),
+      defendAbilities: _abilities(m['defend_abilities']),
+      selfShot: _d(m['self_shot']),
+      shotBias: _numbers(m['shot_bias']),
+    );
+    if (rule.advance < 0 || rule.advance > 2) {
+      throw RulesError('match.actions.$id.advance must be 0, 1 or 2');
+    }
+    if (rule.risk <= 0 || rule.risk > 1) {
+      throw RulesError('match.actions.$id.risk must be in (0, 1]');
+    }
+    if (rule.attack.isEmpty || rule.defend.isEmpty) {
+      throw RulesError('match.actions.$id needs attack and defend attributes');
+    }
+    return rule;
+  }
+
+  final String id;
+
+  /// Columns the ball moves on success; 0 is a shot from where it is.
+  final int advance;
+
+  /// Factor on the success of the step (risky passes skip a column).
+  final double risk;
+
+  /// Base weight of the action in each column (own view).
+  final List<double> weights;
+
+  /// Factor of the action on the left, centre and right lane.
+  final List<double> lanes;
+  final List<Attribute> attack;
+  final List<Attribute> defend;
+
+  /// Abilities that help the player on the ball, and the defender.
+  final List<SpecialAbilityType> abilities;
+  final List<SpecialAbilityType> defendAbilities;
+
+  /// Weight of the player on the ball to take the shot himself after this
+  /// action reached the last column (1 is like everyone else).
+  final double selfShot;
+
+  /// Factors on the weights of shot types after this action.
+  final Map<String, double> shotBias;
+
+  bool get isShot => advance == 0;
+}
+
+/// The actions of the player on the ball and how teams choose them.
+class ActionRules {
+  const ActionRules({
+    required this.skillExponent,
+    required this.abilityBonus,
+    required this.list,
+    required this.systemWeights,
+  });
+
+  factory ActionRules.fromJson(Map<String, dynamic> m) {
+    final list = [
+      for (final raw in m['list'] as List<dynamic>)
+        ActionRule.fromJson(raw as Map<String, dynamic>),
+    ];
+    final ids = {for (final a in list) a.id};
+    if (ids.length != list.length) {
+      throw const RulesError('match.actions has an id twice');
+    }
+    if (!list.any((a) => !a.isShot)) {
+      throw const RulesError('match.actions needs an action that moves on');
+    }
+    final systems = <String, Map<String, double>>{};
+    for (final e in (m['system_weights'] as Map<String, dynamic>).entries) {
+      final w = _numbers(e.value);
+      for (final key in w.keys) {
+        if (!ids.contains(key)) {
+          throw RulesError('match.actions.system_weights: unknown $key');
+        }
+      }
+      systems[e.key] = w;
+    }
+    return ActionRules(
+      skillExponent: _d(m['skill_exponent']),
+      abilityBonus: _d(m['ability_bonus']),
+      list: List.unmodifiable(list),
+      systemWeights: Map.unmodifiable(systems),
+    );
+  }
+
+  /// How strongly a player's skill for an action makes him choose it.
+  final double skillExponent;
+
+  /// Bonus per tier multiplier of a fitting ability in a duel.
+  final double abilityBonus;
+  final List<ActionRule> list;
+
+  /// System id to action id to factor on the action's weight.
+  final Map<String, Map<String, double>> systemWeights;
+
+  double systemWeight(String systemId, String actionId) =>
+      systemWeights[systemId]?[actionId] ?? 1.0;
+}
+
+/// Counter attacks after a ball won in midfield (engine 2).
+class CounterRules {
+  const CounterRules({
+    required this.fromColumns,
+    required this.chance,
+    required this.systemChance,
+    required this.disorder,
+    required this.disorderSteps,
+    required this.abilityBonus,
+  });
+
+  factory CounterRules.fromJson(Map<String, dynamic> m) {
+    final from = [for (final v in m['from_columns'] as List<dynamic>) v as int];
+    if (from.any((c) => c < 1 || c >= ZoneRules.columns - 1)) {
+      throw const RulesError('match.counter.from_columns must be 1 to 3');
+    }
+    final rule = CounterRules(
+      fromColumns: Set.unmodifiable(from),
+      chance: _d(m['chance']),
+      systemChance: _numbers(m['system_chance']),
+      disorder: _d(m['disorder']),
+      disorderSteps: (m['disorder_steps'] as num).toInt(),
+      abilityBonus: _d(m['ability_bonus']),
+    );
+    if (rule.disorder <= 0 || rule.disorder > 1) {
+      throw const RulesError('match.counter.disorder must be in (0, 1]');
+    }
+    return rule;
+  }
+
+  /// Columns (seen from the team that lost the ball) where a lost ball can
+  /// start a counter attack of the other team.
+  final Set<int> fromColumns;
+  final double chance;
+
+  /// Chance by system of the team that won the ball (default [chance]).
+  final Map<String, double> systemChance;
+
+  /// Factor on the defending values of a team caught on the counter.
+  final double disorder;
+
+  /// For how many steps of the counter the defence is out of order.
+  final int disorderSteps;
+
+  /// Bonus per tier multiplier of a counter player on the ball.
+  final double abilityBonus;
+
+  double chanceFor(String systemId) => systemChance[systemId] ?? chance;
 }
 
 /// Numbers of the match simulation, read from the `match` section.
@@ -287,6 +493,8 @@ class MatchRules {
     required this.ratingAttributes,
     required this.ratingPositions,
     required this.zones,
+    required this.actions,
+    required this.counter,
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -463,6 +671,8 @@ class MatchRules {
           ]),
       }),
       zones: ZoneRules.fromJson(m['zones'] as Map<String, dynamic>),
+      actions: ActionRules.fromJson(m['actions'] as Map<String, dynamic>),
+      counter: CounterRules.fromJson(m['counter'] as Map<String, dynamic>),
     );
     result._validate();
     return result;
@@ -619,4 +829,10 @@ class MatchRules {
 
   /// The zones of the pitch (engine 2).
   final ZoneRules zones;
+
+  /// What the player on the ball does (engine 2).
+  final ActionRules actions;
+
+  /// Counter attacks (engine 2).
+  final CounterRules counter;
 }
