@@ -825,11 +825,11 @@ class MatchSession {
   (int, int, int)? _counter;
 
   void _phase() {
-    final counter = _counter;
+    final pending = _counter;
     _counter = null;
     final int t;
-    if (counter != null) {
-      t = counter.$1;
+    if (pending != null) {
+      t = pending.$1;
     } else {
       final b0 = math.pow(_build(0), _m.possessionExponent).toDouble();
       final b1 = math.pow(_build(1), _m.possessionExponent).toDouble();
@@ -873,7 +873,7 @@ class MatchSession {
                 rateMult *
                 state)
             .limit(_m.breakthroughMin, _m.breakthroughMax);
-    _attack(t, q, counter: counter);
+    _attack(t, q, counter: pending);
   }
 
   /// Plays one attack of side [t] through the zones (engine 2). The ball
