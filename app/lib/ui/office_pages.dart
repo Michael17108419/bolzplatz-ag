@@ -106,9 +106,8 @@ void goNext(BuildContext context, WidgetRef ref) {
         if (absences.containsKey(id)) id,
     ];
     if (out.isNotEmpty) {
-      final names = [
-        for (final id in out) loaded.player(id)?.lastName ?? '?',
-      ].join(', ');
+      final names = [for (final id in out) loaded.player(id)?.lastName ?? '?']
+          .join(', ');
       if (ref.read(autoLineupProvider)) {
         ref.read(lineupProvider.notifier).autoPick();
         ScaffoldMessenger.of(context)
@@ -122,8 +121,7 @@ void goNext(BuildContext context, WidgetRef ref) {
               content: Text(s.lineupAbsentInSheet(names)),
               action: SnackBarAction(
                 label: s.lineupGoToLineup,
-                onPressed: () =>
-                    openDesk(context, ref, DeskItem.tactics),
+                onPressed: () => openDesk(context, ref, DeskItem.tactics),
               ),
             ),
           );

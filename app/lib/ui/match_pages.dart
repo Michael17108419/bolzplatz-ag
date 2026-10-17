@@ -567,37 +567,37 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
             ),
           )
         : Expanded(
-      child: Row(
-        mainAxisAlignment: right
-            ? MainAxisAlignment.start
-            : MainAxisAlignment.end,
-        children: [
-          if (!right) ...[
-            Flexible(
-              child: Text(
-                _clubName(_loaded, id),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium,
-              ),
+            child: Row(
+              mainAxisAlignment: right
+                  ? MainAxisAlignment.start
+                  : MainAxisAlignment.end,
+              children: [
+                if (!right) ...[
+                  Flexible(
+                    child: Text(
+                      _clubName(_loaded, id),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  const SizedBox(width: Tokens.gapS),
+                ],
+                ClubCrest(clubId: id.value, size: 40),
+                if (right) ...[
+                  const SizedBox(width: Tokens.gapS),
+                  Flexible(
+                    child: Text(
+                      _clubName(_loaded, id),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(width: Tokens.gapS),
-          ],
-          ClubCrest(clubId: id.value, size: 40),
-          if (right) ...[
-            const SizedBox(width: Tokens.gapS),
-            Flexible(
-              child: Text(
-                _clubName(_loaded, id),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
+          );
 
     final subsLeft = _session.substitutionsLeft(_ownSide);
 
@@ -1568,26 +1568,26 @@ class MatchReportPage extends ConsumerWidget {
               ],
             )
           else
-          Row(
-            children: [
-              ClubCrest(clubId: home.value, size: 40),
-              const SizedBox(width: Tokens.gapS),
-              Expanded(
-                child: Text(
-                  '${teamOf(0)}  ${result.homeGoals} : ${result.awayGoals}  '
-                  '${teamOf(1)}',
-                  key: const ValueKey('report-score'),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleLarge,
+            Row(
+              children: [
+                ClubCrest(clubId: home.value, size: 40),
+                const SizedBox(width: Tokens.gapS),
+                Expanded(
+                  child: Text(
+                    '${teamOf(0)}  ${result.homeGoals} : ${result.awayGoals}  '
+                    '${teamOf(1)}',
+                    key: const ValueKey('report-score'),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleLarge,
+                  ),
                 ),
-              ),
-              const SizedBox(width: Tokens.gapS),
-              ClubCrest(clubId: away.value, size: 40),
-              InfoButton(message: s.infoMatchReport),
-            ],
-          ),
+                const SizedBox(width: Tokens.gapS),
+                ClubCrest(clubId: away.value, size: 40),
+                InfoButton(message: s.infoMatchReport),
+              ],
+            ),
           const SizedBox(height: Tokens.gapS),
           Text(
             s.matchReportVerdict(mine, theirs),

@@ -400,11 +400,7 @@ class _Pitch extends StatelessWidget {
                             ?.copyWith(color: Tokens.text),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(
-                        Icons.tune,
-                        size: 18,
-                        color: Tokens.yellow,
-                      ),
+                      const Icon(Icons.tune, size: 18, color: Tokens.yellow),
                       const SizedBox(width: 8),
                       ClubCrest(clubId: clubId, size: 30),
                     ],
@@ -604,9 +600,7 @@ class _SlotView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                number == null
-                    ? player.lastName
-                    : '$number ${player.lastName}',
+                number == null ? player.lastName : '$number ${player.lastName}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -1380,45 +1374,43 @@ class _PhoneStrip extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-        children: [
-          Text(
-            preview.strength.round().toString(),
-            key: const ValueKey('lineup-strength'),
-            style: theme.textTheme.headlineMedium?.copyWith(
-              color: valueColor(preview.strength),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(s.lineupStrength, style: theme.textTheme.bodySmall),
-                Text(
-                  '${s.lineupRoleFit} ${roleFit.round()} %',
-                  key: const ValueKey('lineup-rolefit'),
-                  style: theme.textTheme.bodySmall,
+            children: [
+              Text(
+                preview.strength.round().toString(),
+                key: const ValueKey('lineup-strength'),
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  color: valueColor(preview.strength),
                 ),
-                Text(
-                  s.lineupSystemFitName(preview.systemFit),
-                  key: const ValueKey('lineup-systemfit'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(s.lineupStrength, style: theme.textTheme.bodySmall),
+                    Text(
+                      '${s.lineupRoleFit} ${roleFit.round()} %',
+                      key: const ValueKey('lineup-rolefit'),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    Text(
+                      s.lineupSystemFitName(preview.systemFit),
+                      key: const ValueKey('lineup-systemfit'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          InfoButton(message: s.infoLineupPreview),
-        ],
+              ),
+              InfoButton(message: s.infoLineupPreview),
+            ],
           ),
           if (preview.outOfPosition > 0)
             Text(
               s.lineupOutOfPosition(preview.outOfPosition),
               key: const ValueKey('lineup-outofposition'),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: Tokens.orange,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: Tokens.orange),
             ),
         ],
       ),
@@ -1507,10 +1499,7 @@ class _BenchStrip extends ConsumerWidget {
                                   width: 2,
                                 ),
                               ),
-                              child: const Icon(
-                                Icons.add,
-                                color: Tokens.beige,
-                              ),
+                              child: const Icon(Icons.add, color: Tokens.beige),
                             ),
                           ],
                         ),

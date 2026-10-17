@@ -187,9 +187,7 @@ class _Profile extends ConsumerWidget {
               child: Text(
                 s.matchAbsence(absence),
                 textAlign: TextAlign.center,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: Tokens.ink,
-                ),
+                style: theme.textTheme.titleSmall?.copyWith(color: Tokens.ink),
               ),
             ),
           GestureDetector(
@@ -205,77 +203,83 @@ class _Profile extends ConsumerWidget {
             child: compact
                 ? compactHeader
                 : Row(
-            children: [
-              if (onStep != null)
-                IconButton(
-                  key: const ValueKey('profile-prev'),
-                  visualDensity: VisualDensity.compact,
-                  onPressed: () => onStep!(-1),
-                  icon: const Icon(Icons.chevron_left),
-                ),
-              PersonAvatar(
-                key: const ValueKey('profile-portrait'),
-                appearance: look.appearance,
-                extras: look.extras,
-                size: compact ? 64 : 96,
-              ),
-              const SizedBox(width: Tokens.gapM),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      number == null
-                          ? p.displayName
-                          : '$number  ${p.displayName}',
-                      key: const ValueKey('profile-name'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.headlineSmall,
-                    ),
-                    Text(
-                      club == null ? s.profileNoContract : club.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall,
-                    ),
-                    Text(
-                      s.profileAgeNation(age, s.nationName(p.nationality)),
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-              PositionChip(p.position),
-              const SizedBox(width: Tokens.gapM),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    overall.round().toString(),
-                    key: const ValueKey('profile-overall'),
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      color: valueColor(overall),
-                    ),
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(s.profileOverall, style: theme.textTheme.bodySmall),
-                      InfoButton(message: s.infoProfileOverall),
+                      if (onStep != null)
+                        IconButton(
+                          key: const ValueKey('profile-prev'),
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => onStep!(-1),
+                          icon: const Icon(Icons.chevron_left),
+                        ),
+                      PersonAvatar(
+                        key: const ValueKey('profile-portrait'),
+                        appearance: look.appearance,
+                        extras: look.extras,
+                        size: compact ? 64 : 96,
+                      ),
+                      const SizedBox(width: Tokens.gapM),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              number == null
+                                  ? p.displayName
+                                  : '$number  ${p.displayName}',
+                              key: const ValueKey('profile-name'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.headlineSmall,
+                            ),
+                            Text(
+                              club == null ? s.profileNoContract : club.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall,
+                            ),
+                            Text(
+                              s.profileAgeNation(
+                                age,
+                                s.nationName(p.nationality),
+                              ),
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                      PositionChip(p.position),
+                      const SizedBox(width: Tokens.gapM),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            overall.round().toString(),
+                            key: const ValueKey('profile-overall'),
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              color: valueColor(overall),
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                s.profileOverall,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                              InfoButton(message: s.infoProfileOverall),
+                            ],
+                          ),
+                        ],
+                      ),
+                      if (onStep != null)
+                        IconButton(
+                          key: const ValueKey('profile-next'),
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => onStep!(1),
+                          icon: const Icon(Icons.chevron_right),
+                        ),
                     ],
                   ),
-                ],
-              ),
-              if (onStep != null)
-                IconButton(
-                  key: const ValueKey('profile-next'),
-                  visualDensity: VisualDensity.compact,
-                  onPressed: () => onStep!(1),
-                  icon: const Icon(Icons.chevron_right),
-                ),
-            ],
-          ),
           ),
           const SizedBox(height: Tokens.gapS),
           TabBar(
