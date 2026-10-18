@@ -75,7 +75,16 @@ enum MatchEventType {
   /// The match plan of a team (engine 2, step 10g2), set before kick-off:
   /// [MatchEvent.action] the focus points joined by commas.
   matchPlan,
+
+  /// A shout of the coach from the touchline (engine 2, step 10g4):
+  /// [MatchEvent.action] the shout, [MatchEvent.value] how it got through
+  /// (1 loud and clear, 0 half, -1 lost in the noise).
+  shout,
 }
+
+/// What the coach shouts from the touchline (engine 2, step 10g4): more
+/// pressure, calm down, go wide, close up at the back, slow it down, shoot.
+enum Shout { push, calm, wide, tight, slow, shoot }
 
 /// A focus point of the match plan (engine 2, step 10g2): attack their weak
 /// side, press their build-up, counter their high line, shoot from
