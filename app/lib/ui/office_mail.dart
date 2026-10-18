@@ -155,12 +155,14 @@ List<OfficeMail> buildMails(
       lines.add(s.jourFixVacation(vacation.total, vacation.minTotal));
     }
     final g = game;
-    final next = g == null ? null : g.runner.nextMatchOf(g.run, g.clubId);
-    if (g != null && next != null) {
-      final home = view.atHome ? g.clubId : view.opponent.id;
-      lines.add(
-        s.jourFixForecast(g.runner.forecastOn(home, next.$1.epochDay)),
-      );
+    if (g != null) {
+      final next = g.runner.nextMatchOf(g.run, g.clubId);
+      if (next != null) {
+        final home = view.atHome ? g.clubId : view.opponent.id;
+        lines.add(
+          s.jourFixForecast(g.runner.forecastOn(home, next.$1.epochDay)),
+        );
+      }
     }
     lines.add(s.jourFixSign);
     return lines.join('\n\n');

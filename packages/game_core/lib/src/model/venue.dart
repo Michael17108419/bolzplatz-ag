@@ -108,7 +108,7 @@ class VenueData {
   int derbyLevel(Club a, Club b) {
     if (a.id == b.id) return 0;
     if (a.parentClubId == b.id || b.parentClubId == a.id) return 0;
-    var level = _derbies[_key(a.id, b.id)]?.$1 ?? 0;
+    final level = _derbies[_key(a.id, b.id)]?.$1 ?? 0;
     final km = distanceKm(a.place, b.place);
     final near = a.place == b.place
         ? 3
