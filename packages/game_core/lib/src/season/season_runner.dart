@@ -23,6 +23,7 @@ import '../result/result.dart';
 import '../rng/seeded_random.dart';
 import '../rules/rules.dart';
 import '../squad/cabin.dart';
+import '../squad/chemistry.dart';
 import '../squad/ratings.dart';
 import '../squad/talk.dart';
 import '../world/world_report.dart';
@@ -365,6 +366,8 @@ class SeasonRunner {
     }
     _moodAfter(home, r.homeGoals, r.awayGoals, r);
     _moodAfter(away, r.awayGoals, r.homeGoals, r);
+    _pairsAfter(r, homePlayers);
+    _pairsAfter(r, {for (final p in _state.squads[away]!) p.id});
     for (final e in r.minutesPlayed.entries) {
       if (e.value <= 0) continue;
       final now = loadOf(e.key, _today) * c['load_reference'];
@@ -571,6 +574,63 @@ class SeasonRunner {
     return landed;
   }
 
+  /// Minutes every pair of team mates played together this season (step
+  /// 10f4, keyed by [pairKey]) and the years each player has been at his
+  /// club at the start of the season.
+  Map<int, double> _pairMinutes = {};
+  Map<PlayerId, double> _yearsAtClub = {};
+
+  double _yearsOf(PlayerId id) {
+    if (_yearsAtClub.isEmpty) {
+      final start = Season(_state.startYear).start;
+      for (final squad in _state.squads.values) {
+        for (final p in squad) {
+          final since = p.contract?.start;
+          _yearsAtClub[p.id] = since == null
+              ? 0.0
+              : (since.daysUntil(start) / 365.25).clamp(0.0, 10.0);
+        }
+      }
+    }
+    return _yearsAtClub[id] ?? 0.0;
+  }
+
+  /// Chemistry of two team mates, 0 to 1 (step 10f4).
+  double pairChemistryOf(PlayerId a, PlayerId b) {
+    final c = rules.season.condition;
+    return pairChemistry(
+      _pairMinutes[pairKey(a, b)] ?? 0,
+      math.min(_yearsOf(a), _yearsOf(b)),
+      minutesUnit: c['chem_minutes'] == 0 ? 1800 : c['chem_minutes'],
+      yearsUnit: c['chem_years'] == 0 ? 3 : c['chem_years'],
+    );
+  }
+
+  /// Chemistry of the starting eleven of [sheet], 0 to 1 (step 10f4).
+  double chemistryOf(TeamSheet sheet) {
+    final slots = rules.tactics.formation(sheet.formationId).slots;
+    return teamChemistry([
+      for (var i = 0; i < sheet.startingXi.length && i < slots.length; i++)
+        (sheet.startingXi[i], slots[i]),
+    ], pairChemistryOf);
+  }
+
+  /// Adds the minutes a match gave to every pair of team mates.
+  void _pairsAfter(MatchResult r, Set<PlayerId> club) {
+    final played = [
+      for (final e in r.minutesPlayed.entries)
+        if (e.value > 0 && club.contains(e.key)) e,
+    ];
+    for (var i = 0; i < played.length; i++) {
+      for (var j = i + 1; j < played.length; j++) {
+        final key = pairKey(played[i].key, played[j].key);
+        _pairMinutes[key] =
+            (_pairMinutes[key] ?? 0) +
+            math.min(played[i].value, played[j].value);
+      }
+    }
+  }
+
   /// Clubs of human managers: their cases wait for a decision.
   Set<ClubId> _humans = const {};
   late Map<String, int> _cardsByCompetition;
@@ -666,6 +726,7 @@ class SeasonRunner {
       load: {for (final p in squad) p.id: loadOf(p.id, _today)},
       mood: {for (final p in squad) p.id: moodOf(p.id)},
       coach: coachOf(club),
+      chemistry: pairChemistryOf,
     );
   }
 
@@ -899,6 +960,8 @@ class SeasonRunner {
     _cabins.clear();
     _talkWeek = {};
     _promises = {};
+    _pairMinutes = {};
+    _yearsAtClub = {};
     _humans = Set.of({...humanClubs, ...userSheets.keys});
     _bannedUntil = {};
     _cases = [];
@@ -1137,6 +1200,7 @@ class SeasonRunner {
               load: base.load,
               mood: base.mood,
               coach: base.coach,
+              chemistry: base.chemistry,
               autoManage: false,
             );
           }
@@ -1309,6 +1373,7 @@ class SeasonRunner {
             load: base.load,
             mood: base.mood,
             coach: base.coach,
+            chemistry: base.chemistry,
             autoManage: false,
           );
         }

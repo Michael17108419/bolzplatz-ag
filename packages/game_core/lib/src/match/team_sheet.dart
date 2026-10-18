@@ -117,6 +117,7 @@ class MatchTeam {
     Map<PlayerId, double> load = const {},
     Map<PlayerId, double> mood = const {},
     this.coach = const CoachProfile(),
+    this.chemistry,
     this.autoManage = true,
   }) : squad = List.unmodifiable(squad),
        mood = Map.unmodifiable(mood),
@@ -149,6 +150,10 @@ class MatchTeam {
 
   /// The coach on the bench (step 10f3).
   final CoachProfile coach;
+
+  /// Chemistry of a pair of players, 0 to 1 (step 10f4); null means every
+  /// pair is average.
+  final double Function(PlayerId a, PlayerId b)? chemistry;
 
   /// When true the assistant makes substitutions during the match.
   final bool autoManage;

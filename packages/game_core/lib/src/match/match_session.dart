@@ -11,6 +11,7 @@ import '../model/special_ability.dart';
 import '../rng/seeded_random.dart';
 import '../rules/match_rules.dart';
 import '../rules/rules.dart';
+import '../squad/chemistry.dart';
 import 'fit.dart';
 import 'limits.dart';
 import 'match_types.dart';
@@ -136,6 +137,11 @@ class _Side {
 
   /// The session minute of the last team talk (step 10f3); one per break.
   int talkMinute = -1;
+
+  /// Chemistry of the players on the pitch, 0 to 1 (step 10f4), and its
+  /// factor on short passes and through balls.
+  double chemistry = 0.5;
+  double chemFactor = 1;
 
   /// The minute (session minutes) up to which the team plays a man short
   /// for a treatment or a slow change (engine 2, step 10e6).
@@ -611,6 +617,9 @@ class MatchSession {
     return ((v - c.reference) / c.scale).limit(-1.0, 1.0);
   }
 
+  /// Chemistry of the players of [side] on the pitch, 0 to 1 (step 10f4).
+  double chemistryOf(int side) => _sides[side].chemistry;
+
   /// The captain of [side] (named on the sheet or chosen by leadership).
   PlayerId? captainOf(int side) => _sides[side].captain;
 
@@ -722,6 +731,14 @@ class MatchSession {
         tactics.penaltyPerExtraChange *
         (1.5 - side.team.coach.tactics / 100).clamp(0.5, 1.5);
     side.fitBonus = math.max(0.0, tactics.fitBonusMax * teamFit - unsettled);
+    final pair = side.team.chemistry;
+    if (pair != null) {
+      side.chemistry = teamChemistry([
+        for (final s in side.pitch) (s.player.id, s.position),
+      ], pair);
+      side.chemFactor =
+          1 + 2 * _m.confidence['chemistry'] * (side.chemistry - 0.5);
+    }
     final strength =
         math.pow(_m.missingPlayerStrength, side.missing).toDouble() *
         (1 + side.fitBonus);
@@ -1625,6 +1642,9 @@ class MatchSession {
                   creative *
                   duel *
                   _conditions(action.id) *
+                  (action.id == 'short_pass' || action.id == 'through_ball'
+                      ? _sides[t].chemFactor
+                      : 1.0) *
                   (action.id == 'dribble' || action.id == 'through_ball'
                       ? 1 + _m.confidence['bold'] * (carrier.conf - 50) / 50
                       : 1.0))

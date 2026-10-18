@@ -2446,7 +2446,8 @@
       "talk_heat": 0.25,
       "talk_nervous": 0.4,
       "talk_confidence": 8,
-      "talk_mood": 12
+      "talk_mood": 12,
+      "chemistry": 0.04
     },
     "treatment": {
       "per_match": 1.5,
@@ -2586,7 +2587,9 @@
       "talk_promise_matches": 3,
       "talk_promise_minutes": 30,
       "talk_promise_kept": 2,
-      "talk_promise_broken": 15
+      "talk_promise_broken": 15,
+      "chem_minutes": 1800,
+      "chem_years": 3
     },
     "cabin": {
       "high": 70,
