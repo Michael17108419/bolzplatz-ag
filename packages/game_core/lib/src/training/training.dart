@@ -59,18 +59,20 @@ class UnitRule {
     required this.targets,
   });
 
-  factory UnitRule.fromJson(String id, Map<String, dynamic> m) => UnitRule(
-    id: id,
-    group: m['group'] as String,
-    cost: [for (final x in m['cost'] as List<dynamic>) (x as num).toDouble()],
-    load: [
-      for (final x in (m['load'] as List<dynamic>? ?? const [0, 0, 0]))
+  factory UnitRule.fromJson(String id, Map<String, dynamic> m) {
+    List<double> numbers(Object? v) => [
+      for (final x in (v as List<dynamic>? ?? const [0, 0, 0]))
         (x as num).toDouble(),
-    ],
-    targets: [
-      for (final x in (m['targets'] as List<dynamic>? ?? const [])) x as String,
-    ],
-  );
+    ];
+    final targets = (m['targets'] as List<dynamic>? ?? const []);
+    return UnitRule(
+      id: id,
+      group: m['group'] as String,
+      cost: numbers(m['cost']),
+      load: numbers(m['load']),
+      targets: targets.cast<String>(),
+    );
+  }
 
   final String id;
   final String group;

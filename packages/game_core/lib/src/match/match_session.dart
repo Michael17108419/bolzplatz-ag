@@ -746,9 +746,8 @@ class MatchSession {
     slot.conf = side.team.confidence[player.id] ?? 50;
     slot.mood = side.team.mood[player.id] ?? _moodNeutral;
     slot.instr = side.sheet.instructions[player.id];
-    slot.counterMult = _abilityMult(player, const [
-      SpecialAbilityType.counterPlayer,
-    ], _m.counter.abilityBonus);
+    const counter = [SpecialAbilityType.counterPlayer];
+    slot.counterMult = _abilityMult(player, counter, _m.counter.abilityBonus);
     return slot;
   }
 
