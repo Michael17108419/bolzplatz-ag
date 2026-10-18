@@ -334,7 +334,10 @@ class MatchSession {
   /// of the away team a little more frequent (not on neutral ground).
   double _cardBias(int i) => _neutral
       ? 1
-      : 1 + _m.referee.homeBiasCards * _rt(RefereeTrait.homeBias) * (i == 0 ? -1 : 1);
+      : 1 +
+            _m.referee.homeBiasCards *
+                _rt(RefereeTrait.homeBias) *
+                (i == 0 ? -1 : 1);
 
   /// Minutes played so far, stoppage time included. [advanceTo] and saved
   /// actions count in these minutes.
@@ -1377,7 +1380,12 @@ class MatchSession {
         _rng.nextDouble() <
             r.captainFirst *
                 (1 + 0.5 * captain.tx[CharacterTrait.leadership.index])) {
-      _add(MatchEventType.dissent, i, player: captain.player, action: 'captain');
+      _add(
+        MatchEventType.dissent,
+        i,
+        player: captain.player,
+        action: 'captain',
+      );
       return;
     }
     final others = [
@@ -1969,7 +1977,10 @@ class MatchSession {
       final t = _attackingSide();
       final bias = _neutral
           ? 1.0
-          : 1 + r.homeBiasPenalties * _rt(RefereeTrait.homeBias) * (t == 0 ? 1 : -1);
+          : 1 +
+                r.homeBiasPenalties *
+                    _rt(RefereeTrait.homeBias) *
+                    (t == 0 ? 1 : -1);
       if (_rng.nextDouble() < bias) {
         _penalty(t);
         _dissent(1 - t);
