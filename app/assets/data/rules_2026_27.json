@@ -2482,13 +2482,13 @@
       "plan_hit": 0.05,
       "plan_miss": 0.02,
       "scout_miss": 0.4,
-      "scout_error": 0.35,
-      "scout_weak": 0.92,
-      "scout_build": 0.95,
-      "scout_slow": 62,
-      "scout_keeper": 0.93,
-      "scout_air": 1.1,
-      "scout_key": 1.12
+      "scout_error": 0.15,
+      "scout_weak": 0.96,
+      "scout_build": 0.98,
+      "scout_slow": 66,
+      "scout_keeper": 0.98,
+      "scout_air": 1.04,
+      "scout_key": 1.08
     },
     "treatment": {
       "per_match": 1.5,
