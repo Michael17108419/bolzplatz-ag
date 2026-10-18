@@ -186,6 +186,8 @@ void main() {
       '{where}',
       '{n}',
       '{days}',
+      '{k}',
+      '{ref}',
     };
     final placeholder = RegExp(r'\{[a-z]+\}');
     var total = 0;

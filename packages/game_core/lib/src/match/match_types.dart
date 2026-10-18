@@ -37,6 +37,17 @@ enum MatchEventType {
   /// `goal_kick_countdown`, `throw_in_countdown`), [MatchEvent.player] is
   /// the culprit.
   timeWasting,
+
+  /// A foul in an attack (engine 2, step 10e1): [side] is the team that
+  /// fouled, [MatchEvent.player] the fouler, [MatchEvent.otherPlayer] the
+  /// player fouled; [MatchEvent.action] is `whistle` or `advantage` (play
+  /// ran on), [MatchEvent.value] 1 if it denied a clear chance (Notbremse).
+  foul,
+
+  /// Protest against the referee (engine 2, step 10e1): [side] protests,
+  /// [MatchEvent.player] is the one who talks; [MatchEvent.action] is
+  /// `captain` (allowed, IFAB 2025/26) or `protest` (anyone else).
+  dissent,
 }
 
 enum ShotOutcome { goal, saved, blocked, offTarget }
@@ -113,6 +124,7 @@ class MatchEvent {
     this.value,
     this.spot,
     this.steps = const [],
+    this.keeper,
   }) : tick = tick ?? minute;
 
   /// Minute on the clock (45 and 90 during stoppage time, see [added]).
@@ -155,7 +167,9 @@ class MatchEvent {
 
   /// Id of the action from the rules (engine 2): for a shot the last action
   /// of the attack before it (`long_shot` for a shot from distance the
-  /// player chose), for a lost ball the action that failed.
+  /// player chose), for a lost ball the action that failed. For a card the
+  /// reason (`foul`, `dogso`, `dogso_box`, `advantage`, `dissent`), null for
+  /// a card without a told reason.
   final String? action;
 
   /// A number that belongs to the event: minutes of stoppage time.
@@ -168,6 +182,9 @@ class MatchEvent {
   /// The steps of the attack that led to a shot, a lost ball or a counter
   /// (engine 2); empty for other events.
   final List<AttackStep> steps;
+
+  /// The keeper who faced a shot (engine 2, step 10e1).
+  final PlayerId? keeper;
 
   /// The minute as shown: "45+2" in stoppage time, else "45".
   String get clockLabel => added > 0 ? '$minute+$added' : '$minute';

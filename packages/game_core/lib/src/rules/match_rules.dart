@@ -483,6 +483,83 @@ class CounterRules {
 
 /// How hidden character traits work in the match (engine 2). A trait
 /// counts as (value - [reference]) / [scale], limited to -1 and 1.
+/// The referee in the match (engine 2, step 10e1): how his traits bend
+/// cards, penalties and free kicks, fouls in an attack with or without
+/// advantage, and protest against him (only the captain may talk to him).
+/// The shares of the old per-minute rates keep the averages where they were
+/// now that some free kicks, penalties and cards come from fouls.
+class RefereeRules {
+  const RefereeRules(this._v);
+
+  factory RefereeRules.fromJson(Map<String, dynamic> m) {
+    const keys = [
+      'strictness_yellow',
+      'strictness_red',
+      'penalty_love',
+      'home_bias_cards',
+      'home_bias_penalties',
+      'foul_chance',
+      'foul_aggression',
+      'dogso_share',
+      'box_penalty_share',
+      'advantage_base',
+      'advantage_trait',
+      'card_after_foul',
+      'free_kick_minute_share',
+      'penalty_minute_share',
+      'yellow_minute_share',
+      'red_minute_share',
+      'dissent_chance',
+      'dissent_temper',
+      'dissent_card',
+      'dissent_authority',
+      'missing_captain_dissent',
+      'captain_first',
+    ];
+    final v = <String, double>{};
+    for (final k in keys) {
+      final raw = m[k];
+      if (raw is! num) throw RulesError('match.referee.$k is missing');
+      if (raw < 0) throw RulesError('match.referee.$k must not be negative');
+      v[k] = raw.toDouble();
+    }
+    return RefereeRules(Map.unmodifiable(v));
+  }
+
+  final Map<String, double> _v;
+
+  double get strictnessYellow => _v['strictness_yellow']!;
+  double get strictnessRed => _v['strictness_red']!;
+  double get penaltyLove => _v['penalty_love']!;
+  double get homeBiasCards => _v['home_bias_cards']!;
+  double get homeBiasPenalties => _v['home_bias_penalties']!;
+
+  /// Chance of a foul when an attacker wins a duel from column 2 on.
+  double get foulChance => _v['foul_chance']!;
+  double get foulAggression => _v['foul_aggression']!;
+
+  /// Share of fouls on a breakthrough that deny a clear chance (Notbremse).
+  double get dogsoShare => _v['dogso_share']!;
+
+  /// Share of fouls on a breakthrough that lie in the box (penalty).
+  double get boxPenaltyShare => _v['box_penalty_share']!;
+  double get advantageBase => _v['advantage_base']!;
+  double get advantageTrait => _v['advantage_trait']!;
+  double get cardAfterFoul => _v['card_after_foul']!;
+  double get freeKickMinuteShare => _v['free_kick_minute_share']!;
+  double get penaltyMinuteShare => _v['penalty_minute_share']!;
+  double get yellowMinuteShare => _v['yellow_minute_share']!;
+  double get redMinuteShare => _v['red_minute_share']!;
+  double get dissentChance => _v['dissent_chance']!;
+  double get dissentTemper => _v['dissent_temper']!;
+  double get dissentCard => _v['dissent_card']!;
+  double get dissentAuthority => _v['dissent_authority']!;
+  double get missingCaptainDissent => _v['missing_captain_dissent']!;
+
+  /// Chance that the captain, if on the pitch, does the talking.
+  double get captainFirst => _v['captain_first']!;
+}
+
 class CharacterMatchRules {
   const CharacterMatchRules(this._v);
 
@@ -745,6 +822,7 @@ class MatchRules {
     required this.character,
     required this.addedTime,
     required this.timeWasting,
+    required this.referee,
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -932,6 +1010,7 @@ class MatchRules {
       timeWasting: TimeWastingRules.fromJson(
         m['time_wasting'] as Map<String, dynamic>,
       ),
+      referee: RefereeRules.fromJson(m['referee'] as Map<String, dynamic>),
     );
     result._validate();
     return result;
@@ -1103,4 +1182,7 @@ class MatchRules {
 
   /// Time wasting punished by the Laws (engine 2).
   final TimeWastingRules timeWasting;
+
+  /// The referee and his influence (engine 2, step 10e1).
+  final RefereeRules referee;
 }

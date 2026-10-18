@@ -22,6 +22,7 @@ class Reporter {
     this.player,
     this.captainOf,
     this.tier = 1,
+    this.referee,
   });
 
   final ReporterStrings strings;
@@ -38,6 +39,14 @@ class Reporter {
 
   /// League level of the match: from 3 on the reporter talks like a local.
   final int tier;
+
+  /// Who whistles (step 10e1), named at kick-off; null for a plain referee.
+  final Referee? referee;
+
+  /// A foul with advantage: the attacking side and whether it was a
+  /// Notbremse; told once the attack is over.
+  int _advSide = -1;
+  bool _advDogso = false;
 
   /// Counts of the memory ("the third time down the left").
   final Map<String, int> _count = {};
@@ -155,7 +164,9 @@ class Reporter {
         .replaceAll('{score}', '${e.homeGoals}:${e.awayGoals}')
         .replaceAll('{ours}', '$own:$other')
         .replaceAll('{days}', '${e.injuryDays ?? 0}')
-        .replaceAll('{n}', '${e.value ?? 0}');
+        .replaceAll('{n}', '${e.value ?? 0}')
+        .replaceAll('{k}', playerName(e.keeper))
+        .replaceAll('{ref}', referee?.name ?? '');
   }
 
   static const _neutral = {
@@ -200,12 +211,16 @@ class Reporter {
     final hasO = step ? o != null : (o ?? e.otherPlayer) != null;
     final hasQ = (q ?? e.otherPlayer) != null;
     final hasP = (p ?? e.player) != null;
+    final hasK = e.keeper != null;
+    final hasRef = referee != null;
     final text = _pick(
       keys,
       ok: (t) =>
           (hasO || !t.contains('{o}')) &&
           (hasQ || !t.contains('{q}')) &&
-          (hasP || !t.contains('{p}')),
+          (hasP || !t.contains('{p}')) &&
+          (hasK || !t.contains('{k}')) &&
+          (hasRef || !t.contains('{ref}')),
     );
     if (text.isEmpty) return;
     out.add(
@@ -232,9 +247,16 @@ class Reporter {
     _seed = (index * 7919 + e.tick * 31) & 0x3fffffff;
     _goalSaid = !e.isGoal;
     final out = <TickerLine>[];
+    // An advantage that led to nothing: the attack ended without a shot.
+    if (_advSide >= 0 &&
+        e.type != MatchEventType.shot &&
+        e.type != MatchEventType.foul) {
+      _advantageOver(e, out, scored: false);
+    }
     switch (e.type) {
       case MatchEventType.kickOff:
         _say(out, e, TickerKind.kickOff, ['kickoff']);
+        _refereeIntro(e, out);
         if (tier >= 3) _say(out, e, TickerKind.colour, ['local.kickoff']);
       case MatchEventType.shot:
         _shot(e, out);
@@ -285,6 +307,10 @@ class Reporter {
         _say(out, e, TickerKind.extraTime, ['extra']);
       case MatchEventType.fullTime:
         _fullTime(e, out);
+      case MatchEventType.foul:
+        _foul(e, out);
+      case MatchEventType.dissent:
+        _say(out, e, TickerKind.colour, ['dissent.${e.action}.${_who(e.side)}']);
       case MatchEventType.shootoutKick:
         break;
     }
@@ -426,9 +452,12 @@ class Reporter {
       case ShotOutcome.goal:
         _goal(e, out, kind, pen: pen, level: level);
       case ShotOutcome.saved:
+        final named = e.keeper != null && _sometimes(2);
         _say(out, e, kind, [
           if (pen) 'pen.save.$w',
+          if (big && named) 'save.$w.big.k',
           if (big) 'save.$w.big',
+          if (named) 'save.$w.k',
           'save.$w',
         ]);
         final keeper = 1 - e.side;
@@ -450,6 +479,79 @@ class Reporter {
         _missed(e, out);
     }
     if (e.outcome != ShotOutcome.goal) _pressure(e, out);
+    _advantageOver(e, out, scored: e.outcome == ShotOutcome.goal);
+  }
+
+  /// The referee at kick-off, by the trait he is known for.
+  void _refereeIntro(MatchEvent e, List<TickerLine> out) {
+    final r = referee;
+    if (r == null) return;
+    final trait = r.standsOut;
+    final keys = [
+      if (trait != null)
+        'ref.intro.${trait.id}.${(r.traits[trait] ?? 50) >= 50 ? 'hi' : 'lo'}',
+      'ref.intro',
+    ];
+    _say(out, e, TickerKind.colour, keys, side: -1);
+  }
+
+  /// A foul: told when it denied a clear chance or when play ran on.
+  void _foul(MatchEvent e, List<TickerLine> out) {
+    final attacker = 1 - e.side;
+    final w = _who(attacker);
+    final dogso = (e.value ?? 0) == 1;
+    if (e.action == 'advantage') {
+      _advSide = attacker;
+      _advDogso = dogso;
+      _say(
+        out,
+        e,
+        TickerKind.colour,
+        [if (dogso) 'adv.dogso.$w', 'adv.$w'],
+        p: e.otherPlayer,
+        o: e.player,
+        side: attacker,
+      );
+      return;
+    }
+    if (dogso) {
+      _say(
+        out,
+        e,
+        TickerKind.colour,
+        ['foul.dogso.$w'],
+        p: e.otherPlayer,
+        o: e.player,
+        side: attacker,
+      );
+    } else if (_sometimes(3)) {
+      _say(
+        out,
+        e,
+        TickerKind.colour,
+        ['foul.whistle.$w'],
+        p: e.otherPlayer,
+        o: e.player,
+        side: attacker,
+      );
+    }
+  }
+
+  /// After an attack with advantage: worth it, or wasted.
+  void _advantageOver(MatchEvent e, List<TickerLine> out, {required bool scored}) {
+    if (_advSide < 0) return;
+    final w = _who(_advSide);
+    final side = _advSide;
+    final dogso = _advDogso;
+    _advSide = -1;
+    if (scored) {
+      _say(out, e, TickerKind.colour, [
+        if (dogso) 'adv.nocard',
+        'adv.goal.$w',
+      ], side: side);
+    } else {
+      _say(out, e, TickerKind.colour, ['adv.wasted.$w'], side: side);
+    }
   }
 
   void _pressure(MatchEvent e, List<TickerLine> out) {
@@ -587,7 +689,10 @@ class Reporter {
       MatchEventType.secondYellow => (TickerKind.secondYellow, 'second'),
       _ => (TickerKind.red, 'red'),
     };
-    _say(out, e, kind, ['$key.$w']);
+    _say(out, e, kind, [
+      if (e.action != null) '$key.${e.action}.$w',
+      '$key.$w',
+    ]);
     final n = _bump('cards.${e.side}');
     if (n == 4) {
       _say(out, e, TickerKind.colour, ['mem.cards.$w']);

@@ -10,3 +10,6 @@ extension type const CoachId(int value) {}
 extension type const LeagueId(int value) {}
 
 extension type const ContractId(int value) {}
+
+/// Id of a referee of the pool (engine 2, step 10e1).
+extension type const RefereeId(int value) {}

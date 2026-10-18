@@ -1,0 +1,1220 @@
+{
+ "note": "Referee pool for the matches (engine 2, step 10e1). Invented names that only sound real; real referees are never used. level 1 whistles league 1 and 2, level 3 league 3, level 4 league 4 of its region. Traits 1 to 100: strictness (cards), penalties, advantage (lets play on), home_bias, errors, authority. Edit freely.",
+ "referees": [
+  {
+   "id": 1,
+   "first_name": "Erik",
+   "last_name": "Janssen",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 31,
+    "penalties": 50,
+    "advantage": 55,
+    "home_bias": 35,
+    "errors": 38,
+    "authority": 82
+   }
+  },
+  {
+   "id": 2,
+   "first_name": "Rafael",
+   "last_name": "Voigt",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 22,
+    "penalties": 36,
+    "advantage": 53,
+    "home_bias": 24,
+    "errors": 37,
+    "authority": 46
+   }
+  },
+  {
+   "id": 3,
+   "first_name": "Aaron",
+   "last_name": "Rieger",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 62,
+    "penalties": 56,
+    "advantage": 52,
+    "home_bias": 41,
+    "errors": 48,
+    "authority": 51
+   }
+  },
+  {
+   "id": 4,
+   "first_name": "Marko",
+   "last_name": "Georgiou",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 38,
+    "penalties": 59,
+    "advantage": 65,
+    "home_bias": 40,
+    "errors": 18,
+    "authority": 79
+   }
+  },
+  {
+   "id": 5,
+   "first_name": "David",
+   "last_name": "Stadler",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 39,
+    "penalties": 67,
+    "advantage": 45,
+    "home_bias": 55,
+    "errors": 51,
+    "authority": 46
+   }
+  },
+  {
+   "id": 6,
+   "first_name": "Mario",
+   "last_name": "Auer",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 59,
+    "penalties": 37,
+    "advantage": 43,
+    "home_bias": 41,
+    "errors": 49,
+    "authority": 50
+   }
+  },
+  {
+   "id": 7,
+   "first_name": "Enzo",
+   "last_name": "Kılıç",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 23,
+    "penalties": 49,
+    "advantage": 35,
+    "home_bias": 30,
+    "errors": 44,
+    "authority": 56
+   }
+  },
+  {
+   "id": 8,
+   "first_name": "Rafael",
+   "last_name": "Peters",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 66,
+    "penalties": 42,
+    "advantage": 46,
+    "home_bias": 40,
+    "errors": 36,
+    "authority": 70
+   }
+  },
+  {
+   "id": 9,
+   "first_name": "Can",
+   "last_name": "Seidel",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 26,
+    "penalties": 47,
+    "advantage": 47,
+    "home_bias": 25,
+    "errors": 53,
+    "authority": 86
+   }
+  },
+  {
+   "id": 10,
+   "first_name": "Ewald",
+   "last_name": "Roth",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 43,
+    "penalties": 27,
+    "advantage": 41,
+    "home_bias": 5,
+    "errors": 46,
+    "authority": 60
+   }
+  },
+  {
+   "id": 11,
+   "first_name": "Omar",
+   "last_name": "Schreiber",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 70,
+    "penalties": 50,
+    "advantage": 35,
+    "home_bias": 23,
+    "errors": 40,
+    "authority": 48
+   }
+  },
+  {
+   "id": 12,
+   "first_name": "Jannik",
+   "last_name": "Horn",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 51,
+    "penalties": 48,
+    "advantage": 69,
+    "home_bias": 63,
+    "errors": 59,
+    "authority": 55
+   }
+  },
+  {
+   "id": 13,
+   "first_name": "Tomasz",
+   "last_name": "Klein",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 61,
+    "penalties": 44,
+    "advantage": 31,
+    "home_bias": 42,
+    "errors": 47,
+    "authority": 38
+   }
+  },
+  {
+   "id": 14,
+   "first_name": "Ben",
+   "last_name": "Winkler",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 46,
+    "penalties": 67,
+    "advantage": 57,
+    "home_bias": 26,
+    "errors": 28,
+    "authority": 24
+   }
+  },
+  {
+   "id": 15,
+   "first_name": "Lasse",
+   "last_name": "Lewandowski",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 59,
+    "penalties": 45,
+    "advantage": 27,
+    "home_bias": 50,
+    "errors": 54,
+    "authority": 54
+   }
+  },
+  {
+   "id": 16,
+   "first_name": "Uwe",
+   "last_name": "Knoll",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 72,
+    "penalties": 65,
+    "advantage": 35,
+    "home_bias": 48,
+    "errors": 35,
+    "authority": 62
+   }
+  },
+  {
+   "id": 17,
+   "first_name": "Deniz",
+   "last_name": "Richter",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 53,
+    "penalties": 38,
+    "advantage": 31,
+    "home_bias": 24,
+    "errors": 55,
+    "authority": 56
+   }
+  },
+  {
+   "id": 18,
+   "first_name": "Milan",
+   "last_name": "Eberhardt",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 74,
+    "penalties": 51,
+    "advantage": 17,
+    "home_bias": 26,
+    "errors": 49,
+    "authority": 44
+   }
+  },
+  {
+   "id": 19,
+   "first_name": "Finn",
+   "last_name": "Oster",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 54,
+    "penalties": 71,
+    "advantage": 82,
+    "home_bias": 33,
+    "errors": 29,
+    "authority": 62
+   }
+  },
+  {
+   "id": 20,
+   "first_name": "Hakan",
+   "last_name": "Diallo",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 57,
+    "penalties": 15,
+    "advantage": 44,
+    "home_bias": 54,
+    "errors": 41,
+    "authority": 45
+   }
+  },
+  {
+   "id": 21,
+   "first_name": "Jan",
+   "last_name": "Kovač",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 58,
+    "penalties": 51,
+    "advantage": 54,
+    "home_bias": 37,
+    "errors": 28,
+    "authority": 73
+   }
+  },
+  {
+   "id": 22,
+   "first_name": "Werner",
+   "last_name": "Marino",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 44,
+    "penalties": 62,
+    "advantage": 46,
+    "home_bias": 46,
+    "errors": 52,
+    "authority": 56
+   }
+  },
+  {
+   "id": 23,
+   "first_name": "Yusuf",
+   "last_name": "Gebhardt",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 37,
+    "penalties": 56,
+    "advantage": 30,
+    "home_bias": 28,
+    "errors": 48,
+    "authority": 68
+   }
+  },
+  {
+   "id": 24,
+   "first_name": "Jan",
+   "last_name": "Schmid",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 54,
+    "penalties": 48,
+    "advantage": 21,
+    "home_bias": 33,
+    "errors": 13,
+    "authority": 69
+   }
+  },
+  {
+   "id": 25,
+   "first_name": "Jakob",
+   "last_name": "Martin",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 42,
+    "penalties": 18,
+    "advantage": 64,
+    "home_bias": 52,
+    "errors": 39,
+    "authority": 44
+   }
+  },
+  {
+   "id": 26,
+   "first_name": "Florian",
+   "last_name": "Eder",
+   "level": 1,
+   "region": null,
+   "traits": {
+    "strictness": 45,
+    "penalties": 41,
+    "advantage": 47,
+    "home_bias": 57,
+    "errors": 44,
+    "authority": 51
+   }
+  },
+  {
+   "id": 27,
+   "first_name": "Ivan",
+   "last_name": "Keita",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 58,
+    "penalties": 66,
+    "advantage": 79,
+    "home_bias": 40,
+    "errors": 46,
+    "authority": 61
+   }
+  },
+  {
+   "id": 28,
+   "first_name": "Simon",
+   "last_name": "Colombo",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 31,
+    "penalties": 47,
+    "advantage": 49,
+    "home_bias": 46,
+    "errors": 48,
+    "authority": 53
+   }
+  },
+  {
+   "id": 29,
+   "first_name": "Dieter",
+   "last_name": "Şahin",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 36,
+    "penalties": 54,
+    "advantage": 21,
+    "home_bias": 33,
+    "errors": 53,
+    "authority": 44
+   }
+  },
+  {
+   "id": 30,
+   "first_name": "Arda",
+   "last_name": "Kessler",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 58,
+    "penalties": 38,
+    "advantage": 39,
+    "home_bias": 17,
+    "errors": 52,
+    "authority": 72
+   }
+  },
+  {
+   "id": 31,
+   "first_name": "Luis",
+   "last_name": "Pabst",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 50,
+    "penalties": 24,
+    "advantage": 31,
+    "home_bias": 32,
+    "errors": 44,
+    "authority": 45
+   }
+  },
+  {
+   "id": 32,
+   "first_name": "Leander",
+   "last_name": "Brunner",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 59,
+    "penalties": 47,
+    "advantage": 39,
+    "home_bias": 18,
+    "errors": 46,
+    "authority": 43
+   }
+  },
+  {
+   "id": 33,
+   "first_name": "Emil",
+   "last_name": "Moser",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 42,
+    "penalties": 70,
+    "advantage": 84,
+    "home_bias": 53,
+    "errors": 54,
+    "authority": 62
+   }
+  },
+  {
+   "id": 34,
+   "first_name": "Amadou",
+   "last_name": "Köhler",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 73,
+    "penalties": 24,
+    "advantage": 48,
+    "home_bias": 76,
+    "errors": 58,
+    "authority": 56
+   }
+  },
+  {
+   "id": 35,
+   "first_name": "Mario",
+   "last_name": "Constantin",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 67,
+    "penalties": 61,
+    "advantage": 81,
+    "home_bias": 38,
+    "errors": 42,
+    "authority": 67
+   }
+  },
+  {
+   "id": 36,
+   "first_name": "Bjarne",
+   "last_name": "Kuhn",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 46,
+    "penalties": 60,
+    "advantage": 7,
+    "home_bias": 49,
+    "errors": 63,
+    "authority": 36
+   }
+  },
+  {
+   "id": 37,
+   "first_name": "Valentin",
+   "last_name": "Schulz",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 62,
+    "penalties": 48,
+    "advantage": 42,
+    "home_bias": 65,
+    "errors": 69,
+    "authority": 60
+   }
+  },
+  {
+   "id": 38,
+   "first_name": "Arda",
+   "last_name": "Hofer",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 46,
+    "penalties": 38,
+    "advantage": 78,
+    "home_bias": 33,
+    "errors": 65,
+    "authority": 70
+   }
+  },
+  {
+   "id": 39,
+   "first_name": "Markus",
+   "last_name": "Pohl",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 66,
+    "penalties": 39,
+    "advantage": 39,
+    "home_bias": 55,
+    "errors": 47,
+    "authority": 45
+   }
+  },
+  {
+   "id": 40,
+   "first_name": "Bjarne",
+   "last_name": "Conti",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 29,
+    "penalties": 47,
+    "advantage": 63,
+    "home_bias": 38,
+    "errors": 42,
+    "authority": 56
+   }
+  },
+  {
+   "id": 41,
+   "first_name": "Piotr",
+   "last_name": "Kowalski",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 30,
+    "penalties": 69,
+    "advantage": 36,
+    "home_bias": 19,
+    "errors": 49,
+    "authority": 55
+   }
+  },
+  {
+   "id": 42,
+   "first_name": "Oliver",
+   "last_name": "Heinrich",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 53,
+    "penalties": 39,
+    "advantage": 70,
+    "home_bias": 42,
+    "errors": 17,
+    "authority": 71
+   }
+  },
+  {
+   "id": 43,
+   "first_name": "Dennis",
+   "last_name": "Wolf",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 52,
+    "penalties": 54,
+    "advantage": 70,
+    "home_bias": 21,
+    "errors": 53,
+    "authority": 40
+   }
+  },
+  {
+   "id": 44,
+   "first_name": "Yusuf",
+   "last_name": "Tiedemann",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 50,
+    "penalties": 45,
+    "advantage": 62,
+    "home_bias": 23,
+    "errors": 48,
+    "authority": 57
+   }
+  },
+  {
+   "id": 45,
+   "first_name": "Julian",
+   "last_name": "Schulte",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 41,
+    "penalties": 50,
+    "advantage": 49,
+    "home_bias": 12,
+    "errors": 44,
+    "authority": 38
+   }
+  },
+  {
+   "id": 46,
+   "first_name": "Karim",
+   "last_name": "Papadopoulos",
+   "level": 3,
+   "region": null,
+   "traits": {
+    "strictness": 57,
+    "penalties": 37,
+    "advantage": 55,
+    "home_bias": 53,
+    "errors": 36,
+    "authority": 38
+   }
+  },
+  {
+   "id": 47,
+   "first_name": "Timo",
+   "last_name": "Vollmer",
+   "level": 4,
+   "region": "nord",
+   "traits": {
+    "strictness": 44,
+    "penalties": 38,
+    "advantage": 59,
+    "home_bias": 52,
+    "errors": 57,
+    "authority": 45
+   }
+  },
+  {
+   "id": 48,
+   "first_name": "Michael",
+   "last_name": "Werner",
+   "level": 4,
+   "region": "nord",
+   "traits": {
+    "strictness": 69,
+    "penalties": 45,
+    "advantage": 46,
+    "home_bias": 42,
+    "errors": 64,
+    "authority": 56
+   }
+  },
+  {
+   "id": 49,
+   "first_name": "Leander",
+   "last_name": "Dietrich",
+   "level": 4,
+   "region": "nord",
+   "traits": {
+    "strictness": 48,
+    "penalties": 43,
+    "advantage": 66,
+    "home_bias": 30,
+    "errors": 71,
+    "authority": 26
+   }
+  },
+  {
+   "id": 50,
+   "first_name": "Marek",
+   "last_name": "Pfeiffer",
+   "level": 4,
+   "region": "nord",
+   "traits": {
+    "strictness": 65,
+    "penalties": 54,
+    "advantage": 9,
+    "home_bias": 31,
+    "errors": 66,
+    "authority": 25
+   }
+  },
+  {
+   "id": 51,
+   "first_name": "Werner",
+   "last_name": "Busch",
+   "level": 4,
+   "region": "nord",
+   "traits": {
+    "strictness": 72,
+    "penalties": 63,
+    "advantage": 44,
+    "home_bias": 49,
+    "errors": 76,
+    "authority": 50
+   }
+  },
+  {
+   "id": 52,
+   "first_name": "Lukas",
+   "last_name": "Kirsch",
+   "level": 4,
+   "region": "nord",
+   "traits": {
+    "strictness": 61,
+    "penalties": 62,
+    "advantage": 72,
+    "home_bias": 37,
+    "errors": 70,
+    "authority": 27
+   }
+  },
+  {
+   "id": 53,
+   "first_name": "Henrik",
+   "last_name": "Sow",
+   "level": 4,
+   "region": "nord",
+   "traits": {
+    "strictness": 40,
+    "penalties": 49,
+    "advantage": 41,
+    "home_bias": 38,
+    "errors": 71,
+    "authority": 33
+   }
+  },
+  {
+   "id": 54,
+   "first_name": "Aaron",
+   "last_name": "Wolff",
+   "level": 4,
+   "region": "nordost",
+   "traits": {
+    "strictness": 39,
+    "penalties": 61,
+    "advantage": 52,
+    "home_bias": 48,
+    "errors": 52,
+    "authority": 40
+   }
+  },
+  {
+   "id": 55,
+   "first_name": "Mateusz",
+   "last_name": "Mayer",
+   "level": 4,
+   "region": "nordost",
+   "traits": {
+    "strictness": 74,
+    "penalties": 69,
+    "advantage": 61,
+    "home_bias": 45,
+    "errors": 56,
+    "authority": 52
+   }
+  },
+  {
+   "id": 56,
+   "first_name": "Timo",
+   "last_name": "Mertens",
+   "level": 4,
+   "region": "nordost",
+   "traits": {
+    "strictness": 64,
+    "penalties": 63,
+    "advantage": 62,
+    "home_bias": 21,
+    "errors": 40,
+    "authority": 50
+   }
+  },
+  {
+   "id": 57,
+   "first_name": "Deniz",
+   "last_name": "Bergmann",
+   "level": 4,
+   "region": "nordost",
+   "traits": {
+    "strictness": 51,
+    "penalties": 43,
+    "advantage": 36,
+    "home_bias": 40,
+    "errors": 58,
+    "authority": 34
+   }
+  },
+  {
+   "id": 58,
+   "first_name": "Mateusz",
+   "last_name": "Lange",
+   "level": 4,
+   "region": "nordost",
+   "traits": {
+    "strictness": 36,
+    "penalties": 49,
+    "advantage": 71,
+    "home_bias": 28,
+    "errors": 67,
+    "authority": 33
+   }
+  },
+  {
+   "id": 59,
+   "first_name": "Ibrahim",
+   "last_name": "Fröhlich",
+   "level": 4,
+   "region": "nordost",
+   "traits": {
+    "strictness": 54,
+    "penalties": 39,
+    "advantage": 44,
+    "home_bias": 28,
+    "errors": 61,
+    "authority": 30
+   }
+  },
+  {
+   "id": 60,
+   "first_name": "Niklas",
+   "last_name": "Graf",
+   "level": 4,
+   "region": "nordost",
+   "traits": {
+    "strictness": 65,
+    "penalties": 72,
+    "advantage": 45,
+    "home_bias": 34,
+    "errors": 55,
+    "authority": 73
+   }
+  },
+  {
+   "id": 61,
+   "first_name": "Markus",
+   "last_name": "Herrmann",
+   "level": 4,
+   "region": "west",
+   "traits": {
+    "strictness": 59,
+    "penalties": 35,
+    "advantage": 64,
+    "home_bias": 56,
+    "errors": 62,
+    "authority": 85
+   }
+  },
+  {
+   "id": 62,
+   "first_name": "Malte",
+   "last_name": "Pichler",
+   "level": 4,
+   "region": "west",
+   "traits": {
+    "strictness": 34,
+    "penalties": 54,
+    "advantage": 75,
+    "home_bias": 43,
+    "errors": 52,
+    "authority": 33
+   }
+  },
+  {
+   "id": 63,
+   "first_name": "Mats",
+   "last_name": "Behrens",
+   "level": 4,
+   "region": "west",
+   "traits": {
+    "strictness": 73,
+    "penalties": 38,
+    "advantage": 70,
+    "home_bias": 41,
+    "errors": 58,
+    "authority": 59
+   }
+  },
+  {
+   "id": 64,
+   "first_name": "Piotr",
+   "last_name": "Winter",
+   "level": 4,
+   "region": "west",
+   "traits": {
+    "strictness": 53,
+    "penalties": 32,
+    "advantage": 61,
+    "home_bias": 32,
+    "errors": 68,
+    "authority": 47
+   }
+  },
+  {
+   "id": 65,
+   "first_name": "Erik",
+   "last_name": "Schneider",
+   "level": 4,
+   "region": "west",
+   "traits": {
+    "strictness": 58,
+    "penalties": 40,
+    "advantage": 61,
+    "home_bias": 41,
+    "errors": 47,
+    "authority": 48
+   }
+  },
+  {
+   "id": 66,
+   "first_name": "Moussa",
+   "last_name": "Brandt",
+   "level": 4,
+   "region": "west",
+   "traits": {
+    "strictness": 40,
+    "penalties": 46,
+    "advantage": 55,
+    "home_bias": 5,
+    "errors": 79,
+    "authority": 78
+   }
+  },
+  {
+   "id": 67,
+   "first_name": "Mario",
+   "last_name": "Braun",
+   "level": 4,
+   "region": "west",
+   "traits": {
+    "strictness": 27,
+    "penalties": 40,
+    "advantage": 41,
+    "home_bias": 24,
+    "errors": 67,
+    "authority": 52
+   }
+  },
+  {
+   "id": 68,
+   "first_name": "Rafael",
+   "last_name": "Bauer",
+   "level": 4,
+   "region": "suedwest",
+   "traits": {
+    "strictness": 60,
+    "penalties": 74,
+    "advantage": 95,
+    "home_bias": 37,
+    "errors": 75,
+    "authority": 33
+   }
+  },
+  {
+   "id": 69,
+   "first_name": "Maximilian",
+   "last_name": "Kaya",
+   "level": 4,
+   "region": "suedwest",
+   "traits": {
+    "strictness": 37,
+    "penalties": 68,
+    "advantage": 49,
+    "home_bias": 69,
+    "errors": 60,
+    "authority": 42
+   }
+  },
+  {
+   "id": 70,
+   "first_name": "Moritz",
+   "last_name": "Hartwig",
+   "level": 4,
+   "region": "suedwest",
+   "traits": {
+    "strictness": 59,
+    "penalties": 35,
+    "advantage": 37,
+    "home_bias": 52,
+    "errors": 57,
+    "authority": 32
+   }
+  },
+  {
+   "id": 71,
+   "first_name": "Philipp",
+   "last_name": "Zielinski",
+   "level": 4,
+   "region": "suedwest",
+   "traits": {
+    "strictness": 74,
+    "penalties": 60,
+    "advantage": 37,
+    "home_bias": 22,
+    "errors": 59,
+    "authority": 32
+   }
+  },
+  {
+   "id": 72,
+   "first_name": "Dieter",
+   "last_name": "Zander",
+   "level": 4,
+   "region": "suedwest",
+   "traits": {
+    "strictness": 31,
+    "penalties": 49,
+    "advantage": 44,
+    "home_bias": 51,
+    "errors": 53,
+    "authority": 53
+   }
+  },
+  {
+   "id": 73,
+   "first_name": "Holger",
+   "last_name": "Traoré",
+   "level": 4,
+   "region": "suedwest",
+   "traits": {
+    "strictness": 48,
+    "penalties": 89,
+    "advantage": 63,
+    "home_bias": 28,
+    "errors": 53,
+    "authority": 50
+   }
+  },
+  {
+   "id": 74,
+   "first_name": "Jonas",
+   "last_name": "Aydin",
+   "level": 4,
+   "region": "suedwest",
+   "traits": {
+    "strictness": 39,
+    "penalties": 52,
+    "advantage": 30,
+    "home_bias": 39,
+    "errors": 33,
+    "authority": 43
+   }
+  },
+  {
+   "id": 75,
+   "first_name": "Linus",
+   "last_name": "Vogel",
+   "level": 4,
+   "region": "bayern",
+   "traits": {
+    "strictness": 63,
+    "penalties": 37,
+    "advantage": 21,
+    "home_bias": 30,
+    "errors": 36,
+    "authority": 91
+   }
+  },
+  {
+   "id": 76,
+   "first_name": "Ole",
+   "last_name": "Novak",
+   "level": 4,
+   "region": "bayern",
+   "traits": {
+    "strictness": 35,
+    "penalties": 37,
+    "advantage": 62,
+    "home_bias": 54,
+    "errors": 80,
+    "authority": 42
+   }
+  },
+  {
+   "id": 77,
+   "first_name": "Felix",
+   "last_name": "Weber",
+   "level": 4,
+   "region": "bayern",
+   "traits": {
+    "strictness": 59,
+    "penalties": 29,
+    "advantage": 72,
+    "home_bias": 48,
+    "errors": 82,
+    "authority": 51
+   }
+  },
+  {
+   "id": 78,
+   "first_name": "Leon",
+   "last_name": "Okafor",
+   "level": 4,
+   "region": "bayern",
+   "traits": {
+    "strictness": 47,
+    "penalties": 42,
+    "advantage": 62,
+    "home_bias": 59,
+    "errors": 58,
+    "authority": 22
+   }
+  },
+  {
+   "id": 79,
+   "first_name": "Philipp",
+   "last_name": "Sauer",
+   "level": 4,
+   "region": "bayern",
+   "traits": {
+    "strictness": 25,
+    "penalties": 25,
+    "advantage": 63,
+    "home_bias": 37,
+    "errors": 29,
+    "authority": 42
+   }
+  },
+  {
+   "id": 80,
+   "first_name": "Dieter",
+   "last_name": "Lutz",
+   "level": 4,
+   "region": "bayern",
+   "traits": {
+    "strictness": 43,
+    "penalties": 35,
+    "advantage": 57,
+    "home_bias": 35,
+    "errors": 42,
+    "authority": 44
+   }
+  },
+  {
+   "id": 81,
+   "first_name": "Michael",
+   "last_name": "Popescu",
+   "level": 4,
+   "region": "bayern",
+   "traits": {
+    "strictness": 64,
+    "penalties": 29,
+    "advantage": 56,
+    "home_bias": 29,
+    "errors": 74,
+    "authority": 48
+   }
+  }
+ ]
+}

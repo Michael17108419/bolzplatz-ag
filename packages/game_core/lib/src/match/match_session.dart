@@ -6,6 +6,7 @@ import '../model/character.dart';
 import '../model/ids.dart';
 import '../model/player.dart';
 import '../model/position.dart';
+import '../model/referee.dart';
 import '../model/special_ability.dart';
 import '../rng/seeded_random.dart';
 import '../rules/match_rules.dart';
@@ -250,7 +251,9 @@ class MatchSession {
     required MatchTeam away,
     required int seed,
     bool neutral = false,
+    this.referee,
   }) : _rng = SeededRandom(seed),
+       _neutral = neutral,
        _fit = Fit(rules),
        _systemFit = SystemFit(rules),
        _sides = [_Side(home), _Side(away)] {
@@ -275,6 +278,11 @@ class MatchSession {
   }
 
   final Rules rules;
+
+  /// Who whistles (engine 2, step 10e1); null is a plain referee with all
+  /// traits in the middle.
+  final Referee? referee;
+  final bool _neutral;
   final SeededRandom _rng;
   final Fit _fit;
   final SystemFit _systemFit;
@@ -314,6 +322,19 @@ class MatchSession {
   int? _shootoutWinner;
 
   MatchRules get _m => rules.match;
+
+  /// A trait of the referee from -1 to 1, 0 without referee.
+  double _rt(RefereeTrait trait) => referee?.tx(trait) ?? 0;
+
+  /// A foul with advantage that waits for the end of the attack: the team
+  /// that fouled, the fouler, and whether it denied a clear chance.
+  (int, _Slot, bool)? _advantage;
+
+  /// Cards of the home team are a little rarer with a home referee, those
+  /// of the away team a little more frequent (not on neutral ground).
+  double _cardBias(int i) => _neutral
+      ? 1
+      : 1 + _m.referee.homeBiasCards * _rt(RefereeTrait.homeBias) * (i == 0 ? -1 : 1);
 
   /// Minutes played so far, stoppage time included. [advanceTo] and saved
   /// actions count in these minutes.
@@ -1085,9 +1106,11 @@ class MatchSession {
     int? value,
     int? spot,
     List<AttackStep> steps = const [],
+    Player? keeper,
   }) {
     _events.add(
       MatchEvent(
+        keeper: keeper?.id,
         minute: _clock,
         added: _added,
         tick: _minute,
@@ -1236,7 +1259,140 @@ class MatchSession {
                 rateMult *
                 state)
             .limit(_m.breakthroughMin, _m.breakthroughMax);
+    final goalsBefore = _goalsHome + _goalsAway;
     _attack(t, q, counter: pending);
+    _resolveAdvantage(_goalsHome + _goalsAway > goalsBefore);
+  }
+
+  /// After an attack with advantage the referee comes back to the foul: no
+  /// card for a Notbremse that ended in a goal (IFAB 2026/27), a yellow if
+  /// the chance was not denied after all, else the usual card chance.
+  void _resolveAdvantage(bool scored) {
+    final adv = _advantage;
+    _advantage = null;
+    if (adv == null) return;
+    final (o, fouler, dogso) = adv;
+    if (!_sides[o].pitch.contains(fouler)) return;
+    if (dogso) {
+      if (!scored) _yellow(o, fouler, reason: 'advantage');
+    } else if (_rng.nextDouble() < _foulCard) {
+      _yellow(o, fouler, reason: 'advantage');
+    }
+  }
+
+  /// Chance of a yellow card for a foul, by the strictness of the referee.
+  double get _foulCard =>
+      (_m.referee.cardAfterFoul *
+              (1 + _m.referee.strictnessYellow * _rt(RefereeTrait.strictness)))
+          .limit(0.0, 1.0);
+
+  /// A defender may foul the attacker who just won the duel (from column 2
+  /// on). The referee whistles (free kick, penalty in the box, card) or lets
+  /// play run on (advantage). Returns true if the whistle ends the attack.
+  bool _foul(
+    int t,
+    _Slot victim,
+    _Slot fouler,
+    int column,
+    int lane,
+    bool through,
+  ) {
+    final r = _m.referee;
+    final o = 1 - t;
+    final p =
+        r.foulChance *
+        math.max(
+          0.1,
+          1 + r.foulAggression * fouler.tx[CharacterTrait.aggression.index],
+        );
+    if (_rng.nextDouble() >= p) return false;
+    final dogso = through && _rng.nextDouble() < r.dogsoShare;
+    final advantage =
+        _advantage == null &&
+        _rng.nextDouble() <
+            (r.advantageBase *
+                    (1 + r.advantageTrait * _rt(RefereeTrait.advantage)))
+                .limit(0.0, 0.9);
+    _add(
+      MatchEventType.foul,
+      o,
+      player: fouler.player,
+      other: victim.player,
+      column: column,
+      lane: lane,
+      action: advantage ? 'advantage' : 'whistle',
+      value: dogso ? 1 : 0,
+    );
+    if (advantage) {
+      _advantage = (o, fouler, dogso);
+      return false;
+    }
+    final inBox =
+        through &&
+        _rng.nextDouble() <
+            r.boxPenaltyShare *
+                (1 + r.penaltyLove * _rt(RefereeTrait.penalties));
+    if (dogso && !inBox) {
+      // Notbremse outside the box: red.
+      _sendOff(o, fouler, false, reason: 'dogso');
+    } else if (dogso) {
+      // In the box with a try for the ball: penalty and yellow only.
+      _yellow(o, fouler, reason: 'dogso_box');
+    } else if (_rng.nextDouble() < _foulCard) {
+      _yellow(o, fouler, reason: 'foul');
+    }
+    if (inBox) {
+      _penalty(t);
+    } else {
+      _freeKick(t);
+    }
+    if (inBox) _dissent(o);
+    return true;
+  }
+
+  /// Protest after a decision against side [i]. Only the captain may talk
+  /// to the referee (IFAB 2025/26); anyone else risks a yellow, more so
+  /// with a strict referee of authority. Hot heads protest more, a strong
+  /// captain does the talking, a missing captain lets it get out of hand.
+  void _dissent(int i) {
+    final r = _m.referee;
+    final side = _sides[i];
+    if (side.pitch.length < 2) return;
+    var temper = 0.0;
+    for (final s in side.pitch) {
+      temper += s.tx[CharacterTrait.temper.index];
+    }
+    temper /= side.pitch.length;
+    final captain = side.pitch
+        .where((s) => s.player.id == side.captain)
+        .firstOrNull;
+    var p = r.dissentChance * math.max(0.1, 1 + r.dissentTemper * temper);
+    if (captain == null) p *= 1 + r.missingCaptainDissent;
+    if (_rng.nextDouble() >= p) return;
+    if (captain != null &&
+        _rng.nextDouble() <
+            r.captainFirst *
+                (1 + 0.5 * captain.tx[CharacterTrait.leadership.index])) {
+      _add(MatchEventType.dissent, i, player: captain.player, action: 'captain');
+      return;
+    }
+    final others = [
+      for (final s in side.pitch)
+        if (s != captain && !s.position.isGoalkeeper) s,
+    ];
+    if (others.isEmpty) return;
+    final who =
+        others[_rng.weightedIndex([
+          for (final s in others)
+            math.max(0.1, 1 + s.tx[CharacterTrait.temper.index]),
+        ])];
+    _add(MatchEventType.dissent, i, player: who.player, action: 'protest');
+    final card =
+        (r.dissentCard *
+                (1 + r.strictnessYellow * _rt(RefereeTrait.strictness)) *
+                (1 + r.dissentAuthority * _rt(RefereeTrait.authority)))
+            .limit(0.0, 1.0);
+    if (_rng.nextDouble() < card) _yellow(i, who, reason: 'dissent');
   }
 
   /// Plays one attack of side [t] through the zones (engine 2). The ball
@@ -1349,6 +1505,11 @@ class MatchSession {
       );
       if (!won) {
         _lost(t, carrier, tackler, column, lane, action.id, steps);
+        return;
+      }
+      if (column >= 2 &&
+          action.id != 'short_pass' &&
+          _foul(t, carrier, tackler, column, lane, target == last)) {
         return;
       }
       column = target;
@@ -1752,6 +1913,10 @@ class MatchSession {
       action: action,
       spot: spot,
       steps: steps,
+      keeper: _sides[1 - t].pitch
+          .where((s) => s.position.isGoalkeeper)
+          .firstOrNull
+          ?.player,
     );
   }
 
@@ -1783,14 +1948,28 @@ class MatchSession {
 
   void _standards() {
     final minutes = _m.minutes / _rate;
-    if (_rng.nextDouble() < _m.freeKicksPerMatch / minutes) {
+    final r = _m.referee;
+    if (_rng.nextDouble() <
+        _m.freeKicksPerMatch * r.freeKickMinuteShare / minutes) {
       _freeKick(_attackingSide());
     }
     if (_rng.nextDouble() < _m.cornersPerMatch / minutes) {
       _corner(_attackingSide());
     }
-    if (_rng.nextDouble() < _m.penaltiesPerMatch / minutes) {
-      _penalty(_attackingSide());
+    final penalty =
+        _m.penaltiesPerMatch *
+        r.penaltyMinuteShare *
+        (1 + r.penaltyLove * _rt(RefereeTrait.penalties)) /
+        minutes;
+    if (_rng.nextDouble() < penalty) {
+      final t = _attackingSide();
+      final bias = _neutral
+          ? 1.0
+          : 1 + r.homeBiasPenalties * _rt(RefereeTrait.homeBias) * (t == 0 ? 1 : -1);
+      if (_rng.nextDouble() < bias) {
+        _penalty(t);
+        _dissent(1 - t);
+      }
     }
   }
 
@@ -1974,7 +2153,11 @@ class MatchSession {
         0.0,
         (_m.yellowPerMinutePerTeam + (side.fx['yellow'] ?? 0)) *
             _rate *
-            math.max(0.2, 1 + _m.character.cardTeamWeight * temper),
+            math.max(0.2, 1 + _m.character.cardTeamWeight * temper) *
+            _m.referee.yellowMinuteShare *
+            (1 +
+                _m.referee.strictnessYellow * _rt(RefereeTrait.strictness)) *
+            _cardBias(i),
       );
       if (side.pitch.length > 1 && _rng.nextDouble() < p) {
         final slots = [
@@ -2002,7 +2185,11 @@ class MatchSession {
         if (slots.isNotEmpty) _yellow(i, slots[_rng.weightedIndex(weights)]);
       }
     }
-    if (_rng.nextDouble() < _m.straightRedPerMinute * _rate) {
+    if (_rng.nextDouble() <
+        _m.straightRedPerMinute *
+            _rate *
+            _m.referee.redMinuteShare *
+            (1 + _m.referee.strictnessRed * _rt(RefereeTrait.strictness))) {
       final i = _rng.nextInt(2);
       final side = _sides[i];
       if (side.pitch.length > 7) {
@@ -2032,7 +2219,8 @@ class MatchSession {
     }
   }
 
-  void _yellow(int i, _Slot s) {
+  void _yellow(int i, _Slot s, {String? reason}) {
+    if (!_sides[i].pitch.contains(s)) return;
     _halfCards++;
     final side = _sides[i];
     final id = s.player.id;
@@ -2040,19 +2228,29 @@ class MatchSession {
     side.yellows[id] = count;
     side.stats.yellowCards++;
     if (count >= 2) {
-      _add(MatchEventType.secondYellow, i, player: s.player);
+      _add(
+        MatchEventType.secondYellow,
+        i,
+        player: s.player,
+        action: reason,
+      );
       _sendOff(i, s, true);
     } else {
-      _add(MatchEventType.yellowCard, i, player: s.player);
+      _add(MatchEventType.yellowCard, i, player: s.player, action: reason);
     }
+    if (reason != 'dissent') _dissent(i);
   }
 
-  void _sendOff(int i, _Slot s, bool secondYellow) {
+  void _sendOff(int i, _Slot s, bool secondYellow, {String? reason}) {
+    if (!_sides[i].pitch.contains(s)) return;
     if (!secondYellow) _halfCards++;
     final side = _sides[i];
     side.stats.redCards++;
-    if (!secondYellow) _add(MatchEventType.redCard, i, player: s.player);
+    if (!secondYellow) {
+      _add(MatchEventType.redCard, i, player: s.player, action: reason);
+    }
     _remove(i, s, replace: false);
+    if (!secondYellow) _dissent(i);
   }
 
   void _injure(int i, _Slot s) {
@@ -2290,12 +2488,18 @@ class MatchEngine {
 
   final Rules rules;
 
-  MatchResult simulate(MatchTeam home, MatchTeam away, {required int seed}) {
+  MatchResult simulate(
+    MatchTeam home,
+    MatchTeam away, {
+    required int seed,
+    Referee? referee,
+  }) {
     return MatchSession(
       rules: rules,
       home: home,
       away: away,
       seed: seed,
+      referee: referee,
     ).finish();
   }
 
@@ -2305,6 +2509,7 @@ class MatchEngine {
     MatchTeam away, {
     required int seed,
     bool neutral = false,
+    Referee? referee,
   }) {
     final session = MatchSession(
       rules: rules,
@@ -2312,6 +2517,7 @@ class MatchEngine {
       away: away,
       seed: seed,
       neutral: neutral,
+      referee: referee,
     );
     return session.finishKnockout();
   }

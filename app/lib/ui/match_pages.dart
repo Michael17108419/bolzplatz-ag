@@ -279,6 +279,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
       player: _loaded.player,
       captainOf: _session.captainOf,
       tier: league?.level ?? 1,
+      referee: _session.referee,
     );
     // A saved match that was under way waits paused, so nothing happens
     // before the player is back.

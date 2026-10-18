@@ -12,6 +12,7 @@ import '../match/match_session.dart';
 import '../match/match_types.dart';
 import '../match/team_sheet.dart';
 import '../model/ids.dart';
+import '../model/referee.dart';
 import '../model/region.dart';
 import '../pyramid/pyramid.dart';
 import '../result/result.dart';
@@ -139,8 +140,12 @@ class SeasonRun {
 /// Plays a whole season of all leagues and both cups without a user
 /// interface. Everything depends only on the state, the rules and the seed.
 class SeasonRunner {
-  SeasonRunner(this.rules, {required this.calendarRules, this.forcedFormation})
-    : _engine = MatchEngine(rules),
+  SeasonRunner(
+    this.rules, {
+    required this.calendarRules,
+    this.forcedFormation,
+    this.referees,
+  }) : _engine = MatchEngine(rules),
       _auto = AutoManager(rules),
       _calendar = CalendarGenerator(calendarRules);
 
@@ -152,6 +157,24 @@ class SeasonRunner {
 
   /// If set, every club plays this formation (for tests and analysis).
   final String? forcedFormation;
+
+  /// The referees (engine 2, step 10e1); without them every match has a
+  /// plain referee.
+  final RefereePool? referees;
+
+  /// The referee of a match, picked by the seed of its [label] from the
+  /// pool of the higher league of both clubs (league 4 by the region of
+  /// the home club).
+  Referee? _referee(SeasonState state, ClubId home, ClubId away, String label) {
+    final pool = referees;
+    if (pool == null) return null;
+    final level = math.min(_tierOf(state, home), _tierOf(state, away));
+    return pool.pick(
+      level,
+      state.clubs[home]?.region,
+      SeededRandom(_seed).fork('ref:$label').seed,
+    );
+  }
   final MatchEngine _engine;
   final AutoManager _auto;
 
@@ -521,6 +544,7 @@ class SeasonRunner {
       _team(away, comp),
       seed: _matchSeed(label),
       neutral: neutral,
+      referee: _referee(_state, home, away, label),
     );
     _afterMatch(home, away, k.match, countForm: false, comp: comp);
     return k.winnerSide == 0 ? home : away;
@@ -591,6 +615,7 @@ class SeasonRunner {
               home: team(f.home),
               away: team(f.away),
               seed: seed,
+              referee: _referee(_state, f.home, f.away, 'l:$seed'),
             ),
             isOwn: true,
             sheetReplaced: !usable,
@@ -610,6 +635,7 @@ class SeasonRunner {
                 _team(f.home, 'L'),
                 _team(f.away, 'L'),
                 seed: seed,
+                referee: _referee(_state, f.home, f.away, 'l:$seed'),
               ),
               isOwn: isOwn,
             ),
@@ -751,6 +777,7 @@ class SeasonRunner {
               away: team(a),
               seed: _matchSeed(label),
               neutral: neutral,
+              referee: _referee(_state, h, a, label),
             ),
             isOwn: true,
             sheetReplaced: !usable,
@@ -771,6 +798,7 @@ class SeasonRunner {
             _team(a, comp),
             seed: _matchSeed(label),
             neutral: neutral,
+            referee: _referee(_state, h, a, label),
           ),
           isOwn: isOwn,
         ),
