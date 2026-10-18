@@ -2488,7 +2488,11 @@
       "scout_slow": 66,
       "scout_keeper": 0.98,
       "scout_air": 1.04,
-      "scout_key": 1.08
+      "scout_key": 1.08,
+      "half_error": 0.4,
+      "half_flank_gap": 0.15,
+      "half_threat": 6,
+      "half_tired": 60
     },
     "treatment": {
       "per_match": 1.5,

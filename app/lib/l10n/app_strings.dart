@@ -330,6 +330,14 @@ abstract interface class AppStrings {
   String get lineupChemistry;
   String get lineupInstruction;
   String get matchPlanButton;
+  String get halfTimeButton;
+  String get halfTimeTitle;
+  String get infoHalfTime;
+  String halfTimeStats(int shots, int against, int duelPercent);
+  String get halfTimeNothing;
+  String halfNote(HalfNoteKind kind, {Wing? wing, String? player});
+  String get halfTimeApply;
+  String get halfTimeDone;
   String get matchPlanTitle;
   String get infoMatchPlan;
   String get scoutTitle;
@@ -2018,6 +2026,46 @@ class AppStringsDe implements AppStrings {
   String get lineupInstruction => 'Anweisung';
   @override
   String get matchPlanButton => 'Matchplan';
+  @override
+  String get halfTimeButton => 'Analyse';
+  @override
+  String get halfTimeTitle => 'Halbzeitanalyse';
+  @override
+  String get infoHalfTime =>
+      'Dein Assistent fasst die Halbzeit zusammen. Mit mehr Taktikwissen '
+      'sieht er mehr und irrt sich seltener. Zu jeder Beobachtung schlägt er '
+      'eine Änderung vor; „Umsetzen“ trägt sie ein, ändern kannst du danach '
+      'trotzdem alles.';
+  @override
+  String halfTimeStats(int shots, int against, int duelPercent) =>
+      'Schüsse $shots:$against · Zweikämpfe gewonnen $duelPercent %';
+  @override
+  String get halfTimeNothing =>
+      'Dem Assistenten fällt nichts auf. Das ist entweder gut oder sein '
+      'Problem.';
+  @override
+  String halfNote(HalfNoteKind kind, {Wing? wing, String? player}) =>
+      switch (kind) {
+        HalfNoteKind.losingFlank =>
+          'Über ${wing == Wing.right ? 'rechts' : 'links'} verlieren wir fast '
+              'jeden Zweikampf.${player == null ? '' : ' $player soll hinten bleiben.'}',
+        HalfNoteKind.dominant =>
+          '${player ?? 'Einer von denen'} macht drüben, was er will. Den '
+              'sollte jemand eng nehmen.',
+        HalfNoteKind.tired =>
+          '${player ?? 'Einer'} pfeift aus dem letzten Loch.',
+        HalfNoteKind.booked =>
+          '${player ?? 'Einer'} hat Gelb und kocht. Das nächste Foul ist Rot.',
+        HalfNoteKind.planWorks => 'Der Plan geht auf. Weiter so.',
+        HalfNoteKind.planFails =>
+          'Der Plan greift nicht. Da war wohl keine Schwäche.',
+        HalfNoteKind.pressNeeded =>
+          'Wir liegen hinten und schauen zu. Mehr Druck!',
+      };
+  @override
+  String get halfTimeApply => 'Umsetzen';
+  @override
+  String get halfTimeDone => 'Erledigt';
   @override
   String get matchPlanTitle => 'Gegneranalyse und Matchplan';
   @override

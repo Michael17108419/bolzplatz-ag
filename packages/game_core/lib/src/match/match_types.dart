@@ -1,4 +1,5 @@
 import '../model/ids.dart';
+import 'match_session.dart';
 import 'team_sheet.dart';
 
 enum MatchEventType {
@@ -81,6 +82,67 @@ enum MatchEventType {
 /// distance at a weak keeper, keep the ball on the ground against tall
 /// defenders, stop their key player.
 enum PlanFocus { weakSide, pressHigh, counter, longShots, avoidAir, stopKey }
+
+/// What the assistant noticed in a half (engine 2, step 10g3).
+enum HalfNoteKind {
+  /// We lose most duels on one flank ([HalfNote.wing]).
+  losingFlank,
+
+  /// One of theirs runs the show ([HalfNote.player]).
+  dominant,
+
+  /// One of ours is running on empty ([HalfNote.player]).
+  tired,
+
+  /// One of ours is booked and hot-headed ([HalfNote.player]).
+  booked,
+
+  /// The match plan works.
+  planWorks,
+
+  /// The match plan does not work.
+  planFails,
+
+  /// Behind and too passive.
+  pressNeeded,
+}
+
+/// One observation at half time with the change the assistant suggests
+/// ([fix], null if there is nothing to change). [real] is false when a
+/// weak assistant got it wrong.
+class HalfNote {
+  const HalfNote(
+    this.kind, {
+    required this.real,
+    this.wing,
+    this.player,
+    this.fix,
+  });
+
+  final HalfNoteKind kind;
+  final bool real;
+  final Wing? wing;
+  final PlayerId? player;
+  final SessionAction? fix;
+}
+
+/// The half-time analysis of the assistant (step 10g3): shots, duels and
+/// a few observations.
+class HalfTimeReport {
+  const HalfTimeReport({
+    required this.shots,
+    required this.shotsAgainst,
+    required this.duelsWon,
+    required this.duels,
+    required this.notes,
+  });
+
+  final int shots;
+  final int shotsAgainst;
+  final int duelsWon;
+  final int duels;
+  final List<HalfNote> notes;
+}
 
 /// One observation of the assistant about the opponent (step 10g2). [real]
 /// says whether it is true; a weak coach also sees things that are not

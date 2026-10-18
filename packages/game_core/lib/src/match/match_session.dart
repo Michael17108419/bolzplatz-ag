@@ -466,6 +466,11 @@ class MatchSession {
 
   /// What happened in the running half, for the stoppage time.
   int _halfGoals = 0;
+
+  /// Session minute the current half began and the one before it (step
+  /// 10g3, for the half-time analysis).
+  int _halfFrom = 0;
+  int _lastHalfFrom = 0;
   int _halfSubs = 0;
   int _halfInjuries = 0;
   int _halfCards = 0;
@@ -1243,6 +1248,8 @@ class MatchSession {
       _add(MatchEventType.halfTime, -1);
       _half++;
       _breakNow = true;
+      _lastHalfFrom = _halfFrom;
+      _halfFrom = _minute;
     }
     _stoppage = null;
     _added = 0;
@@ -3442,6 +3449,218 @@ class MatchSession {
       }
     }
     return f;
+  }
+
+  /// The half-time analysis of the assistant for [side] (step 10g3): the
+  /// half that just ended (or the running one), shots, duels and up to
+  /// three observations with a suggested change. A coach with tactical
+  /// knowledge [tactics] gets more notes and fewer wrong ones.
+  HalfTimeReport halfTimeReport(
+    int side, {
+    required double tactics,
+    int seed = 0,
+  }) {
+    final r = _m.instructions;
+    final q = (tactics / 100).clamp(0.0, 1.0);
+    final rng = SeededRandom(seed).fork('half:$side:$_minute');
+    final from = inBreak && _minute > 0 ? _lastHalfFrom : _halfFrom;
+    final own = _sides[side];
+    final other = 1 - side;
+    var shots = 0;
+    var against = 0;
+    var won = 0;
+    var duels = 0;
+    // Duels per flank of our view: 0 left, 1 right.
+    final flankWon = [0, 0];
+    final flankAll = [0, 0];
+    final threat = <PlayerId, int>{};
+    const lanes = ZoneRules.lanes;
+    for (final e in _events) {
+      if (e.tick < from || e.tick > _minute) continue;
+      if (e.type == MatchEventType.shot) {
+        e.side == side ? shots++ : against++;
+        if (e.side == other && e.player != null) {
+          threat[e.player!] = (threat[e.player!] ?? 0) + 2;
+        }
+      }
+      for (final st in e.steps) {
+        final ours = e.side == side;
+        final weWon = ours ? st.won : !st.won;
+        duels++;
+        if (weWon) won++;
+        // Their lanes are mirrored: their right is our left.
+        final lane = ours ? st.lane : lanes - 1 - st.lane;
+        final flank = lane <= 1
+            ? 0
+            : lane >= lanes - 2
+            ? 1
+            : -1;
+        if (flank >= 0) {
+          flankAll[flank]++;
+          if (weWon) flankWon[flank]++;
+        }
+        if (!ours && st.won) {
+          threat[st.player] = (threat[st.player] ?? 0) + 1;
+        }
+      }
+    }
+    final notes = <HalfNote>[];
+    double err() => rng.nextDouble() < r.get('half_error') * (1 - q) ? 1 : 0;
+
+    // A flank where we lose clearly more duels.
+    if (flankAll[0] >= 6 && flankAll[1] >= 6) {
+      final rate = [
+        for (var i = 0; i < 2; i++) flankWon[i] / flankAll[i],
+      ];
+      final worse = rate[0] < rate[1] ? 0 : 1;
+      if ((rate[0] - rate[1]).abs() >= r.get('half_flank_gap', 0.15)) {
+        final wrong = err() > 0;
+        final f = wrong ? 1 - worse : worse;
+        final wing = f == 0 ? Wing.left : Wing.right;
+        final back = own.pitch
+            .where(
+              (s) => s.position == (f == 0 ? Position.lv : Position.rv),
+            )
+            .firstOrNull;
+        notes.add(
+          HalfNote(
+            HalfNoteKind.losingFlank,
+            real: !wrong,
+            wing: wing,
+            player: back?.player.id,
+            fix: back == null
+                ? SessionAction.team(
+                    _minute,
+                    side,
+                    wing: (wing == Wing.left ? Wing.right : Wing.left).name,
+                    wasteTime: own.sheet.wasteTime,
+                  )
+                : SessionAction.instruction(
+                    _minute,
+                    side,
+                    back.player.id,
+                    PlayerInstruction.stayBack,
+                  ),
+          ),
+        );
+      }
+    }
+    // Their man of the half.
+    if (threat.isNotEmpty) {
+      final onPitch = {for (final s in _sides[other].pitch) s.player.id};
+      final ranked = threat.entries.where((e) => onPitch.contains(e.key))
+          .toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      if (ranked.isNotEmpty && ranked.first.value >= r.get('half_threat', 6)) {
+        final wrong = err() > 0 && ranked.length > 1;
+        final who = wrong ? ranked.last.key : ranked.first.key;
+        final markers = [
+          for (final s in own.pitch)
+            if ((s.position == Position.zdm || s.position == Position.iv) &&
+                s.instr == null)
+              s,
+        ]..sort(
+            (a, b) => _fit
+                .slotScore(b.player, b.position)
+                .compareTo(_fit.slotScore(a.player, a.position)),
+          );
+        notes.add(
+          HalfNote(
+            HalfNoteKind.dominant,
+            real: !wrong,
+            player: who,
+            fix: markers.isEmpty
+                ? null
+                : SessionAction.instruction(
+                    _minute,
+                    side,
+                    markers.first.player.id,
+                    PlayerInstruction.manMark,
+                  ),
+          ),
+        );
+      }
+    }
+    // Ours: tired or booked and hot.
+    SessionAction? subFor(_Slot s) {
+      if (!_canSub(own)) return null;
+      final options = [
+        for (final b in own.bench)
+          if (b.position.isGoalkeeper == s.position.isGoalkeeper) b,
+      ]..sort(
+          (a, b) => _fit
+              .slotScore(b, s.position)
+              .compareTo(_fit.slotScore(a, s.position)),
+        );
+      if (options.isEmpty) return null;
+      return SessionAction.substitution(
+        _minute,
+        side,
+        s.player.id,
+        options.first.id,
+      );
+    }
+
+    final field = [
+      for (final s in own.pitch)
+        if (!s.position.isGoalkeeper) s,
+    ]..sort((a, b) => a.energy.compareTo(b.energy));
+    if (field.isNotEmpty && field.first.energy < r.get('half_tired', 60)) {
+      notes.add(
+        HalfNote(
+          HalfNoteKind.tired,
+          real: true,
+          player: field.first.player.id,
+          fix: subFor(field.first),
+        ),
+      );
+    }
+    for (final s in own.pitch) {
+      if ((own.yellows[s.player.id] ?? 0) == 0) continue;
+      final hot =
+          s.tx[CharacterTrait.temper.index] > 0.3 ||
+          s.tx[CharacterTrait.aggression.index] > 0.3 ||
+          s.instr == PlayerInstruction.hard;
+      if (!hot) continue;
+      notes.add(
+        HalfNote(
+          HalfNoteKind.booked,
+          real: true,
+          player: s.player.id,
+          fix: subFor(s),
+        ),
+      );
+      break;
+    }
+    // The plan.
+    if (own.plan.isNotEmpty) {
+      final works = own.plan.values.every((v) => v);
+      final wrong = err() > 0;
+      notes.add(
+        HalfNote(
+          works != wrong ? HalfNoteKind.planWorks : HalfNoteKind.planFails,
+          real: !wrong,
+        ),
+      );
+    }
+    // Behind and passive.
+    if (_lead(side) < 0 && own.sheet.pressing < 2) {
+      notes.add(
+        HalfNote(
+          HalfNoteKind.pressNeeded,
+          real: true,
+          fix: SessionAction.tactics(_minute, side, pressing: 2),
+        ),
+      );
+    }
+    final most = 1 + (2 * q).round();
+    return HalfTimeReport(
+      shots: shots,
+      shotsAgainst: against,
+      duelsWon: won,
+      duels: duels,
+      notes: notes.take(most).toList(),
+    );
   }
 
   /// The assistant takes over [side] for the rest of the match (step

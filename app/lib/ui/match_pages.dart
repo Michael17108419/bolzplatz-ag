@@ -837,17 +837,40 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                     ),
             ),
             const SizedBox(height: Tokens.gapS),
-            if (!_over && _session.minute > 0 && _session.canTalk(_ownSide))
+            if (!_over && _session.minute > 0 && _session.inBreak)
               Padding(
                 padding: const EdgeInsets.only(bottom: Tokens.gapS),
-                child: TeamTalkButton(
-                  session: _session,
-                  side: _ownSide,
-                  onOpen: _pause,
-                  onDone: () {
-                    _ingest();
-                    setState(() {});
-                  },
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    HalfTimeButton(
+                      key: ValueKey('half-${_session.minute}'),
+                      session: _session,
+                      side: _ownSide,
+                      tactics: ref
+                          .read(careerProvider)!
+                          .trainer[ManagerValue.tacticalKnowledge],
+                      seed: _own.fixture.home.value * 1009 +
+                          _own.fixture.away.value,
+                      playerName: (id) => _shortName(_loaded, id),
+                      onOpen: _pause,
+                      onDone: () {
+                        _ingest();
+                        setState(() {});
+                      },
+                    ),
+                    if (_session.canTalk(_ownSide))
+                      TeamTalkButton(
+                        session: _session,
+                        side: _ownSide,
+                        onOpen: _pause,
+                        onDone: () {
+                          _ingest();
+                          setState(() {});
+                        },
+                      ),
+                  ],
                 ),
               ),
             if (_over)
@@ -1079,6 +1102,150 @@ class _MatchPlanButtonState extends ConsumerState<MatchPlanButton> {
       onPressed: _open,
       icon: const Icon(Icons.assignment),
       label: Text(s.matchPlanButton),
+    );
+  }
+}
+
+/// The half-time analysis of the assistant (engine 2, step 10g3): shots,
+/// duels, a few notes, each with a button that makes the suggested change.
+class HalfTimeButton extends ConsumerStatefulWidget {
+  const HalfTimeButton({
+    required this.session,
+    required this.side,
+    required this.tactics,
+    required this.seed,
+    required this.playerName,
+    this.onOpen,
+    this.onDone,
+    super.key,
+  });
+
+  final MatchSession session;
+  final int side;
+  final double tactics;
+  final int seed;
+  final String Function(PlayerId id) playerName;
+  final VoidCallback? onOpen;
+  final VoidCallback? onDone;
+
+  @override
+  ConsumerState<HalfTimeButton> createState() => _HalfTimeButtonState();
+}
+
+class _HalfTimeButtonState extends ConsumerState<HalfTimeButton> {
+  Future<void> _open() async {
+    widget.onOpen?.call();
+    final s = ref.read(stringsProvider);
+    final report = widget.session.halfTimeReport(
+      widget.side,
+      tactics: widget.tactics,
+      seed: widget.seed,
+    );
+    final done = <int>{};
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) => StatefulBuilder(
+        builder: (context, setSheet) {
+          final theme = Theme.of(context);
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(Tokens.gapM),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          s.halfTimeTitle,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      InfoButton(message: s.infoHalfTime),
+                    ],
+                  ),
+                  const SizedBox(height: Tokens.gapS),
+                  Text(
+                    s.halfTimeStats(
+                      report.shots,
+                      report.shotsAgainst,
+                      report.duels == 0
+                          ? 50
+                          : (100 * report.duelsWon / report.duels).round(),
+                    ),
+                    key: const ValueKey('half-stats'),
+                  ),
+                  const SizedBox(height: Tokens.gapS),
+                  if (report.notes.isEmpty) Text(s.halfTimeNothing),
+                  for (var i = 0; i < report.notes.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              s.halfNote(
+                                report.notes[i].kind,
+                                wing: report.notes[i].wing,
+                                player: report.notes[i].player == null
+                                    ? null
+                                    : widget.playerName(
+                                        report.notes[i].player!,
+                                      ),
+                              ),
+                              key: ValueKey(
+                                'half-note-${report.notes[i].kind.name}',
+                              ),
+                            ),
+                          ),
+                          if (report.notes[i].fix != null)
+                            TextButton(
+                              key: ValueKey('half-fix-$i'),
+                              onPressed: done.contains(i)
+                                  ? null
+                                  : () {
+                                      report.notes[i].fix!.applyTo(
+                                        widget.session,
+                                      );
+                                      widget.onDone?.call();
+                                      setSheet(() => done.add(i));
+                                    },
+                              child: Text(
+                                done.contains(i)
+                                    ? s.halfTimeDone
+                                    : s.halfTimeApply,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: Tokens.gapS),
+                  FilledButton(
+                    key: const ValueKey('half-close'),
+                    onPressed: () => Navigator.of(sheet).pop(),
+                    child: Text(s.matchClose),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = ref.watch(stringsProvider);
+    return OutlinedButton.icon(
+      key: const ValueKey('match-halftime'),
+      onPressed: _open,
+      icon: const Icon(Icons.analytics_outlined),
+      label: Text(s.halfTimeButton),
     );
   }
 }
