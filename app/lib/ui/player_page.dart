@@ -428,6 +428,13 @@ class _OverviewTab extends ConsumerWidget {
                       confidence: r.confidenceOf(p.id),
                       load: r.loadOf(p.id, today.epochDay),
                       mood: own ? r.moodOf(p.id) : null,
+                      fresh: own
+                          ? r.freshnessOf(
+                              p.id,
+                              club: game.clubId,
+                              epochDay: today.epochDay,
+                            )
+                          : null,
                     ),
                     key: const ValueKey('player-condition'),
                   ),

@@ -48,6 +48,7 @@ export 'src/squad/cabin.dart';
 export 'src/squad/chemistry.dart';
 export 'src/squad/ratings.dart';
 export 'src/squad/talk.dart';
+export 'src/training/training.dart';
 export 'src/world/club_catalog.dart';
 export 'src/world/world.dart';
 export 'src/world/world_generator.dart';

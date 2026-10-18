@@ -325,6 +325,7 @@ abstract interface class AppStrings {
     required double confidence,
     required double load,
     double? mood,
+    double? fresh,
   });
   String moodName(double mood);
   String get lineupChemistry;
@@ -332,6 +333,27 @@ abstract interface class AppStrings {
   String get matchPlanButton;
   String get halfTimeButton;
   String loadedIn(String seconds);
+  String get filesSquad;
+  String get filesTraining;
+  String get trainingNone;
+  String trainingFreshness(int fresh);
+  String get infoTraining;
+  String get trainingTemplate;
+  String get trainingGenerator;
+  String trainingTemplateName(String id);
+  String trainingTemplateHint(String id);
+  String get trainingGeneratorTitle;
+  String get trainingGeneratorGo;
+  String trainingGroupName(String group);
+  String trainingUnitName(String id);
+  String trainingIntensityName(Intensity i);
+  String trainingIntensityShort(Intensity i);
+  String trainingDayTitle(GameDate date);
+  String trainingSlotName(int slot);
+  String get trainingNoUnit;
+  String get trainingSave;
+  String get trainingMatchDay;
+  String get trainingRestDay;
   String shoutButton(int left);
   String get infoShout;
   String shoutName(Shout shout);
@@ -1988,6 +2010,7 @@ class AppStringsDe implements AppStrings {
     required double confidence,
     required double load,
     double? mood,
+    double? fresh,
   }) {
     final f = form >= 62
         ? 'stark'
@@ -2015,7 +2038,8 @@ class AppStringsDe implements AppStrings {
         ? 'normal'
         : 'frisch';
     final m = mood == null ? '' : ' · Stimmung: ${moodName(mood)}';
-    return 'Form: $f · Selbstvertrauen: $c · Belastung: $l$m';
+    final r = fresh == null ? '' : ' · Frische: ${fresh.round()}';
+    return 'Form: $f · Selbstvertrauen: $c · Belastung: $l$r$m';
   }
 
   @override
@@ -2038,6 +2062,122 @@ class AppStringsDe implements AppStrings {
   String get halfTimeButton => 'Analyse';
   @override
   String loadedIn(String seconds) => 'Geladen in $seconds s';
+  @override
+  String get filesSquad => 'Kader';
+  @override
+  String get filesTraining => 'Training';
+  @override
+  String get trainingNone => 'Training gibt es, sobald die Saison läuft.';
+  @override
+  String trainingFreshness(int fresh) => 'Frische im Schnitt: $fresh';
+  @override
+  String get infoTraining =>
+      'Jeden Tag bis zu drei Einheiten, jede locker, normal oder hart. Harte '
+      'Einheiten wirken stärker, kosten aber Frische und erhöhen die '
+      'Belastung. Frische ist die Kraft beim Anpfiff, über Nacht kommt sie '
+      'zurück, bei Partylöwen weniger. Am Spieltag wird nicht trainiert. '
+      'Vorlagen füllen die Woche passend zu den Spielen, der Generator baut '
+      'sie aus deinen Zielen. Planst du nichts, macht der Assistent '
+      'Spielvorbereitung. Vergangene Tage lassen sich nicht ändern.';
+  @override
+  String get trainingTemplate => 'Vorlage';
+  @override
+  String get trainingGenerator => 'Generator';
+  @override
+  String trainingTemplateName(String id) => switch (id) {
+    'match_prep' => 'Spielvorbereitung',
+    'english_week' => 'Englische Woche',
+    'recovery' => 'Erholungswoche',
+    'preseason' => 'Kondition aufbauen',
+    'tactics' => 'Taktik einschleifen',
+    'set_pieces' => 'Standards-Woche',
+    'international_break' => 'Länderspielpause',
+    _ => id,
+  };
+  @override
+  String trainingTemplateHint(String id) => switch (id) {
+    'match_prep' =>
+      'Nach dem Spiel Regeneration, unter der Woche Spielform und Pressing, '
+          'am Vortag Video und Standards.',
+    'english_week' => 'Zwei Spiele in der Woche: nur Erholung und etwas Taktik.',
+    'recovery' => 'Durchschnaufen. Frische rauf, Wirkung runter.',
+    'preseason' =>
+      'Ausdauer, Kraft, Spielform. Für die Vorbereitung, nicht für die '
+          'Woche vor dem Derby.',
+    'tactics' => 'System, Spielaufbau, Stellungsspiel.',
+    'set_pieces' => 'Ecken, Freistöße, Kopfbälle. Vorne und hinten.',
+    'international_break' => 'Technik und Ausdauer für die Daheimgebliebenen.',
+    _ => '',
+  };
+  @override
+  String get trainingGeneratorTitle => 'Woche aus Zielen bauen';
+  @override
+  String get trainingGeneratorGo => 'Woche bauen';
+  @override
+  String trainingGroupName(String group) => switch (group) {
+    'fitness' => 'Kondition',
+    'technique' => 'Technik',
+    'threat' => 'Torgefahr',
+    'defence' => 'Abwehr',
+    'tactics' => 'Taktik',
+    'special' => 'Spezial',
+    'recovery' => 'Erholung',
+    _ => group,
+  };
+  @override
+  String trainingUnitName(String id) => switch (id) {
+    'endurance' => 'Ausdauer',
+    'strength' => 'Kraft',
+    'speed' => 'Schnelligkeit',
+    'agility' => 'Beweglichkeit',
+    'ball_control' => 'Ballkontrolle',
+    'dribbling' => 'Dribbling',
+    'short_passing' => 'Kurzpass',
+    'crossing' => 'Flanken und lange Bälle',
+    'finishing' => 'Abschluss',
+    'long_shots' => 'Fernschüsse',
+    'heading' => 'Kopfball',
+    'tackling' => 'Zweikampf',
+    'positioning' => 'Stellungsspiel',
+    'pressing' => 'Pressing',
+    'build_up' => 'Spielaufbau',
+    'system' => 'System einstudieren',
+    'set_pieces_attack' => 'Standards offensiv',
+    'set_pieces_defence' => 'Standards defensiv',
+    'goalkeeping' => 'Torwarttraining',
+    'practice_match' => 'Trainingsspiel',
+    'video' => 'Videoanalyse',
+    'mental' => 'Mentaltraining',
+    'regeneration' => 'Regeneration',
+    'free' => 'Frei',
+    _ => id,
+  };
+  @override
+  String trainingIntensityName(Intensity i) => switch (i) {
+    Intensity.light => 'Locker',
+    Intensity.normal => 'Normal',
+    Intensity.hard => 'Hart',
+  };
+  @override
+  String trainingIntensityShort(Intensity i) => switch (i) {
+    Intensity.light => 'L',
+    Intensity.normal => 'N',
+    Intensity.hard => 'H',
+  };
+  @override
+  String trainingDayTitle(GameDate date) =>
+      '${weekdayShort(date.weekday)} ${date.day}.${date.month}.';
+  @override
+  String trainingSlotName(int slot) =>
+      const ['Vormittag', 'Nachmittag', 'Abend'][slot];
+  @override
+  String get trainingNoUnit => 'keine Einheit';
+  @override
+  String get trainingSave => 'Übernehmen';
+  @override
+  String get trainingMatchDay => 'Spieltag. Heute zählt nur das Ergebnis.';
+  @override
+  String get trainingRestDay => 'Frei';
   @override
   String shoutButton(int left) => 'Zuruf ($left)';
   @override

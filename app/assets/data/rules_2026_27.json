@@ -2590,6 +2590,443 @@
     }
   },
   "season": {
+    "training": {
+      "note": "Training (step 11a): units with group, freshness cost per intensity (light, normal, hard; negative refreshes) and extra load; templates by the distance of a day to an own match.",
+      "recover_night": 20,
+      "party_night": 4,
+      "professional_cost": 0.25,
+      "match_cost": 0.22,
+      "units": {
+        "endurance": {
+          "group": "fitness",
+          "cost": [
+            6,
+            11,
+            17
+          ],
+          "load": [
+            0,
+            6,
+            14
+          ]
+        },
+        "strength": {
+          "group": "fitness",
+          "cost": [
+            5,
+            9,
+            14
+          ],
+          "load": [
+            0,
+            4,
+            10
+          ]
+        },
+        "speed": {
+          "group": "fitness",
+          "cost": [
+            5,
+            10,
+            15
+          ],
+          "load": [
+            0,
+            5,
+            12
+          ]
+        },
+        "agility": {
+          "group": "fitness",
+          "cost": [
+            4,
+            7,
+            11
+          ]
+        },
+        "ball_control": {
+          "group": "technique",
+          "cost": [
+            3,
+            6,
+            10
+          ]
+        },
+        "dribbling": {
+          "group": "technique",
+          "cost": [
+            3,
+            6,
+            10
+          ]
+        },
+        "short_passing": {
+          "group": "technique",
+          "cost": [
+            3,
+            6,
+            10
+          ]
+        },
+        "crossing": {
+          "group": "technique",
+          "cost": [
+            3,
+            6,
+            10
+          ]
+        },
+        "finishing": {
+          "group": "threat",
+          "cost": [
+            3,
+            6,
+            10
+          ]
+        },
+        "long_shots": {
+          "group": "threat",
+          "cost": [
+            3,
+            5,
+            9
+          ]
+        },
+        "heading": {
+          "group": "threat",
+          "cost": [
+            4,
+            7,
+            11
+          ]
+        },
+        "tackling": {
+          "group": "defence",
+          "cost": [
+            4,
+            8,
+            13
+          ],
+          "load": [
+            0,
+            3,
+            8
+          ]
+        },
+        "positioning": {
+          "group": "defence",
+          "cost": [
+            2,
+            5,
+            8
+          ]
+        },
+        "pressing": {
+          "group": "defence",
+          "cost": [
+            6,
+            10,
+            16
+          ],
+          "load": [
+            0,
+            5,
+            12
+          ]
+        },
+        "build_up": {
+          "group": "tactics",
+          "cost": [
+            2,
+            5,
+            8
+          ]
+        },
+        "system": {
+          "group": "tactics",
+          "cost": [
+            2,
+            4,
+            7
+          ]
+        },
+        "set_pieces_attack": {
+          "group": "tactics",
+          "cost": [
+            1,
+            3,
+            5
+          ]
+        },
+        "set_pieces_defence": {
+          "group": "tactics",
+          "cost": [
+            1,
+            3,
+            5
+          ]
+        },
+        "goalkeeping": {
+          "group": "special",
+          "cost": [
+            3,
+            6,
+            10
+          ]
+        },
+        "practice_match": {
+          "group": "special",
+          "cost": [
+            6,
+            11,
+            17
+          ],
+          "load": [
+            0,
+            6,
+            14
+          ]
+        },
+        "video": {
+          "group": "special",
+          "cost": [
+            0,
+            0,
+            0
+          ]
+        },
+        "mental": {
+          "group": "special",
+          "cost": [
+            0,
+            1,
+            2
+          ]
+        },
+        "regeneration": {
+          "group": "recovery",
+          "cost": [
+            -8,
+            -10,
+            -12
+          ]
+        },
+        "free": {
+          "group": "recovery",
+          "cost": [
+            -4,
+            -4,
+            -4
+          ]
+        }
+      },
+      "templates": {
+        "match_prep": {
+          "-1": [
+            [
+              "video",
+              "light"
+            ],
+            [
+              "set_pieces_attack",
+              "light"
+            ]
+          ],
+          "-2": [
+            [
+              "system",
+              "normal"
+            ],
+            [
+              "finishing",
+              "normal"
+            ]
+          ],
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "+2": [
+            [
+              "endurance",
+              "normal"
+            ],
+            [
+              "short_passing",
+              "normal"
+            ]
+          ],
+          "other": [
+            [
+              "practice_match",
+              "normal"
+            ],
+            [
+              "pressing",
+              "normal"
+            ],
+            [
+              "mental",
+              "light"
+            ]
+          ]
+        },
+        "english_week": {
+          "-1": [
+            [
+              "video",
+              "light"
+            ]
+          ],
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "regeneration",
+              "light"
+            ],
+            [
+              "system",
+              "light"
+            ]
+          ]
+        },
+        "recovery": {
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "free",
+              "light"
+            ]
+          ]
+        },
+        "preseason": {
+          "-1": [
+            [
+              "video",
+              "light"
+            ],
+            [
+              "set_pieces_attack",
+              "light"
+            ]
+          ],
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ],
+            [
+              "agility",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "endurance",
+              "normal"
+            ],
+            [
+              "strength",
+              "normal"
+            ],
+            [
+              "practice_match",
+              "light"
+            ]
+          ]
+        },
+        "tactics": {
+          "-1": [
+            [
+              "video",
+              "light"
+            ],
+            [
+              "set_pieces_defence",
+              "light"
+            ]
+          ],
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "system",
+              "normal"
+            ],
+            [
+              "build_up",
+              "normal"
+            ],
+            [
+              "positioning",
+              "normal"
+            ]
+          ]
+        },
+        "set_pieces": {
+          "-1": [
+            [
+              "set_pieces_attack",
+              "light"
+            ]
+          ],
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "set_pieces_attack",
+              "normal"
+            ],
+            [
+              "set_pieces_defence",
+              "normal"
+            ],
+            [
+              "heading",
+              "normal"
+            ]
+          ]
+        },
+        "international_break": {
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "ball_control",
+              "normal"
+            ],
+            [
+              "endurance",
+              "normal"
+            ]
+          ]
+        }
+      }
+    },
     "injury_days_per_matchday": 7,
     "suspension_yellow_cards": 5,
     "straight_red_ban_matches": 1,

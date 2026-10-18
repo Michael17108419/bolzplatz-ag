@@ -329,6 +329,12 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
           _openNext(sheet, record: false);
         case 'day':
           _advanceDay(record: false);
+        case 'train':
+          _setTrainingDay(
+            entry['day'] as int,
+            TrainingDay.fromJson(entry['units'] as List<dynamic>),
+            record: false,
+          );
         case 'talk':
           _talkTo(
             PlayerId(entry['player'] as int),
@@ -406,6 +412,21 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     }
     if (done) state = game._with();
     return done;
+  }
+
+  /// Plans the training of [epochDay] (step 11a). Recorded for loading.
+  bool setTrainingDay(int epochDay, TrainingDay day) =>
+      _setTrainingDay(epochDay, day, record: true);
+
+  bool _setTrainingDay(int epochDay, TrainingDay day, {required bool record}) {
+    final game = state;
+    if (game == null) return false;
+    final ok = game.runner.setTrainingDay(game.clubId, epochDay, day);
+    if (ok && record) {
+      game.log.add({'op': 'train', 'day': epochDay, 'units': day.toJson()});
+    }
+    if (ok) state = game._with();
+    return ok;
   }
 
   /// The weekly talk of the coach with one player (engine 2, step 10f3).

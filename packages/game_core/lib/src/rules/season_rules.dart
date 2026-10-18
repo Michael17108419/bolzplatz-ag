@@ -1,3 +1,4 @@
+import '../training/training.dart';
 import 'rules.dart';
 
 /// Numbers for the cups.
@@ -74,6 +75,7 @@ class SeasonRules {
     required this.court,
     required this.cabin,
     required this.condition,
+    this.training = const TrainingRules(units: {}, templates: {}, values: {}),
   });
 
   factory SeasonRules.fromJson(Map<String, dynamic> m) => SeasonRules(
@@ -88,6 +90,7 @@ class SeasonRules {
     court: CourtRules.fromJson(m['court'] as Map<String, dynamic>),
     cabin: CabinRules.fromJson(m['cabin'] as Map<String, dynamic>),
     condition: ConditionRules.fromJson(m['condition'] as Map<String, dynamic>),
+    training: TrainingRules.fromJson(m['training'] as Map<String, dynamic>?),
   );
 
   /// One matchday stands for this many days of recovery.
@@ -112,6 +115,9 @@ class SeasonRules {
 
   /// Form, confidence, load and match ratings (engine 2, step 10f2).
   final ConditionRules condition;
+
+  /// Training units, templates and freshness (step 11a).
+  final TrainingRules training;
 }
 
 /// How a player's condition moves from match to match (engine 2, step
