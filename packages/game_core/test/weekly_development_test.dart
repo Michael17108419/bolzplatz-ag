@@ -25,6 +25,7 @@ void main() {
     final dev = Development(rules);
     final next = Season(world.season.startYear + 1).start;
     final bands = <String, List<double>>{};
+    final watch = Stopwatch()..start();
     for (final p in world.players.take(600)) {
       final age = p.ageOn(next);
       final band = age < 22
@@ -55,7 +56,10 @@ void main() {
     final line = [
       for (final e in bands.entries) '${e.key}=${mean(e.value).toStringAsFixed(2)}',
     ].join(' ');
-    stdout.writeln('DEV-REPORT $line');
+    stdout.writeln(
+      'DEV-REPORT $line (600 players, a year plus 52 weeks: '
+      '${watch.elapsedMilliseconds} ms)',
+    );
     for (final band in ['young', 'prime', 'old']) {
       expect(
         mean(bands['$band-week']!),

@@ -802,9 +802,10 @@ class SeasonRunner {
         final pts = _focusPts[club]?.remove(w) ?? const <Attribute, double>{};
         final squad = _squads[club]!;
         final played = _played[club] ?? 0;
-        for (var i = 0; i < squad.length; i++) {
-          final p = squad[i];
-          final keeper = p.position.isGoalkeeper;
+        // Focus and volume are the same for all field players of the club
+        // (and for all keepers): built once per week.
+        final share = tr['dev_share'];
+        (Map<Attribute, double>, double) plan(bool keeper) {
           var total = 0.0;
           var count = 0;
           for (final a in Attribute.values) {
@@ -813,19 +814,26 @@ class SeasonRunner {
             count++;
           }
           final mean = count == 0 ? 0.0 : total / count;
-          final share = tr['dev_share'];
-          final focus = mean <= 0
-              ? const <Attribute, double>{}
-              : {
-                  for (final e in pts.entries)
-                    e.key: (1 - share) + share * e.value / mean,
-                };
-          final missing = mean <= 0 ? 1.0 : 1 - share;
           final ratio = total / tr['dev_volume_ref'];
           final volume = math
               .pow(ratio, tr['dev_volume_exponent'])
               .toDouble()
               .clamp(tr['dev_volume_min'], tr['dev_volume_max']);
+          if (mean <= 0) return (const <Attribute, double>{}, volume);
+          return (
+            {
+              for (final a in Attribute.values)
+                a: (1 - share) + share * (pts[a] ?? 0) / mean,
+            },
+            volume,
+          );
+        }
+
+        final field = plan(false);
+        final keepers = plan(true);
+        for (var i = 0; i < squad.length; i++) {
+          final p = squad[i];
+          final (focus, volume) = p.position.isGoalkeeper ? keepers : field;
           final minutes = played == 0
               ? 0.5
               : ((_minutes[p.id] ?? 0) / (90 * played)).clamp(0.0, 1.0);
@@ -834,10 +842,7 @@ class SeasonRunner {
             date: date,
             rng: SeededRandom(_seed).fork('dev:$w:${p.id.value}'),
             minutesShare: minutes,
-            focus: {
-              for (final a in Attribute.values)
-                a: focus[a] ?? missing,
-            },
+            focus: focus,
             volume: volume,
           );
         }
