@@ -2506,7 +2506,9 @@
       "shout_effect": 0.06,
       "shout_noise": 0.3,
       "shout_shoot": 0.15,
-      "shout_luck": 0.15
+      "shout_luck": 0.15,
+      "system_knowledge": 0.05,
+      "set_pieces": 0.15
     },
     "treatment": {
       "per_match": 1.5,
@@ -2590,6 +2592,634 @@
     }
   },
   "season": {
+    "training": {
+      "note": "Training (step 11a): units with group, freshness cost per intensity (light, normal, hard; negative refreshes) and extra load; templates by the distance of a day to an own match.",
+      "recover_night": 20,
+      "party_night": 4,
+      "professional_cost": 0.25,
+      "match_cost": 0.22,
+      "fit_floor": 70,
+      "dev_points": [
+        0.5,
+        1.0,
+        1.6
+      ],
+      "dev_share": 0.4,
+      "dev_volume_ref": 10,
+      "dev_volume_exponent": 0.3,
+      "dev_volume_min": 0.75,
+      "dev_volume_max": 1.25,
+      "dev_ai_weeks": 4,
+      "indiv_share": 0.3,
+      "indiv_points": 3,
+      "pos_practised_weeks": 8,
+      "pos_trained_weeks": 16,
+      "role_step_weeks": 6,
+      "tact_start": 60,
+      "tact_other": 35,
+      "tact_floor": 20,
+      "tact_unit": 1.2,
+      "tact_match": 1.5,
+      "tact_decay": 0.5,
+      "sp_start": 50,
+      "sp_unit": 1.0,
+      "sp_decay": 0.3,
+      "suggest": {
+        "tw": [
+          "goalkeeping"
+        ],
+        "iv": [
+          "heading",
+          "tackling",
+          "positioning"
+        ],
+        "lv": [
+          "crossing",
+          "speed",
+          "tackling"
+        ],
+        "rv": [
+          "crossing",
+          "speed",
+          "tackling"
+        ],
+        "zdm": [
+          "positioning",
+          "tackling",
+          "short_passing"
+        ],
+        "zm": [
+          "short_passing",
+          "build_up",
+          "endurance"
+        ],
+        "zom": [
+          "short_passing",
+          "dribbling",
+          "long_shots"
+        ],
+        "la": [
+          "dribbling",
+          "crossing",
+          "speed"
+        ],
+        "ra": [
+          "dribbling",
+          "crossing",
+          "speed"
+        ],
+        "st": [
+          "finishing",
+          "heading",
+          "ball_control"
+        ]
+      },
+      "units": {
+        "endurance": {
+          "group": "fitness",
+          "cost": [
+            6,
+            11,
+            17
+          ],
+          "load": [
+            0,
+            6,
+            14
+          ],
+          "targets": [
+            "stamina",
+            "recovery"
+          ]
+        },
+        "strength": {
+          "group": "fitness",
+          "cost": [
+            5,
+            9,
+            14
+          ],
+          "load": [
+            0,
+            4,
+            10
+          ],
+          "targets": [
+            "strength",
+            "jumping",
+            "balance"
+          ]
+        },
+        "speed": {
+          "group": "fitness",
+          "cost": [
+            5,
+            10,
+            15
+          ],
+          "load": [
+            0,
+            5,
+            12
+          ],
+          "targets": [
+            "acceleration",
+            "sprint_speed"
+          ]
+        },
+        "agility": {
+          "group": "fitness",
+          "cost": [
+            4,
+            7,
+            11
+          ],
+          "targets": [
+            "agility",
+            "balance",
+            "reactions"
+          ]
+        },
+        "ball_control": {
+          "group": "technique",
+          "cost": [
+            3,
+            6,
+            10
+          ],
+          "targets": [
+            "ball_control",
+            "composure"
+          ]
+        },
+        "dribbling": {
+          "group": "technique",
+          "cost": [
+            3,
+            6,
+            10
+          ],
+          "targets": [
+            "dribbling",
+            "agility",
+            "ball_control"
+          ]
+        },
+        "short_passing": {
+          "group": "technique",
+          "cost": [
+            3,
+            6,
+            10
+          ],
+          "targets": [
+            "short_passing",
+            "vision"
+          ]
+        },
+        "crossing": {
+          "group": "technique",
+          "cost": [
+            3,
+            6,
+            10
+          ],
+          "targets": [
+            "crossing",
+            "long_passing",
+            "curve"
+          ]
+        },
+        "finishing": {
+          "group": "threat",
+          "cost": [
+            3,
+            6,
+            10
+          ],
+          "targets": [
+            "finishing",
+            "goal_instinct",
+            "shot_power",
+            "volleys"
+          ]
+        },
+        "long_shots": {
+          "group": "threat",
+          "cost": [
+            3,
+            5,
+            9
+          ],
+          "targets": [
+            "long_shots",
+            "shot_power",
+            "curve"
+          ]
+        },
+        "heading": {
+          "group": "threat",
+          "cost": [
+            4,
+            7,
+            11
+          ],
+          "targets": [
+            "heading",
+            "jumping"
+          ]
+        },
+        "tackling": {
+          "group": "defence",
+          "cost": [
+            4,
+            8,
+            13
+          ],
+          "load": [
+            0,
+            3,
+            8
+          ],
+          "targets": [
+            "standing_tackle",
+            "sliding_tackle",
+            "strength"
+          ]
+        },
+        "positioning": {
+          "group": "defence",
+          "cost": [
+            2,
+            5,
+            8
+          ],
+          "targets": [
+            "defensive_awareness",
+            "interceptions",
+            "tactical_sense",
+            "anticipation"
+          ]
+        },
+        "pressing": {
+          "group": "defence",
+          "cost": [
+            6,
+            10,
+            16
+          ],
+          "load": [
+            0,
+            5,
+            12
+          ],
+          "targets": [
+            "stamina",
+            "anticipation",
+            "interceptions"
+          ]
+        },
+        "build_up": {
+          "group": "tactics",
+          "cost": [
+            2,
+            5,
+            8
+          ],
+          "targets": [
+            "short_passing",
+            "long_passing",
+            "vision",
+            "decision_making"
+          ]
+        },
+        "system": {
+          "group": "tactics",
+          "cost": [
+            2,
+            4,
+            7
+          ],
+          "targets": [
+            "tactical_sense",
+            "decision_making",
+            "concentration"
+          ]
+        },
+        "set_pieces_attack": {
+          "group": "tactics",
+          "cost": [
+            1,
+            3,
+            5
+          ],
+          "targets": [
+            "free_kicks",
+            "corners",
+            "penalties",
+            "heading"
+          ]
+        },
+        "set_pieces_defence": {
+          "group": "tactics",
+          "cost": [
+            1,
+            3,
+            5
+          ],
+          "targets": [
+            "heading",
+            "defensive_awareness",
+            "concentration"
+          ]
+        },
+        "goalkeeping": {
+          "group": "special",
+          "cost": [
+            3,
+            6,
+            10
+          ],
+          "targets": [
+            "gk_reflexes",
+            "gk_diving",
+            "gk_handling",
+            "gk_positioning",
+            "gk_kicking",
+            "gk_command_of_area",
+            "gk_distribution",
+            "gk_one_on_one"
+          ]
+        },
+        "practice_match": {
+          "group": "special",
+          "cost": [
+            6,
+            11,
+            17
+          ],
+          "load": [
+            0,
+            6,
+            14
+          ],
+          "targets": [
+            "decision_making",
+            "composure",
+            "reactions",
+            "concentration",
+            "anticipation"
+          ]
+        },
+        "video": {
+          "group": "special",
+          "cost": [
+            0,
+            0,
+            0
+          ],
+          "targets": [
+            "tactical_sense",
+            "anticipation",
+            "decision_making"
+          ]
+        },
+        "mental": {
+          "group": "special",
+          "cost": [
+            0,
+            1,
+            2
+          ],
+          "targets": [
+            "composure",
+            "concentration"
+          ]
+        },
+        "regeneration": {
+          "group": "recovery",
+          "cost": [
+            -8,
+            -10,
+            -12
+          ]
+        },
+        "free": {
+          "group": "recovery",
+          "cost": [
+            -4,
+            -4,
+            -4
+          ]
+        }
+      },
+      "templates": {
+        "match_prep": {
+          "-1": [
+            [
+              "video",
+              "light"
+            ],
+            [
+              "set_pieces_attack",
+              "light"
+            ]
+          ],
+          "-2": [
+            [
+              "system",
+              "normal"
+            ],
+            [
+              "finishing",
+              "normal"
+            ]
+          ],
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "+2": [
+            [
+              "endurance",
+              "normal"
+            ],
+            [
+              "short_passing",
+              "normal"
+            ]
+          ],
+          "other": [
+            [
+              "practice_match",
+              "normal"
+            ],
+            [
+              "pressing",
+              "normal"
+            ],
+            [
+              "mental",
+              "light"
+            ]
+          ]
+        },
+        "english_week": {
+          "-1": [
+            [
+              "video",
+              "light"
+            ]
+          ],
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "regeneration",
+              "light"
+            ],
+            [
+              "system",
+              "light"
+            ]
+          ]
+        },
+        "recovery": {
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "free",
+              "light"
+            ]
+          ]
+        },
+        "preseason": {
+          "-1": [
+            [
+              "video",
+              "light"
+            ],
+            [
+              "set_pieces_attack",
+              "light"
+            ]
+          ],
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ],
+            [
+              "agility",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "endurance",
+              "normal"
+            ],
+            [
+              "strength",
+              "light"
+            ],
+            [
+              "practice_match",
+              "light"
+            ]
+          ]
+        },
+        "tactics": {
+          "-1": [
+            [
+              "video",
+              "light"
+            ],
+            [
+              "set_pieces_defence",
+              "light"
+            ]
+          ],
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "system",
+              "normal"
+            ],
+            [
+              "build_up",
+              "normal"
+            ],
+            [
+              "positioning",
+              "normal"
+            ]
+          ]
+        },
+        "set_pieces": {
+          "-1": [
+            [
+              "set_pieces_attack",
+              "light"
+            ]
+          ],
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "set_pieces_attack",
+              "normal"
+            ],
+            [
+              "set_pieces_defence",
+              "normal"
+            ],
+            [
+              "heading",
+              "normal"
+            ]
+          ]
+        },
+        "international_break": {
+          "+1": [
+            [
+              "regeneration",
+              "light"
+            ]
+          ],
+          "other": [
+            [
+              "ball_control",
+              "normal"
+            ],
+            [
+              "endurance",
+              "normal"
+            ]
+          ]
+        }
+      }
+    },
     "injury_days_per_matchday": 7,
     "suspension_yellow_cards": 5,
     "straight_red_ban_matches": 1,
@@ -2738,19 +3368,45 @@
       "outfit_colour2": 8
     },
     "backstories": [
-      { "id": "failed_pro", "hook": "hook_failed_pro", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+", "motivation": "+", "man_management": "0" } },
-      { "id": "outsider", "hook": "hook_outsider", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "+", "press_image": "0", "contacts": "-", "tactical_knowledge": "-", "negotiation": "+", "talent_eye": "0", "motivation": "0", "man_management": "0" } },
-      { "id": "scandal_coach", "hook": "hook_scandal_coach", "levels": { "standing": "0", "charisma": "+", "stress": "+", "president_trust": "-", "press_image": "-", "contacts": "0", "tactical_knowledge": "+", "negotiation": "0", "talent_eye": "0", "motivation": "+", "man_management": "-" } },
-      { "id": "club_fixture", "hook": "hook_club_fixture", "levels": { "standing": "0", "charisma": "-", "stress": "-", "president_trust": "++", "press_image": "0", "contacts": "0", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+", "motivation": "0", "man_management": "+" } },
-      { "id": "business_student", "hook": "hook_business_student", "levels": { "standing": "-", "charisma": "-", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "-", "tactical_knowledge": "-", "negotiation": "++", "talent_eye": "-", "motivation": "-", "man_management": "-" } },
-      { "id": "youth_coach", "hook": "hook_youth_coach", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "0", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "++", "motivation": "0", "man_management": "+" } },
-      { "id": "pub_landlord", "hook": "hook_pub_landlord", "levels": { "standing": "-", "charisma": "+", "stress": "0", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "-", "negotiation": "0", "talent_eye": "0", "motivation": "0", "man_management": "+" } },
-      { "id": "wandering_saviour", "hook": "hook_wandering_saviour", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "-", "press_image": "0", "contacts": "+", "tactical_knowledge": "0", "negotiation": "+", "talent_eye": "0", "motivation": "+", "man_management": "0" } },
-      { "id": "pe_teacher", "hook": "hook_pe_teacher", "levels": { "standing": "-", "charisma": "+", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "-", "tactical_knowledge": "0", "negotiation": "0", "talent_eye": "0", "motivation": "0", "man_management": "+" } },
-      { "id": "ex_referee", "hook": "hook_ex_referee", "levels": { "standing": "0", "charisma": "-", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "0", "tactical_knowledge": "+", "negotiation": "0", "talent_eye": "0", "motivation": "-", "man_management": "0" } },
-      { "id": "tactics_streamer", "hook": "hook_tactics_streamer", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "0", "press_image": "+", "contacts": "-", "tactical_knowledge": "++", "negotiation": "0", "talent_eye": "0", "motivation": "-", "man_management": "-" } },
-      { "id": "motivation_guru", "hook": "hook_motivation_guru", "levels": { "standing": "0", "charisma": "++", "stress": "0", "president_trust": "0", "press_image": "+", "contacts": "0", "tactical_knowledge": "-", "negotiation": "0", "talent_eye": "-", "motivation": "++", "man_management": "0" } }
+      { "id": "failed_pro", "hook": "hook_failed_pro", "licence": "b", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+", "motivation": "+", "man_management": "0" } },
+      { "id": "outsider", "hook": "hook_outsider", "licence": "none", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "+", "press_image": "0", "contacts": "-", "tactical_knowledge": "-", "negotiation": "+", "talent_eye": "0", "motivation": "0", "man_management": "0" } },
+      { "id": "scandal_coach", "hook": "hook_scandal_coach", "licence": "a", "levels": { "standing": "0", "charisma": "+", "stress": "+", "president_trust": "-", "press_image": "-", "contacts": "0", "tactical_knowledge": "+", "negotiation": "0", "talent_eye": "0", "motivation": "+", "man_management": "-" } },
+      { "id": "club_fixture", "hook": "hook_club_fixture", "licence": "c", "levels": { "standing": "0", "charisma": "-", "stress": "-", "president_trust": "++", "press_image": "0", "contacts": "0", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+", "motivation": "0", "man_management": "+" } },
+      { "id": "business_student", "hook": "hook_business_student", "licence": "none", "levels": { "standing": "-", "charisma": "-", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "-", "tactical_knowledge": "-", "negotiation": "++", "talent_eye": "-", "motivation": "-", "man_management": "-" } },
+      { "id": "youth_coach", "hook": "hook_youth_coach", "licence": "b", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "0", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "++", "motivation": "0", "man_management": "+" } },
+      { "id": "pub_landlord", "hook": "hook_pub_landlord", "licence": "none", "levels": { "standing": "-", "charisma": "+", "stress": "0", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "-", "negotiation": "0", "talent_eye": "0", "motivation": "0", "man_management": "+" } },
+      { "id": "wandering_saviour", "hook": "hook_wandering_saviour", "licence": "a", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "-", "press_image": "0", "contacts": "+", "tactical_knowledge": "0", "negotiation": "+", "talent_eye": "0", "motivation": "+", "man_management": "0" } },
+      { "id": "pe_teacher", "hook": "hook_pe_teacher", "licence": "c", "levels": { "standing": "-", "charisma": "+", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "-", "tactical_knowledge": "0", "negotiation": "0", "talent_eye": "0", "motivation": "0", "man_management": "+" } },
+      { "id": "ex_referee", "hook": "hook_ex_referee", "licence": "c", "levels": { "standing": "0", "charisma": "-", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "0", "tactical_knowledge": "+", "negotiation": "0", "talent_eye": "0", "motivation": "-", "man_management": "0" } },
+      { "id": "tactics_streamer", "hook": "hook_tactics_streamer", "licence": "none", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "0", "press_image": "+", "contacts": "-", "tactical_knowledge": "++", "negotiation": "0", "talent_eye": "0", "motivation": "-", "man_management": "-" } },
+      { "id": "motivation_guru", "hook": "hook_motivation_guru", "licence": "none", "levels": { "standing": "0", "charisma": "++", "stress": "0", "president_trust": "0", "press_image": "+", "contacts": "0", "tactical_knowledge": "-", "negotiation": "0", "talent_eye": "-", "motivation": "++", "man_management": "0" } }
     ],
+    "growth": {
+      "note": "Step 11e: the manager grows with work and results, licences and courses. Gains are raw points, times (100 - value) / diminish_scale clamped to diminish_min..diminish_max, at most season_cap per value and season.",
+      "gain": {
+        "team_talk": { "charisma": 0.1, "motivation": 0.15 },
+        "shout": { "motivation": 0.05 },
+        "plan_hit": { "tactical_knowledge": 0.15 },
+        "plan_week": { "tactical_knowledge": 0.1 },
+        "talk": { "man_management": 0.2 }
+      },
+      "diminish_scale": 50,
+      "diminish_min": 0.2,
+      "diminish_max": 1.5,
+      "season_cap": 5,
+      "standing": { "exceeded": 6, "reached": 2, "missed": -3, "failed": -6, "promoted": 5, "relegated": -5, "cup_round": 0.5, "cup_win": 4 },
+      "stress": { "loss": 2, "draw": 0.5, "win": -1.5, "streak_from": 3, "streak_extra": 1.5, "vacation_day": -0.6, "talk_from": 60, "talk_max": 0.3 },
+      "licence_required": { "1": "pro", "2": "pro", "3": "pro", "4": "a" },
+      "waiver_trust": 10,
+      "straw_press": 8,
+      "offer_factor": 0.5,
+      "course": {
+        "days": { "c": 3, "b": 5, "a": 7, "pro": 10 },
+        "min_standing": { "c": 0, "b": 20, "a": 35, "pro": 45 },
+        "min_seasons": { "c": 0, "b": 0, "a": 1, "pro": 2 },
+        "value_gain": 3
+      }
+    },
     "offers": {
       "count_range_by_level": { "-": [3, 3], "0": [3, 4], "+": [4, 5], "++": [4, 5] },
       "tier_weights_by_level": {

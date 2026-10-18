@@ -325,6 +325,7 @@ abstract interface class AppStrings {
     required double confidence,
     required double load,
     double? mood,
+    double? fresh,
   });
   String moodName(double mood);
   String get lineupChemistry;
@@ -332,6 +333,65 @@ abstract interface class AppStrings {
   String get matchPlanButton;
   String get halfTimeButton;
   String loadedIn(String seconds);
+  String get filesSquad;
+  String get filesTraining;
+
+  // Step 11e: the profile of the manager, licences and courses.
+  String get officeTrainerProfile;
+  String get infoTrainer;
+  String trainerLicenceName(Licence licence);
+  String trainerLicenceLine(String licence, int seasons);
+  String trainerLicenceMissing(String need);
+  String trainerCoverHint(int trust, int press);
+  String trainerCoverName(LicenceCover cover);
+  String trainerCoverChosen(LicenceCover cover);
+  String get trainerCourseHeading;
+  String trainerCourseNext(String licence, int days);
+  String trainerCourseBooked(
+    String licence,
+    String date,
+    int days,
+    String value,
+  );
+  String trainerCourseBlocked(String reason);
+  String get trainerCourseNone;
+  String get trainerCourseBook;
+  String get trainerCourseStart;
+  String get trainerCourseValue;
+  String get trainerCourseConfirm;
+  String get trainerCourseDone;
+  String get trainerValuesHeading;
+  String get licenceSender;
+  String get licenceSubject;
+  String licenceBody(String name, String need);
+  String get trainingNone;
+  String trainingFreshness(int fresh);
+  String get infoTraining;
+  String get trainingTemplate;
+  String get trainingGenerator;
+  String trainingTemplateName(String id);
+  String trainingTemplateHint(String id);
+  String get trainingGeneratorTitle;
+  String get trainingGeneratorGo;
+  String trainingGroupName(String group);
+  String trainingUnitName(String id);
+  String trainingIntensityName(Intensity i);
+  String trainingIntensityShort(Intensity i);
+  String trainingDayTitle(GameDate date);
+  String trainingSlotName(int slot);
+  String get trainingNoUnit;
+  String get trainingSave;
+  String get trainingMatchDay;
+  String get trainingRestDay;
+  String get trainingIndividual;
+  String trainingKnowledge(String? system, int? known, int attack, int defence);
+  String get infoTrainingIndividual;
+  String get trainingIndividualAuto;
+  String trainingIndividualLabel(IndividualPlan? plan, int weeks);
+  String get trainingIndividualNone;
+  String get trainingIndividualUnits;
+  String get trainingIndividualPosition;
+  String get trainingIndividualRole;
   String shoutButton(int left);
   String get infoShout;
   String shoutName(Shout shout);
@@ -1988,6 +2048,7 @@ class AppStringsDe implements AppStrings {
     required double confidence,
     required double load,
     double? mood,
+    double? fresh,
   }) {
     final f = form >= 62
         ? 'stark'
@@ -2015,7 +2076,8 @@ class AppStringsDe implements AppStrings {
         ? 'normal'
         : 'frisch';
     final m = mood == null ? '' : ' · Stimmung: ${moodName(mood)}';
-    return 'Form: $f · Selbstvertrauen: $c · Belastung: $l$m';
+    final r = fresh == null ? '' : ' · Frische: ${fresh.round()}';
+    return 'Form: $f · Selbstvertrauen: $c · Belastung: $l$r$m';
   }
 
   @override
@@ -2038,6 +2100,282 @@ class AppStringsDe implements AppStrings {
   String get halfTimeButton => 'Analyse';
   @override
   String loadedIn(String seconds) => 'Geladen in $seconds s';
+  @override
+  String get filesSquad => 'Kader';
+  @override
+  String get filesTraining => 'Training';
+
+  @override
+  String get officeTrainerProfile => 'Trainerprofil';
+
+  @override
+  String get infoTrainer =>
+      'Du wächst mit der Arbeit: Ansprachen, die sitzen, machen dich '
+      'charismatischer und motivierender, getroffene Matchpläne und selbst '
+      'geplante Trainingswochen schulen dein Taktikwissen, gute Gespräche '
+      'deine Menschenführung. Je besser du schon bist, desto langsamer geht '
+      'es. Das Ansehen rechnet am Saisonende ab: Ziel, Auf- oder Abstieg, '
+      'Pokal. Stress kommt mit Niederlagen und geht im Urlaub. Ab 60 hören '
+      'dir die Spieler bei Ansprachen schlechter zu. Die Pfeile zeigen, was '
+      'sich seit Saisonbeginn getan hat.';
+
+  @override
+  String trainerLicenceName(Licence licence) => switch (licence) {
+    Licence.none => 'keine Lizenz',
+    Licence.c => 'C-Lizenz',
+    Licence.b => 'B-Lizenz',
+    Licence.a => 'A-Lizenz',
+    Licence.pro => 'Pro-Lizenz',
+  };
+
+  @override
+  String trainerLicenceLine(String licence, int seasons) =>
+      '$licence · ${seasons == 1 ? 'ein Jahr' : '$seasons Jahre'} als Trainer';
+
+  @override
+  String trainerLicenceMissing(String need) =>
+      'Die Liga verlangt die $need. Die hast du nicht. Der Verband guckt '
+      'hin, der Präsident könnte weggucken.';
+
+  @override
+  String trainerCoverHint(int trust, int press) =>
+      'Augen zudrücken kostet $trust Punkte Präsidentenvertrauen, ein '
+      'Strohmann $press Punkte Presse-Image. Entscheidest du nicht, drückt '
+      'der Präsident am Saisonende ungefragt zu.';
+
+  @override
+  String trainerCoverName(LicenceCover cover) => switch (cover) {
+    LicenceCover.waiver => 'Präsident drückt beide Augen zu',
+    LicenceCover.strawMan => 'Strohmann auf die Bank',
+  };
+
+  @override
+  String trainerCoverChosen(LicenceCover cover) => switch (cover) {
+    LicenceCover.waiver =>
+      'Der Präsident hat beide Augen zugedrückt. Sein Vertrauen hat dabei '
+          'gelitten, die Augen auch.',
+    LicenceCover.strawMan =>
+      'Offiziell sitzt ein Herr mit Lizenz auf der Bank. Du „berätst“. Die '
+          'Presse hat es gemerkt.',
+  };
+
+  @override
+  String get trainerCourseHeading => 'Lehrgang';
+
+  @override
+  String trainerCourseNext(String licence, int days) =>
+      'Nächste Stufe: $licence. $days Tage Schulbank statt Urlaub, nur in '
+      'der Sommer- oder Winterpause. Der Assistent übernimmt so lange, dazu '
+      'trainierst du einen Wert deiner Wahl.';
+
+  @override
+  String trainerCourseBooked(
+    String licence,
+    String date,
+    int days,
+    String value,
+  ) => 'Gebucht: $licence ab $date, $days Tage, dazu $value.';
+
+  @override
+  String trainerCourseBlocked(String reason) => switch (reason) {
+    'standing' => 'Dafür fehlt dir das Ansehen. Erst Erfolge, dann Zertifikate.',
+    'seasons' => 'Dafür brauchst du mehr Jahre als Trainer.',
+    'taken' => 'In dieser Pause drückst du schon die Schulbank.',
+    'match' => 'In der Pause steht ein Spiel an. Kein Platz für die Schulbank.',
+    'licence' => 'Mehr Lizenz gibt es nicht.',
+    _ => 'Gerade ist kein Urlaubsfenster frei. Sommer und Winter kommen wieder.',
+  };
+
+  @override
+  String get trainerCourseNone =>
+      'Du hast die höchste Lizenz. Mehr Papier gibt es nicht.';
+
+  @override
+  String get trainerCourseBook => 'Lehrgang buchen';
+
+  @override
+  String get trainerCourseStart => 'Beginn';
+
+  @override
+  String get trainerCourseValue => 'Dazu trainierst du';
+
+  @override
+  String get trainerCourseConfirm => 'Buchen';
+
+  @override
+  String get trainerCourseDone => 'Gebucht. Der Assistent übernimmt so lange.';
+
+  @override
+  String get trainerValuesHeading => 'Werte (Pfeile: seit Saisonbeginn)';
+
+  @override
+  String get licenceSender => 'Verband, Abteilung Lizenzen';
+
+  @override
+  String get licenceSubject => 'Ihre Trainerlizenz';
+
+  @override
+  String licenceBody(String name, String need) =>
+      'Guten Tag, $name,\n\nfür Ihre Liga ist die $need '
+      'vorgeschrieben. In unseren Unterlagen findet sich nichts dergleichen. '
+      'Wir bitten um Klärung.\n\nMit sportlichen Grüßen\nIhr Verband\n\n'
+      'PS (vom Berater): Im Menü unter „Trainerprofil“ regelst du das. Der '
+      'Präsident drückt gern ein Auge zu, ein Strohmann tut es auch, und im '
+      'Urlaub gibt es Lehrgänge.';
+  @override
+  String get trainingNone => 'Training gibt es, sobald die Saison läuft.';
+  @override
+  String trainingFreshness(int fresh) => 'Frische im Schnitt: $fresh';
+  @override
+  String get infoTraining =>
+      'Jeden Tag bis zu drei Einheiten, jede locker, normal oder hart. Harte '
+      'Einheiten wirken stärker, kosten aber Frische und erhöhen die '
+      'Belastung. Frische ist die Kraft beim Anpfiff, über Nacht kommt sie '
+      'zurück, bei Partylöwen weniger. Am Spieltag wird nicht trainiert. '
+      'Vorlagen füllen die Woche passend zu den Spielen, der Generator baut '
+      'sie aus deinen Zielen. Planst du nichts, macht der Assistent '
+      'Spielvorbereitung. Vergangene Tage lassen sich nicht ändern. '
+      '„System einstudieren“ und Spiele im System heben das '
+      'Taktikverständnis (bis zu ±5 % Stärke), Systeme, die lange nicht dran '
+      'waren, verblassen. Standard-Einheiten machen Ecken und Freistöße '
+      'gefährlicher, vorne wie hinten.';
+  @override
+  String get trainingTemplate => 'Vorlage';
+  @override
+  String get trainingGenerator => 'Generator';
+  @override
+  String trainingTemplateName(String id) => switch (id) {
+    'match_prep' => 'Spielvorbereitung',
+    'english_week' => 'Englische Woche',
+    'recovery' => 'Erholungswoche',
+    'preseason' => 'Kondition aufbauen',
+    'tactics' => 'Taktik einschleifen',
+    'set_pieces' => 'Standards-Woche',
+    'international_break' => 'Länderspielpause',
+    _ => id,
+  };
+  @override
+  String trainingTemplateHint(String id) => switch (id) {
+    'match_prep' =>
+      'Nach dem Spiel Regeneration, unter der Woche Spielform und Pressing, '
+          'am Vortag Video und Standards.',
+    'english_week' => 'Zwei Spiele in der Woche: nur Erholung und etwas Taktik.',
+    'recovery' => 'Durchschnaufen. Frische rauf, Wirkung runter.',
+    'preseason' =>
+      'Ausdauer, Kraft, Spielform. Für die Vorbereitung, nicht für die '
+          'Woche vor dem Derby.',
+    'tactics' => 'System, Spielaufbau, Stellungsspiel.',
+    'set_pieces' => 'Ecken, Freistöße, Kopfbälle. Vorne und hinten.',
+    'international_break' => 'Technik und Ausdauer für die Daheimgebliebenen.',
+    _ => '',
+  };
+  @override
+  String get trainingGeneratorTitle => 'Woche aus Zielen bauen';
+  @override
+  String get trainingGeneratorGo => 'Woche bauen';
+  @override
+  String trainingGroupName(String group) => switch (group) {
+    'fitness' => 'Kondition',
+    'technique' => 'Technik',
+    'threat' => 'Torgefahr',
+    'defence' => 'Abwehr',
+    'tactics' => 'Taktik',
+    'special' => 'Spezial',
+    'recovery' => 'Erholung',
+    _ => group,
+  };
+  @override
+  String trainingUnitName(String id) => switch (id) {
+    'endurance' => 'Ausdauer',
+    'strength' => 'Kraft',
+    'speed' => 'Schnelligkeit',
+    'agility' => 'Beweglichkeit',
+    'ball_control' => 'Ballkontrolle',
+    'dribbling' => 'Dribbling',
+    'short_passing' => 'Kurzpass',
+    'crossing' => 'Flanken und lange Bälle',
+    'finishing' => 'Abschluss',
+    'long_shots' => 'Fernschüsse',
+    'heading' => 'Kopfball',
+    'tackling' => 'Zweikampf',
+    'positioning' => 'Stellungsspiel',
+    'pressing' => 'Pressing',
+    'build_up' => 'Spielaufbau',
+    'system' => 'System einstudieren',
+    'set_pieces_attack' => 'Standards offensiv',
+    'set_pieces_defence' => 'Standards defensiv',
+    'goalkeeping' => 'Torwarttraining',
+    'practice_match' => 'Trainingsspiel',
+    'video' => 'Videoanalyse',
+    'mental' => 'Mentaltraining',
+    'regeneration' => 'Regeneration',
+    'free' => 'Frei',
+    _ => id,
+  };
+  @override
+  String trainingIntensityName(Intensity i) => switch (i) {
+    Intensity.light => 'Locker',
+    Intensity.normal => 'Normal',
+    Intensity.hard => 'Hart',
+  };
+  @override
+  String trainingIntensityShort(Intensity i) => switch (i) {
+    Intensity.light => 'L',
+    Intensity.normal => 'N',
+    Intensity.hard => 'H',
+  };
+  @override
+  String trainingDayTitle(GameDate date) =>
+      '${weekdayShort(date.weekday)} ${date.day}.${date.month}.';
+  @override
+  String trainingSlotName(int slot) =>
+      const ['Vormittag', 'Nachmittag', 'Abend'][slot];
+  @override
+  String get trainingNoUnit => 'keine Einheit';
+  @override
+  String get trainingSave => 'Übernehmen';
+  @override
+  String get trainingMatchDay => 'Spieltag. Heute zählt nur das Ergebnis.';
+  @override
+  String get trainingRestDay => 'Frei';
+  @override
+  String get trainingIndividual => 'Einzeltraining';
+  @override
+  String trainingKnowledge(
+    String? system,
+    int? known,
+    int attack,
+    int defence,
+  ) =>
+      '${system == null ? '' : 'Taktikverständnis $system: $known · '}'
+      'Standards offensiv $attack, defensiv $defence';
+  @override
+  String get infoTrainingIndividual =>
+      'Jeder Spieler kann nebenbei an etwas Eigenem arbeiten: an Werten '
+      '(zum Beispiel Abschluss), an einer neuen Position (nach etwa acht '
+      'Wochen geübt, nach sechzehn eingespielt) oder an einer Rolle (alle '
+      'sechs Wochen eine Stufe). Was er einzeln macht, fehlt ihm im '
+      'Mannschaftstraining. Der Assistent schlägt vor, was am meisten '
+      'bringt.';
+  @override
+  String get trainingIndividualAuto => 'Assistent verteilt';
+  @override
+  String trainingIndividualLabel(IndividualPlan? plan, int weeks) {
+    if (plan == null) return 'Nur Mannschaftstraining';
+    final unit = plan.unit;
+    if (unit != null) return 'Werte: ${trainingUnitName(unit)}';
+    final pos = plan.position;
+    if (pos != null) return 'Umschulung auf ${pos.id} · $weeks Wochen';
+    return 'Rolle: ${roleName(plan.role!)} · $weeks Wochen';
+  }
+  @override
+  String get trainingIndividualNone => 'Kein Einzeltraining';
+  @override
+  String get trainingIndividualUnits => 'Werte';
+  @override
+  String get trainingIndividualPosition => 'Neue Position';
+  @override
+  String get trainingIndividualRole => 'Rolle';
   @override
   String shoutButton(int left) => 'Zuruf ($left)';
   @override

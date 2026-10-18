@@ -46,6 +46,7 @@ class CoachProfile {
     this.charisma = 50,
     this.motivation = 50,
     this.leadership = 50,
+    this.strain = 0,
   });
 
   /// An AI coach of the world. Coaches of the world know no motivation and
@@ -74,7 +75,19 @@ class CoachProfile {
   final double motivation;
   final double leadership;
 
+  /// Share a stressed manager loses of his team talks (step 11e), 0 to 1.
+  final double strain;
+
+  /// The same coach under [strain].
+  CoachProfile withStrain(double strain) => CoachProfile(
+    tactics: tactics,
+    charisma: charisma,
+    motivation: motivation,
+    leadership: leadership,
+    strain: strain,
+  );
+
   /// How strongly a team talk lands: 0.5 for a dull coach, 1.5 for a
-  /// fiery one.
-  double get talk => 0.5 + (charisma + motivation) / 200;
+  /// fiery one, less under stress.
+  double get talk => (0.5 + (charisma + motivation) / 200) * (1 - strain);
 }

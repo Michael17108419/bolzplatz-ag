@@ -124,6 +124,7 @@ class Player {
     Map<CharacterTrait, double>? traits,
     int? weakFoot,
     Map<Position, PositionFamiliarity>? secondaryPositions,
+    Map<String, RoleFamiliarity>? roles,
   }) {
     return Player(
       id: id,
@@ -138,7 +139,7 @@ class Player {
       developmentType: developmentType,
       potentialCore: potentialCore,
       potentialDynamic: potentialDynamic ?? this.potentialDynamic,
-      roles: roles,
+      roles: roles ?? this.roles,
       foot: foot,
       weakFoot: weakFoot ?? this.weakFoot,
       nationality: nationality,

@@ -48,6 +48,7 @@ class SeasonEnd {
     required this.levelChange,
     required this.champion,
     required this.cupWinner,
+    this.trainer,
   });
 
   final int startYear;
@@ -67,6 +68,10 @@ class SeasonEnd {
   final int levelChange;
   final ClubId champion;
   final ClubId? cupWinner;
+
+  /// The manager as he grew this season, standing after the verdict
+  /// (step 11e); null when the runner knew no manager.
+  final Trainer? trainer;
 }
 
 /// Holds the end of a season; shared by all revisions of the game.
@@ -295,6 +300,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
           if (c.clubId != null) c.clubId!: CoachProfile.ofCoach(c),
         career.clubId: CoachProfile.ofTrainer(career.trainer),
       },
+      trainers: {career.clubId: career.trainer},
     );
     return SeasonGame(
       runner: runner,
@@ -329,6 +335,30 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
           _openNext(sheet, record: false);
         case 'day':
           _advanceDay(record: false);
+        case 'indiv':
+          final plan = entry['plan'] as Map<String, dynamic>?;
+          _setIndividual(
+            PlayerId(entry['player'] as int),
+            plan == null ? null : IndividualPlan.fromJson(plan),
+            record: false,
+          );
+        case 'licence':
+          _setLicenceCover(
+            LicenceCover.values.byName(entry['cover'] as String),
+            record: false,
+          );
+        case 'course':
+          _bookCourse(
+            entry['day'] as int,
+            ManagerValue.values.firstWhere((v) => v.id == entry['value']),
+            record: false,
+          );
+        case 'train':
+          _setTrainingDay(
+            entry['day'] as int,
+            TrainingDay.fromJson(entry['units'] as List<dynamic>),
+            record: false,
+          );
         case 'talk':
           _talkTo(
             PlayerId(entry['player'] as int),
@@ -406,6 +436,75 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     }
     if (done) state = game._with();
     return done;
+  }
+
+  /// The individual plan of one player (step 11c), null clears it.
+  /// Recorded for loading.
+  bool setIndividual(PlayerId player, IndividualPlan? plan) =>
+      _setIndividual(player, plan, record: true);
+
+  bool _setIndividual(
+    PlayerId player,
+    IndividualPlan? plan, {
+    required bool record,
+  }) {
+    final game = state;
+    if (game == null) return false;
+    final ok = game.runner.setIndividual(game.clubId, player, plan);
+    if (ok && record) {
+      game.log.add({
+        'op': 'indiv',
+        'player': player.value,
+        'plan': plan?.toJson(),
+      });
+    }
+    if (ok) state = game._with();
+    return ok;
+  }
+
+  /// How the manager covers a missing licence this season (step 11e).
+  /// Recorded for loading.
+  bool setLicenceCover(LicenceCover cover) =>
+      _setLicenceCover(cover, record: true);
+
+  bool _setLicenceCover(LicenceCover cover, {required bool record}) {
+    final game = state;
+    if (game == null) return false;
+    final ok = game.runner.setLicenceCover(game.clubId, cover);
+    if (ok && record) game.log.add({'op': 'licence', 'cover': cover.name});
+    if (ok) state = game._with();
+    return ok;
+  }
+
+  /// Books the course for the next licence from [epochDay]; it also trains
+  /// [value] (step 11e). Recorded for loading.
+  bool bookCourse(int epochDay, ManagerValue value) =>
+      _bookCourse(epochDay, value, record: true);
+
+  bool _bookCourse(int epochDay, ManagerValue value, {required bool record}) {
+    final game = state;
+    if (game == null) return false;
+    final ok = game.runner.bookCourse(game.clubId, epochDay, value);
+    if (ok && record) {
+      game.log.add({'op': 'course', 'day': epochDay, 'value': value.id});
+    }
+    if (ok) state = game._with();
+    return ok;
+  }
+
+  /// Plans the training of [epochDay] (step 11a). Recorded for loading.
+  bool setTrainingDay(int epochDay, TrainingDay day) =>
+      _setTrainingDay(epochDay, day, record: true);
+
+  bool _setTrainingDay(int epochDay, TrainingDay day, {required bool record}) {
+    final game = state;
+    if (game == null) return false;
+    final ok = game.runner.setTrainingDay(game.clubId, epochDay, day);
+    if (ok && record) {
+      game.log.add({'op': 'train', 'day': epochDay, 'units': day.toJson()});
+    }
+    if (ok) state = game._with();
+    return ok;
   }
 
   /// The weekly talk of the coach with one player (engine 2, step 10f3).
@@ -584,6 +683,15 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
         dismissed: true,
       );
     }
+    final cupWon =
+        outcome.bolzplatz.winner == game.clubId ||
+        outcome.pottWinners.values.contains(game.clubId);
+    final trainer = game.runner.trainerAtEnd(
+      game.clubId,
+      verdict: review.verdict,
+      levelChange: change,
+      cupWon: cupWon,
+    );
     game.endBox.value = SeasonEnd(
       startYear: game.run.state.startYear,
       outcome: outcome,
@@ -595,6 +703,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       levelChange: change,
       champion: table.first,
       cupWinner: outcome.bolzplatz.winner,
+      trainer: trainer,
     );
   }
 
@@ -636,7 +745,9 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     ref.read(seasonHistoryProvider.notifier).add(_recordOf(end, career));
     ref.read(worldStateProvider.notifier).set(end.next);
     // The new career state makes this notifier build the new season.
-    ref.read(careerProvider.notifier).newSeason(league: league, goal: goal);
+    ref
+        .read(careerProvider.notifier)
+        .newSeason(league: league, goal: goal, trainer: end.trainer);
     ref.read(saveServiceProvider).autosave();
     return true;
   }

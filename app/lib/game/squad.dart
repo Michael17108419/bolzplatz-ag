@@ -49,12 +49,20 @@ class SquadRow {
 }
 
 /// The players of a club with their strength and age at the world's date.
-List<SquadRow> squadOf(LoadedWorld loaded, ClubId club) {
+/// [live] are the players as they are now in the running season (they
+/// develop every week, step 11b); without them the start of the season.
+List<SquadRow> squadOf(
+  LoadedWorld loaded,
+  ClubId club, {
+  List<Player>? live,
+}) {
   final today = loaded.today;
-  final players = [
-    for (final p in loaded.world.players)
-      if (p.clubId == club) p,
-  ];
+  final players = live != null && live.isNotEmpty
+      ? live
+      : [
+          for (final p in loaded.world.players)
+            if (p.clubId == club) p,
+        ];
   final numbers = shirtNumbers(players);
   return [
     for (final p in players)

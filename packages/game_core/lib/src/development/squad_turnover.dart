@@ -28,6 +28,7 @@ class SquadTurnover {
     required Map<ClubId, int> tiers,
     required Map<PlayerId, double> minutesShare,
     required SeededRandom rng,
+    bool develop = true,
   }) {
     final season = Season(newStartYear);
     final dev = rules.development;
@@ -90,12 +91,16 @@ class SquadTurnover {
           );
           continue;
         }
-        var q = _development.advance(
-          p,
-          newSeasonStart: season.start,
-          rng: prng,
-          minutesShare: minutesShare[p.id] ?? 0.5,
-        );
+        // Since step 11b players develop week by week during the season;
+        // the yearly step is left for outcomes without that.
+        var q = develop
+            ? _development.advance(
+                p,
+                newSeasonStart: season.start,
+                rng: prng,
+                minutesShare: minutesShare[p.id] ?? 0.5,
+              )
+            : p;
         final c = q.contract;
         if (c == null || c.end.isBefore(season.start)) {
           q = q.copyWith(contract: _fresh(q, tier, rng, season, club));

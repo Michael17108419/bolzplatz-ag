@@ -746,9 +746,8 @@ class MatchSession {
     slot.conf = side.team.confidence[player.id] ?? 50;
     slot.mood = side.team.mood[player.id] ?? _moodNeutral;
     slot.instr = side.sheet.instructions[player.id];
-    slot.counterMult = _abilityMult(player, const [
-      SpecialAbilityType.counterPlayer,
-    ], _m.counter.abilityBonus);
+    const counter = [SpecialAbilityType.counterPlayer];
+    slot.counterMult = _abilityMult(player, counter, _m.counter.abilityBonus);
     return slot;
   }
 
@@ -873,6 +872,9 @@ class MatchSession {
         tactics.penaltyPerExtraChange *
         (1.5 - side.team.coach.tactics / 100).clamp(0.5, 1.5);
     side.fitBonus = math.max(0.0, tactics.fitBonusMax * teamFit - unsettled);
+    // How well the team knows the system (step 11d): about ±5 %.
+    final known = side.team.systemKnowledge[side.sheet.systemId] ?? 50;
+    side.fitBonus += _m.instructions.get('system_knowledge') * (known - 50) / 50;
     if (side.markedVersion != _pitchVersion) {
       side.marked = _marks(side);
       side.markedVersion = _pitchVersion;
@@ -2659,7 +2661,10 @@ class MatchSession {
     final ratio =
         _headerStrength(attacker) / _headerStrength(defender, defending: true);
     final goal =
-        (base * math.pow(ratio, _m.goalExponent) * math.pow(takerScore / 50, 1))
+        (base *
+                math.pow(ratio, _m.goalExponent) *
+                math.pow(takerScore / 50, 1) *
+                _setPieceFactor(t))
             .limit(_m.goalMin, _m.goalMax);
     final scorer = _headerScorer(attacker);
     if (_rng.nextDouble() < goal) {
@@ -2667,6 +2672,15 @@ class MatchSession {
     } else if (_rng.nextDouble() < 0.35) {
       _shot(t, scorer, 'header', null, 0);
     }
+  }
+
+  /// Rehearsed set pieces (step 11d): the attack of [t] against the
+  /// defending of the other side.
+  double _setPieceFactor(int t) {
+    final e = _m.instructions.get('set_pieces');
+    final att = _sides[t].team.setPieces.$1;
+    final def = _sides[1 - t].team.setPieces.$2;
+    return (1 + e * (att - 50) / 50) / (1 + e * (def - 50) / 50);
   }
 
   void _freeKick(int t) {
@@ -2677,7 +2691,9 @@ class MatchSession {
     if (_rng.nextDouble() < _m.freeKickDirectShare) {
       final keeper = _sides[1 - t].ratings.keeper;
       final goal =
-          (_m.freeKickDirectGoal * math.pow(score / keeper, _m.goalExponent))
+          (_m.freeKickDirectGoal *
+                  math.pow(score / keeper, _m.goalExponent) *
+                  _setPieceFactor(t))
               .limit(_m.goalMin, _m.goalMax);
       _shot(t, taker, 'long_shot', null, goal);
     } else {
@@ -3370,6 +3386,9 @@ class MatchSession {
         MatchEventType.matchPlan,
         side,
         action: [for (final f in chosen) f.name].join(','),
+        // How many real weaknesses the plan hit (the manager learns from
+        // it, step 11e; the ticker does not tell).
+        value: map.values.where((real) => real).length,
       );
     }
   }

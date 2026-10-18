@@ -39,6 +39,7 @@ class TrainerFactory {
       appearance: appearance,
       backstoryId: backstoryId,
       values: values,
+      licence: backstory.licence,
     );
   }
 
@@ -236,7 +237,14 @@ class OfferGenerator {
     final career = rules.career;
     final level = career.standingLevel(trainer[ManagerValue.standing]);
     final rng = SeededRandom(seed).fork('offers');
-    final tierWeights = _o.tierWeightsByLevel[level]!;
+    // Leagues above the licence offer less often (step 11e).
+    final growth = career.growth;
+    final tierWeights = {
+      for (final e in _o.tierWeightsByLevel[level]!.entries)
+        e.key: trainer.licence.covers(growth.requiredFor(e.key))
+            ? e.value
+            : e.value * growth.offerFactor,
+    };
     final range = _o.countRangeByLevel[level]!;
     final count = rng.fork('count').nextIntInRange(range.$1, range.$2);
 

@@ -172,6 +172,99 @@ void main() {
     expect(_table(b), _table(a));
   });
 
+  test('training days load to the same freshness (step 11a)', () async {
+    final repo = _MemoryRepository();
+    final a = _container(loaded, repo);
+    addTearDown(a.dispose);
+    await a.read(loadedWorldProvider.future);
+    final career = startCareer(a);
+    a.read(lineupProvider);
+    final season = a.read(seasonProvider.notifier);
+    final today = a.read(seasonProvider)!.today.epochDay;
+    final hard = TrainingDay(const [
+      TrainingSession('endurance', Intensity.hard),
+      TrainingSession('pressing', Intensity.hard),
+    ]);
+    for (var d = today; d < today + 5; d++) {
+      season.setTrainingDay(d, hard);
+    }
+    _playMatch(a);
+    expect(season.advanceDay(), DayStep.played);
+    final service = a.read(saveServiceProvider);
+    expect(await service.save('2'), isTrue);
+    final data = SaveData.tryParse(repo.files['2']!)!;
+    final b = _container(loaded, repo);
+    addTearDown(b.dispose);
+    await b.read(loadedWorldProvider.future);
+    expect(await b.read(saveServiceProvider).load(data), isTrue);
+    final ga = a.read(seasonProvider)!;
+    final gb = b.read(seasonProvider)!;
+    for (final p in ga.run.state.squads[career.clubId]!) {
+      expect(
+        gb.runner.freshnessOf(
+          p.id,
+          club: career.clubId,
+          epochDay: gb.today.epochDay,
+        ),
+        ga.runner.freshnessOf(
+          p.id,
+          club: career.clubId,
+          epochDay: ga.today.epochDay,
+        ),
+        reason: '${p.id.value}',
+      );
+    }
+    expect(_table(b), _table(a));
+  });
+
+  test('the licence question and a course load the same (step 11e)', () async {
+    final repo = _MemoryRepository();
+    final a = _container(loaded, repo);
+    addTearDown(a.dispose);
+    await a.read(loadedWorldProvider.future);
+    final career = startCareer(a);
+    a.read(lineupProvider);
+    final season = a.read(seasonProvider.notifier);
+    final game = a.read(seasonProvider)!;
+    final runner = game.runner;
+    final club = career.clubId;
+    if (runner.licenceMissing(club) != null) {
+      expect(season.setLicenceCover(LicenceCover.strawMan), isTrue);
+      expect(season.setLicenceCover(LicenceCover.waiver), isFalse);
+    }
+    int? day;
+    for (final w in runner.courseWindowsOf(club)) {
+      for (var d = w.$1; d <= w.$2 && day == null; d++) {
+        if (d > game.today.epochDay && runner.courseBlock(club, d) == null) {
+          day = d;
+        }
+      }
+    }
+    if (day != null) {
+      expect(season.bookCourse(day, ManagerValue.charisma), isTrue);
+    }
+    _playMatch(a);
+    expect(season.advanceDay(), DayStep.played);
+    expect(await a.read(saveServiceProvider).save('2'), isTrue);
+    final data = SaveData.tryParse(repo.files['2']!)!;
+    final b = _container(loaded, repo);
+    addTearDown(b.dispose);
+    await b.read(loadedWorldProvider.future);
+    expect(await b.read(saveServiceProvider).load(data), isTrue);
+    final ga = a.read(seasonProvider)!;
+    final gb = b.read(seasonProvider)!;
+    expect(gb.runner.progressOf(club)!.cover, ga.runner.progressOf(club)!.cover);
+    expect(
+      gb.runner.progressOf(club)!.courses.length,
+      ga.runner.progressOf(club)!.courses.length,
+    );
+    expect(
+      gb.runner.trainerOf(club)!.toJson(),
+      ga.runner.trainerOf(club)!.toJson(),
+    );
+    expect(b.read(careerProvider)!.trainer.licence, career.trainer.licence);
+  });
+
   test('a preview that is only open is not saved', () async {
     final repo = _MemoryRepository();
     final c = _container(loaded, repo);

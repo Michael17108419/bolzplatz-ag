@@ -18,12 +18,17 @@ class OffersStep extends ConsumerStatefulWidget {
     required this.loaded,
     required this.onBack,
     required this.onAccept,
+    this.trainer,
     super.key,
   });
 
   final LoadedWorld loaded;
   final VoidCallback onBack;
   final void Function(Trainer trainer, JobOffer offer) onAccept;
+
+  /// The manager of a job search (he keeps what he learnt); null builds
+  /// him from the draft.
+  final Trainer? trainer;
 
   @override
   ConsumerState<OffersStep> createState() => _OffersStepState();
@@ -38,13 +43,15 @@ class _OffersStepState extends ConsumerState<OffersStep> {
     final theme = Theme.of(context);
     final draft = ref.watch(careerDraftProvider);
     final loaded = widget.loaded;
-    final trainer = TrainerFactory.create(
-      rules: loaded.rules,
-      name: draft.name,
-      appearance: draft.appearance,
-      backstoryId: draft.backstoryId!,
-      seed: draft.seed,
-    );
+    final trainer =
+        widget.trainer ??
+        TrainerFactory.create(
+          rules: loaded.rules,
+          name: draft.name,
+          appearance: draft.appearance,
+          backstoryId: draft.backstoryId!,
+          seed: draft.seed,
+        );
     final set = loaded.offerGenerator.generate(
       trainer: trainer,
       seed: draft.seed,

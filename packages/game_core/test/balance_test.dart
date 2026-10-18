@@ -62,6 +62,9 @@ void main() {
     final ageSum = <int, double>{};
     final ageN = <int, int>{};
     final strengthByTier = <int, List<double>>{};
+    // Mean strength of every tier per season: weekly development (step
+    // 11b) must not let the world drift.
+    final drift = <int, List<double>>{};
 
     for (var year = 0; year < seasons; year++) {
       final outcome = runner.play(state, seed: 500 + year);
@@ -119,11 +122,19 @@ void main() {
           ageN[tier] = (ageN[tier] ?? 0) + 1;
         }
       }
+      final perTier = <int, List<double>>{};
       for (final e in state.members.entries) {
         final t = tierOf[e.key]!;
         for (final c in e.value) {
-          (strengthByTier[t] ??= []).add(_strength(state.squads[c]!, rules));
+          final v = _strength(state.squads[c]!, rules);
+          (strengthByTier[t] ??= []).add(v);
+          (perTier[t] ??= []).add(v);
         }
+      }
+      for (final e in perTier.entries) {
+        (drift[e.key] ??= []).add(
+          e.value.fold(0.0, (a, b) => a + b) / e.value.length,
+        );
       }
       final next = runner.nextSeason(
         state,
@@ -156,6 +167,15 @@ void main() {
         reason: 'age tier $tier',
       );
       expect(mean(corrs[tier]!), greaterThan(0.55), reason: 'corr tier $tier');
+    }
+    for (final tier in drift.keys.toList()..sort()) {
+      final line = [for (final v in drift[tier]!) f(v)].join(' ');
+      stdout.writeln('BALANCE-REPORT drift tier$tier $line');
+      expect(
+        (drift[tier]!.last - drift[tier]!.first).abs(),
+        lessThan(3),
+        reason: 'strength drift tier $tier',
+      );
     }
     for (final tier in goals.keys.toList()..sort()) {
       stdout.writeln(

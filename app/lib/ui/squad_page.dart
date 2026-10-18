@@ -18,6 +18,7 @@ import 'person_avatar.dart';
 import 'player_look.dart';
 import 'player_page.dart';
 import 'player_widgets.dart';
+import 'training_view.dart';
 
 const double _wPos = 52;
 const double _wStrength = 92;
@@ -39,6 +40,9 @@ class _SquadPageState extends ConsumerState<SquadPage> {
   SquadFilter _filter = SquadFilter.all;
   bool _reversed = false;
 
+  /// The tab "Training" of the player files (step 11a).
+  bool _training = false;
+
   void _pick(SquadSort sort) => setState(() {
     if (_sort == sort) {
       _reversed = !_reversed;
@@ -55,7 +59,11 @@ class _SquadPageState extends ConsumerState<SquadPage> {
       item: DeskItem.files,
       child: WithCareer(
         builder: (context, career, loaded, view) {
-          final all = squadOf(loaded, career.offer.club.id);
+          final all = squadOf(
+            loaded,
+            career.offer.club.id,
+            live: ref.watch(seasonProvider)?.runner.squadOf(career.offer.club.id),
+          );
           final rows = arrangeSquad(
             all,
             sort: _sort,
@@ -65,9 +73,30 @@ class _SquadPageState extends ConsumerState<SquadPage> {
           final crestIndex = CrestSpec.forClub(career.offer.club.id.value)
               .color;
           final narrow = isNarrow(context);
+          final tabs = SegmentedButton<bool>(
+            key: const ValueKey('files-tabs'),
+            segments: [
+              ButtonSegment(value: false, label: Text(s.filesSquad)),
+              ButtonSegment(value: true, label: Text(s.filesTraining)),
+            ],
+            selected: {_training},
+            onSelectionChanged: (v) => setState(() => _training = v.first),
+          );
+          if (_training) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                tabs,
+                const SizedBox(height: Tokens.gapS),
+                const Expanded(child: TrainingView()),
+              ],
+            );
+          }
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              tabs,
+              const SizedBox(height: Tokens.gapS),
               if (narrow)
                 _NarrowBar(
                   filter: _filter,

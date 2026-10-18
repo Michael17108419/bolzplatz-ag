@@ -1,14 +1,23 @@
+import '../career/trainer_growth.dart';
 import '../model/career.dart';
 import 'rules.dart';
 
 /// One of the twelve backstories: start levels of the nine manager values
 /// and the id of the hook (the text lives in the language files).
 class Backstory {
-  const Backstory({required this.id, required this.hook, required this.levels});
+  const Backstory({
+    required this.id,
+    required this.hook,
+    required this.levels,
+    this.licence = Licence.none,
+  });
 
   final String id;
   final String hook;
   final Map<ManagerValue, TraitLevel> levels;
+
+  /// The licence the manager starts with (step 11e).
+  final Licence licence;
 }
 
 /// A president type with the levels of its seven traits.
@@ -61,6 +70,7 @@ class CareerRules {
     required this.backstories,
     required this.offers,
     required this.presidentTypes,
+    this.growth = const GrowthRules(),
   });
 
   factory CareerRules.fromJson(Map<String, dynamic> m) {
@@ -131,6 +141,7 @@ class CareerRules {
             for (final e in (raw['levels'] as Map<String, dynamic>).entries)
               managerValue(e.key): level(e.value),
           },
+          licence: Licence.fromId(raw['licence'] as String? ?? 'none'),
         ),
     ];
     if (backstories.length != backstories.map((b) => b.id).toSet().length) {
@@ -297,8 +308,14 @@ class CareerRules {
         quirkWeights: Map.unmodifiable(quirkWeights),
         presidentTypeWeightsByTier: Map.unmodifiable(presidentWeights),
       ),
+      growth: m['growth'] == null
+          ? const GrowthRules()
+          : GrowthRules.fromJson(m['growth'] as Map<String, dynamic>),
     );
   }
+
+  /// How the manager grows, licences and courses (step 11e).
+  final GrowthRules growth;
 
   /// Number (1 to 100) of each level before the random spread.
   final Map<TraitLevel, double> levelValues;

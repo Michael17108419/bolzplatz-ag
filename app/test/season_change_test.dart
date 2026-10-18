@@ -102,6 +102,10 @@ void main() {
     expect(next.end, isNull);
     expect(c.read(seasonHistoryProvider), hasLength(1));
     expect(c.read(worldStateProvider)!.startYear, 2027);
+    // The manager takes the season with him (step 11e).
+    final grown = c.read(careerProvider)!.trainer;
+    expect(grown.seasons, 1);
+    expect(grown.toJson(), end.trainer!.toJson());
     final world = (await c.read(loadedWorldProvider.future)).world;
     expect(world.season.startYear, 2027);
     expect(next.ownLeague, c.read(careerProvider)!.league.id);
@@ -148,6 +152,10 @@ void main() {
       a.read(careerProvider)!.league.id,
     );
     expect(b.read(careerProvider)!.goal, a.read(careerProvider)!.goal);
+    expect(
+      b.read(careerProvider)!.trainer.toJson(),
+      a.read(careerProvider)!.trainer.toJson(),
+    );
     expect(b.read(seasonHistoryProvider), hasLength(1));
     List<String> table(SeasonGame g) => [
       for (final e in g.run.tables[g.ownLeague]!.standing)

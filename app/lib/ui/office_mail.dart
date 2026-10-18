@@ -127,7 +127,7 @@ List<OfficeMail> buildMails(
       }
       lines.add(s.jourFixAbsent(absent));
       // Who sulks in the dressing room (engine 2, step 10f3).
-      final squad = game.run.state.squads[game.clubId] ?? const <Player>[];
+      final squad = game.runner.squadOf(game.clubId);
       final unhappy =
           [
             for (final p in squad)
@@ -276,9 +276,22 @@ List<OfficeMail> buildMails(
           courtCase: c.status == CourtStatus.open ? c.id : null,
         ),
   ];
+  // The federation asks for the licence the league wants (step 11e).
+  final missing = game?.runner.licenceMissing(game.clubId);
+  final licenceMail =
+      missing != null && game!.runner.progressOf(game.clubId)?.cover == null
+      ? OfficeMail(
+          id: 'licence:${game.run.state.startYear}',
+          sender: s.licenceSender,
+          subject: s.licenceSubject,
+          body: s.licenceBody(trainer.name, s.trainerLicenceName(missing)),
+          portrait: const _Initial('V'),
+        )
+      : null;
   return [
     ?seasonEnd,
     ?verdict,
+    ?licenceMail,
     ...courtMails,
     ...appointmentMails,
     OfficeMail(

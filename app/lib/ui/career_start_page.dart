@@ -66,6 +66,9 @@ class _CareerWizard extends ConsumerStatefulWidget {
 class _CareerWizardState extends ConsumerState<_CareerWizard> {
   int _step = 0;
 
+  /// The manager of a job search, as he grew (step 11e).
+  Trainer? _kept;
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +76,8 @@ class _CareerWizardState extends ConsumerState<_CareerWizard> {
       final trainer = ref.read(careerProvider)?.trainer;
       if (trainer != null) {
         _step = 4;
+        // He takes what he learnt to the job search (step 11e).
+        _kept = ref.read(seasonProvider)?.end?.trainer ?? trainer;
         Future.microtask(() {
           ref
               .read(careerDraftProvider.notifier)
@@ -145,7 +150,12 @@ class _CareerWizardState extends ConsumerState<_CareerWizard> {
         onNext: () => _go(3),
       ),
       3 => WishStep(loaded: loaded, onBack: () => _go(2), onNext: () => _go(4)),
-      _ => OffersStep(loaded: loaded, onBack: () => _go(3), onAccept: _accept),
+      _ => OffersStep(
+        loaded: loaded,
+        onBack: () => _go(3),
+        onAccept: _accept,
+        trainer: _kept,
+      ),
     };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
