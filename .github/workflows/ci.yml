@@ -97,50 +97,6 @@ jobs:
           fi
           exit $code
 
-  # The Windows build costs about twice as much, so it only runs by hand
-  # (Actions > ci > Run workflow), not on every push.
-  windows:
-    if: github.event_name == 'workflow_dispatch'
-    needs: [game_core, app]
-    runs-on: windows-latest
-    permissions:
-      contents: write
-    defaults:
-      run:
-        working-directory: app
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version-file: app/pubspec.yaml
-          channel: stable
-          cache: true
-      - run: flutter pub get
-      - name: Generate code
-        shell: bash
-        run: dart run build_runner build --delete-conflicting-outputs
-      - run: flutter build windows --release
-      - uses: actions/upload-artifact@v4
-        with:
-          name: bolzplatz-windows
-          path: app/build/windows/x64/runner/Release
-      # Also kept as a zip on the branch "windows-build", so it can be
-      # fetched with git (no artifact download needed).
-      - name: Publish zip to branch
-        shell: bash
-        run: |
-          cd build/windows/x64/runner/Release
-          7z a -tzip "$RUNNER_TEMP/Bolzplatz_AG_Windows.zip" . > /dev/null
-          cd "$GITHUB_WORKSPACE"
-          git config user.name "github-actions"
-          git config user.email "actions@users.noreply.github.com"
-          git checkout --orphan windows-build
-          git rm -rf . > /dev/null
-          cp "$RUNNER_TEMP/Bolzplatz_AG_Windows.zip" .
-          git add Bolzplatz_AG_Windows.zip
-          git commit -m "Windows build $GITHUB_SHA" > /dev/null
-          git push -f origin windows-build
-
   # The web app (phone-friendly test version). Built after the tests and
   # kept on the branch "web-build"; where it is hosted is decided apart.
   web:
