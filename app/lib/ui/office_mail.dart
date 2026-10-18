@@ -126,6 +126,20 @@ List<OfficeMail> buildMails(
         if (place > 0) lines.add(s.jourFixTable(place, standing.length));
       }
       lines.add(s.jourFixAbsent(absent));
+      // Who sulks in the dressing room (engine 2, step 10f3).
+      final squad = game.run.state.squads[game.clubId] ?? const <Player>[];
+      final unhappy = [
+        for (final p in squad)
+          if (game.runner.moodOf(p.id) < 40) p,
+      ]..sort(
+          (x, y) =>
+              game.runner.moodOf(x.id).compareTo(game.runner.moodOf(y.id)),
+        );
+      if (unhappy.isNotEmpty) {
+        lines.add(
+          s.jourFixUnhappy([for (final p in unhappy.take(3)) p.lastName]),
+        );
+      }
     }
     lines.add(s.jourFixNext(view.matchday, view.opponent.name, view.atHome));
     final others = all

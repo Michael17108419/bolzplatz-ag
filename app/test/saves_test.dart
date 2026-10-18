@@ -131,6 +131,47 @@ void main() {
     expect(b.read(seasonProvider)!.today, a.read(seasonProvider)!.today);
   });
 
+  test('talks with a player and team talks load to the same moods '
+      '(step 10f3)', () async {
+    final repo = _MemoryRepository();
+    final a = _container(loaded, repo);
+    addTearDown(a.dispose);
+    await a.read(loadedWorldProvider.future);
+    final career = startCareer(a);
+    a.read(lineupProvider);
+    final season = a.read(seasonProvider.notifier);
+    final squad = a.read(seasonProvider)!.run.state.squads[career.clubId]!;
+    final promised = squad.last.id;
+    expect(season.talkTo(promised, PlayerTalk.promise), 1);
+    expect(season.talkTo(squad.first.id, PlayerTalk.warn), isNull);
+    expect(a.read(seasonProvider)!.runner.hasPromise(promised), isTrue);
+    final own = season.openNext()!;
+    final session = own.session!;
+    final side = own.fixture.home == career.clubId ? 0 : 1;
+    expect(session.teamTalk(side, TeamTalk.fire), isNotNull);
+    while (!(session.inBreak && session.minute > 0)) {
+      session.advanceTo(session.minute + 1);
+    }
+    expect(session.teamTalk(side, TeamTalk.calm), isNotNull);
+    season.complete(session.finish());
+    expect(season.advanceDay(), DayStep.played);
+
+    final service = a.read(saveServiceProvider);
+    expect(await service.save('3'), isTrue);
+    final data = SaveData.tryParse(repo.files['3']!)!;
+    final b = _container(loaded, repo);
+    addTearDown(b.dispose);
+    await b.read(loadedWorldProvider.future);
+    expect(await b.read(saveServiceProvider).load(data), isTrue);
+    final ra = a.read(seasonProvider)!.runner;
+    final rb = b.read(seasonProvider)!.runner;
+    for (final p in squad) {
+      expect(rb.moodOf(p.id), ra.moodOf(p.id), reason: '${p.id.value}');
+    }
+    expect(rb.hasPromise(promised), ra.hasPromise(promised));
+    expect(_table(b), _table(a));
+  });
+
   test('a preview that is only open is not saved', () async {
     final repo = _MemoryRepository();
     final c = _container(loaded, repo);

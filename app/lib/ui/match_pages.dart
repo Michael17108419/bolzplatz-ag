@@ -188,6 +188,15 @@ class MatchPreviewPage extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium,
             ),
+          if (own.session != null) ...[
+            const SizedBox(height: Tokens.gapS),
+            Center(
+              child: TeamTalkButton(
+                session: own.session!,
+                side: atHome ? 0 : 1,
+              ),
+            ),
+          ],
           const SizedBox(height: Tokens.gapM),
           Text(s.matchPreviewAbsent, style: theme.textTheme.titleSmall),
           const SizedBox(height: 4),
@@ -813,6 +822,19 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                     ),
             ),
             const SizedBox(height: Tokens.gapS),
+            if (!_over && _session.minute > 0 && _session.canTalk(_ownSide))
+              Padding(
+                padding: const EdgeInsets.only(bottom: Tokens.gapS),
+                child: TeamTalkButton(
+                  session: _session,
+                  side: _ownSide,
+                  onOpen: _pause,
+                  onDone: () {
+                    _ingest();
+                    setState(() {});
+                  },
+                ),
+              ),
             if (_over)
               Align(
                 alignment: Alignment.centerRight,
@@ -918,6 +940,90 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The team talk in the dressing room (engine 2, step 10f3): before
+/// kick-off on the preview, at a break in the live match. Gone once said.
+class TeamTalkButton extends ConsumerStatefulWidget {
+  const TeamTalkButton({
+    required this.session,
+    required this.side,
+    this.onOpen,
+    this.onDone,
+    super.key,
+  });
+
+  final MatchSession session;
+  final int side;
+  final VoidCallback? onOpen;
+  final VoidCallback? onDone;
+
+  @override
+  ConsumerState<TeamTalkButton> createState() => _TeamTalkButtonState();
+}
+
+class _TeamTalkButtonState extends ConsumerState<TeamTalkButton> {
+  Future<void> _open() async {
+    widget.onOpen?.call();
+    final s = ref.read(stringsProvider);
+    final talk = await showModalBottomSheet<TeamTalk>(
+      context: context,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) {
+        final theme = Theme.of(sheet);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(Tokens.gapM),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        s.teamTalkTitle,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                    ),
+                    InfoButton(message: s.infoTeamTalk),
+                  ],
+                ),
+                const SizedBox(height: Tokens.gapS),
+                for (final t in TeamTalk.values)
+                  ListTile(
+                    key: ValueKey('team-talk-${t.name}'),
+                    title: Text(s.teamTalkName(t)),
+                    subtitle: Text(s.teamTalkHint(t)),
+                    onTap: () => Navigator.of(sheet).pop(t),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (talk == null || !mounted) return;
+    final landed = widget.session.teamTalk(widget.side, talk);
+    if (landed == null) return;
+    setState(() {});
+    widget.onDone?.call();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(s.teamTalkResult(talk, landed))));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.session.canTalk(widget.side)) return const SizedBox.shrink();
+    final s = ref.watch(stringsProvider);
+    return OutlinedButton.icon(
+      key: const ValueKey('match-talk'),
+      onPressed: _open,
+      icon: const Icon(Icons.campaign),
+      label: Text(s.teamTalkButton),
     );
   }
 }

@@ -290,6 +290,11 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       seed: seed,
       userSheets: {career.clubId: ?sheet},
       humanClubs: {career.clubId},
+      coaches: {
+        for (final c in loaded.world.coaches)
+          if (c.clubId != null) c.clubId!: CoachProfile.ofCoach(c),
+        career.clubId: CoachProfile.ofTrainer(career.trainer),
+      },
     );
     return SeasonGame(
       runner: runner,
@@ -324,6 +329,13 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
           _openNext(sheet, record: false);
         case 'day':
           _advanceDay(record: false);
+        case 'talk':
+          _talkTo(
+            PlayerId(entry['player'] as int),
+            PlayerTalk.values.byName(entry['kind'] as String),
+            entry['day'] as int,
+            record: false,
+          );
         case 'court':
           _decideCase(
             entry['id'] as String,
@@ -394,6 +406,44 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     }
     if (done) state = game._with();
     return done;
+  }
+
+  /// The weekly talk of the coach with one player (engine 2, step 10f3).
+  /// Returns how it landed (1 well, 0 flat, -1 badly), null if this week's
+  /// talk is used up. Recorded for loading.
+  int? talkTo(PlayerId player, PlayerTalk talk) {
+    final game = state;
+    if (game == null) return null;
+    final landed = _talkTo(
+      player,
+      talk,
+      game.today.epochDay,
+      record: true,
+    );
+    if (landed != null) ref.read(saveServiceProvider).autosave();
+    return landed;
+  }
+
+  int? _talkTo(
+    PlayerId player,
+    PlayerTalk talk,
+    int day, {
+    required bool record,
+  }) {
+    final game = state;
+    if (game == null) return null;
+    final landed = game.runner.talkTo(game.clubId, player, talk, day);
+    if (landed == null) return null;
+    if (record) {
+      game.log.add({
+        'op': 'talk',
+        'player': player.value,
+        'kind': talk.name,
+        'day': day,
+      });
+    }
+    state = game._with();
+    return landed;
   }
 
   /// True after a saved game with a match under way was put back: the live

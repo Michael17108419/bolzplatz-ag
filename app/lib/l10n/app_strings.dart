@@ -324,7 +324,23 @@ abstract interface class AppStrings {
     required double form,
     required double confidence,
     required double load,
+    double? mood,
   });
+  String moodName(double mood);
+  String get profilePromise;
+  String get teamTalkButton;
+  String get teamTalkTitle;
+  String get infoTeamTalk;
+  String teamTalkName(TeamTalk talk);
+  String teamTalkHint(TeamTalk talk);
+  String teamTalkResult(TeamTalk talk, int landed);
+  String get playerTalkTitle;
+  String get infoPlayerTalk;
+  String playerTalkName(PlayerTalk talk);
+  String playerTalkHint(PlayerTalk talk);
+  String playerTalkResult(PlayerTalk talk, int landed, String name);
+  String get playerTalkUsed;
+  String jourFixUnhappy(List<String> names);
   String get reportMarks;
   String get infoReportMarks;
   String get infoProfileOverall;
@@ -1937,6 +1953,7 @@ class AppStringsDe implements AppStrings {
     required double form,
     required double confidence,
     required double load,
+    double? mood,
   }) {
     final f = form >= 62
         ? 'stark'
@@ -1963,8 +1980,105 @@ class AppStringsDe implements AppStrings {
         : load >= 0.4
         ? 'normal'
         : 'frisch';
-    return 'Form: $f · Selbstvertrauen: $c · Belastung: $l';
+    final m = mood == null ? '' : ' · Stimmung: ${moodName(mood)}';
+    return 'Form: $f · Selbstvertrauen: $c · Belastung: $l$m';
   }
+
+  @override
+  String moodName(double mood) => mood >= 75
+      ? 'bestens gelaunt'
+      : mood >= 60
+      ? 'zufrieden'
+      : mood >= 45
+      ? 'geht so'
+      : mood >= 30
+      ? 'unzufrieden'
+      : 'stinksauer';
+  @override
+  String get profilePromise =>
+      'Du hast ihm Einsatzzeit versprochen. Er zählt die Minuten.';
+  @override
+  String get teamTalkButton => 'Ansprache';
+  @override
+  String get teamTalkTitle => 'Ansprache in der Kabine';
+  @override
+  String get infoTeamTalk =>
+      'Einmal vor dem Anpfiff und einmal in jeder Pause darfst du reden. '
+      'Wie es ankommt, hängt von deinem Charisma und deiner Motivation ab, '
+      'vom Spielstand und vom Charakter der Spieler: Profis lässt das kalt, '
+      'Divas lieben Lob, Heißsporne werden beim Anstacheln zu heiß und holen '
+      'sich Karten. Wer nach einer schwachen Halbzeit lobt, macht es '
+      'schlimmer.';
+  @override
+  String teamTalkName(TeamTalk talk) => switch (talk) {
+    TeamTalk.calm => 'Beruhigen',
+    TeamTalk.fire => 'Anstacheln',
+    TeamTalk.praise => 'Loben',
+  };
+  @override
+  String teamTalkHint(TeamTalk talk) => switch (talk) {
+    TeamTalk.calm => 'Ruhe reinbringen. Gut bei Führung, im Derby, für Nervöse.',
+    TeamTalk.fire => 'Tür zu, laut werden. Gut bei Rückstand oder Gleichstand.',
+    TeamTalk.praise =>
+      'Schulter klopfen. Gut, wenn es läuft. Divas mögen das immer.',
+  };
+  @override
+  String teamTalkResult(TeamTalk talk, int landed) => switch (landed) {
+    1 => 'Das hat gesessen. Die Jungs gehen anders raus.',
+    -1 => switch (talk) {
+      TeamTalk.praise => 'Lob? Jetzt? Die Mannschaft guckt dich an, als hättest '
+          'du ein anderes Spiel gesehen.',
+      TeamTalk.fire => 'Zu viel Gebrüll. Ein paar sind jetzt zu heiß.',
+      TeamTalk.calm => 'Beruhigen war das Falsche. Die schlafen gleich ein.',
+    },
+    _ => 'Höfliches Nicken. Viel bewegt hast du nicht.',
+  };
+  @override
+  String get playerTalkTitle => 'Gespräch unter vier Augen';
+  @override
+  String get infoPlayerTalk =>
+      'Einmal pro Woche hast du Zeit für ein Gespräch mit einem Spieler. '
+      'Aufbauen hilft, wenn er unten ist. Eine Ansage weckt Profis und '
+      'Ehrgeizige, die anderen sind beleidigt. Ein Versprechen hebt die '
+      'Stimmung sofort, aber wenn er in den nächsten drei Spielen nicht '
+      'spielt, ist es schlimmer als vorher. Deine Menschenführung macht '
+      'jedes Gespräch stärker.';
+  @override
+  String playerTalkName(PlayerTalk talk) => switch (talk) {
+    PlayerTalk.encourage => 'Aufbauen',
+    PlayerTalk.warn => 'Ansage machen',
+    PlayerTalk.promise => 'Einsatz versprechen',
+  };
+  @override
+  String playerTalkHint(PlayerTalk talk) => switch (talk) {
+    PlayerTalk.encourage => 'Für einen, der in der Krise steckt.',
+    PlayerTalk.warn => 'Klare Worte. Profis ziehen an, Mimosen schmollen.',
+    PlayerTalk.promise => 'Hebt die Stimmung. Halte es, sonst knallt es.',
+  };
+  @override
+  String playerTalkResult(PlayerTalk talk, int landed, String name) =>
+      switch ((talk, landed)) {
+        (PlayerTalk.encourage, 1) =>
+          '$name geht mit erhobenem Kopf raus. Das hat er gebraucht.',
+        (PlayerTalk.encourage, _) =>
+          '$name nickt freundlich. Gebraucht hätte er es nicht.',
+        (PlayerTalk.warn, 1) =>
+          '$name hat verstanden. Im Training gibt er jetzt Gas.',
+        (PlayerTalk.warn, _) =>
+          '$name knallt die Tür. Das war wohl nicht seine Sprache.',
+        (PlayerTalk.promise, 1) =>
+          '$name strahlt. Jetzt musst du ihn aber auch bringen.',
+        (PlayerTalk.promise, _) =>
+          '$name winkt ab. Ein Versprechen hat er schon, das zweite glaubt '
+              'er nicht.',
+      };
+  @override
+  String get playerTalkUsed =>
+      'Diese Woche hattest du schon dein Gespräch. Nächste Woche wieder.';
+  @override
+  String jourFixUnhappy(List<String> names) => names.length == 1
+      ? 'In der Kabine grummelt es: ${names.first} ist unzufrieden.'
+      : 'In der Kabine grummelt es: ${names.join(', ')} sind unzufrieden.';
   @override
   String get reportMarks => 'Noten';
   @override
@@ -1994,7 +2108,10 @@ class AppStringsDe implements AppStrings {
       'Form kommt aus den Noten der letzten Spiele und wirkt auf die Tagesform. '
       'Selbstvertrauen springt mit Toren, Paraden und Fehlern und wirkt auf '
       'Abschlüsse und mutige Aktionen. Belastung sind die Minuten der letzten '
-      'Wochen: wer zu viel spielt, verletzt sich leichter. Rotation hilft.';
+      'Wochen: wer zu viel spielt, verletzt sich leichter. Rotation hilft. '
+      'Stimmung kommt aus Ergebnissen, Einsatzzeit, der Kabine und dir: '
+      'gute Laune bringt ein paar Prozent Tagesform, sehr schlechte Laune '
+      'mehr Fouls.';
   @override
   String get valuesHint => 'Alle Werte von 1 bis 100';
   @override
