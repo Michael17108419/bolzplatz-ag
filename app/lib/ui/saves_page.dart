@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../game/career.dart';
 import '../game/dates.dart';
+import '../game/preview.dart';
 import '../game/saves.dart';
 import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
@@ -23,8 +24,11 @@ Future<bool> loadAndEnter(
   WidgetRef ref,
   SaveData data,
 ) async {
+  final watch = Stopwatch()..start();
+  final messenger = ScaffoldMessenger.of(context);
   final ok = await ref.read(saveServiceProvider).load(data);
   if (!ok || !context.mounted) return ok;
+  showLoadTime(messenger, ref.read(stringsProvider), watch..stop());
   final nav = Navigator.of(context);
   // A match that was under way is picked up where it stopped.
   final resume = ref.read(seasonProvider.notifier).resumeLive;

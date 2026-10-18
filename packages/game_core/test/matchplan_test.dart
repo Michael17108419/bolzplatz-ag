@@ -16,10 +16,11 @@ void main() {
   setUpAll(() {
     final text = File('../../rules/rules_2026_27.json').readAsStringSync();
     rules = Rules.parse(text).valueOrNull!;
+    expect(text, contains('"plan_hit"'));
     strong = Rules.parse(
       text
-          .replaceFirst('"plan_hit": 0.05', '"plan_hit": 0.5')
-          .replaceFirst('"plan_miss": 0.02', '"plan_miss": 0.3'),
+          .replaceFirst(RegExp(r'"plan_hit": [0-9.]+'), '"plan_hit": 0.5')
+          .replaceFirst(RegExp(r'"plan_miss": [0-9.]+'), '"plan_miss": 0.3'),
     ).valueOrNull!;
     final world = WorldJson.decode(
       File('../../data/world_2026_27.json').readAsStringSync(),

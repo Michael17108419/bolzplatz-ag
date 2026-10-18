@@ -331,6 +331,7 @@ abstract interface class AppStrings {
   String get lineupInstruction;
   String get matchPlanButton;
   String get halfTimeButton;
+  String loadedIn(String seconds);
   String shoutButton(int left);
   String get infoShout;
   String shoutName(Shout shout);
@@ -2031,6 +2032,8 @@ class AppStringsDe implements AppStrings {
   String get matchPlanButton => 'Matchplan';
   @override
   String get halfTimeButton => 'Analyse';
+  @override
+  String loadedIn(String seconds) => 'Geladen in $seconds s';
   @override
   String shoutButton(int left) => 'Zuruf ($left)';
   @override
