@@ -51,7 +51,10 @@ class SaveData {
   /// differently, so saves of version 1 can not be continued.
   /// 3: step 10e (referees, VAR, sports court, grounds, weather) plays
   /// matches differently again and logs court decisions.
-  static const int version = 3;
+  /// 4: steps 10f to 10h (mood, chemistry, coaches, instructions, plans,
+  /// shouts, home advantage) play matches differently again and log talks
+  /// and instructions.
+  static const int version = 4;
 
   factory SaveData.fromJson(Map<String, dynamic> m) {
     if (m['version'] != version) {
