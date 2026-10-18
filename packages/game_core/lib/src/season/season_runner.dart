@@ -16,7 +16,9 @@ import '../model/attribute.dart';
 import '../model/character.dart';
 import '../model/coach.dart';
 import '../model/ids.dart';
+import '../model/development.dart';
 import '../model/player.dart';
+import '../model/position.dart';
 import '../model/referee.dart';
 import '../model/region.dart';
 import '../model/venue.dart';
@@ -825,7 +827,10 @@ class SeasonRunner {
         // Focus and volume are the same for all field players of the club
         // (and for all keepers): built once per week.
         final share = tr['dev_share'];
-        (Map<Attribute, double>, double) plan(bool keeper) {
+        (Map<Attribute, double>, double) plan(
+          bool keeper,
+          Map<Attribute, double> pts,
+        ) {
           var total = 0.0;
           var count = 0;
           for (final a in Attribute.values) {
@@ -849,11 +854,31 @@ class SeasonRunner {
           );
         }
 
-        final field = plan(false);
-        final keepers = plan(true);
+        final field = plan(false, pts);
+        final keepers = plan(true, pts);
         for (var i = 0; i < squad.length; i++) {
-          final p = squad[i];
-          final (focus, volume) = p.position.isGoalkeeper ? keepers : field;
+          var p = squad[i];
+          final keeper = p.position.isGoalkeeper;
+          var (focus, volume) = keeper ? keepers : field;
+          final own = _individual[p.id];
+          if (own != null) {
+            // Individual training (step 11c): part of the time goes into
+            // the own plan.
+            final s = tr['indiv_share'];
+            final mine = <Attribute, double>{
+              for (final e in pts.entries) e.key: e.value * (1 - s),
+            };
+            final unit = own.unit == null ? null : tr.units[own.unit];
+            if (unit != null && unit.targets.isNotEmpty) {
+              final add = tr['indiv_points'] * weeks / unit.targets.length;
+              for (final id in unit.targets) {
+                final a = _attributeById[id];
+                if (a != null) mine[a] = (mine[a] ?? 0) + add;
+              }
+            }
+            (focus, volume) = plan(keeper, mine);
+            p = _learn(p, own, weeks);
+          }
           final minutes = played == 0
               ? 0.5
               : ((_minutes[p.id] ?? 0) / (90 * played)).clamp(0.0, 1.0);
@@ -873,6 +898,90 @@ class SeasonRunner {
   }
 
   late final Development _development = Development(rules);
+
+  /// Individual plans of the players (step 11c) and the weeks spent on the
+  /// current position or role.
+  Map<PlayerId, IndividualPlan> _individual = {};
+  Map<PlayerId, int> _learnt = {};
+
+  /// The individual plan of [player], null for none.
+  IndividualPlan? individualOf(PlayerId player) => _individual[player];
+
+  /// Weeks [player] has spent on his current position or role.
+  int learntWeeks(PlayerId player) => _learnt[player] ?? 0;
+
+  /// Sets the individual plan of a player of [club]; null clears it.
+  bool setIndividual(ClubId club, PlayerId player, IndividualPlan? plan) {
+    if (!(_squads[club]?.any((p) => p.id == player) ?? false)) return false;
+    if (_individual[player] == plan) return true;
+    _learnt.remove(player);
+    if (plan == null) {
+      _individual.remove(player);
+    } else {
+      _individual[player] = plan;
+    }
+    return true;
+  }
+
+  /// A new position goes from unknown to "practised" to "trained", a role
+  /// one level up, after enough weeks (step 11c).
+  Player _learn(Player p, IndividualPlan plan, int weeks) {
+    final tr = rules.season.training;
+    final done = (_learnt[p.id] ?? 0) + weeks;
+    _learnt[p.id] = done;
+    final pos = plan.position;
+    if (pos != null && pos != p.position) {
+      final now = p.secondaryPositions[pos];
+      final next = done >= tr['pos_trained_weeks']
+          ? PositionFamiliarity.trained
+          : done >= tr['pos_practised_weeks']
+          ? PositionFamiliarity.practised
+          : null;
+      if (next != null && next != now) {
+        return p.copyWith(
+          secondaryPositions: {...p.secondaryPositions, pos: next},
+        );
+      }
+    }
+    final role = plan.role;
+    if (role != null && done >= tr['role_step_weeks']) {
+      final now = p.roles[role] ?? RoleFamiliarity.basic;
+      if (now != RoleFamiliarity.expert) {
+        _learnt[p.id] = 0;
+        return p.copyWith(
+          roles: {...p.roles, role: RoleFamiliarity.values[now.index + 1]},
+        );
+      }
+    }
+    return p;
+  }
+
+  /// What the assistant would have [p] work on: the weakest of the units
+  /// that matter for his position (rules `suggest`).
+  IndividualPlan? suggestIndividual(Player p) {
+    final tr = rules.season.training;
+    final ids = tr.suggest[p.position.id.toLowerCase()] ?? const [];
+    String? best;
+    var lowest = double.infinity;
+    for (final id in ids) {
+      final unit = tr.units[id];
+      if (unit == null || unit.targets.isEmpty) continue;
+      var sum = 0.0;
+      var n = 0;
+      for (final t in unit.targets) {
+        final a = _attributeById[t];
+        if (a == null) continue;
+        sum += p.attributes[a];
+        n++;
+      }
+      if (n == 0) continue;
+      if (sum / n < lowest) {
+        lowest = sum / n;
+        best = id;
+      }
+    }
+    return best == null ? null : IndividualPlan.unit(best);
+  }
 
   /// Clubs of human managers: their cases wait for a decision.
   Set<ClubId> _humans = const {};
@@ -1216,6 +1325,8 @@ class SeasonRunner {
     };
     _devWeek = 0;
     _devDone = {};
+    _individual = {};
+    _learnt = {};
     _focusPts = {};
     _played = {};
     _humans = Set.of({...humanClubs, ...userSheets.keys});

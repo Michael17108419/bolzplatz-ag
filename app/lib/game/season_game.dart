@@ -329,6 +329,13 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
           _openNext(sheet, record: false);
         case 'day':
           _advanceDay(record: false);
+        case 'indiv':
+          final plan = entry['plan'] as Map<String, dynamic>?;
+          _setIndividual(
+            PlayerId(entry['player'] as int),
+            plan == null ? null : IndividualPlan.fromJson(plan),
+            record: false,
+          );
         case 'train':
           _setTrainingDay(
             entry['day'] as int,
@@ -412,6 +419,30 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
     }
     if (done) state = game._with();
     return done;
+  }
+
+  /// The individual plan of one player (step 11c), null clears it.
+  /// Recorded for loading.
+  bool setIndividual(PlayerId player, IndividualPlan? plan) =>
+      _setIndividual(player, plan, record: true);
+
+  bool _setIndividual(
+    PlayerId player,
+    IndividualPlan? plan, {
+    required bool record,
+  }) {
+    final game = state;
+    if (game == null) return false;
+    final ok = game.runner.setIndividual(game.clubId, player, plan);
+    if (ok && record) {
+      game.log.add({
+        'op': 'indiv',
+        'player': player.value,
+        'plan': plan?.toJson(),
+      });
+    }
+    if (ok) state = game._with();
+    return ok;
   }
 
   /// Plans the training of [epochDay] (step 11a). Recorded for loading.

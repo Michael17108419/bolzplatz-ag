@@ -1,3 +1,4 @@
+import '../model/position.dart';
 import '../rules/rules.dart';
 
 /// How hard a training unit is (step 11a).
@@ -111,6 +112,7 @@ class TrainingRules {
     required this.templates,
     required this.values,
     this.devPoints = const [0.5, 1.0, 1.6],
+    this.suggest = const {},
   });
 
   factory TrainingRules.fromJson(Map<String, dynamic>? m) {
@@ -146,6 +148,11 @@ class TrainingRules {
       devPoints: points == null
           ? const [0.5, 1.0, 1.6]
           : [for (final x in points) (x as num).toDouble()],
+      suggest: {
+        for (final e
+            in ((m['suggest'] as Map<String, dynamic>?) ?? const {}).entries)
+          e.key: (e.value as List<dynamic>).cast<String>(),
+      },
     );
   }
 
@@ -163,6 +170,10 @@ class TrainingRules {
 
   /// Points per intensity, read from `dev_points`.
   final List<double> devPoints;
+
+  /// Units the assistant picks from for an individual plan, by position id
+  /// in lower case (step 11c).
+  final Map<String, List<String>> suggest;
 
   /// The groups in the order of the rules, with their units.
   Map<String, List<UnitRule>> get groups {
@@ -235,4 +246,44 @@ class TrainingPlanner {
         TrainingSession(valid[(index * count + i) % valid.length], intensity),
     ]);
   }
+}
+
+/// What one player works on in his individual training (step 11c): the
+/// attributes of a unit, a new position, or a role.
+class IndividualPlan {
+  const IndividualPlan.unit(String this.unit) : position = null, role = null;
+  const IndividualPlan.position(Position this.position)
+    : unit = null,
+      role = null;
+  const IndividualPlan.role(String this.role) : unit = null, position = null;
+
+  factory IndividualPlan.fromJson(Map<String, dynamic> m) {
+    if (m['unit'] != null) return IndividualPlan.unit(m['unit'] as String);
+    if (m['position'] != null) {
+      return IndividualPlan.position(
+        Position.values.firstWhere((p) => p.id == m['position']),
+      );
+    }
+    return IndividualPlan.role(m['role'] as String);
+  }
+
+  final String? unit;
+  final Position? position;
+  final String? role;
+
+  Map<String, dynamic> toJson() => {
+    if (unit != null) 'unit': unit,
+    if (position != null) 'position': position!.id,
+    if (role != null) 'role': role,
+  };
+
+  @override
+  bool operator ==(Object other) =>
+      other is IndividualPlan &&
+      other.unit == unit &&
+      other.position == position &&
+      other.role == role;
+
+  @override
+  int get hashCode => Object.hash(unit, position, role);
 }

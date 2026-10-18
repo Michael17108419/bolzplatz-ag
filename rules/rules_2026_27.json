@@ -2608,6 +2608,61 @@
       "dev_volume_min": 0.75,
       "dev_volume_max": 1.25,
       "dev_ai_weeks": 4,
+      "indiv_share": 0.3,
+      "indiv_points": 3,
+      "pos_practised_weeks": 8,
+      "pos_trained_weeks": 16,
+      "role_step_weeks": 6,
+      "suggest": {
+        "tw": [
+          "goalkeeping"
+        ],
+        "iv": [
+          "heading",
+          "tackling",
+          "positioning"
+        ],
+        "lv": [
+          "crossing",
+          "speed",
+          "tackling"
+        ],
+        "rv": [
+          "crossing",
+          "speed",
+          "tackling"
+        ],
+        "zdm": [
+          "positioning",
+          "tackling",
+          "short_passing"
+        ],
+        "zm": [
+          "short_passing",
+          "build_up",
+          "endurance"
+        ],
+        "zom": [
+          "short_passing",
+          "dribbling",
+          "long_shots"
+        ],
+        "la": [
+          "dribbling",
+          "crossing",
+          "speed"
+        ],
+        "ra": [
+          "dribbling",
+          "crossing",
+          "speed"
+        ],
+        "st": [
+          "finishing",
+          "heading",
+          "ball_control"
+        ]
+      },
       "units": {
         "endurance": {
           "group": "fitness",

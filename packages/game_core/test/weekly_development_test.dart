@@ -147,6 +147,8 @@ void main() {
     );
     expect(finishing(a), greaterThan(finishing(b)));
     expect(finishing(again), finishing(a));
-    expect(a.squadOf(club).first.attributes, isNot(state.squads[club]!.first.attributes));
+    final now = a.squadOf(club).first.attributes;
+    final then = state.squads[club]!.first.attributes;
+    expect(identical(now, then), isFalse);
   });
 }

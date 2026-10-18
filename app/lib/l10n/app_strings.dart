@@ -354,6 +354,14 @@ abstract interface class AppStrings {
   String get trainingSave;
   String get trainingMatchDay;
   String get trainingRestDay;
+  String get trainingIndividual;
+  String get infoTrainingIndividual;
+  String get trainingIndividualAuto;
+  String trainingIndividualLabel(IndividualPlan? plan, int weeks);
+  String get trainingIndividualNone;
+  String get trainingIndividualUnits;
+  String get trainingIndividualPosition;
+  String get trainingIndividualRole;
   String shoutButton(int left);
   String get infoShout;
   String shoutName(Shout shout);
@@ -2178,6 +2186,35 @@ class AppStringsDe implements AppStrings {
   String get trainingMatchDay => 'Spieltag. Heute zählt nur das Ergebnis.';
   @override
   String get trainingRestDay => 'Frei';
+  @override
+  String get trainingIndividual => 'Einzeltraining';
+  @override
+  String get infoTrainingIndividual =>
+      'Jeder Spieler kann nebenbei an etwas Eigenem arbeiten: an Werten '
+      '(zum Beispiel Abschluss), an einer neuen Position (nach etwa acht '
+      'Wochen geübt, nach sechzehn eingespielt) oder an einer Rolle (alle '
+      'sechs Wochen eine Stufe). Was er einzeln macht, fehlt ihm im '
+      'Mannschaftstraining. Der Assistent schlägt vor, was am meisten '
+      'bringt.';
+  @override
+  String get trainingIndividualAuto => 'Assistent verteilt';
+  @override
+  String trainingIndividualLabel(IndividualPlan? plan, int weeks) {
+    if (plan == null) return 'Nur Mannschaftstraining';
+    final unit = plan.unit;
+    if (unit != null) return 'Werte: ${trainingUnitName(unit)}';
+    final pos = plan.position;
+    if (pos != null) return 'Umschulung auf ${pos.id} · $weeks Wochen';
+    return 'Rolle: ${roleName(plan.role!)} · $weeks Wochen';
+  }
+  @override
+  String get trainingIndividualNone => 'Kein Einzeltraining';
+  @override
+  String get trainingIndividualUnits => 'Werte';
+  @override
+  String get trainingIndividualPosition => 'Neue Position';
+  @override
+  String get trainingIndividualRole => 'Rolle';
   @override
   String shoutButton(int left) => 'Zuruf ($left)';
   @override

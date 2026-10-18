@@ -81,8 +81,146 @@ class TrainingView extends ConsumerWidget {
                 ? null
                 : () => _editDay(context, ref, d),
           ),
+        const SizedBox(height: Tokens.gapM),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                s.trainingIndividual,
+                style: theme.textTheme.titleSmall,
+              ),
+            ),
+            InfoButton(message: s.infoTrainingIndividual),
+          ],
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            key: const ValueKey('individual-auto'),
+            onPressed: () {
+              final notifier = ref.read(seasonProvider.notifier);
+              for (final p in squad) {
+                if (runner.individualOf(p.id) != null) continue;
+                final plan = runner.suggestIndividual(p);
+                if (plan != null) notifier.setIndividual(p.id, plan);
+              }
+            },
+            icon: const Icon(Icons.auto_fix_high, size: 18),
+            label: Text(s.trainingIndividualAuto),
+          ),
+        ),
+        for (final p in squad)
+          ListTile(
+            key: ValueKey('individual-${p.id.value}'),
+            dense: true,
+            title: Text(p.displayName),
+            subtitle: Text(
+              s.trainingIndividualLabel(
+                runner.individualOf(p.id),
+                runner.learntWeeks(p.id),
+              ),
+            ),
+            trailing: Text(p.position.id),
+            onTap: () => _editIndividual(context, ref, p),
+          ),
       ],
     );
+  }
+
+  Future<void> _editIndividual(
+    BuildContext context,
+    WidgetRef ref,
+    Player p,
+  ) async {
+    final s = ref.read(stringsProvider);
+    final rules = ref.read(loadedWorldProvider).value!.rules;
+    final roles = [
+      for (final r in rules.tactics.roles)
+        if (r.positions.contains(p.position)) r.id,
+    ];
+    final plan = await showModalBottomSheet<(IndividualPlan?,)>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) {
+        final theme = Theme.of(sheet);
+        Widget head(String t) => Padding(
+          padding: const EdgeInsets.only(top: Tokens.gapS, bottom: 4),
+          child: Text(t, style: theme.textTheme.titleSmall),
+        );
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(Tokens.gapM),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(p.displayName, style: theme.textTheme.titleMedium),
+                TextButton(
+                  key: const ValueKey('individual-none'),
+                  onPressed: () => Navigator.of(sheet).pop((null,)),
+                  child: Text(s.trainingIndividualNone),
+                ),
+                head(s.trainingIndividualUnits),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final u in rules.season.training.units.values)
+                      if (u.targets.isNotEmpty &&
+                          (u.id != 'goalkeeping' || p.position.isGoalkeeper))
+                        ActionChip(
+                          key: ValueKey('individual-unit-${u.id}'),
+                          label: Text(s.trainingUnitName(u.id)),
+                          onPressed: () => Navigator.of(
+                            sheet,
+                          ).pop((IndividualPlan.unit(u.id),)),
+                        ),
+                  ],
+                ),
+                if (!p.position.isGoalkeeper) ...[
+                  head(s.trainingIndividualPosition),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final pos in Position.values)
+                        if (!pos.isGoalkeeper && pos != p.position)
+                          ActionChip(
+                            key: ValueKey('individual-pos-${pos.id}'),
+                            label: Text(pos.id),
+                            onPressed: () => Navigator.of(
+                              sheet,
+                            ).pop((IndividualPlan.position(pos),)),
+                          ),
+                    ],
+                  ),
+                ],
+                if (roles.isNotEmpty) ...[
+                  head(s.trainingIndividualRole),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final r in roles)
+                        ActionChip(
+                          key: ValueKey('individual-role-$r'),
+                          label: Text(s.roleName(r)),
+                          onPressed: () => Navigator.of(
+                            sheet,
+                          ).pop((IndividualPlan.role(r),)),
+                        ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (plan == null) return;
+    ref.read(seasonProvider.notifier).setIndividual(p.id, plan.$1);
   }
 
   Future<void> _pickTemplate(
