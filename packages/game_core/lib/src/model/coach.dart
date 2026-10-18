@@ -1,4 +1,5 @@
 import '../calendar/game_date.dart';
+import 'career.dart';
 import 'ids.dart';
 
 /// A coach. Skill keys are string ids defined in the rules, so the set of
@@ -33,4 +34,47 @@ class Coach {
 
   @override
   int get hashCode => id.hashCode;
+}
+
+/// What a coach brings to his team (engine 2, step 10f3): tactical
+/// knowledge for changes in a match, charisma and motivation for team
+/// talks, man management for the mood of the players. All 1 to 100, 50 is
+/// an average coach.
+class CoachProfile {
+  const CoachProfile({
+    this.tactics = 50,
+    this.charisma = 50,
+    this.motivation = 50,
+    this.leadership = 50,
+  });
+
+  /// An AI coach of the world. Coaches of the world know no motivation and
+  /// man management yet: those follow charisma and tactical knowledge.
+  factory CoachProfile.ofCoach(Coach c) {
+    final tactics = c.skills['tactical_knowledge'] ?? 50;
+    final charisma = c.skills['charisma'] ?? 50;
+    return CoachProfile(
+      tactics: tactics,
+      charisma: charisma,
+      motivation: c.skills['motivation'] ?? charisma,
+      leadership: c.skills['man_management'] ?? (charisma + tactics) / 2,
+    );
+  }
+
+  /// The manager of the player.
+  factory CoachProfile.ofTrainer(Trainer t) => CoachProfile(
+    tactics: t[ManagerValue.tacticalKnowledge],
+    charisma: t[ManagerValue.charisma],
+    motivation: t[ManagerValue.motivation],
+    leadership: t[ManagerValue.manManagement],
+  );
+
+  final double tactics;
+  final double charisma;
+  final double motivation;
+  final double leadership;
+
+  /// How strongly a team talk lands: 0.5 for a dull coach, 1.5 for a
+  /// fiery one.
+  double get talk => 0.5 + (charisma + motivation) / 200;
 }

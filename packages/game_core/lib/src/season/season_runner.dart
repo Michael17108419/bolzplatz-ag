@@ -11,15 +11,21 @@ import '../match/limits.dart';
 import '../match/match_session.dart';
 import '../match/match_types.dart';
 import '../match/team_sheet.dart';
+import '../model/character.dart';
+import '../model/coach.dart';
 import '../model/ids.dart';
 import '../model/referee.dart';
+import '../model/player.dart';
 import '../model/region.dart';
 import '../model/venue.dart';
 import '../pyramid/pyramid.dart';
 import '../result/result.dart';
 import '../rng/seeded_random.dart';
 import '../rules/rules.dart';
+import '../squad/cabin.dart';
 import '../squad/ratings.dart';
+import '../squad/talk.dart';
+import '../world/world_report.dart';
 import 'conference.dart';
 import 'court.dart';
 import 'cup.dart';
@@ -357,12 +363,212 @@ class SeasonRunner {
         _confidence[p.id] = conf + (50 - conf) * c['confidence_decay'];
       }
     }
+    _moodAfter(home, r.homeGoals, r.awayGoals, r);
+    _moodAfter(away, r.awayGoals, r.homeGoals, r);
     for (final e in r.minutesPlayed.entries) {
       if (e.value <= 0) continue;
       final now = loadOf(e.key, _today) * c['load_reference'];
       _load[e.key] = now + e.value;
       _loadDay[e.key] = _today;
     }
+  }
+
+  /// Mood of every player this season (step 10f3), the run of results of
+  /// every club (wins positive, defeats negative), the coaches, the
+  /// dressing rooms (with the strength order of the squad, refreshed every
+  /// few weeks), the week of the last talk of a club and open promises of
+  /// playing time (matches left).
+  Map<PlayerId, double> _mood = {};
+  Map<ClubId, int> _streak = {};
+  Map<ClubId, CoachProfile> _coaches = {};
+  final Map<ClubId, (int, Cabin, Map<PlayerId, int>)> _cabins = {};
+  Map<ClubId, int> _talkWeek = {};
+  Map<PlayerId, int> _promises = {};
+
+  /// Mood of a player, 0 to 100.
+  double moodOf(PlayerId p) => _mood[p] ?? _moodStart;
+
+  double get _moodStart {
+    final v = rules.season.condition['mood_start'];
+    return v == 0 ? 60 : v;
+  }
+
+  /// The coach of a club (a plain one when the world names none).
+  CoachProfile coachOf(ClubId club) => _coaches[club] ?? const CoachProfile();
+
+  /// True if the player was promised playing time and still waits for it.
+  bool hasPromise(PlayerId p) => _promises.containsKey(p);
+
+  static double _traitOf(Player p, CharacterTrait t) =>
+      (((p.traits[t] ?? 50) - 50) / 50).clamp(-1.0, 1.0);
+
+  /// The dressing room of [club] and the strength order of its squad
+  /// (0 is the best player), kept for a few weeks.
+  (Cabin, Map<PlayerId, int>) _cabinOf(ClubId club) {
+    final kept = _cabins[club];
+    final days = rules.season.condition['cabin_days'];
+    if (kept != null && _today - kept.$1 < days) return (kept.$2, kept.$3);
+    final squad = _state.squads[club]!;
+    final strength = {
+      for (final p in squad) p.id: WorldReport.overall(p, rules),
+    };
+    final cabin = Cabin.of(
+      squad,
+      rules.season.cabin,
+      today: GameDate.fromEpochDay(_today),
+      strength: (p) => strength[p.id] ?? 50,
+      captain: (_userSheets[club] ?? _sheets[club])?.captain,
+    );
+    final order = [...squad]
+      ..sort((a, b) => strength[b.id]!.compareTo(strength[a.id]!));
+    final rank = {for (var i = 0; i < order.length; i++) order[i].id: i};
+    _cabins[club] = (_today, cabin, rank);
+    return (cabin, rank);
+  }
+
+  /// The dressing room of [club] today (for the screens).
+  Cabin cabinOf(ClubId club) => _cabinOf(club).$1;
+
+  /// After a match of [club]: results (runs count more), playing time
+  /// measured by the place in the squad, the dressing room and the coach
+  /// move the mood of every player. Professionals take it calmer, egoists
+  /// harder.
+  void _moodAfter(ClubId club, int goalsFor, int goalsAgainst, MatchResult r) {
+    final c = rules.season.condition;
+    final res = goalsFor.compareTo(goalsAgainst);
+    final before = _streak[club] ?? 0;
+    final streak = res > 0
+        ? (before > 0 ? before + 1 : 1)
+        : res < 0
+        ? (before < 0 ? before - 1 : -1)
+        : 0;
+    _streak[club] = streak;
+    final run = 1 + c['mood_streak'] * (streak.abs() - 1).clamp(0, 3);
+    final result = res > 0
+        ? c['mood_win'] * run
+        : res < 0
+        ? -c['mood_loss'] * run
+        : 0.0;
+    final (cabin, rank) = _cabinOf(club);
+    final coach = coachOf(club);
+    final target =
+        _moodStart +
+        (cabin.mood - 0.5) * c['mood_cabin'] +
+        (coach.leadership - 50) * c['mood_leadership'] +
+        (coach.charisma - 50) * c['mood_charisma'];
+    for (final p in _state.squads[club]!) {
+      final minutes = r.minutesPlayed[p.id] ?? 0;
+      final out =
+          (_injuredUntil[p.id] ?? -1) >= _today ||
+          (_bannedUntil[p.id] ?? -1) >= _today;
+      final place = rank[p.id] ?? 99;
+      var time = 0.0;
+      if (!out) {
+        if (place < 11) {
+          time = minutes == 0
+              ? -c['mood_benched']
+              : minutes >= 60
+              ? c['mood_starter_played']
+              : 0.0;
+        } else if (place < 18) {
+          time = minutes > 0 ? c['mood_chance'] : 0.0;
+        } else {
+          time = minutes > 0 ? c['mood_fringe_played'] : 0.0;
+        }
+        time *=
+            1 + c['mood_ambition'] * _traitOf(p, CharacterTrait.ambition);
+      }
+      var d = result + time;
+      if (cabin.unhappy.contains(p.id)) d -= c['mood_unhappy'];
+      final promise = _promises[p.id];
+      if (promise != null) {
+        if (minutes >= c['talk_promise_minutes']) {
+          _promises.remove(p.id);
+          d += c['talk_promise_kept'];
+        } else if (promise <= 1) {
+          _promises.remove(p.id);
+          d -= c['talk_promise_broken'];
+        } else {
+          _promises[p.id] = promise - 1;
+        }
+      }
+      d *=
+          (1 -
+              c['mood_professional'] *
+                  _traitOf(p, CharacterTrait.professionalism)) *
+          (1 + c['mood_ego'] * _traitOf(p, CharacterTrait.egoism));
+      final m = moodOf(p.id) + d;
+      _mood[p.id] = (m + (target - m) * c['mood_drift']).clamp(0.0, 100.0);
+    }
+  }
+
+  static int _weekOf(int epochDay) =>
+      epochDay - (GameDate.fromEpochDay(epochDay).weekday - 1);
+
+  /// True if the coach of [club] still has his talk with one player this
+  /// week.
+  bool canTalkTo(ClubId club, int epochDay) =>
+      _talkWeek[club] != _weekOf(epochDay);
+
+  /// A talk of the coach of [club] with [player] (step 10f3), once a week.
+  /// Building up helps a player who is down, a warning wakes up a
+  /// professional and annoys the others, a promise of playing time lifts
+  /// the mood now and costs it twice if the coach does not keep it.
+  /// Returns how it landed (1 well, 0 flat, -1 badly), null if not allowed.
+  int? talkTo(ClubId club, PlayerId player, PlayerTalk talk, int epochDay) {
+    if (!canTalkTo(club, epochDay)) return null;
+    final p = _state.squads[club]?.where((x) => x.id == player).firstOrNull;
+    if (p == null) return null;
+    _talkWeek[club] = _weekOf(epochDay);
+    final c = rules.season.condition;
+    final f = 0.5 + coachOf(club).leadership / 100;
+    final mood = moodOf(player);
+    final ego = math.max(
+      _traitOf(p, CharacterTrait.egoism),
+      _traitOf(p, CharacterTrait.mediaHunger),
+    );
+    var landed = 0;
+    var dm = 0.0;
+    switch (talk) {
+      case PlayerTalk.encourage:
+        final down = mood < 50 || confidenceOf(player) < 45;
+        dm = c['talk_encourage_mood'] * f * (down ? 1 : 0.4);
+        if (ego > 0.3) dm *= 1.3;
+        if (down) {
+          landed = 1;
+          _confidence[player] = (confidenceOf(player) +
+                  c['talk_encourage_confidence'] * f)
+              .clamp(0.0, 100.0);
+        }
+      case PlayerTalk.warn:
+        final takes =
+            _traitOf(p, CharacterTrait.professionalism) +
+                _traitOf(p, CharacterTrait.ambition) >=
+            0;
+        if (takes) {
+          landed = 1;
+          dm = -1;
+          _playerForm[player] = (formOf(player) + c['talk_warn_form'] * f)
+              .clamp(0.0, 100.0);
+        } else {
+          landed = -1;
+          dm =
+              -c['talk_warn_mood'] *
+              (2 - f) *
+              (1 + 0.5 * _traitOf(p, CharacterTrait.temper));
+        }
+      case PlayerTalk.promise:
+        if (_promises.containsKey(player)) {
+          landed = -1;
+          dm = -3;
+        } else {
+          landed = 1;
+          dm = c['talk_promise_mood'] * f;
+          _promises[player] = c['talk_promise_matches'].round();
+        }
+    }
+    _mood[player] = (mood + dm).clamp(0.0, 100.0);
+    return landed;
   }
 
   /// Clubs of human managers: their cases wait for a decision.
@@ -458,6 +664,8 @@ class SeasonRunner {
       form: {for (final p in squad) p.id: formOf(p.id)},
       confidence: {for (final p in squad) p.id: confidenceOf(p.id)},
       load: {for (final p in squad) p.id: loadOf(p.id, _today)},
+      mood: {for (final p in squad) p.id: moodOf(p.id)},
+      coach: coachOf(club),
     );
   }
 
@@ -682,8 +890,15 @@ class SeasonRunner {
     required int seed,
     Map<ClubId, TeamSheet> userSheets = const {},
     Set<ClubId> humanClubs = const {},
+    Map<ClubId, CoachProfile> coaches = const {},
   }) {
     _userSheets = Map.of(userSheets);
+    _coaches = Map.of(coaches);
+    _mood = {};
+    _streak = {};
+    _cabins.clear();
+    _talkWeek = {};
+    _promises = {};
     _humans = Set.of({...humanClubs, ...userSheets.keys});
     _bannedUntil = {};
     _cases = [];
@@ -920,6 +1135,8 @@ class SeasonRunner {
               form: base.form,
               confidence: base.confidence,
               load: base.load,
+              mood: base.mood,
+              coach: base.coach,
               autoManage: false,
             );
           }
@@ -1090,6 +1307,8 @@ class SeasonRunner {
             form: base.form,
             confidence: base.confidence,
             load: base.load,
+            mood: base.mood,
+            coach: base.coach,
             autoManage: false,
           );
         }

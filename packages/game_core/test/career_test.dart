@@ -48,11 +48,11 @@ void main() {
   });
 
   group('rules', () {
-    test('twelve backstories with all nine values, eight president types', () {
+    test('twelve backstories with all manager values, eight president types', () {
       final career = rules.career;
       expect(career.backstories, hasLength(12));
       for (final b in career.backstories) {
-        expect(b.levels, hasLength(9), reason: b.id);
+        expect(b.levels, hasLength(ManagerValue.values.length), reason: b.id);
         expect(b.hook, startsWith('hook_'));
       }
       expect(career.presidentTypes, hasLength(8));

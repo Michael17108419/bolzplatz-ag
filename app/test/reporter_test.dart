@@ -174,6 +174,9 @@ void main() {
         'full.$k',
       'local.fulltime',
       'local.calm',
+      for (final k in ['calm', 'fire', 'praise'])
+        for (final h in ['good', 'flat', 'bad'])
+          for (final w in sides) 'talk.$k.$h.$w',
     ];
     for (final key in needed) {
       expect(strings.texts(key), isNotEmpty, reason: key);

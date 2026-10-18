@@ -362,6 +362,15 @@ class Reporter {
         _say(out, e, TickerKind.treatment, [
           (e.value ?? 0) == 1 ? 'treatment.$w' : 'treatment.keeper.$w',
         ]);
+      case MatchEventType.teamTalk:
+        final how = switch (e.value ?? 0) {
+          1 => 'good',
+          -1 => 'bad',
+          _ => 'flat',
+        };
+        _say(out, e, TickerKind.colour, [
+          'talk.${e.action}.$how.${_who(e.side)}',
+        ]);
       case MatchEventType.shootoutKick:
         break;
     }

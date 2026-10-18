@@ -794,9 +794,11 @@ class AppStringsDe implements AppStrings {
     ManagerValue.presidentTrust => 'Wie fest der Präsident an dich glaubt. Davon hängen dein Budget und deine Zukunft ab. Vertrauen gewinnt man in Jahren und verliert es in einer Halbzeit.',
     ManagerValue.pressImage => 'Was die Zeitung über dich schreibt. Ein gutes Bild gibt Rückenwind, ein schlechtes Schlagzeilen, die man nicht rahmen will.',
     ManagerValue.contacts => 'Wen du anrufen kannst. Hilft bei Transfers und beim Personal. Fußball ist ein Dorf mit Telefonnummern.',
-    ManagerValue.tacticalKnowledge => 'Wie gut du Taktik verstehst. Davon hängt ab, wie viele und wie schlaue Hinweise du zur Aufstellung bekommst. Wächst mit der Zeit.',
+    ManagerValue.tacticalKnowledge => 'Wie gut du Taktik verstehst. Davon hängt ab, wie viele und wie schlaue Hinweise du zur Aufstellung bekommst und wie schnell die Mannschaft eine Umstellung im Spiel umsetzt. Wächst mit der Zeit.',
     ManagerValue.negotiation => 'Wie hart du feilschst. Bessere Preise bei Transfers und Verträgen. Wächst mit der Erfahrung.',
     ManagerValue.talentEye => 'Wie gut du Talente erkennst, bevor es alle anderen tun. Macht dein Scouting genauer. Wächst mit der Zeit.',
+    ManagerValue.motivation => 'Wie sehr du eine Kabine anzünden kannst. Macht deine Ansprachen vor dem Spiel und in der Halbzeit stärker, zusammen mit dem Charisma.',
+    ManagerValue.manManagement => 'Wie gut du mit Menschen umgehst. Hält die Stimmung der Spieler oben und macht Einzelgespräche wirksamer. Divas brauchen das, Profis weniger.',
   };
   @override
   String get hookInfo =>
@@ -1589,6 +1591,8 @@ class AppStringsDe implements AppStrings {
     ManagerValue.tacticalKnowledge => 'Taktikkenntnis',
     ManagerValue.negotiation => 'Verhandlungsgeschick',
     ManagerValue.talentEye => 'Talentblick',
+    ManagerValue.motivation => 'Motivation',
+    ManagerValue.manManagement => 'Menschenführung',
   };
   @override
   String levelName(TraitLevel level) => switch (level) {

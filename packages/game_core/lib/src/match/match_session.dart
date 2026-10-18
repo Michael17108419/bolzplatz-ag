@@ -52,6 +52,12 @@ class _Slot {
   /// Confidence 0 to 100 (step 10f2): moves with what he does on the day.
   double conf = 50;
 
+  /// Mood 0 to 100 (step 10f3): from the week, moved by team talks.
+  double mood = 60;
+
+  /// Extra foul risk of a hothead fired up in the dressing room (step 10f3).
+  double heat = 0;
+
   /// Forgets the cached values after the place or role changed.
   void reset() {
     base.clear();
@@ -128,6 +134,9 @@ class _Side {
   int countedChanges = 0;
   int missing = 0;
 
+  /// The session minute of the last team talk (step 10f3); one per break.
+  int talkMinute = -1;
+
   /// The minute (session minutes) up to which the team plays a man short
   /// for a treatment or a slow change (engine 2, step 10e6).
   int shortUntil = -1;
@@ -166,8 +175,13 @@ class SessionAction {
     this.systemId,
     this.pressing,
     this.tempo,
-    this.defensiveLine,
-  );
+    this.defensiveLine, [
+    this.talk,
+  ]);
+
+  /// A team talk (step 10f3).
+  factory SessionAction.teamTalk(int minute, int side, TeamTalk talk) =>
+      SessionAction._(minute, side, null, null, null, null, null, null, talk);
 
   factory SessionAction.substitution(
     int minute,
@@ -206,6 +220,7 @@ class SessionAction {
       m['pressing'] as int?,
       m['tempo'] as int?,
       m['line'] as int?,
+      m['talk'] == null ? null : TeamTalk.values.byName(m['talk'] as String),
     );
   }
 
@@ -222,6 +237,9 @@ class SessionAction {
   final int? tempo;
   final int? defensiveLine;
 
+  /// Set for a team talk.
+  final TeamTalk? talk;
+
   bool get isSubstitution => off != null;
 
   Map<String, dynamic> toJson() => {
@@ -233,11 +251,14 @@ class SessionAction {
     if (pressing != null) 'pressing': pressing,
     if (tempo != null) 'tempo': tempo,
     if (defensiveLine != null) 'line': defensiveLine,
+    if (talk != null) 'talk': talk!.name,
   };
 
   /// Does the change in [session].
   void applyTo(MatchSession session) {
-    if (isSubstitution) {
+    if (talk != null) {
+      session.teamTalk(side, talk!);
+    } else if (isSubstitution) {
       session.substitute(side, off!, on!);
     } else {
       session.changeTactics(
@@ -574,6 +595,7 @@ class MatchSession {
       slot.tx[t.index] = _trait(player, t);
     }
     slot.conf = side.team.confidence[player.id] ?? 50;
+    slot.mood = side.team.mood[player.id] ?? _moodNeutral;
     slot.counterMult = _abilityMult(
       player,
       const [SpecialAbilityType.counterPlayer],
@@ -611,6 +633,25 @@ class MatchSession {
         (_m.formMaxFactor - _m.formMinFactor) * form / 100;
   }
 
+  /// The mood a player has without reasons (step 10f3).
+  double get _moodNeutral {
+    final v = _m.confidence['mood_neutral'];
+    return v == 0 ? 60 : v;
+  }
+
+  /// Mood on the day form (step 10f3): a few per cent up or down.
+  double _moodFactor(_Slot s) =>
+      1 +
+      _m.confidence['mood_form'] *
+          ((s.mood - _moodNeutral) / 40).clamp(-1.5, 1.0);
+
+  /// A sulking player fouls more (step 10f3).
+  double _sulk(_Slot s) {
+    final low = _m.confidence['mood_low'];
+    if (s.mood >= low || low <= 0) return 0;
+    return _m.confidence['mood_foul'] * (low - s.mood) / low;
+  }
+
   double _energyFactor(_Slot s) => 1 - _m.fatigueScale * (1 - s.energy / 100);
 
   /// Mean of [attributes] of the player on [s] with all factors of the
@@ -633,7 +674,8 @@ class MatchSession {
     final mult =
         _fit.positionMultiplier(s.player, s.position) *
         _formFactor(side, s.player) *
-        s.dayForm;
+        s.dayForm *
+        _moodFactor(s);
     return _fit.meanAttributes(
       s.player,
       attributes,
@@ -674,9 +716,11 @@ class MatchSession {
       fitSum += s.fit ??= _fit.playerFit(s.player, s.position, s.role);
     }
     final teamFit = side.pitch.isEmpty ? 0.0 : fitSum / side.pitch.length;
+    // A coach with tactical knowledge gets changes across faster (10f3).
     final unsettled =
         math.max(0, side.countedChanges - tactics.freeChanges) *
-        tactics.penaltyPerExtraChange;
+        tactics.penaltyPerExtraChange *
+        (1.5 - side.team.coach.tactics / 100).clamp(0.5, 1.5);
     side.fitBonus = math.max(0.0, tactics.fitBonusMax * teamFit - unsettled);
     final strength =
         math.pow(_m.missingPlayerStrength, side.missing).toDouble() *
@@ -1405,7 +1449,8 @@ class MatchSession {
         // A booked player holds back.
         ((_sides[o].yellows[fouler.player.id] ?? 0) > 0
             ? _m.repeatYellowWeight
-            : 1.0);
+            : 1.0) *
+        (1 + fouler.heat + _sulk(fouler));
     if (_rng.nextDouble() >= p) return false;
     final dogso = through && _rng.nextDouble() < r.dogsoShare;
     final advantage =
@@ -2721,6 +2766,102 @@ class MatchSession {
     _bringOn(side, incoming, slot.position, slot.role, slot.player);
     _refresh(s);
     return true;
+  }
+
+  /// True if [side] may give a team talk now: before kick-off or at a
+  /// break, once per break.
+  bool canTalk(int side) =>
+      !_finished && inBreak && _sides[side].talkMinute != _minute;
+
+  /// A team talk for [side] (step 10f3): moves confidence and mood of the
+  /// players on the pitch for this match. How much depends on the coach
+  /// (charisma, motivation), whether it fits the score, and the character:
+  /// professionals stay cool, divas love praise, hotheads boil over when
+  /// fired up. Returns how it landed (1 well, 0 flat, -1 badly), null when
+  /// not allowed now.
+  int? teamTalk(int side, TeamTalk talk) {
+    if (!canTalk(side)) return null;
+    _actions.add(SessionAction.teamTalk(_minute, side, talk));
+    final s = _sides[side];
+    s.talkMinute = _minute;
+    final c = _m.confidence;
+    final fit = _talkFit(side, talk);
+    final strength = s.team.coach.talk;
+    var sum = 0.0;
+    for (final slot in s.pitch) {
+      final prof = math.max(0.0, slot.tx[CharacterTrait.professionalism.index]);
+      final ego = math.max(
+        slot.tx[CharacterTrait.egoism.index],
+        slot.tx[CharacterTrait.mediaHunger.index],
+      );
+      final temper = slot.tx[CharacterTrait.temper.index];
+      var react = 1 - c['talk_professional'] * prof;
+      switch (talk) {
+        case TeamTalk.praise:
+          react *= 1 + c['talk_diva'] * math.max(0.0, ego);
+        case TeamTalk.fire:
+          react *= 1 - 0.5 * c['talk_diva'] * math.max(0.0, ego);
+          if (temper > 0.3) slot.heat += c['talk_heat'] * temper;
+        case TeamTalk.calm:
+          react *=
+              1 +
+              c['talk_nervous'] *
+                  math.max(
+                    0.0,
+                    -slot.tx[CharacterTrait.pressureResistance.index],
+                  );
+          slot.heat *= 0.5;
+      }
+      final effect = fit * strength * react;
+      sum += effect;
+      slot.conf = (slot.conf + c['talk_confidence'] * effect).clamp(0.0, 100.0);
+      slot.mood = (slot.mood + c['talk_mood'] * effect).clamp(0.0, 100.0);
+      slot.reset();
+    }
+    s.zones = null;
+    s.fxStale = true;
+    _refresh(s);
+    final mean = s.pitch.isEmpty ? 0.0 : sum / s.pitch.length;
+    final landed = mean >= 0.35
+        ? 1
+        : mean < -0.05
+        ? -1
+        : 0;
+    _add(MatchEventType.teamTalk, side, action: talk.name, value: landed);
+    return landed;
+  }
+
+  /// How well a team talk fits the moment, -1 to 1: before kick-off
+  /// anything goes a little (calm in a derby), at the break it follows the
+  /// score (fire when behind, calm or praise when ahead).
+  double _talkFit(int side, TeamTalk talk) {
+    if (_minute == 0) {
+      return switch (talk) {
+        TeamTalk.calm => setting.derby > 0 ? 0.8 : 0.3,
+        TeamTalk.fire => 0.5,
+        TeamTalk.praise => 0.2,
+      };
+    }
+    final lead = _lead(side);
+    if (lead > 0) {
+      return switch (talk) {
+        TeamTalk.calm => 0.9,
+        TeamTalk.praise => 0.7,
+        TeamTalk.fire => 0.0,
+      };
+    }
+    if (lead == 0) {
+      return switch (talk) {
+        TeamTalk.fire => 0.8,
+        TeamTalk.calm => 0.3,
+        TeamTalk.praise => 0.1,
+      };
+    }
+    return switch (talk) {
+      TeamTalk.fire => 1.0,
+      TeamTalk.calm => lead < -1 ? -0.3 : 0.2,
+      TeamTalk.praise => -0.8,
+    };
   }
 
   /// Changes system and sliders. Changes after the warm-up of the first

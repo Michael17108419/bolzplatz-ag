@@ -63,7 +63,17 @@ enum MatchEventType {
   /// off for a minute ([MatchEvent.value] 1; 0 for the keeper, who may
   /// stay).
   treatment,
+
+  /// A team talk in the dressing room (engine 2, step 10f3), before
+  /// kick-off or at a break: [side] is the team, [MatchEvent.action] the
+  /// kind (`calm`, `fire`, `praise`), [MatchEvent.value] how it landed (1
+  /// well, 0 flat, -1 badly).
+  teamTalk,
 }
+
+/// What the coach says in the dressing room (engine 2, step 10f3): calm
+/// the team down, fire it up or praise it.
+enum TeamTalk { calm, fire, praise }
 
 enum ShotOutcome { goal, saved, blocked, offTarget }
 

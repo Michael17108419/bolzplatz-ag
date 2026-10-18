@@ -1,3 +1,4 @@
+import '../model/coach.dart';
 import '../model/ids.dart';
 import '../model/player.dart';
 
@@ -114,8 +115,11 @@ class MatchTeam {
     Map<PlayerId, double> fitness = const {},
     Map<PlayerId, double> confidence = const {},
     Map<PlayerId, double> load = const {},
+    Map<PlayerId, double> mood = const {},
+    this.coach = const CoachProfile(),
     this.autoManage = true,
   }) : squad = List.unmodifiable(squad),
+       mood = Map.unmodifiable(mood),
        form = Map.unmodifiable(form),
        fitness = Map.unmodifiable(fitness),
        confidence = Map.unmodifiable(confidence),
@@ -138,6 +142,13 @@ class MatchTeam {
   /// Load of the last weeks per player (step 10f2): 1 is a full load,
   /// missing means none.
   final Map<PlayerId, double> load;
+
+  /// Mood 0 to 100 per player (step 10f3), missing means the neutral mood
+  /// of the rules.
+  final Map<PlayerId, double> mood;
+
+  /// The coach on the bench (step 10f3).
+  final CoachProfile coach;
 
   /// When true the assistant makes substitutions during the match.
   final bool autoManage;

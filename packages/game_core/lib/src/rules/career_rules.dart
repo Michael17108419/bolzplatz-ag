@@ -138,7 +138,7 @@ class CareerRules {
     }
     for (final b in backstories) {
       if (b.levels.length != ManagerValue.values.length) {
-        throw RulesError('Backstory ${b.id} needs all nine values');
+        throw RulesError('Backstory ${b.id} needs all manager values');
       }
     }
 
