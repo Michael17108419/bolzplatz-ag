@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
+import '../game/cabin.dart';
+
 import '../game/desk.dart';
 import '../game/loaded_world.dart';
 import '../game/season_game.dart';
@@ -297,7 +299,7 @@ class _Profile extends ConsumerWidget {
                 _OverviewTab(player: p, loaded: loaded),
                 _ValuesTab(player: p),
                 _RolesTab(player: p, loaded: loaded),
-                _HeadTab(player: p),
+                _HeadTab(player: p, own: p.clubId == ownClub),
                 _CareerTab(player: p, loaded: loaded),
                 _ContractTab(player: p),
               ],
@@ -606,17 +608,53 @@ class _RolesTab extends ConsumerWidget {
 }
 
 class _HeadTab extends ConsumerWidget {
-  const _HeadTab({required this.player});
+  const _HeadTab({required this.player, required this.own});
 
   final Player player;
+
+  /// A player of the own club: his type and place in the dressing room
+  /// are known (other clubs come with scouting).
+  final bool own;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
     final theme = Theme.of(context);
     final p = player;
+    final cabin = own ? ref.watch(cabinProvider) : null;
+    final types = cabin?.types[p.id] ?? const <Archetype>[];
+    final role = cabin?.roles[p.id];
     return ListView(
       children: [
+        if (cabin != null)
+          _section(
+            theme,
+            s.headArchetypes,
+            s.infoArchetypes,
+            Text(
+              types.isEmpty
+                  ? s.archetypeNone
+                  : types.map(s.archetypeName).join(' · '),
+              key: const ValueKey('player-archetypes'),
+            ),
+          ),
+        if (cabin != null && role != null)
+          _section(
+            theme,
+            s.headCabin,
+            s.infoCabin,
+            Text(
+              s.cabinRoleText(role, unhappy: cabin.unhappy.contains(p.id)),
+              key: const ValueKey('player-cabin-role'),
+            ),
+          ),
+        if (!own)
+          _section(
+            theme,
+            s.headArchetypes,
+            s.infoArchetypes,
+            Text(s.archetypeUnknown),
+          ),
         _section(
           theme,
           s.headTraits,

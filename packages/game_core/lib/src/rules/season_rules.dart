@@ -72,6 +72,7 @@ class SeasonRules {
     required this.cups,
     required this.review,
     required this.court,
+    required this.cabin,
   });
 
   factory SeasonRules.fromJson(Map<String, dynamic> m) => SeasonRules(
@@ -84,6 +85,7 @@ class SeasonRules {
     cups: CupRules.fromJson(m['cups'] as Map<String, dynamic>),
     review: ReviewRules.fromJson(m['review'] as Map<String, dynamic>),
     court: CourtRules.fromJson(m['court'] as Map<String, dynamic>),
+    cabin: CabinRules.fromJson(m['cabin'] as Map<String, dynamic>),
   );
 
   /// One matchday stands for this many days of recovery.
@@ -102,6 +104,62 @@ class SeasonRules {
 
   /// The sports court after a straight red (engine 2, step 10e3).
   final CourtRules court;
+
+  /// Types and the dressing room (engine 2, step 10f1).
+  final CabinRules cabin;
+}
+
+/// Thresholds of the types and numbers of the dressing room (engine 2,
+/// step 10f1, Doc 06): "high", "low" and "extreme" of a trait; the weights
+/// of the rank; the size of the council; how captain, council and
+/// conflicts move the mood of the room.
+class CabinRules {
+  const CabinRules(this._v);
+
+  factory CabinRules.fromJson(Map<String, dynamic> m) {
+    const keys = [
+      'high',
+      'low',
+      'extreme',
+      'rank_leadership',
+      'rank_age',
+      'rank_years',
+      'rank_strength',
+      'council_size',
+      'captain_fit',
+      'captain_weak',
+      'council_professionalism',
+      'power_struggle',
+      'party_council',
+      'mercenary_council',
+      'diva_outside',
+    ];
+    final v = <String, double>{};
+    for (final k in keys) {
+      final raw = m[k];
+      if (raw is! num) throw RulesError('season.cabin.$k is missing');
+      v[k] = raw.toDouble();
+    }
+    return CabinRules(Map.unmodifiable(v));
+  }
+
+  final Map<String, double> _v;
+
+  double get high => _v['high']!;
+  double get low => _v['low']!;
+  double get extreme => _v['extreme']!;
+  double get rankLeadership => _v['rank_leadership']!;
+  double get rankAge => _v['rank_age']!;
+  double get rankYears => _v['rank_years']!;
+  double get rankStrength => _v['rank_strength']!;
+  int get councilSize => _v['council_size']!.round();
+  double get captainFit => _v['captain_fit']!;
+  double get captainWeak => _v['captain_weak']!;
+  double get councilProfessionalism => _v['council_professionalism']!;
+  double get powerStruggle => _v['power_struggle']!;
+  double get partyCouncil => _v['party_council']!;
+  double get mercenaryCouncil => _v['mercenary_council']!;
+  double get divaOutside => _v['diva_outside']!;
 }
 
 /// The range of a ban for one kind of red card: matches of the competition

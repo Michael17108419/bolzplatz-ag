@@ -80,6 +80,19 @@ abstract interface class AppStrings {
   String get matchKickOff;
   String get matchPreviewStrength;
 
+  // Types and dressing room (step 10f1).
+  String get headArchetypes;
+  String get infoArchetypes;
+  String get archetypeNone;
+  String get archetypeUnknown;
+  String archetypeName(Archetype type);
+  String get headCabin;
+  String get infoCabin;
+  String cabinRoleText(CabinRole role, {required bool unhappy});
+  String cabinMoodName(double mood);
+  String squadCabinLine(double mood, List<String> council);
+  String cabinConflictName(CabinConflict conflict);
+
   // Ground, crowd and weather (steps 10e4 and 10e5).
   String get matchPreviewConditions;
   String weatherName(String kind);
@@ -817,6 +830,72 @@ class AppStringsDe implements AppStrings {
   String get matchKickOff => 'Anpfiff';
   @override
   String get matchPreviewStrength => 'Mannschaftsstärke';
+  @override
+  String get headArchetypes => 'Typ';
+  @override
+  String get infoArchetypes =>
+      'Der Typ fasst den Charakter in ein Etikett: Diva, Heißsporn, '
+      'Vereinsseele und so weiter. Er ist nur eine Lesehilfe, wirken tun die '
+      'einzelnen Charakterwerte. Bei fremden Spielern siehst du ihn erst, '
+      'wenn es Scouting gibt.';
+  @override
+  String get archetypeNone => 'Kein besonderer Typ. Unauffällig, im Guten wie im Schlechten.';
+  @override
+  String get archetypeUnknown => 'Unbekannt. Dafür bräuchtest du einen Scout.';
+  @override
+  String archetypeName(Archetype type) => switch (type) {
+    Archetype.captain => 'Kapitän',
+    Archetype.modelPro => 'Musterprofi',
+    Archetype.diva => 'Diva',
+    Archetype.hothead => 'Heißsporn',
+    Archetype.mercenary => 'Söldner',
+    Archetype.clubLegend => 'Vereinsseele',
+    Archetype.partyAnimal => 'Partylöwe',
+    Archetype.rock => 'Fels in der Brandung',
+    Archetype.flawedGenius => 'Genie mit Macken',
+    Archetype.terrier => 'Wadenbeißer',
+    Archetype.mediaDarling => 'Liebling der Medien',
+    Archetype.workhorse => 'Arbeitstier',
+  };
+  @override
+  String get headCabin => 'Kabine';
+  @override
+  String get infoCabin =>
+      'In der Kabine hat jeder seinen Platz. Den Kapitän ernennst du. Die vier '
+      'mit dem höchsten Rang bilden den Mannschaftsrat und geben die Stimmung '
+      'vor, alle anderen laufen mit. Der Rang kommt aus Führung, Alter, Jahren '
+      'im Verein und Stärke.';
+  @override
+  String cabinRoleText(CabinRole role, {required bool unhappy}) {
+    final base = switch (role) {
+      CabinRole.captain => 'Kapitän. Trägt die Binde und redet mit dem Schiri.',
+      CabinRole.council => 'Mannschaftsrat. Hat in der Kabine das Sagen.',
+      CabinRole.follower => 'Mitläufer. Folgt der Stimmung des Rats.',
+    };
+    return unhappy
+        ? '$base Ist sauer, dass er nicht im Rat sitzt.'
+        : base;
+  }
+  @override
+  String cabinMoodName(double mood) => mood >= 0.65
+      ? 'bestens'
+      : mood >= 0.55
+      ? 'gut'
+      : mood >= 0.45
+      ? 'neutral'
+      : mood >= 0.35
+      ? 'angespannt'
+      : 'vergiftet';
+  @override
+  String squadCabinLine(double mood, List<String> council) =>
+      'Kabine: ${cabinMoodName(mood)} · Rat: ${council.join(', ')}';
+  @override
+  String cabinConflictName(CabinConflict conflict) => switch (conflict) {
+    CabinConflict.divaOutside => 'Eine Diva fühlt sich übergangen',
+    CabinConflict.powerStruggle => 'Machtkampf im Rat',
+    CabinConflict.partyCouncil => 'Partylöwen im Rat',
+    CabinConflict.mercenaryCouncil => 'Ein Söldner im Rat',
+  };
   @override
   String get matchPreviewConditions => 'Stadion und Wetter';
   @override

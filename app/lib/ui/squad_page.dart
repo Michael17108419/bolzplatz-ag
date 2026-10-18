@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
+import '../game/cabin.dart';
+
 import '../game/desk.dart';
 import '../game/loaded_world.dart';
 import '../game/season_game.dart';
@@ -84,6 +86,7 @@ class _SquadPageState extends ConsumerState<SquadPage> {
                 const SizedBox(height: Tokens.gapS),
                 _HeaderRow(sort: _sort, reversed: _reversed, onSort: _pick),
               ],
+              const _CabinLine(),
               const SizedBox(height: 4),
               Expanded(
                 child: rows.isEmpty
@@ -640,6 +643,43 @@ class _NarrowTile extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The dressing room in one line: its mood and the council (step 10f1).
+class _CabinLine extends ConsumerWidget {
+  const _CabinLine();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cabin = ref.watch(cabinProvider);
+    final loaded = ref.watch(loadedWorldProvider).value;
+    if (cabin == null || loaded == null) return const SizedBox.shrink();
+    final s = ref.watch(stringsProvider);
+    final theme = Theme.of(context);
+    final names = [
+      for (final id in cabin.council) loaded.player(id)?.lastName ?? '?',
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              [
+                s.squadCabinLine(cabin.mood, names),
+                for (final c in cabin.conflicts) s.cabinConflictName(c),
+              ].join(' · '),
+              key: const ValueKey('squad-cabin'),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+          InfoButton(message: s.infoCabin),
+        ],
       ),
     );
   }

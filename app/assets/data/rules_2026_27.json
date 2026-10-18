@@ -2510,6 +2510,23 @@
     "injury_days_per_matchday": 7,
     "suspension_yellow_cards": 5,
     "straight_red_ban_matches": 1,
+    "cabin": {
+      "high": 70,
+      "low": 30,
+      "extreme": 85,
+      "rank_leadership": 0.45,
+      "rank_age": 0.2,
+      "rank_years": 0.2,
+      "rank_strength": 0.15,
+      "council_size": 4,
+      "captain_fit": 0.12,
+      "captain_weak": 0.1,
+      "council_professionalism": 0.15,
+      "power_struggle": 0.1,
+      "party_council": 0.06,
+      "mercenary_council": 0.05,
+      "diva_outside": 0.03
+    },
     "court": {
       "dogso": { "unit": "matches", "min": 1, "max": 2 },
       "rough": { "unit": "weeks", "min": 2, "max": 4 },
