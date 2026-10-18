@@ -2451,7 +2451,11 @@ class MatchSession {
             (1 + _m.injuryFatigueFactor * (1 - s.energy / 100)) *
             (1 +
                 rules.season.condition['load_injury'] *
-                    (side.team.load[s.player.id] ?? 0));
+                    math.max(
+                      0.0,
+                      (side.team.load[s.player.id] ?? 0) -
+                          rules.season.condition['load_free'],
+                    ));
         if (_rng.nextDouble() < chance) _injure(i, s);
       }
     }
