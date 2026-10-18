@@ -13,6 +13,7 @@ import '../match/match_types.dart';
 import '../match/team_sheet.dart';
 import '../model/ids.dart';
 import '../model/referee.dart';
+import '../model/venue.dart';
 import '../model/region.dart';
 import '../pyramid/pyramid.dart';
 import '../result/result.dart';
