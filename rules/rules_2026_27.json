@@ -2338,7 +2338,7 @@
       "free_kick_minute_share": 0.6,
       "penalty_minute_share": 0.6,
       "yellow_minute_share": 0.75,
-      "red_minute_share": 0.4,
+      "red_minute_share": 0.3,
       "dissent_chance": 0.06,
       "dissent_temper": 0.8,
       "dissent_card": 0.35,

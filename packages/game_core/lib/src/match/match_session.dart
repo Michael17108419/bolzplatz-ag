@@ -1304,7 +1304,11 @@ class MatchSession {
         math.max(
           0.1,
           1 + r.foulAggression * fouler.tx[CharacterTrait.aggression.index],
-        );
+        ) *
+        // A booked player holds back.
+        ((_sides[o].yellows[fouler.player.id] ?? 0) > 0
+            ? _m.repeatYellowWeight
+            : 1.0);
     if (_rng.nextDouble() >= p) return false;
     final dogso = through && _rng.nextDouble() < r.dogsoShare;
     final advantage =
