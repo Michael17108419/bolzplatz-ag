@@ -17,6 +17,7 @@ MatchTeam _tuned(
   MatchTeam t, {
   double? mood,
   CoachProfile coach = const CoachProfile(),
+  bool auto = true,
 }) => MatchTeam(
   clubId: t.clubId,
   name: t.name,
@@ -27,6 +28,7 @@ MatchTeam _tuned(
       for (final p in t.squad) p.id: mood,
   },
   coach: coach,
+  autoManage: auto,
 );
 
 /// Plays [s] up to the half-time break.
@@ -122,9 +124,11 @@ void main() {
       if (a.clubId == b.clubId) continue;
       MatchSession make() => MatchSession(
         rules: rules,
+        // The side of the player: the AI coach would talk at the break.
         home: _tuned(
           a,
           coach: const CoachProfile(charisma: 85, motivation: 85),
+          auto: false,
         ),
         away: _tuned(b),
         seed: 7700 + i,
