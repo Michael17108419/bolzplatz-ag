@@ -485,6 +485,38 @@ class CounterRules {
 
 /// How hidden character traits work in the match (engine 2). A trait
 /// counts as (value - [reference]) / [scale], limited to -1 and 1.
+/// Short absences by the Laws 2026/27 (engine 2, step 10e6): a player
+/// treated on the pitch stays off for a minute (not the keeper), and a
+/// substitution that takes longer than ten seconds makes the new man wait a
+/// minute. The team plays that minute a man short.
+class TreatmentRules {
+  const TreatmentRules({
+    required this.perMatch,
+    required this.shortFactor,
+    required this.stoppage,
+    required this.subTenSeconds,
+  });
+
+  factory TreatmentRules.fromJson(Map<String, dynamic> m) => TreatmentRules(
+    perMatch: (m['per_match'] as num).toDouble(),
+    shortFactor: (m['short_factor'] as num).toDouble(),
+    stoppage: (m['stoppage'] as num).toDouble(),
+    subTenSeconds: (m['sub_ten_seconds'] as num).toDouble(),
+  );
+
+  /// Treatments (knocks without injury) per match.
+  final double perMatch;
+
+  /// Attack and defence of a team a man short for a minute.
+  final double shortFactor;
+
+  /// Minutes of stoppage time per treatment.
+  final double stoppage;
+
+  /// Chance that a late change of a leading team takes too long.
+  final double subTenSeconds;
+}
+
 /// Weather and the state of the ground (engine 2, step 10e5): rolled from
 /// month and region, the ground from the weather, the season and how good
 /// the grass of the home club is; what rain, a heavy pitch, wind and heat
@@ -1088,6 +1120,7 @@ class MatchRules {
     required this.video,
     required this.crowd,
     required this.weather,
+    required this.treatment,
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -1279,6 +1312,9 @@ class MatchRules {
       video: VideoRules.fromJson(m['video'] as Map<String, dynamic>),
       crowd: CrowdRules.fromJson(m['crowd'] as Map<String, dynamic>),
       weather: WeatherRules.fromJson(m['weather'] as Map<String, dynamic>),
+      treatment: TreatmentRules.fromJson(
+        m['treatment'] as Map<String, dynamic>,
+      ),
     );
     result._validate();
     return result;
@@ -1462,4 +1498,7 @@ class MatchRules {
 
   /// Weather and ground (engine 2, step 10e5).
   final WeatherRules weather;
+
+  /// A minute off after treatment, the ten-second change (step 10e6).
+  final TreatmentRules treatment;
 }

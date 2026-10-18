@@ -34,8 +34,8 @@ enum MatchEventType {
 
   /// A delay punished by the Laws (engine 2): [side] is the team that
   /// wasted time, [MatchEvent.action] says how (`keeper_eight_seconds`,
-  /// `goal_kick_countdown`, `throw_in_countdown`), [MatchEvent.player] is
-  /// the culprit.
+  /// `goal_kick_countdown`, `throw_in_countdown`, `sub_ten_seconds`),
+  /// [MatchEvent.player] is the culprit.
   timeWasting,
 
   /// A foul in an attack (engine 2, step 10e1): [side] is the team that
@@ -58,6 +58,11 @@ enum MatchEventType {
   /// `second_cancelled` (VAR takes back a second yellow). [side] is the
   /// team the decision is about, [MatchEvent.value] 1 with VAR, 0 without.
   varReview,
+
+  /// A player is treated on the pitch (engine 2, step 10e6) and must stay
+  /// off for a minute ([MatchEvent.value] 1; 0 for the keeper, who may
+  /// stay).
+  treatment,
 }
 
 enum ShotOutcome { goal, saved, blocked, offTarget }

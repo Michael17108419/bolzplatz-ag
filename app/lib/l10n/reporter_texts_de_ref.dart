@@ -345,4 +345,44 @@ const Map<String, List<String>> reporterRefereeDe = {
     "{k} rettet uns! {k}! {k}! {k}!",
     "Den hält {k} mit den Fingerspitzen! Weltklasse!",
   ],
+
+  // ------------------------------------- minute off, slow change (10e6)
+  "treatment.own": [
+    "{p} wird behandelt und muss eine Minute raus. Neue Regel, alte "
+        "Schmerzen. Wir zu zehnt.",
+    "Behandlung für {p}, danach eine Minute an der Seitenlinie warten. "
+        "Kurz Unterzahl.",
+    "{p} liegt, der Physio sprintet. Eine Minute ohne {p}, bitte jetzt "
+        "nichts anbrennen lassen.",
+  ],
+  "treatment.opp": [
+    "{p} von {team} wird behandelt und muss eine Minute raus. Unsere "
+        "Chance!",
+    "Behandlungspause bei {team}: {p} wartet eine Minute an der Linie.",
+    "{p} hält sich das Bein, Physio drauf, eine Minute Unterzahl für "
+        "{team}.",
+  ],
+  "treatment.keeper.own": [
+    "Unser Torwart {p} wird behandelt. Er darf bleiben, Torhüter sind "
+        "von der Minute ausgenommen.",
+    "{p} im Tor lässt sich kurz verarzten. Weiter geht's.",
+  ],
+  "treatment.keeper.opp": [
+    "Der Keeper von {team}, {p}, wird behandelt. Er bleibt drin.",
+    "{p} im Tor von {team} lässt sich behandeln. Zeitspiel? Ach was.",
+  ],
+  "waste.sub_ten_seconds.own": [
+    "{p} schleicht vom Platz, zehn Sekunden sind um! Der Neue muss eine "
+        "Minute warten. Zu clever gewesen.",
+    "Zu langsam gewechselt: {p} trödelt, wir eine Minute zu zehnt. "
+        "Taktisch? Eher dämlich.",
+    "{p} winkt noch ins Publikum, der Schiri zählt bis zehn. Eine Minute "
+        "Unterzahl.",
+  ],
+  "waste.sub_ten_seconds.opp": [
+    "{p} trödelt beim Wechsel, zehn Sekunden um! {team} eine Minute in "
+        "Unterzahl. Ha!",
+    "Zeitspiel beim Wechsel bestraft: {p} zu langsam, der Neue wartet.",
+    "{p} geht im Schneckentempo, und der Schiri sagt: eine Minute warten.",
+  ],
 };

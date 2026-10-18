@@ -124,6 +124,10 @@ class _Side {
   int? windowMinute;
   int countedChanges = 0;
   int missing = 0;
+
+  /// The minute (session minutes) up to which the team plays a man short
+  /// for a treatment or a slow change (engine 2, step 10e6).
+  int shortUntil = -1;
   double momentum = 0;
   double homeFactor = 1;
   double drainMult = 1;
@@ -332,6 +336,7 @@ class MatchSession {
   int _halfCards = 0;
   int _halfWasted = 0;
   int _halfChecks = 0;
+  int _halfTreatments = 0;
   int _goalsHome = 0;
   int _goalsAway = 0;
   bool _finished = false;
@@ -944,6 +949,7 @@ class MatchSession {
         a.perCard * _halfCards +
         a.perTimeWasting * _halfWasted +
         _m.video.stoppagePerCheck * _halfChecks +
+        _m.treatment.stoppage * _halfTreatments +
         a.random * _rng.nextDouble();
     return minutes.round().clamp(0, a.max);
   }
@@ -956,6 +962,7 @@ class MatchSession {
     _halfCards = 0;
     _halfWasted = 0;
     _halfChecks = 0;
+    _halfTreatments = 0;
     if (last) {
       _add(MatchEventType.fullTime, -1);
       _closeBooks();
@@ -1269,7 +1276,15 @@ class MatchSession {
 
     final rateMult =
         1 + (_fx(t, 'rate') + _fx(o, 'opp_rate')) / _m.attackRateReference;
+    // A man short for a minute after a treatment or a slow change.
+    final shortA = attacker.shortUntil >= _minute
+        ? _m.treatment.shortFactor
+        : 1.0;
+    final shortD = defender.shortUntil >= _minute
+        ? _m.treatment.shortFactor
+        : 1.0;
     var att =
+        shortA *
         attacker.ratings.attack *
         (1 + _fx(t, 'att') + _fx(o, 'opp_att')) *
         attacker.homeFactor *
@@ -1281,6 +1296,7 @@ class MatchSession {
       att *= 1 + counter * (1 + dom);
     }
     final dfn =
+        shortD *
         defender.ratings.defense *
         (1 + _fx(o, 'dfn')) *
         defender.homeFactor *
@@ -2329,6 +2345,27 @@ class MatchSession {
         _sendOff(i, who, false, reason: _redKind(who));
       }
     }
+    // A knock: treated on the pitch, then a minute off (IFAB 2026/27); the
+    // keeper may stay.
+    if (_rng.nextDouble() < _m.treatment.perMatch * _rate / _m.minutes) {
+      final i = _rng.nextInt(2);
+      final side = _sides[i];
+      if (side.pitch.isNotEmpty) {
+        final who =
+            side.pitch[_rng.weightedIndex([
+              for (final s in side.pitch) s.player.injuryProneness.toDouble(),
+            ])];
+        final off = !who.position.isGoalkeeper;
+        _halfTreatments++;
+        if (off) side.shortUntil = _minute + 1;
+        _add(
+          MatchEventType.treatment,
+          i,
+          player: who.player,
+          value: off ? 1 : 0,
+        );
+      }
+    }
     // A red behind the referee's back: the VAR sees it.
     if (_rng.nextDouble() <
         _m.video.redMissedPerMatch * _err * _rate / _m.minutes) {
@@ -2584,6 +2621,23 @@ class MatchSession {
     side.entered[player.id] = _minute;
     _add(MatchEventType.substitution, i, player: player, other: off);
     _dirty = true;
+    // A leading team late on changes slowly; over ten seconds and the new
+    // man waits a minute (IFAB 2026/27).
+    final lead = i == 0 ? _goalsHome - _goalsAway : _goalsAway - _goalsHome;
+    if (off != null &&
+        !inBreak &&
+        lead > 0 &&
+        _clock >= _m.timeWasting.fromMinute &&
+        _rng.nextDouble() < _m.treatment.subTenSeconds) {
+      side.shortUntil = _minute + 1;
+      _halfWasted++;
+      _add(
+        MatchEventType.timeWasting,
+        i,
+        player: off,
+        action: 'sub_ten_seconds',
+      );
+    }
   }
 
   // ------------------------------------------------- substitutions, tactics

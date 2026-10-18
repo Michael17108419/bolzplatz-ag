@@ -1822,6 +1822,26 @@ class MatchReportPage extends ConsumerWidget {
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium,
           ),
+          if (own.session != null)
+            Text(
+              s.matchReportConditions(
+                referee: own.session!.referee?.name,
+                attendance: own.session!.setting.attendance,
+                weather: own.session!.setting.weather,
+                video: own.session!.video,
+                overturned: result.events
+                    .where(
+                      (e) =>
+                          e.type == MatchEventType.varReview ||
+                          e.annulled ||
+                          e.review == 'penalty_overturned',
+                    )
+                    .length,
+              ),
+              key: const ValueKey('report-conditions'),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall,
+            ),
           if (knockout != null) ...[
             if (knockout!.extraTime || knockout!.decidedByShootout)
               Text(

@@ -49,6 +49,10 @@ enum TickerKind {
   /// The captain leaves the pitch (substitution, injury, sending-off).
   captainOff,
 
+  /// A change that took longer than ten seconds; a player treated (10e6).
+  slowChange,
+  treatment,
+
   /// Lines only the radio reporter writes (step 10d2): a step of an attack,
   /// the moment before the shot, a free kick, colour (memory, wit, what a
   /// goal means) and a line for a quiet phase.
@@ -108,7 +112,9 @@ TickerSymbol? _symbolOf(TickerKind kind) => switch (kind) {
   TickerKind.addedTime ||
   TickerKind.keeperEightSeconds ||
   TickerKind.goalKickCountdown ||
-  TickerKind.throwInCountdown => TickerSymbol.time,
+  TickerKind.throwInCountdown ||
+  TickerKind.slowChange => TickerSymbol.time,
+  TickerKind.treatment => TickerSymbol.injury,
   TickerKind.penalty => TickerSymbol.bigChance,
   TickerKind.varCheck || TickerKind.varDecision => TickerSymbol.video,
   _ => null,
@@ -193,10 +199,13 @@ TickerKind? tickerKindOf(MatchEvent e) {
         // A plain lost pass is not worth a line.
         _ => null,
       };
+    case MatchEventType.treatment:
+      return TickerKind.treatment;
     case MatchEventType.timeWasting:
       return switch (e.action) {
         'keeper_eight_seconds' => TickerKind.keeperEightSeconds,
         'goal_kick_countdown' => TickerKind.goalKickCountdown,
+        'sub_ten_seconds' => TickerKind.slowChange,
         _ => TickerKind.throwInCountdown,
       };
     default:

@@ -357,6 +357,11 @@ class Reporter {
         _foul(e, out);
       case MatchEventType.dissent:
         _say(out, e, TickerKind.colour, ['dissent.${e.action}.${_who(e.side)}']);
+      case MatchEventType.treatment:
+        final w = _who(e.side);
+        _say(out, e, TickerKind.treatment, [
+          (e.value ?? 0) == 1 ? 'treatment.$w' : 'treatment.keeper.$w',
+        ]);
       case MatchEventType.shootoutKick:
         break;
     }

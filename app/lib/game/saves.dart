@@ -49,7 +49,9 @@ class SaveData {
   /// Bump when the format changes; older files are then refused with a hint.
   /// 2: engine 2 (zones, protocol, stoppage time) replays matches
   /// differently, so saves of version 1 can not be continued.
-  static const int version = 2;
+  /// 3: step 10e (referees, VAR, sports court, grounds, weather) plays
+  /// matches differently again and logs court decisions.
+  static const int version = 3;
 
   factory SaveData.fromJson(Map<String, dynamic> m) {
     if (m['version'] != version) {

@@ -87,6 +87,13 @@ abstract interface class AppStrings {
   String matchPreviewVenue(String? stadium, int capacity);
   String matchPreviewWeather(String weather, String ground);
   String jourFixForecast(String weather);
+  String matchReportConditions({
+    required String? referee,
+    required int attendance,
+    required String weather,
+    required bool video,
+    required int overturned,
+  });
   String matchPreviewLineup(String formation, String system);
   String get matchPreviewAbsent;
   String matchAbsence(Absence reason);
@@ -839,6 +846,29 @@ class AppStringsDe implements AppStrings {
   String matchPreviewWeather(String weather, String ground) =>
       'Wetter: ${weatherName(weather)} · Platz: ${groundName(ground)}';
   @override
+  String matchReportConditions({
+    required String? referee,
+    required int attendance,
+    required String weather,
+    required bool video,
+    required int overturned,
+  }) {
+    final parts = <String>[
+      if (referee != null) 'Schiri: $referee',
+      if (attendance > 0) '$attendance Zuschauer',
+      'Wetter: ${weatherName(weather)}',
+      if (video)
+        overturned == 0
+            ? 'VAR: kein Eingriff'
+            : overturned == 1
+            ? 'VAR: 1 Eingriff'
+            : 'VAR: $overturned Eingriffe',
+      if (!video && overturned > 0)
+        overturned == 1 ? '1 Fehlentscheidung' : '$overturned Fehlentscheidungen',
+    ];
+    return parts.join(' · ');
+  }
+  @override
   String jourFixForecast(String weather) =>
       'Der Wetterbericht für das Spiel sagt: ${weatherName(weather)}. '
       'Meteorologen haben übrigens eine ähnliche Trefferquote wie unser Sturm.';
@@ -1236,6 +1266,16 @@ class AppStringsDe implements AppStrings {
     TickerKind.calm ||
     TickerKind.varCheck ||
     TickerKind.varDecision => const [],
+    TickerKind.slowChange => const [
+      '{p} schleicht vom Platz, zehn Sekunden sind um. Der Neue muss eine '
+          'Minute warten, {team} spielt zu zehnt.',
+      'Zu langsam gewechselt: {p} trödelt, {team} ist eine Minute in '
+          'Unterzahl.',
+    ],
+    TickerKind.treatment => const [
+      '{p} wird behandelt und muss danach eine Minute draußen bleiben.',
+      'Behandlungspause für {p}. Eine Minute Unterzahl für {team}.',
+    ],
     TickerKind.captainOff => const [
       '{p} verlässt den Platz, die Kapitänsbinde wandert weiter.',
       'Ohne {p} fehlt {team} die Stimme auf dem Platz. Wer redet jetzt mit '

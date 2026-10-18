@@ -2425,6 +2425,12 @@
       "wind_long_shot": 0.85,
       "heat_drain": 1.2
     },
+    "treatment": {
+      "per_match": 1.5,
+      "short_factor": 0.93,
+      "stoppage": 0.3,
+      "sub_ten_seconds": 0.12
+    },
     "time_wasting": {
       "note": "Delays punished by the Laws: keeper holds the ball over 8 seconds (corner, IFAB 2025/26), five-second countdown at throw-in and goal kick (IFAB 2026/27). Chance per minute for a leading team from the minute on.",
       "from_minute": 70,
