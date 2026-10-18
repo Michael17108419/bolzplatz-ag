@@ -198,6 +198,11 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "actions@users.noreply.github.com"
           if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            # Keep the preview folder of the last preview build.
+            if git clone -q --depth 1 -b web-build "$repo" old 2>/dev/null &&
+              [ -d old/preview ]; then
+              cp -r old/preview build/web/preview
+            fi
             cd build/web
             touch .nojekyll
             git init -q
