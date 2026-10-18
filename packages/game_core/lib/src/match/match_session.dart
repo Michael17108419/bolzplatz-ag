@@ -156,6 +156,7 @@ class _Side {
   /// Opponents followed by a man marker of this side and the factor on
   /// their duels (step 10g1).
   Map<PlayerId, double> marked = const {};
+  int markedVersion = -1;
 
   /// The match plan (step 10g2): focus points and whether each hits a real
   /// weakness, the wing of their weak side, their key player.
@@ -497,6 +498,10 @@ class MatchSession {
   /// 10g3, for the half-time analysis).
   int _halfFrom = 0;
   int _lastHalfFrom = 0;
+
+  /// Goes up whenever players or instructions on the pitch change (step
+  /// 10h3): the man markers are only matched anew then.
+  int _pitchVersion = 0;
   int _halfSubs = 0;
   int _halfInjuries = 0;
   int _halfCards = 0;
@@ -871,7 +876,10 @@ class MatchSession {
         tactics.penaltyPerExtraChange *
         (1.5 - side.team.coach.tactics / 100).clamp(0.5, 1.5);
     side.fitBonus = math.max(0.0, tactics.fitBonusMax * teamFit - unsettled);
-    side.marked = _marks(side);
+    if (side.markedVersion != _pitchVersion) {
+      side.marked = _marks(side);
+      side.markedVersion = _pitchVersion;
+    }
     final pair = side.team.chemistry;
     // Only when the players on the pitch changed (the zone tables are
     // dropped then as well).
@@ -1116,14 +1124,13 @@ class MatchSession {
     ];
     if (markers.isEmpty) return const {};
     final other = _sides[1 - _sides.indexOf(side)];
+    final score = {
+      for (final s in other.pitch) s: _fit.slotScore(s.player, s.position),
+    };
     final attackers = [
       for (final s in other.pitch)
         if (!s.position.isGoalkeeper && lineOf(s.position) >= 2) s,
-    ]..sort(
-        (a, b) => _fit
-            .slotScore(b.player, b.position)
-            .compareTo(_fit.slotScore(a.player, a.position)),
-      );
+    ]..sort((a, b) => score[b]!.compareTo(score[a]!));
     final out = <PlayerId, double>{};
     final strength = _m.instructions.get('mark_target');
     for (var i = 0; i < markers.length && i < attackers.length; i++) {
@@ -1131,7 +1138,7 @@ class MatchSession {
       final target = attackers[i];
       final q =
           (_fit.slotScore(marker.player, marker.position) /
-                  math.max(1.0, _fit.slotScore(target.player, target.position)))
+                  math.max(1.0, score[target]!))
               .clamp(0.6, 1.4);
       out[target.player.id] = 1 - strength * q;
     }
@@ -3023,6 +3030,7 @@ class MatchSession {
         (side.played[s.player.id] ?? 0) + _minute - s.since;
     side.pitch.remove(s);
     side.zones = null;
+    _pitchVersion++;
     side.fxStale = true;
     _dirty = true;
     final wasKeeper = s.position.isGoalkeeper;
@@ -3070,6 +3078,7 @@ class MatchSession {
         field.role = null;
         field.reset();
         side.zones = null;
+        _pitchVersion++;
         side.fxStale = true;
       }
     }
@@ -3090,6 +3099,7 @@ class MatchSession {
     side.stats.substitutions++;
     side.pitch.add(_newSlot(side, player, position, role));
     side.zones = null;
+    _pitchVersion++;
     side.fxStale = true;
     side.entered[player.id] = _minute;
     _add(MatchEventType.substitution, i, player: player, other: off);
@@ -3306,6 +3316,7 @@ class MatchSession {
       if (slot.player.id == player) slot.instr = instruction;
     }
     s.zones = null;
+    _pitchVersion++;
     _refresh(s);
   }
 
@@ -3394,7 +3405,9 @@ class MatchSession {
       for (final s in o.pitch)
         if (!s.position.isGoalkeeper) s,
     ];
-    double score(_Slot s) => _fit.slotScore(s.player, s.position);
+    final cache = <_Slot, double>{};
+    double score(_Slot s) =>
+        cache[s] ??= _fit.slotScore(s.player, s.position);
     switch (focus) {
       case PlanFocus.weakSide:
         final backs = [
@@ -3508,6 +3521,7 @@ class MatchSession {
           },
         );
         s.zones = null;
+        _pitchVersion++;
         _refresh(s);
       }
     }
