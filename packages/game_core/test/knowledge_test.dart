@@ -106,10 +106,12 @@ void main() {
       TrainingSession('set_pieces_attack', Intensity.normal),
       TrainingSession('set_pieces_defence', Intensity.normal),
     ]);
-    for (var d = start; d < start + 120; d++) {
+    for (var d = start; d < start + 200; d++) {
       runner.setTrainingDay(club, d, day);
     }
-    for (var i = 0; i < 10 && !run.isOver; i++) {
+    // The first days of the season are lower leagues and cups: play on
+    // until the club has some matches behind it.
+    for (var i = 0; i < 45 && !run.isOver; i++) {
       runner.completeDay(run, runner.openDay(run));
     }
     final today = run.timeline.days[run.dayIndex].date.epochDay;
