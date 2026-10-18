@@ -23,6 +23,7 @@ class Reporter {
     this.captainOf,
     this.tier = 1,
     this.referee,
+    this.setting = const MatchSetting(),
   });
 
   final ReporterStrings strings;
@@ -42,6 +43,20 @@ class Reporter {
 
   /// Who whistles (step 10e1), named at kick-off; null for a plain referee.
   final Referee? referee;
+
+  /// Ground, crowd, derby and travel of the match (step 10e4).
+  final MatchSetting setting;
+
+  /// "24.500": a number with dots between the thousands.
+  static String thousands(int n) {
+    final digits = '$n';
+    final out = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) out.write('.');
+      out.write(digits[i]);
+    }
+    return out.toString();
+  }
 
   /// A foul with advantage: the attacking side and whether it was a
   /// Notbremse; told once the attack is over.
@@ -166,7 +181,11 @@ class Reporter {
         .replaceAll('{days}', '${e.injuryDays ?? 0}')
         .replaceAll('{n}', '${e.value ?? 0}')
         .replaceAll('{k}', playerName(e.keeper))
-        .replaceAll('{ref}', referee?.name ?? '');
+        .replaceAll('{ref}', referee?.name ?? '')
+        .replaceAll('{crowd}', thousands(setting.attendance))
+        .replaceAll('{stadium}', setting.stadium ?? '')
+        .replaceAll('{derby}', setting.derbyName ?? '')
+        .replaceAll('{km}', '${setting.travelKm}');
   }
 
   static const _neutral = {
@@ -213,6 +232,8 @@ class Reporter {
     final hasP = (p ?? e.player) != null;
     final hasK = e.keeper != null;
     final hasRef = referee != null;
+    final hasStadium = setting.stadium != null;
+    final hasDerby = setting.derbyName != null;
     final text = _pick(
       keys,
       ok: (t) =>
@@ -220,7 +241,9 @@ class Reporter {
           (hasQ || !t.contains('{q}')) &&
           (hasP || !t.contains('{p}')) &&
           (hasK || !t.contains('{k}')) &&
-          (hasRef || !t.contains('{ref}')),
+          (hasRef || !t.contains('{ref}')) &&
+          (hasStadium || !t.contains('{stadium}')) &&
+          (hasDerby || !t.contains('{derby}')),
     );
     if (text.isEmpty) return;
     out.add(
@@ -256,6 +279,7 @@ class Reporter {
     switch (e.type) {
       case MatchEventType.kickOff:
         _say(out, e, TickerKind.kickOff, ['kickoff']);
+        _venueIntro(e, out);
         _refereeIntro(e, out);
         if (tier >= 3) _say(out, e, TickerKind.colour, ['local.kickoff']);
       case MatchEventType.shot:
@@ -505,6 +529,35 @@ class Reporter {
     }
     if (e.outcome != ShotOutcome.goal) _pressure(e, out);
     _advantageOver(e, out, scored: e.isGoal);
+  }
+
+  /// The ground at kick-off: the crowd, a derby, a long trip (step 10e4).
+  void _venueIntro(MatchEvent e, List<TickerLine> out) {
+    final s = setting;
+    if (s.capacity > 0) {
+      final band = s.stadium == null
+          ? 'final'
+          : s.fill >= 0.97
+          ? 'sold'
+          : s.fill >= 0.75
+          ? 'high'
+          : s.fill >= 0.45
+          ? 'mid'
+          : 'low';
+      _say(out, e, TickerKind.colour, ['crowd.$band'], side: -1);
+    }
+    if (s.derby > 0) {
+      _say(out, e, TickerKind.colour, [
+        if (s.derbyName != null) 'derby.named.${s.derby}',
+        if (s.derbyName != null) 'derby.named',
+        'derby.${s.derby}',
+      ], side: -1);
+    }
+    if (s.travel > 0) {
+      _say(out, e, TickerKind.colour, [
+        'travel.${_who(1)}',
+      ], side: 1);
+    }
   }
 
   /// The referee at kick-off, by the trait he is known for.

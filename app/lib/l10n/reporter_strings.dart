@@ -10,7 +10,9 @@ import 'reporter_texts_de.dart';
 /// the event, `{opp}` the other club, `{home}`, `{away}`, `{score}` home to
 /// away, `{ours}` the score seen from the reporter's club, `{where}` a word
 /// for the lane, `{n}` a number (minutes of stoppage), `{days}`, `{k}` the
-/// keeper who faced a shot, `{ref}` the referee (step 10e1).
+/// keeper who faced a shot, `{ref}` the referee (step 10e1), `{crowd}` the
+/// attendance, `{stadium}`, `{derby}` the name of a rivalry, `{km}` the
+/// road kilometres of the guests (step 10e4).
 ///
 /// Keys with `own` are for the club the reporter sides with ("wir"), keys
 /// with `opp` for the other one. Another language is one more

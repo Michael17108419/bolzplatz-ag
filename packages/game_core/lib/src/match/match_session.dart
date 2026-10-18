@@ -253,6 +253,7 @@ class MatchSession {
     bool neutral = false,
     this.referee,
     this.video = false,
+    this.setting = const MatchSetting(),
   }) : _rng = SeededRandom(seed),
        _neutral = neutral,
        _fit = Fit(rules),
@@ -260,7 +261,15 @@ class MatchSession {
        _sides = [_Side(home), _Side(away)] {
     _halfEnds = [rules.match.halfTimeMinute, rules.match.minutes];
     // A neutral venue (the cup final) gives nobody the home advantage.
-    _sides[0].homeFactor = neutral ? 1 : rules.match.homeAdvantage;
+    _sides[0].homeFactor = neutral
+        ? 1
+        : setting.capacity > 0
+        ? _m.crowd.homeFactor(
+            setting.attendance,
+            setting.fill,
+            setting.derby,
+          )
+        : rules.match.homeAdvantage;
     for (final side in _sides) {
       _setUp(side);
     }
@@ -287,6 +296,9 @@ class MatchSession {
   /// True if the match has a video assistant (league 1 and 2, the big cup
   /// from the round of 16; engine 2, step 10e2).
   final bool video;
+
+  /// Ground, crowd, derby and travel of the guests (engine 2, step 10e4).
+  final MatchSetting setting;
   final bool _neutral;
   final SeededRandom _rng;
   final Fit _fit;
@@ -532,11 +544,13 @@ class MatchSession {
     final c = _m.character;
     final fitness = side.team.fitness[player.id] ?? 100.0;
     final party = math.max(0.0, _trait(player, CharacterTrait.partyFactor));
+    // The guests lost some energy on a long trip.
+    final road = identical(side, _sides[1]) ? 1 - setting.travel : 1.0;
     final slot = _Slot(
       player,
       position,
       role,
-      math.max(0.0, fitness - c.partyEnergy * party),
+      math.max(0.0, (fitness - c.partyEnergy * party) * road),
       _minute,
     );
     final spread =
@@ -1165,7 +1179,12 @@ class MatchSession {
             .limit(0, 2)]]!,
     ];
     final phases =
-        _m.phasesPerMatch / _m.minutes * _rate * (tempo[0] + tempo[1]) / 2;
+        _m.phasesPerMatch /
+        _m.minutes *
+        _rate *
+        (tempo[0] + tempo[1]) /
+        2 *
+        (1 + _m.crowd.derbyTempo * setting.derby);
     var n = phases.floor();
     if (_rng.nextDouble() < phases - n) n++;
     for (var i = 0; i < n; i++) {
@@ -2231,6 +2250,7 @@ class MatchSession {
             _rate *
             math.max(0.2, 1 + _m.character.cardTeamWeight * temper) *
             _m.referee.yellowMinuteShare *
+            (1 + _m.crowd.derbyCards * setting.derby) *
             (1 +
                 _m.referee.strictnessYellow * _rt(RefereeTrait.strictness)) *
             _cardBias(i),
@@ -2686,6 +2706,7 @@ class MatchEngine {
     required int seed,
     Referee? referee,
     bool video = false,
+    MatchSetting setting = const MatchSetting(),
   }) {
     return MatchSession(
       rules: rules,
@@ -2694,6 +2715,7 @@ class MatchEngine {
       seed: seed,
       referee: referee,
       video: video,
+      setting: setting,
     ).finish();
   }
 
@@ -2705,6 +2727,7 @@ class MatchEngine {
     bool neutral = false,
     Referee? referee,
     bool video = false,
+    MatchSetting setting = const MatchSetting(),
   }) {
     final session = MatchSession(
       rules: rules,
@@ -2714,6 +2737,7 @@ class MatchEngine {
       neutral: neutral,
       referee: referee,
       video: video,
+      setting: setting,
     );
     return session.finishKnockout();
   }

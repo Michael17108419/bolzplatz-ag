@@ -218,6 +218,41 @@ class MatchEvent {
   bool get isGoal => outcome == ShotOutcome.goal && !annulled;
 }
 
+/// Where and how a match is played (engine 2, step 10e4): the ground, the
+/// crowd, whether it is a derby and how far the guests travelled.
+class MatchSetting {
+  const MatchSetting({
+    this.stadium,
+    this.capacity = 0,
+    this.attendance = 0,
+    this.derby = 0,
+    this.derbyName,
+    this.travelKm = 0,
+    this.travel = 0,
+    this.pitch = 70,
+  });
+
+  final String? stadium;
+  final int capacity;
+  final int attendance;
+
+  /// 0 none to 3 (city derby, great rivalry).
+  final int derby;
+  final String? derbyName;
+
+  /// Road kilometres of the guests.
+  final int travelKm;
+
+  /// Share of energy the guests lost on the road (0.02 is 2 %).
+  final double travel;
+
+  /// Quality of the grass of the home ground, 1 to 100.
+  final int pitch;
+
+  /// How full the ground is, 0 to 1.
+  double get fill => capacity == 0 ? 0 : (attendance / capacity).clamp(0, 1);
+}
+
 /// Counted values of one team in one match.
 class TeamStats {
   int goals = 0;

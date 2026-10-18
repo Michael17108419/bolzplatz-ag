@@ -193,6 +193,10 @@ void main() {
       '{days}',
       '{k}',
       '{ref}',
+      '{crowd}',
+      '{stadium}',
+      '{derby}',
+      '{km}',
     };
     final placeholder = RegExp(r'\{[a-z]+\}');
     var total = 0;

@@ -146,6 +146,7 @@ class SeasonRunner {
     required this.calendarRules,
     this.forcedFormation,
     this.referees,
+    this.venues,
   }) : _engine = MatchEngine(rules),
       _auto = AutoManager(rules),
       _calendar = CalendarGenerator(calendarRules);
@@ -162,6 +163,68 @@ class SeasonRunner {
   /// The referees (engine 2, step 10e1); without them every match has a
   /// plain referee.
   final RefereePool? referees;
+
+  /// Places, stadiums and derbies (engine 2, step 10e4); without them every
+  /// match has the plain home advantage of the rules.
+  final VenueData? venues;
+
+  /// The last match day of each club: a short rest makes travel harder.
+  Map<ClubId, int> _lastMatch = {};
+
+  /// Ground, crowd, derby and travel of a match. The crowd follows the
+  /// usual fill of the league, the form of the home team, a derby and the
+  /// weekday, with a little chance from the seed of [label].
+  MatchSetting _setting(
+    ClubId home,
+    ClubId away,
+    String label, {
+    bool neutral = false,
+  }) {
+    final v = venues;
+    final hc = _state.clubs[home];
+    final ac = _state.clubs[away];
+    if (v == null || hc == null || ac == null) return const MatchSetting();
+    final c = rules.match.crowd;
+    final derby = v.derbyLevel(hc, ac);
+    final name = v.derbyName(hc, ac);
+    if (neutral) {
+      return MatchSetting(
+        capacity: c.finalCapacity,
+        attendance: c.finalCapacity,
+        derby: derby,
+        derbyName: name,
+        pitch: 90,
+      );
+    }
+    final stadium = v.stadiums[home];
+    final level = _tierOf(_state, home);
+    final capacity = stadium?.capacity ?? 3000;
+    var fill = _state.members.values.any((l) => l.contains(home))
+        ? c.fillByLevel[(level - 1).clamp(0, c.fillByLevel.length - 1)]
+        : c.poolFill;
+    final form =
+        ((_form[home] ?? rules.match.defaultForm) - rules.match.defaultForm) /
+        rules.match.defaultForm;
+    fill *= 1 + c.formEffect * form;
+    fill *= 1 + c.derbyFill * derby;
+    if (GameDate.fromEpochDay(_today).weekday <= 4) fill *= c.midweek;
+    final rng = SeededRandom(_seed).fork('crowd:$label');
+    fill *= 1 + c.noise * (2 * rng.nextDouble() - 1);
+    fill = fill.clamp(0.05, 1.0);
+    final km = v.distanceKm(hc.place, ac.place) * c.roadFactor;
+    final last = _lastMatch[away];
+    final shortRest = last != null && _today - last < c.shortRestDays;
+    return MatchSetting(
+      stadium: stadium?.name,
+      capacity: capacity,
+      attendance: (capacity * fill).round(),
+      derby: derby,
+      derbyName: name,
+      travelKm: km.round(),
+      travel: c.travelLoss(km, shortRest: shortRest),
+      pitch: stadium?.pitch ?? 60,
+    );
+  }
 
   /// The referee of a match, picked by the seed of its [label] from the
   /// pool of the higher league of both clubs (league 4 by the region of
@@ -412,6 +475,8 @@ class SeasonRunner {
     required bool countForm,
     required String comp,
   }) {
+    _lastMatch[home] = _today;
+    _lastMatch[away] = _today;
     // A club that plays serves one match of every ban it has in this
     // competition (before new cards of this match count).
     for (final club in [home, away]) {
@@ -508,6 +573,7 @@ class SeasonRunner {
     _humans = Set.of({...humanClubs, ...userSheets.keys});
     _bannedUntil = {};
     _cases = [];
+    _lastMatch = {};
     _state = state;
     _seed = seed;
     _form = {};
@@ -677,6 +743,7 @@ class SeasonRunner {
       neutral: neutral,
       referee: _referee(_state, home, away, label),
       video: video,
+      setting: _setting(home, away, label, neutral: neutral),
     );
     _afterMatch(home, away, k.match, countForm: false, comp: comp);
     return k.winnerSide == 0 ? home : away;
@@ -751,6 +818,7 @@ class SeasonRunner {
               seed: seed,
               referee: _referee(_state, f.home, f.away, 'l:$seed'),
               video: video,
+              setting: _setting(f.home, f.away, 'l:$seed'),
             ),
             isOwn: true,
             sheetReplaced: !usable,
@@ -772,6 +840,7 @@ class SeasonRunner {
                 seed: seed,
                 referee: _referee(_state, f.home, f.away, 'l:$seed'),
                 video: video,
+                setting: _setting(f.home, f.away, 'l:$seed'),
               ),
               isOwn: isOwn,
             ),
@@ -919,6 +988,7 @@ class SeasonRunner {
               neutral: neutral,
               referee: _referee(_state, h, a, label),
               video: video,
+              setting: _setting(h, a, label, neutral: neutral),
             ),
             isOwn: true,
             sheetReplaced: !usable,
@@ -941,6 +1011,7 @@ class SeasonRunner {
             neutral: neutral,
             referee: _referee(_state, h, a, label),
             video: video,
+            setting: _setting(h, a, label, neutral: neutral),
           ),
           isOwn: isOwn,
         ),

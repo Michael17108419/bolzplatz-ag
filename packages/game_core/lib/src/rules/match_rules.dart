@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../model/attribute.dart';
 import '../model/position.dart';
 import '../model/special_ability.dart';
@@ -483,6 +485,101 @@ class CounterRules {
 
 /// How hidden character traits work in the match (engine 2). A trait
 /// counts as (value - [reference]) / [scale], limited to -1 and 1.
+/// The crowd, derbies and travel (engine 2, step 10e4): how full grounds
+/// are, how a crowd makes the home advantage, how a derby heats up a match
+/// and how a long trip tires the guests.
+class CrowdRules {
+  const CrowdRules(
+    this._v,
+    this.fillByLevel,
+    this.travelStepsKm,
+    this.travelEnergy,
+  );
+
+  factory CrowdRules.fromJson(Map<String, dynamic> m) {
+    const keys = [
+      'home_base',
+      'fill_exponent',
+      'loud_attendance',
+      'small_weight',
+      'pool_fill',
+      'midweek',
+      'form_effect',
+      'noise',
+      'derby_fill',
+      'derby_home',
+      'derby_cards',
+      'derby_tempo',
+      'final_capacity',
+      'road_factor',
+      'short_rest_days',
+      'short_rest_factor',
+    ];
+    final v = <String, double>{};
+    for (final k in keys) {
+      final raw = m[k];
+      if (raw is! num) throw RulesError('match.crowd.$k is missing');
+      v[k] = raw.toDouble();
+    }
+    List<double> list(String k) => [
+      for (final x in m[k] as List<dynamic>) (x as num).toDouble(),
+    ];
+    final steps = list('travel_steps_km');
+    final energy = list('travel_energy');
+    if (steps.length != energy.length) {
+      throw const RulesError('match.crowd travel steps and energy differ');
+    }
+    return CrowdRules(
+      Map.unmodifiable(v),
+      List.unmodifiable(list('fill_by_level')),
+      List.unmodifiable(steps),
+      List.unmodifiable(energy),
+    );
+  }
+
+  final Map<String, double> _v;
+
+  /// Usual share of seats taken, league 1 to 4.
+  final List<double> fillByLevel;
+  final List<double> travelStepsKm;
+  final List<double> travelEnergy;
+
+  double get homeBase => _v['home_base']!;
+  double get fillExponent => _v['fill_exponent']!;
+  double get loudAttendance => _v['loud_attendance']!;
+  double get smallWeight => _v['small_weight']!;
+  double get poolFill => _v['pool_fill']!;
+  double get midweek => _v['midweek']!;
+  double get formEffect => _v['form_effect']!;
+  double get noise => _v['noise']!;
+  double get derbyFill => _v['derby_fill']!;
+  double get derbyHome => _v['derby_home']!;
+  double get derbyCards => _v['derby_cards']!;
+  double get derbyTempo => _v['derby_tempo']!;
+  int get finalCapacity => _v['final_capacity']!.round();
+  double get roadFactor => _v['road_factor']!;
+  int get shortRestDays => _v['short_rest_days']!.round();
+  double get shortRestFactor => _v['short_rest_factor']!;
+
+  /// The home advantage a crowd makes: fuller and bigger is louder.
+  double homeFactor(int attendance, double fill, int derby) =>
+      1 +
+      homeBase *
+          math.pow(fill.clamp(0.0, 1.0), fillExponent).toDouble() *
+          ((1 - smallWeight) +
+              smallWeight * (attendance / loudAttendance).clamp(0.0, 1.0)) +
+      derbyHome * derby;
+
+  /// Energy the guests lose on a road trip of [km]; more after a short rest.
+  double travelLoss(double km, {required bool shortRest}) {
+    var loss = 0.0;
+    for (var i = 0; i < travelStepsKm.length; i++) {
+      if (km >= travelStepsKm[i]) loss = travelEnergy[i];
+    }
+    return shortRest ? loss * shortRestFactor : loss;
+  }
+}
+
 /// Wrong decisions and the video assistant (engine 2, step 10e2). Rates
 /// are per goal, penalty or card unless they say per match; the errors
 /// trait of the referee bends them. Where there is no VAR (league 3 and 4,
@@ -893,6 +990,7 @@ class MatchRules {
     required this.timeWasting,
     required this.referee,
     required this.video,
+    required this.crowd,
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -1082,6 +1180,7 @@ class MatchRules {
       ),
       referee: RefereeRules.fromJson(m['referee'] as Map<String, dynamic>),
       video: VideoRules.fromJson(m['video'] as Map<String, dynamic>),
+      crowd: CrowdRules.fromJson(m['crowd'] as Map<String, dynamic>),
     );
     result._validate();
     return result;
@@ -1259,4 +1358,7 @@ class MatchRules {
 
   /// Wrong decisions and the VAR (engine 2, step 10e2).
   final VideoRules video;
+
+  /// Crowd, derbies and travel (engine 2, step 10e4).
+  final CrowdRules crowd;
 }

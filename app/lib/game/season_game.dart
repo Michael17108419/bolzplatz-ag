@@ -283,6 +283,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
       loaded.rules,
       calendarRules: loaded.calendarRules,
       referees: loaded.referees,
+      venues: loaded.venues,
     );
     final run = runner.begin(
       from ?? SeasonState.fromWorld(loaded.world),
