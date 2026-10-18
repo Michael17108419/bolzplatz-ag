@@ -3,12 +3,20 @@
 // in reporter_strings.dart. Claude writes, Michael checks them in the game.
 
 import 'reporter_texts_de_match.dart';
+import 'reporter_texts_de_ref.dart';
+import 'reporter_texts_de_var.dart';
+import 'reporter_texts_de_venue.dart';
 import 'reporter_texts_de_shots.dart';
+import 'reporter_texts_de_team.dart';
 
 const Map<String, List<String>> reporterTextsDe = {
   ...reporterPlayDe,
   ...reporterShotsDe,
   ...reporterMatchDe,
+  ...reporterRefereeDe,
+  ...reporterVideoDe,
+  ...reporterVenueDe,
+  ...reporterTeamDe,
 };
 
 const Map<String, List<String>> reporterPlayDe = {

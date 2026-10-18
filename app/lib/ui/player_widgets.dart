@@ -236,3 +236,32 @@ class CaptainBadge extends StatelessWidget {
     ),
   );
 }
+
+/// The mood of a player as a small face (engine 2, step 10f3): green and
+/// laughing when happy, orange and grim when he sulks.
+class MoodIcon extends StatelessWidget {
+  const MoodIcon({required this.mood, required this.label, super.key});
+
+  /// Mood 0 to 100.
+  final double mood;
+
+  /// What the face says, for the tooltip and screen readers.
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, colour) = mood >= 75
+        ? (Icons.sentiment_very_satisfied, Tokens.green)
+        : mood >= 60
+        ? (Icons.sentiment_satisfied, Tokens.green)
+        : mood >= 45
+        ? (Icons.sentiment_neutral, Tokens.beige)
+        : mood >= 30
+        ? (Icons.sentiment_dissatisfied, Tokens.orange)
+        : (Icons.sentiment_very_dissatisfied, Tokens.orange);
+    return Tooltip(
+      message: label,
+      child: Icon(icon, size: 16, color: colour, semanticLabel: label),
+    );
+  }
+}

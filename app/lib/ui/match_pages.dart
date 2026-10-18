@@ -151,6 +151,32 @@ class MatchPreviewPage extends ConsumerWidget {
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium,
           ),
+          if (own.session != null) ...[
+            const SizedBox(height: Tokens.gapM),
+            Text(
+              s.matchPreviewConditions,
+              style: theme.textTheme.titleSmall,
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              s.matchPreviewVenue(
+                own.session!.setting.stadium,
+                own.session!.setting.capacity,
+              ),
+              key: const ValueKey('match-preview-venue'),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+            Text(
+              s.matchPreviewWeather(
+                own.session!.setting.weather,
+                own.session!.setting.ground,
+              ),
+              key: const ValueKey('match-preview-weather'),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
           const SizedBox(height: Tokens.gapM),
           if (sheet != null)
             Text(
@@ -162,6 +188,26 @@ class MatchPreviewPage extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium,
             ),
+          if (own.session != null) ...[
+            const SizedBox(height: Tokens.gapS),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                MatchPlanButton(
+                  session: own.session!,
+                  side: atHome ? 0 : 1,
+                  tactics: ref
+                      .watch(careerProvider)!
+                      .trainer[ManagerValue.tacticalKnowledge],
+                  seed: game.seed ^ (home.value * 1009 + away.value),
+                  playerName: (id) => _shortName(loaded, id),
+                ),
+                TeamTalkButton(session: own.session!, side: atHome ? 0 : 1),
+              ],
+            ),
+          ],
           const SizedBox(height: Tokens.gapM),
           Text(s.matchPreviewAbsent, style: theme.textTheme.titleSmall),
           const SizedBox(height: 4),
@@ -279,6 +325,8 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
       player: _loaded.player,
       captainOf: _session.captainOf,
       tier: league?.level ?? 1,
+      referee: _session.referee,
+      setting: _session.setting,
     );
     // A saved match that was under way waits paused, so nothing happens
     // before the player is back.
@@ -451,6 +499,8 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     _stopTimer();
     _flush();
     _live = false;
+    // The assistant coaches the rest of the match (engine 2, step 10f5).
+    _session.handOver(_ownSide);
     if (_cup) {
       _session.finishKnockout();
     } else {
@@ -524,6 +574,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
           session: _session,
           side: _ownSide,
           rules: _loaded.rules,
+          playerOf: _loaded.player,
           onChanged: () {
             _ingest();
             setState(() {});
@@ -538,12 +589,58 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
         session: _session,
         side: _ownSide,
         rules: _loaded.rules,
+        playerOf: _loaded.player,
         onChanged: () {
           _ingest();
           setState(() {});
         },
       ),
     );
+  }
+
+  /// A shout from the touchline (engine 2, step 10g4).
+  Future<void> _openShout() async {
+    final s = ref.read(stringsProvider);
+    final shout = await showModalBottomSheet<Shout>(
+      context: context,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) {
+        final theme = Theme.of(sheet);
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(Tokens.gapM),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        s.shoutButton(_session.shoutsLeft(_ownSide)),
+                        style: theme.textTheme.titleMedium,
+                      ),
+                    ),
+                    InfoButton(message: s.infoShout),
+                  ],
+                ),
+                for (final sh in Shout.values)
+                  ListTile(
+                    key: ValueKey('shout-${sh.name}'),
+                    title: Text(s.shoutName(sh)),
+                    onTap: () => Navigator.of(sheet).pop(sh),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (shout == null || !mounted) return;
+    final landed = _session.shoutOut(_ownSide, shout);
+    if (landed == null) return;
+    _ingest();
+    setState(() {});
   }
 
   void _openMore() {
@@ -785,6 +882,42 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                     ),
             ),
             const SizedBox(height: Tokens.gapS),
+            if (!_over && _session.minute > 0 && _session.inBreak)
+              Padding(
+                padding: const EdgeInsets.only(bottom: Tokens.gapS),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    HalfTimeButton(
+                      key: ValueKey('half-${_session.minute}'),
+                      session: _session,
+                      side: _ownSide,
+                      tactics: ref
+                          .read(careerProvider)!
+                          .trainer[ManagerValue.tacticalKnowledge],
+                      seed: _own.fixture.home.value * 1009 +
+                          _own.fixture.away.value,
+                      playerName: (id) => _shortName(_loaded, id),
+                      onOpen: _pause,
+                      onDone: () {
+                        _ingest();
+                        setState(() {});
+                      },
+                    ),
+                    if (_session.canTalk(_ownSide))
+                      TeamTalkButton(
+                        session: _session,
+                        side: _ownSide,
+                        onOpen: _pause,
+                        onDone: () {
+                          _ingest();
+                          setState(() {});
+                        },
+                      ),
+                  ],
+                ),
+              ),
             if (_over)
               Align(
                 alignment: Alignment.centerRight,
@@ -830,6 +963,16 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                       onPressed: _openTactics,
                       child: Text(s.matchTactics, maxLines: 1),
                     ),
+                  ),
+                  const SizedBox(width: 6),
+                  IconButton.outlined(
+                    key: const ValueKey('match-shout'),
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(52, 52),
+                    ),
+                    tooltip: s.shoutButton(_session.shoutsLeft(_ownSide)),
+                    onPressed: _session.canShout(_ownSide) ? _openShout : null,
+                    icon: const Icon(Icons.record_voice_over),
                   ),
                   const SizedBox(width: 6),
                   IconButton.outlined(
@@ -880,6 +1023,11 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                     child: Text(s.matchTactics),
                   ),
                   InfoButton(message: s.infoMatchTactics),
+                  OutlinedButton(
+                    key: const ValueKey('match-shout'),
+                    onPressed: _session.canShout(_ownSide) ? _openShout : null,
+                    child: Text(s.shoutButton(_session.shoutsLeft(_ownSide))),
+                  ),
                   TextButton(
                     key: const ValueKey('match-skip'),
                     onPressed: _skip,
@@ -890,6 +1038,358 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The opponent analysis and the match plan before kick-off (engine 2,
+/// step 10g2): what the assistant sees, and up to two focus points.
+class MatchPlanButton extends ConsumerStatefulWidget {
+  const MatchPlanButton({
+    required this.session,
+    required this.side,
+    required this.tactics,
+    required this.seed,
+    required this.playerName,
+    super.key,
+  });
+
+  final MatchSession session;
+  final int side;
+  final double tactics;
+  final int seed;
+  final String Function(PlayerId id) playerName;
+
+  @override
+  ConsumerState<MatchPlanButton> createState() => _MatchPlanButtonState();
+}
+
+class _MatchPlanButtonState extends ConsumerState<MatchPlanButton> {
+  final Set<PlanFocus> _chosen = {};
+  bool _set = false;
+
+  Future<void> _open() async {
+    final s = ref.read(stringsProvider);
+    final notes = widget.session.scout(
+      widget.side,
+      tactics: widget.tactics,
+      seed: widget.seed,
+    );
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) => StatefulBuilder(
+        builder: (context, setSheet) {
+          final theme = Theme.of(context);
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(Tokens.gapM),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          s.matchPlanTitle,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      InfoButton(message: s.infoMatchPlan),
+                    ],
+                  ),
+                  const SizedBox(height: Tokens.gapS),
+                  Text(s.scoutTitle, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 4),
+                  if (notes.isEmpty)
+                    Text(s.scoutNone)
+                  else
+                    for (final n in notes)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          '• ${s.scoutNote(n.focus, wing: n.wing, player: n.player == null ? null : widget.playerName(n.player!))}',
+                          key: ValueKey('scout-${n.focus.name}'),
+                        ),
+                      ),
+                  const SizedBox(height: Tokens.gapM),
+                  Text(s.matchPlanPick, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final f in PlanFocus.values)
+                        FilterChip(
+                          key: ValueKey('plan-${f.name}'),
+                          label: Text(s.planFocusName(f)),
+                          selected: _chosen.contains(f),
+                          onSelected: (on) {
+                            if (on && _chosen.length >= 2) return;
+                            setSheet(() {
+                              on ? _chosen.add(f) : _chosen.remove(f);
+                            });
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: Tokens.gapM),
+                  FilledButton(
+                    key: const ValueKey('plan-confirm'),
+                    onPressed: () => Navigator.of(sheet).pop(),
+                    child: Text(s.matchPlanConfirm),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (!mounted || _chosen.isEmpty) return;
+    widget.session.setPlan(widget.side, _chosen.toList());
+    setState(() => _set = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_set || widget.session.minute > 0) return const SizedBox.shrink();
+    final s = ref.watch(stringsProvider);
+    return OutlinedButton.icon(
+      key: const ValueKey('match-plan'),
+      onPressed: _open,
+      icon: const Icon(Icons.assignment),
+      label: Text(s.matchPlanButton),
+    );
+  }
+}
+
+/// The half-time analysis of the assistant (engine 2, step 10g3): shots,
+/// duels, a few notes, each with a button that makes the suggested change.
+class HalfTimeButton extends ConsumerStatefulWidget {
+  const HalfTimeButton({
+    required this.session,
+    required this.side,
+    required this.tactics,
+    required this.seed,
+    required this.playerName,
+    this.onOpen,
+    this.onDone,
+    super.key,
+  });
+
+  final MatchSession session;
+  final int side;
+  final double tactics;
+  final int seed;
+  final String Function(PlayerId id) playerName;
+  final VoidCallback? onOpen;
+  final VoidCallback? onDone;
+
+  @override
+  ConsumerState<HalfTimeButton> createState() => _HalfTimeButtonState();
+}
+
+class _HalfTimeButtonState extends ConsumerState<HalfTimeButton> {
+  Future<void> _open() async {
+    widget.onOpen?.call();
+    final s = ref.read(stringsProvider);
+    final report = widget.session.halfTimeReport(
+      widget.side,
+      tactics: widget.tactics,
+      seed: widget.seed,
+    );
+    final done = <int>{};
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) => StatefulBuilder(
+        builder: (context, setSheet) {
+          final theme = Theme.of(context);
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(Tokens.gapM),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          s.halfTimeTitle,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      InfoButton(message: s.infoHalfTime),
+                    ],
+                  ),
+                  const SizedBox(height: Tokens.gapS),
+                  Text(
+                    s.halfTimeStats(
+                      report.shots,
+                      report.shotsAgainst,
+                      report.duels == 0
+                          ? 50
+                          : (100 * report.duelsWon / report.duels).round(),
+                    ),
+                    key: const ValueKey('half-stats'),
+                  ),
+                  const SizedBox(height: Tokens.gapS),
+                  if (report.notes.isEmpty) Text(s.halfTimeNothing),
+                  for (var i = 0; i < report.notes.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              s.halfNote(
+                                report.notes[i].kind,
+                                wing: report.notes[i].wing,
+                                player: report.notes[i].player == null
+                                    ? null
+                                    : widget.playerName(
+                                        report.notes[i].player!,
+                                      ),
+                              ),
+                              key: ValueKey(
+                                'half-note-${report.notes[i].kind.name}',
+                              ),
+                            ),
+                          ),
+                          if (report.notes[i].fix != null)
+                            TextButton(
+                              key: ValueKey('half-fix-$i'),
+                              onPressed: done.contains(i)
+                                  ? null
+                                  : () {
+                                      report.notes[i].fix!.applyTo(
+                                        widget.session,
+                                      );
+                                      widget.onDone?.call();
+                                      setSheet(() => done.add(i));
+                                    },
+                              child: Text(
+                                done.contains(i)
+                                    ? s.halfTimeDone
+                                    : s.halfTimeApply,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: Tokens.gapS),
+                  FilledButton(
+                    key: const ValueKey('half-close'),
+                    onPressed: () => Navigator.of(sheet).pop(),
+                    child: Text(s.matchClose),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = ref.watch(stringsProvider);
+    return OutlinedButton.icon(
+      key: const ValueKey('match-halftime'),
+      onPressed: _open,
+      icon: const Icon(Icons.analytics_outlined),
+      label: Text(s.halfTimeButton),
+    );
+  }
+}
+
+/// The team talk in the dressing room (engine 2, step 10f3): before
+/// kick-off on the preview, at a break in the live match. Gone once said.
+class TeamTalkButton extends ConsumerStatefulWidget {
+  const TeamTalkButton({
+    required this.session,
+    required this.side,
+    this.onOpen,
+    this.onDone,
+    super.key,
+  });
+
+  final MatchSession session;
+  final int side;
+  final VoidCallback? onOpen;
+  final VoidCallback? onDone;
+
+  @override
+  ConsumerState<TeamTalkButton> createState() => _TeamTalkButtonState();
+}
+
+class _TeamTalkButtonState extends ConsumerState<TeamTalkButton> {
+  Future<void> _open() async {
+    widget.onOpen?.call();
+    final s = ref.read(stringsProvider);
+    final talk = await showModalBottomSheet<TeamTalk>(
+      context: context,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) {
+        final theme = Theme.of(sheet);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(Tokens.gapM),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        s.teamTalkTitle,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                    ),
+                    InfoButton(message: s.infoTeamTalk),
+                  ],
+                ),
+                const SizedBox(height: Tokens.gapS),
+                for (final t in TeamTalk.values)
+                  ListTile(
+                    key: ValueKey('team-talk-${t.name}'),
+                    title: Text(s.teamTalkName(t)),
+                    subtitle: Text(s.teamTalkHint(t)),
+                    onTap: () => Navigator.of(sheet).pop(t),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (talk == null || !mounted) return;
+    final landed = widget.session.teamTalk(widget.side, talk);
+    if (landed == null) return;
+    setState(() {});
+    widget.onDone?.call();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(s.teamTalkResult(talk, landed))));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.session.canTalk(widget.side)) return const SizedBox.shrink();
+    final s = ref.watch(stringsProvider);
+    return OutlinedButton.icon(
+      key: const ValueKey('match-talk'),
+      onPressed: _open,
+      icon: const Icon(Icons.campaign),
+      label: Text(s.teamTalkButton),
     );
   }
 }
@@ -1037,6 +1537,11 @@ class TickerSymbolView extends StatelessWidget {
         Icons.priority_high,
         size: 18,
         color: Tokens.orange,
+      ),
+      TickerSymbol.video => const Icon(
+        Icons.tv,
+        size: 17,
+        color: Tokens.text,
       ),
     };
   }
@@ -1517,6 +2022,7 @@ class _TacticsDialog extends ConsumerStatefulWidget {
     required this.side,
     required this.rules,
     required this.onChanged,
+    required this.playerOf,
     this.asSheet = false,
   });
 
@@ -1524,6 +2030,9 @@ class _TacticsDialog extends ConsumerStatefulWidget {
   final int side;
   final Rules rules;
   final VoidCallback onChanged;
+
+  /// The players, for the instructions (engine 2, step 10g1).
+  final Player? Function(PlayerId id) playerOf;
 
   /// Phone: shown as a sheet from the bottom instead of a dialog.
   final bool asSheet;
@@ -1613,6 +2122,86 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
             ],
           ),
         ],
+        const SizedBox(height: Tokens.gapM),
+        Row(
+          children: [
+            Flexible(child: Text(s.teamInstructions, style: titleStyle)),
+            InfoButton(message: s.infoTeamInstructions),
+          ],
+        ),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final w in [null, ...Wing.values])
+              ChoiceChip(
+                key: ValueKey('match-wing-${w?.name ?? 'none'}'),
+                label: Text(s.wingName(w)),
+                selected: sheet.wing == w,
+                onSelected: (_) {
+                  widget.session.teamInstructions(
+                    widget.side,
+                    wing: w,
+                    wasteTime: sheet.wasteTime,
+                  );
+                  widget.onChanged();
+                  setState(() {});
+                },
+              ),
+            FilterChip(
+              key: const ValueKey('match-waste'),
+              label: Text(s.wasteTimeName),
+              selected: sheet.wasteTime,
+              onSelected: (on) {
+                widget.session.teamInstructions(
+                  widget.side,
+                  wing: sheet.wing,
+                  wasteTime: on,
+                );
+                widget.onChanged();
+                setState(() {});
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: Tokens.gapM),
+        Row(
+          children: [
+            Flexible(child: Text(s.lineupInstruction, style: titleStyle)),
+            InfoButton(message: s.infoInstructions),
+          ],
+        ),
+        for (final id in widget.session.onPitch(widget.side))
+          if (widget.playerOf(id) case final p?
+              when !p.position.isGoalkeeper)
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    p.lastName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                DropdownButton<PlayerInstruction?>(
+                  key: ValueKey('match-instr-${id.value}'),
+                  value: sheet.instructions[id],
+                  onChanged: (i) {
+                    widget.session.instruct(widget.side, id, i);
+                    widget.onChanged();
+                    setState(() {});
+                  },
+                  items: [
+                    DropdownMenuItem(child: Text(s.instructionNone)),
+                    for (final i in PlayerInstruction.values)
+                      DropdownMenuItem(
+                        value: i,
+                        child: Text(s.instructionName(i)),
+                      ),
+                  ],
+                ),
+              ],
+            ),
       ],
     );
     if (widget.asSheet) {
@@ -1702,6 +2291,22 @@ class MatchReportPage extends ConsumerWidget {
             e.type == MatchEventType.redCard)
           e,
     ];
+    // Marks of the own players, best first (step 10f2).
+    final homePlayers = {
+      for (final p in loaded.world.players)
+        if (p.clubId == home) p.id,
+    };
+    final ownPlayers = {
+      for (final p in loaded.world.players)
+        if (p.clubId == career.clubId) p.id,
+    };
+    final marks =
+        matchRatings(
+            result,
+            loaded.rules.season.condition,
+            homePlayers: homePlayers,
+          ).entries.where((e) => ownPlayers.contains(e.key)).toList()
+          ..sort((x, y) => y.value.compareTo(x.value));
     final h = result.homeStats;
     final a = result.awayStats;
     final stats = [
@@ -1789,6 +2394,26 @@ class MatchReportPage extends ConsumerWidget {
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium,
           ),
+          if (own.session != null)
+            Text(
+              s.matchReportConditions(
+                referee: own.session!.referee?.name,
+                attendance: own.session!.setting.attendance,
+                weather: own.session!.setting.weather,
+                video: own.session!.video,
+                overturned: result.events
+                    .where(
+                      (e) =>
+                          e.type == MatchEventType.varReview ||
+                          e.annulled ||
+                          e.review == 'penalty_overturned',
+                    )
+                    .length,
+              ),
+              key: const ValueKey('report-conditions'),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall,
+            ),
           if (knockout != null) ...[
             if (knockout!.extraTime || knockout!.decidedByShootout)
               Text(
@@ -1841,6 +2466,20 @@ class MatchReportPage extends ConsumerWidget {
                   Text(
                     "${inj.minute}'  ${_listName(loaded, inj.player)} – "
                     '${s.matchInjuryLine(inj.days)}',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                if (marks.isNotEmpty)
+                  Row(
+                    children: [
+                      head(s.reportMarks),
+                      InfoButton(message: s.infoReportMarks),
+                    ],
+                  ),
+                for (final m in marks)
+                  Text(
+                    '${markOf(m.value).toStringAsFixed(1).replaceAll('.', ',')}  '
+                    '${_listName(loaded, m.key)}',
+                    key: ValueKey('report-mark-${m.key.value}'),
                     overflow: TextOverflow.ellipsis,
                   ),
                 head(s.matchReportStats),

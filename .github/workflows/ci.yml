@@ -173,7 +173,13 @@ jobs:
         shell: bash
         run: |
           set +e
-          flutter build web --release --no-web-resources-cdn --base-href /bolzplatz-ag/ > web.txt 2>&1
+          # main is the web version; any other branch run by hand is the
+          # preview under /preview with the load time shown (step 10h3).
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            flutter build web --release --no-web-resources-cdn --base-href /bolzplatz-ag/ > web.txt 2>&1
+          else
+            flutter build web --release --no-web-resources-cdn --base-href /bolzplatz-ag/preview/ --dart-define=PREVIEW=true > web.txt 2>&1
+          fi
           code=$?
           cat web.txt
           grep -iE 'error|unsupported' web.txt | head -15 | while read -r line; do echo "::error::${line}"; done
@@ -183,18 +189,34 @@ jobs:
           name: bolzplatz-web
           path: app/build/web
       # main goes to "web-build" (what the phone shows); every other branch
-      # run by hand goes to "web-preview" for checking.
+      # run by hand goes into the folder "preview" of the same branch, so it
+      # opens at .../bolzplatz-ag/preview/ next to the web version.
       - name: Publish to branch
         shell: bash
         run: |
-          target=web-preview
-          if [ "$GITHUB_REF" = "refs/heads/main" ]; then target=web-build; fi
-          cd build/web
-          touch .nojekyll
-          git init -q
-          git config user.name "github-actions"
-          git config user.email "actions@users.noreply.github.com"
-          git checkout -q -b "$target"
-          git add -A
-          git commit -qm "Web build $GITHUB_SHA"
-          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "$target"
+          repo="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@users.noreply.github.com"
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            # Keep the preview folder of the last preview build.
+            if git clone -q --depth 1 -b web-build "$repo" old 2>/dev/null &&
+              [ -d old/preview ]; then
+              cp -r old/preview build/web/preview
+            fi
+            cd build/web
+            touch .nojekyll
+            git init -q
+            git checkout -q -b web-build
+            git add -A
+            git commit -qm "Web build $GITHUB_SHA"
+            git push -f "$repo" web-build
+          else
+            git clone -q --depth 1 -b web-build "$repo" site
+            rm -rf site/preview
+            cp -r build/web site/preview
+            cd site
+            touch .nojekyll
+            git add -A
+            git commit -qm "Preview build $GITHUB_SHA"
+            git push "$repo" web-build
+          fi

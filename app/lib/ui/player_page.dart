@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
+import '../game/cabin.dart';
+
 import '../game/desk.dart';
 import '../game/loaded_world.dart';
 import '../game/season_game.dart';
@@ -297,7 +299,7 @@ class _Profile extends ConsumerWidget {
                 _OverviewTab(player: p, loaded: loaded),
                 _ValuesTab(player: p),
                 _RolesTab(player: p, loaded: loaded),
-                _HeadTab(player: p),
+                _HeadTab(player: p, own: p.clubId == ownClub),
                 _CareerTab(player: p, loaded: loaded),
                 _ContractTab(player: p),
               ],
@@ -407,7 +409,41 @@ class _OverviewTab extends ConsumerWidget {
           theme,
           s.profileForm,
           s.infoProfileForm,
-          Text(s.profileFormNone),
+          Builder(
+            builder: (context) {
+              final game = ref.watch(seasonProvider);
+              final today = ref.watch(todayProvider);
+              if (game == null || today == null) {
+                return Text(s.profileFormNone);
+              }
+              final r = game.runner;
+              // The mood is known for the own players only.
+              final own = p.clubId == game.clubId;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    s.conditionLine(
+                      form: r.formOf(p.id),
+                      confidence: r.confidenceOf(p.id),
+                      load: r.loadOf(p.id, today.epochDay),
+                      mood: own ? r.moodOf(p.id) : null,
+                    ),
+                    key: const ValueKey('player-condition'),
+                  ),
+                  if (own && r.hasPromise(p.id))
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        s.profilePromise,
+                        key: const ValueKey('player-promise'),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
         ),
       ],
     );
@@ -606,17 +642,54 @@ class _RolesTab extends ConsumerWidget {
 }
 
 class _HeadTab extends ConsumerWidget {
-  const _HeadTab({required this.player});
+  const _HeadTab({required this.player, required this.own});
 
   final Player player;
+
+  /// A player of the own club: his type and place in the dressing room
+  /// are known (other clubs come with scouting).
+  final bool own;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(stringsProvider);
     final theme = Theme.of(context);
     final p = player;
+    final cabin = own ? ref.watch(cabinProvider) : null;
+    final types = cabin?.types[p.id] ?? const <Archetype>[];
+    final role = cabin?.roles[p.id];
     return ListView(
       children: [
+        if (cabin != null)
+          _section(
+            theme,
+            s.headArchetypes,
+            s.infoArchetypes,
+            Text(
+              types.isEmpty
+                  ? s.archetypeNone
+                  : types.map(s.archetypeName).join(' · '),
+              key: const ValueKey('player-archetypes'),
+            ),
+          ),
+        if (cabin != null && role != null)
+          _section(
+            theme,
+            s.headCabin,
+            s.infoCabin,
+            Text(
+              s.cabinRoleText(role, unhappy: cabin.unhappy.contains(p.id)),
+              key: const ValueKey('player-cabin-role'),
+            ),
+          ),
+        if (!own)
+          _section(
+            theme,
+            s.headArchetypes,
+            s.infoArchetypes,
+            Text(s.archetypeUnknown),
+          ),
+        if (own) _TalkSection(player: p),
         _section(
           theme,
           s.headTraits,
@@ -678,6 +751,68 @@ class _HeadTab extends ConsumerWidget {
           Text(s.headCircumstancesText),
         ),
       ],
+    );
+  }
+}
+
+/// The weekly talk with one player (engine 2, step 10f3).
+class _TalkSection extends ConsumerWidget {
+  const _TalkSection({required this.player});
+
+  final Player player;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(stringsProvider);
+    final theme = Theme.of(context);
+    final game = ref.watch(seasonProvider);
+    if (game == null) return const SizedBox.shrink();
+    final free = game.runner.canTalkTo(game.clubId, game.today.epochDay);
+    return _section(
+      theme,
+      s.playerTalkTitle,
+      s.infoPlayerTalk,
+      free
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final t in PlayerTalk.values)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: OutlinedButton(
+                      key: ValueKey('player-talk-${t.name}'),
+                      onPressed: () {
+                        final landed = ref
+                            .read(seasonProvider.notifier)
+                            .talkTo(player.id, t);
+                        if (landed == null) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              s.playerTalkResult(
+                                t,
+                                landed,
+                                player.lastName,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          Text(s.playerTalkName(t)),
+                          Text(
+                            s.playerTalkHint(t),
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            )
+          : Text(s.playerTalkUsed, key: const ValueKey('player-talk-used')),
     );
   }
 }

@@ -1,0 +1,2611 @@
+{
+ "note": "Places, stadiums and derbies (engine 2, step 10e4). Coordinates and populations (thousands) written from memory by Claude, accurate to a few km, enough for travel distances. Stadium names are invented. pitch is the quality of the grass 1 to 100 (later tied to the ground staff). Derbies here are the big rivalries on top of those from distance (same place, under 50 km, same region under 120 km). Edit freely.",
+ "places": {
+  "Aachen": {
+   "lat": 50.776,
+   "lon": 6.084,
+   "population": 250
+  },
+  "Aalen": {
+   "lat": 48.837,
+   "lon": 10.093,
+   "population": 68
+  },
+  "Achern": {
+   "lat": 48.631,
+   "lon": 8.077,
+   "population": 26
+  },
+  "Altomünster": {
+   "lat": 48.387,
+   "lon": 11.257,
+   "population": 8
+  },
+  "Ansbach": {
+   "lat": 49.3,
+   "lon": 10.572,
+   "population": 42
+  },
+  "Aspach": {
+   "lat": 48.966,
+   "lon": 9.395,
+   "population": 8
+  },
+  "Aubstadt": {
+   "lat": 50.335,
+   "lon": 10.43,
+   "population": 1
+  },
+  "Aue": {
+   "lat": 50.586,
+   "lon": 12.701,
+   "population": 16
+  },
+  "Auerbach/Vogtl.": {
+   "lat": 50.511,
+   "lon": 12.401,
+   "population": 18
+  },
+  "Augsburg": {
+   "lat": 48.37,
+   "lon": 10.898,
+   "population": 300
+  },
+  "Backnang": {
+   "lat": 48.947,
+   "lon": 9.43,
+   "population": 37
+  },
+  "Bamberg": {
+   "lat": 49.898,
+   "lon": 10.902,
+   "population": 77
+  },
+  "Bayreuth": {
+   "lat": 49.946,
+   "lon": 11.578,
+   "population": 74
+  },
+  "Bergisch Gladbach": {
+   "lat": 50.992,
+   "lon": 7.137,
+   "population": 112
+  },
+  "Berlin": {
+   "lat": 52.52,
+   "lon": 13.405,
+   "population": 3700
+  },
+  "Bielefeld": {
+   "lat": 52.03,
+   "lon": 8.532,
+   "population": 335
+  },
+  "Bocholt": {
+   "lat": 51.839,
+   "lon": 6.616,
+   "population": 71
+  },
+  "Bochum": {
+   "lat": 51.482,
+   "lon": 7.216,
+   "population": 365
+  },
+  "Bonn": {
+   "lat": 50.737,
+   "lon": 7.098,
+   "population": 330
+  },
+  "Braunschweig": {
+   "lat": 52.269,
+   "lon": 10.521,
+   "population": 250
+  },
+  "Bremen": {
+   "lat": 53.079,
+   "lon": 8.802,
+   "population": 570
+  },
+  "Bremerhaven": {
+   "lat": 53.54,
+   "lon": 8.581,
+   "population": 115
+  },
+  "Buchbach": {
+   "lat": 48.313,
+   "lon": 12.276,
+   "population": 3
+  },
+  "Burghausen": {
+   "lat": 48.169,
+   "lon": 12.831,
+   "population": 19
+  },
+  "Cham": {
+   "lat": 49.226,
+   "lon": 12.665,
+   "population": 17
+  },
+  "Chemnitz": {
+   "lat": 50.828,
+   "lon": 12.921,
+   "population": 245
+  },
+  "Cottbus": {
+   "lat": 51.756,
+   "lon": 14.333,
+   "population": 99
+  },
+  "Darmstadt": {
+   "lat": 49.873,
+   "lon": 8.651,
+   "population": 160
+  },
+  "Dassendorf": {
+   "lat": 53.495,
+   "lon": 10.369,
+   "population": 3
+  },
+  "Delmenhorst": {
+   "lat": 53.051,
+   "lon": 8.632,
+   "population": 78
+  },
+  "Dortmund": {
+   "lat": 51.514,
+   "lon": 7.468,
+   "population": 590
+  },
+  "Dresden": {
+   "lat": 51.05,
+   "lon": 13.738,
+   "population": 560
+  },
+  "Drochtersen": {
+   "lat": 53.7,
+   "lon": 9.383,
+   "population": 12
+  },
+  "Duisburg": {
+   "lat": 51.434,
+   "lon": 6.762,
+   "population": 500
+  },
+  "Düsseldorf": {
+   "lat": 51.227,
+   "lon": 6.773,
+   "population": 620
+  },
+  "Edewecht": {
+   "lat": 53.126,
+   "lon": 7.981,
+   "population": 23
+  },
+  "Eichstätt": {
+   "lat": 48.891,
+   "lon": 11.184,
+   "population": 13
+  },
+  "Eilenburg": {
+   "lat": 51.46,
+   "lon": 12.634,
+   "population": 16
+  },
+  "Emden": {
+   "lat": 53.367,
+   "lon": 7.206,
+   "population": 50
+  },
+  "Erfurt": {
+   "lat": 50.978,
+   "lon": 11.029,
+   "population": 214
+  },
+  "Erlangen": {
+   "lat": 49.598,
+   "lon": 11.004,
+   "population": 115
+  },
+  "Erlbach": {
+   "lat": 48.3,
+   "lon": 12.783,
+   "population": 1
+  },
+  "Essen": {
+   "lat": 51.456,
+   "lon": 7.012,
+   "population": 580
+  },
+  "Flensburg": {
+   "lat": 54.784,
+   "lon": 9.437,
+   "population": 92
+  },
+  "Frankfurt am Main": {
+   "lat": 50.11,
+   "lon": 8.682,
+   "population": 760
+  },
+  "Freiberg am Neckar": {
+   "lat": 48.934,
+   "lon": 9.191,
+   "population": 16
+  },
+  "Freiburg im Breisgau": {
+   "lat": 47.999,
+   "lon": 7.842,
+   "population": 235
+  },
+  "Fulda": {
+   "lat": 50.555,
+   "lon": 9.68,
+   "population": 68
+  },
+  "Fürth": {
+   "lat": 49.477,
+   "lon": 10.989,
+   "population": 130
+  },
+  "Garbsen": {
+   "lat": 52.42,
+   "lon": 9.598,
+   "population": 62
+  },
+  "Gebenbach": {
+   "lat": 49.548,
+   "lon": 11.857,
+   "population": 1
+  },
+  "Gelsenkirchen": {
+   "lat": 51.517,
+   "lon": 7.086,
+   "population": 260
+  },
+  "Gorxheimertal": {
+   "lat": 49.532,
+   "lon": 8.731,
+   "population": 4
+  },
+  "Greifswald": {
+   "lat": 54.093,
+   "lon": 13.388,
+   "population": 59
+  },
+  "Gütersloh": {
+   "lat": 51.907,
+   "lon": 8.379,
+   "population": 101
+  },
+  "Haiger": {
+   "lat": 50.742,
+   "lon": 8.207,
+   "population": 20
+  },
+  "Halberstadt": {
+   "lat": 51.896,
+   "lon": 11.047,
+   "population": 40
+  },
+  "Halle (Saale)": {
+   "lat": 51.483,
+   "lon": 11.97,
+   "population": 240
+  },
+  "Hamburg": {
+   "lat": 53.551,
+   "lon": 9.994,
+   "population": 1850
+  },
+  "Hamm": {
+   "lat": 51.681,
+   "lon": 7.818,
+   "population": 180
+  },
+  "Hamminkeln": {
+   "lat": 51.731,
+   "lon": 6.59,
+   "population": 27
+  },
+  "Hannover": {
+   "lat": 52.375,
+   "lon": 9.732,
+   "population": 540
+  },
+  "Hattersheim am Main": {
+   "lat": 50.07,
+   "lon": 8.487,
+   "population": 28
+  },
+  "Heeslingen": {
+   "lat": 53.317,
+   "lon": 9.333,
+   "population": 5
+  },
+  "Heidenheim": {
+   "lat": 48.678,
+   "lon": 10.152,
+   "population": 50
+  },
+  "Hennef": {
+   "lat": 50.775,
+   "lon": 7.283,
+   "population": 48
+  },
+  "Hilden": {
+   "lat": 51.169,
+   "lon": 6.938,
+   "population": 56
+  },
+  "Hof": {
+   "lat": 50.313,
+   "lon": 11.912,
+   "population": 46
+  },
+  "Homburg": {
+   "lat": 49.326,
+   "lon": 7.338,
+   "population": 42
+  },
+  "Hünfeld": {
+   "lat": 50.672,
+   "lon": 9.769,
+   "population": 16
+  },
+  "Illertissen": {
+   "lat": 48.224,
+   "lon": 10.104,
+   "population": 17
+  },
+  "Ingolstadt": {
+   "lat": 48.766,
+   "lon": 11.425,
+   "population": 140
+  },
+  "Jena": {
+   "lat": 50.927,
+   "lon": 11.586,
+   "population": 110
+  },
+  "Kaiserslautern": {
+   "lat": 49.444,
+   "lon": 7.769,
+   "population": 100
+  },
+  "Karlsruhe": {
+   "lat": 49.007,
+   "lon": 8.404,
+   "population": 310
+  },
+  "Kassel": {
+   "lat": 51.312,
+   "lon": 9.48,
+   "population": 200
+  },
+  "Kiel": {
+   "lat": 54.323,
+   "lon": 10.123,
+   "population": 247
+  },
+  "Koblenz": {
+   "lat": 50.356,
+   "lon": 7.598,
+   "population": 114
+  },
+  "Köln": {
+   "lat": 50.938,
+   "lon": 6.96,
+   "population": 1080
+  },
+  "Landsberg am Lech": {
+   "lat": 48.048,
+   "lon": 10.883,
+   "population": 30
+  },
+  "Landshut": {
+   "lat": 48.537,
+   "lon": 12.152,
+   "population": 74
+  },
+  "Leiblfing": {
+   "lat": 48.776,
+   "lon": 12.517,
+   "population": 4
+  },
+  "Leipzig": {
+   "lat": 51.34,
+   "lon": 12.375,
+   "population": 620
+  },
+  "Leverkusen": {
+   "lat": 51.046,
+   "lon": 7.0,
+   "population": 165
+  },
+  "Lippstadt": {
+   "lat": 51.674,
+   "lon": 8.344,
+   "population": 68
+  },
+  "Lohmar": {
+   "lat": 50.842,
+   "lon": 7.214,
+   "population": 31
+  },
+  "Lotte": {
+   "lat": 52.283,
+   "lon": 7.917,
+   "population": 14
+  },
+  "Luckenwalde": {
+   "lat": 52.088,
+   "lon": 13.169,
+   "population": 21
+  },
+  "Lübeck": {
+   "lat": 53.866,
+   "lon": 10.686,
+   "population": 218
+  },
+  "Magdeburg": {
+   "lat": 52.121,
+   "lon": 11.628,
+   "population": 240
+  },
+  "Mainz": {
+   "lat": 49.993,
+   "lon": 8.247,
+   "population": 220
+  },
+  "Mannheim": {
+   "lat": 49.487,
+   "lon": 8.466,
+   "population": 315
+  },
+  "Marburg": {
+   "lat": 50.81,
+   "lon": 8.771,
+   "population": 77
+  },
+  "Memmingen": {
+   "lat": 47.988,
+   "lon": 10.181,
+   "population": 45
+  },
+  "Meppen": {
+   "lat": 52.692,
+   "lon": 7.297,
+   "population": 36
+  },
+  "Meuselwitz": {
+   "lat": 51.045,
+   "lon": 12.3,
+   "population": 10
+  },
+  "Monheim am Rhein": {
+   "lat": 51.092,
+   "lon": 6.888,
+   "population": 41
+  },
+  "Mönchengladbach": {
+   "lat": 51.181,
+   "lon": 6.442,
+   "population": 260
+  },
+  "München": {
+   "lat": 48.137,
+   "lon": 11.575,
+   "population": 1500
+  },
+  "Münster": {
+   "lat": 51.961,
+   "lon": 7.626,
+   "population": 320
+  },
+  "Neumünster": {
+   "lat": 54.073,
+   "lon": 9.984,
+   "population": 80
+  },
+  "Neuwied": {
+   "lat": 50.43,
+   "lon": 7.462,
+   "population": 65
+  },
+  "Norderstedt": {
+   "lat": 53.706,
+   "lon": 9.999,
+   "population": 80
+  },
+  "Nürnberg": {
+   "lat": 49.452,
+   "lon": 11.077,
+   "population": 520
+  },
+  "Oberding": {
+   "lat": 48.315,
+   "lon": 11.853,
+   "population": 7
+  },
+  "Oberhausen": {
+   "lat": 51.47,
+   "lon": 6.852,
+   "population": 210
+  },
+  "Offenbach am Main": {
+   "lat": 50.096,
+   "lon": 8.776,
+   "population": 130
+  },
+  "Oldenburg": {
+   "lat": 53.143,
+   "lon": 8.214,
+   "population": 170
+  },
+  "Osnabrück": {
+   "lat": 52.279,
+   "lon": 8.047,
+   "population": 165
+  },
+  "Paderborn": {
+   "lat": 51.718,
+   "lon": 8.757,
+   "population": 152
+  },
+  "Pfaffenhofen an der Ilm": {
+   "lat": 48.53,
+   "lon": 11.508,
+   "population": 27
+  },
+  "Pinneberg": {
+   "lat": 53.66,
+   "lon": 9.799,
+   "population": 44
+  },
+  "Potsdam": {
+   "lat": 52.391,
+   "lon": 13.064,
+   "population": 185
+  },
+  "Regensburg": {
+   "lat": 49.013,
+   "lon": 12.102,
+   "population": 155
+  },
+  "Reutlingen": {
+   "lat": 48.491,
+   "lon": 9.211,
+   "population": 117
+  },
+  "Rheda-Wiedenbrück": {
+   "lat": 51.841,
+   "lon": 8.3,
+   "population": 49
+  },
+  "Rheine": {
+   "lat": 52.28,
+   "lon": 7.44,
+   "population": 77
+  },
+  "Rostock": {
+   "lat": 54.092,
+   "lon": 12.099,
+   "population": 210
+  },
+  "Rödinghausen": {
+   "lat": 52.25,
+   "lon": 8.483,
+   "population": 10
+  },
+  "Römerberg": {
+   "lat": 49.299,
+   "lon": 8.411,
+   "population": 10
+  },
+  "Saarbrücken": {
+   "lat": 49.24,
+   "lon": 6.997,
+   "population": 180
+  },
+  "Sandersdorf-Brehna": {
+   "lat": 51.627,
+   "lon": 12.233,
+   "population": 14
+  },
+  "Sandhausen": {
+   "lat": 49.343,
+   "lon": 8.658,
+   "population": 15
+  },
+  "Schweinfurt": {
+   "lat": 50.049,
+   "lon": 10.221,
+   "population": 54
+  },
+  "Schwerin": {
+   "lat": 53.629,
+   "lon": 11.415,
+   "population": 96
+  },
+  "Schöningen": {
+   "lat": 52.138,
+   "lon": 10.951,
+   "population": 11
+  },
+  "Siedenbollentin": {
+   "lat": 53.717,
+   "lon": 13.267,
+   "population": 1
+  },
+  "Siegen": {
+   "lat": 50.875,
+   "lon": 8.024,
+   "population": 102
+  },
+  "Sinsheim": {
+   "lat": 49.253,
+   "lon": 8.879,
+   "population": 36
+  },
+  "Spelle": {
+   "lat": 52.367,
+   "lon": 7.467,
+   "population": 9
+  },
+  "Spiesen-Elversberg": {
+   "lat": 49.317,
+   "lon": 7.122,
+   "population": 13
+  },
+  "Stahnsdorf": {
+   "lat": 52.383,
+   "lon": 13.217,
+   "population": 16
+  },
+  "Stendal": {
+   "lat": 52.606,
+   "lon": 11.858,
+   "population": 39
+  },
+  "Stolberg": {
+   "lat": 50.771,
+   "lon": 6.228,
+   "population": 56
+  },
+  "Stuttgart": {
+   "lat": 48.776,
+   "lon": 9.183,
+   "population": 630
+  },
+  "Sulz am Neckar": {
+   "lat": 48.363,
+   "lon": 8.632,
+   "population": 12
+  },
+  "Todesfelde": {
+   "lat": 53.9,
+   "lon": 10.183,
+   "population": 1
+  },
+  "Trier": {
+   "lat": 49.75,
+   "lon": 6.637,
+   "population": 111
+  },
+  "Ulm": {
+   "lat": 48.401,
+   "lon": 9.988,
+   "population": 128
+  },
+  "Unterhaching": {
+   "lat": 48.066,
+   "lon": 11.616,
+   "population": 26
+  },
+  "Verl": {
+   "lat": 51.884,
+   "lon": 8.517,
+   "population": 26
+  },
+  "Vilzing": {
+   "lat": 49.233,
+   "lon": 12.7,
+   "population": 1
+  },
+  "Vreden": {
+   "lat": 52.038,
+   "lon": 6.828,
+   "population": 23
+  },
+  "Walldorf": {
+   "lat": 49.307,
+   "lon": 8.643,
+   "population": 16
+  },
+  "Wegberg": {
+   "lat": 51.142,
+   "lon": 6.284,
+   "population": 28
+  },
+  "Weißenfels": {
+   "lat": 51.2,
+   "lon": 11.969,
+   "population": 40
+  },
+  "Wiesbaden": {
+   "lat": 50.082,
+   "lon": 8.24,
+   "population": 280
+  },
+  "Wilhelmshaven": {
+   "lat": 53.53,
+   "lon": 8.106,
+   "population": 76
+  },
+  "Wismar": {
+   "lat": 53.893,
+   "lon": 11.465,
+   "population": 43
+  },
+  "Wolfsburg": {
+   "lat": 52.423,
+   "lon": 10.787,
+   "population": 125
+  },
+  "Würzburg": {
+   "lat": 49.792,
+   "lon": 9.951,
+   "population": 128
+  },
+  "Zwickau": {
+   "lat": 50.718,
+   "lon": 12.497,
+   "population": 87
+  }
+ },
+ "clubs": [
+  {
+   "club": 1,
+   "stadium": "Pommes Rotweiss-Arena",
+   "capacity": 69500,
+   "pitch": 87
+  },
+  {
+   "club": 2,
+   "stadium": "Matratzen Traum-Stadion",
+   "capacity": 43000,
+   "pitch": 89
+  },
+  {
+   "club": 3,
+   "stadium": "Sparstrumpf Notgroschen-Kessel",
+   "capacity": 48500,
+   "pitch": 97
+  },
+  {
+   "club": 4,
+   "stadium": "Pommes Rotweiss-Park",
+   "capacity": 45500,
+   "pitch": 87
+  },
+  {
+   "club": 5,
+   "stadium": "Schuh Blase-Kessel",
+   "capacity": 35500,
+   "pitch": 80
+  },
+  {
+   "club": 6,
+   "stadium": "Bäckerei Krume-Park",
+   "capacity": 37500,
+   "pitch": 75
+  },
+  {
+   "club": 7,
+   "stadium": "Dosenpfand-Arena",
+   "capacity": 41500,
+   "pitch": 84
+  },
+  {
+   "club": 8,
+   "stadium": "Fenster Durchzug-Park",
+   "capacity": 53000,
+   "pitch": 69
+  },
+  {
+   "club": 9,
+   "stadium": "Kaffee Bohne-Arena",
+   "capacity": 36000,
+   "pitch": 84
+  },
+  {
+   "club": 10,
+   "stadium": "Gurken Spreewaldt-Kessel",
+   "capacity": 40500,
+   "pitch": 94
+  },
+  {
+   "club": 11,
+   "stadium": "Möbel Pfeffer-Kessel",
+   "capacity": 69500,
+   "pitch": 82
+  },
+  {
+   "club": 12,
+   "stadium": "Fleischerei Haxe-Arena",
+   "capacity": 41500,
+   "pitch": 76
+  },
+  {
+   "club": 13,
+   "stadium": "Matratzen Traum-Park",
+   "capacity": 72500,
+   "pitch": 91
+  },
+  {
+   "club": 14,
+   "stadium": "Kreditbank Zinseszins-Arena",
+   "capacity": 58500,
+   "pitch": 86
+  },
+  {
+   "club": 15,
+   "stadium": "Mineralwasser Prickel-Arena",
+   "capacity": 43500,
+   "pitch": 86
+  },
+  {
+   "club": 16,
+   "stadium": "Autohaus Kaiser-Park",
+   "capacity": 38000,
+   "pitch": 87
+  },
+  {
+   "club": 17,
+   "stadium": "Schraubenkönig-Kessel",
+   "capacity": 32500,
+   "pitch": 87
+  },
+  {
+   "club": 18,
+   "stadium": "Telefon Funkloch-Stadion",
+   "capacity": 33500,
+   "pitch": 77
+  },
+  {
+   "club": 19,
+   "stadium": "Fenster Durchzug-Arena",
+   "capacity": 21000,
+   "pitch": 80
+  },
+  {
+   "club": 20,
+   "stadium": "Energie Nordwind-Arena",
+   "capacity": 17000,
+   "pitch": 70
+  },
+  {
+   "club": 21,
+   "stadium": "Pommes Rotweiss-Kessel",
+   "capacity": 41500,
+   "pitch": 68
+  },
+  {
+   "club": 22,
+   "stadium": "Sanitär Rohrbruch-Arena",
+   "capacity": 34000,
+   "pitch": 64
+  },
+  {
+   "club": 23,
+   "stadium": "Bausparfuchs-Arena",
+   "capacity": 25500,
+   "pitch": 98
+  },
+  {
+   "club": 24,
+   "stadium": "Senf Scharf-Stadion",
+   "capacity": 23500,
+   "pitch": 81
+  },
+  {
+   "club": 25,
+   "stadium": "Schraubenkönig-Arena",
+   "capacity": 44500,
+   "pitch": 77
+  },
+  {
+   "club": 26,
+   "stadium": "Reifen Platt-Stadion",
+   "capacity": 32500,
+   "pitch": 91
+  },
+  {
+   "club": 27,
+   "stadium": "Hausbau Richtfest-Park",
+   "capacity": 29000,
+   "pitch": 91
+  },
+  {
+   "club": 28,
+   "stadium": "Sanitär Rohrbruch-Kessel",
+   "capacity": 29000,
+   "pitch": 96
+  },
+  {
+   "club": 29,
+   "stadium": "Schraubenkönig-Park",
+   "capacity": 37000,
+   "pitch": 76
+  },
+  {
+   "club": 30,
+   "stadium": "Mineralwasser Prickel-Kessel",
+   "capacity": 29500,
+   "pitch": 81
+  },
+  {
+   "club": 31,
+   "stadium": "Versicherung Zögerlich-Park",
+   "capacity": 28500,
+   "pitch": 69
+  },
+  {
+   "club": 32,
+   "stadium": "Küchen Kalt-Park",
+   "capacity": 28500,
+   "pitch": 82
+  },
+  {
+   "club": 33,
+   "stadium": "Versicherung Zögerlich-Kessel",
+   "capacity": 27500,
+   "pitch": 52
+  },
+  {
+   "club": 34,
+   "stadium": "Matratzen Traum-Arena",
+   "capacity": 23500,
+   "pitch": 71
+  },
+  {
+   "club": 35,
+   "stadium": "Versicherung Zögerlich-Stadion",
+   "capacity": 25000,
+   "pitch": 85
+  },
+  {
+   "club": 36,
+   "stadium": "Schuh Blase-Stadion",
+   "capacity": 15000,
+   "pitch": 83
+  },
+  {
+   "club": 37,
+   "stadium": "Reifen Platt-Park",
+   "capacity": 16000,
+   "pitch": 72
+  },
+  {
+   "club": 38,
+   "stadium": "Kreditbank Zinseszins-Stadion",
+   "capacity": 26500,
+   "pitch": 49
+  },
+  {
+   "club": 39,
+   "stadium": "Sparstrumpf Notgroschen-Arena",
+   "capacity": 26250,
+   "pitch": 51
+  },
+  {
+   "club": 40,
+   "stadium": "Getränke Durst-Kessel",
+   "capacity": 27000,
+   "pitch": 67
+  },
+  {
+   "club": 41,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 5250,
+   "pitch": 63
+  },
+  {
+   "club": 42,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 7750,
+   "pitch": 74
+  },
+  {
+   "club": 43,
+   "stadium": "Sportplatz am Wasserturm",
+   "capacity": 3100,
+   "pitch": 46
+  },
+  {
+   "club": 44,
+   "stadium": "Software Absturz-Kessel",
+   "capacity": 13000,
+   "pitch": 67
+  },
+  {
+   "club": 45,
+   "stadium": "Software Absturz-Park",
+   "capacity": 28000,
+   "pitch": 72
+  },
+  {
+   "club": 46,
+   "stadium": "Teppich Flor-Stadion",
+   "capacity": 25250,
+   "pitch": 71
+  },
+  {
+   "club": 47,
+   "stadium": "Möbel Pfeffer-Stadion",
+   "capacity": 21250,
+   "pitch": 55
+  },
+  {
+   "club": 48,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 5500,
+   "pitch": 59
+  },
+  {
+   "club": 49,
+   "stadium": "Logistik Stau-Stadion",
+   "capacity": 23500,
+   "pitch": 59
+  },
+  {
+   "club": 50,
+   "stadium": "Sparstrumpf Notgroschen-Stadion",
+   "capacity": 12750,
+   "pitch": 59
+  },
+  {
+   "club": 51,
+   "stadium": "Getränke Durst-Arena",
+   "capacity": 16500,
+   "pitch": 61
+  },
+  {
+   "club": 52,
+   "stadium": "Möbel Pfeffer-Arena",
+   "capacity": 13500,
+   "pitch": 74
+  },
+  {
+   "club": 53,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 1100,
+   "pitch": 57
+  },
+  {
+   "club": 54,
+   "stadium": "Jahnsportplatz",
+   "capacity": 9000,
+   "pitch": 55
+  },
+  {
+   "club": 55,
+   "stadium": "Kaffee Bohne-Stadion",
+   "capacity": 18500,
+   "pitch": 56
+  },
+  {
+   "club": 56,
+   "stadium": "Kaffee Bohne-Kessel",
+   "capacity": 13500,
+   "pitch": 70
+  },
+  {
+   "club": 57,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 1100,
+   "pitch": 42
+  },
+  {
+   "club": 58,
+   "stadium": "Waldsportplatz",
+   "capacity": 9200,
+   "pitch": 59
+  },
+  {
+   "club": 59,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 5000,
+   "pitch": 64
+  },
+  {
+   "club": 60,
+   "stadium": "Mineralwasser Prickel-Park",
+   "capacity": 12000,
+   "pitch": 49
+  },
+  {
+   "club": 61,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 1500,
+   "pitch": 56
+  },
+  {
+   "club": 62,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 1800,
+   "pitch": 48
+  },
+  {
+   "club": 63,
+   "stadium": "Jahnsportplatz",
+   "capacity": 3800,
+   "pitch": 62
+  },
+  {
+   "club": 64,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 3900,
+   "pitch": 54
+  },
+  {
+   "club": 65,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 2100,
+   "pitch": 42
+  },
+  {
+   "club": 66,
+   "stadium": "Waldsportplatz",
+   "capacity": 5300,
+   "pitch": 63
+  },
+  {
+   "club": 67,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 10400,
+   "pitch": 54
+  },
+  {
+   "club": 68,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 11700,
+   "pitch": 39
+  },
+  {
+   "club": 69,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 3500,
+   "pitch": 63
+  },
+  {
+   "club": 70,
+   "stadium": "Hausbau Richtfest-Kessel",
+   "capacity": 12000,
+   "pitch": 38
+  },
+  {
+   "club": 71,
+   "stadium": "Jahnsportplatz",
+   "capacity": 1800,
+   "pitch": 31
+  },
+  {
+   "club": 72,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 2600,
+   "pitch": 47
+  },
+  {
+   "club": 73,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 4500,
+   "pitch": 45
+  },
+  {
+   "club": 74,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 11400,
+   "pitch": 47
+  },
+  {
+   "club": 75,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 9700,
+   "pitch": 36
+  },
+  {
+   "club": 76,
+   "stadium": "Sportanlage Am Bahndamm",
+   "capacity": 10800,
+   "pitch": 43
+  },
+  {
+   "club": 77,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 2300,
+   "pitch": 65
+  },
+  {
+   "club": 78,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 3000,
+   "pitch": 39
+  },
+  {
+   "club": 79,
+   "stadium": "Kampfbahn am Friedhof",
+   "capacity": 6900,
+   "pitch": 64
+  },
+  {
+   "club": 80,
+   "stadium": "Sportanlage Am Bahndamm",
+   "capacity": 11000,
+   "pitch": 59
+  },
+  {
+   "club": 81,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 10700,
+   "pitch": 45
+  },
+  {
+   "club": 82,
+   "stadium": "Jahnsportplatz",
+   "capacity": 10400,
+   "pitch": 43
+  },
+  {
+   "club": 83,
+   "stadium": "Jahnsportplatz",
+   "capacity": 6100,
+   "pitch": 53
+  },
+  {
+   "club": 84,
+   "stadium": "Waldsportplatz",
+   "capacity": 4700,
+   "pitch": 49
+  },
+  {
+   "club": 85,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 10100,
+   "pitch": 54
+  },
+  {
+   "club": 86,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 10400,
+   "pitch": 42
+  },
+  {
+   "club": 87,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 10500,
+   "pitch": 47
+  },
+  {
+   "club": 88,
+   "stadium": "Sportplatz am Wasserturm",
+   "capacity": 11300,
+   "pitch": 48
+  },
+  {
+   "club": 89,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 3100,
+   "pitch": 54
+  },
+  {
+   "club": 90,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 3900,
+   "pitch": 50
+  },
+  {
+   "club": 91,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 10800,
+   "pitch": 47
+  },
+  {
+   "club": 92,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 1700,
+   "pitch": 55
+  },
+  {
+   "club": 93,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 4700,
+   "pitch": 65
+  },
+  {
+   "club": 94,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 10500,
+   "pitch": 45
+  },
+  {
+   "club": 95,
+   "stadium": "Waldsportplatz",
+   "capacity": 3700,
+   "pitch": 65
+  },
+  {
+   "club": 96,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 3200,
+   "pitch": 72
+  },
+  {
+   "club": 97,
+   "stadium": "Kampfbahn am Friedhof",
+   "capacity": 10600,
+   "pitch": 44
+  },
+  {
+   "club": 98,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 5200,
+   "pitch": 59
+  },
+  {
+   "club": 99,
+   "stadium": "Waldsportplatz",
+   "capacity": 800,
+   "pitch": 41
+  },
+  {
+   "club": 100,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 5400,
+   "pitch": 63
+  },
+  {
+   "club": 101,
+   "stadium": "Jahnsportplatz",
+   "capacity": 5100,
+   "pitch": 54
+  },
+  {
+   "club": 102,
+   "stadium": "Arena am Autohof",
+   "capacity": 2300,
+   "pitch": 70
+  },
+  {
+   "club": 103,
+   "stadium": "Sportanlage Am Bahndamm",
+   "capacity": 1100,
+   "pitch": 49
+  },
+  {
+   "club": 104,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 2800,
+   "pitch": 57
+  },
+  {
+   "club": 105,
+   "stadium": "Sportplatz am Wasserturm",
+   "capacity": 10000,
+   "pitch": 61
+  },
+  {
+   "club": 106,
+   "stadium": "Arena am Autohof",
+   "capacity": 9800,
+   "pitch": 31
+  },
+  {
+   "club": 107,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 3300,
+   "pitch": 46
+  },
+  {
+   "club": 108,
+   "stadium": "Sportanlage Am Bahndamm",
+   "capacity": 1600,
+   "pitch": 62
+  },
+  {
+   "club": 109,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 2500,
+   "pitch": 58
+  },
+  {
+   "club": 110,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 2800,
+   "pitch": 31
+  },
+  {
+   "club": 111,
+   "stadium": "Waldsportplatz",
+   "capacity": 6000,
+   "pitch": 44
+  },
+  {
+   "club": 112,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 800,
+   "pitch": 64
+  },
+  {
+   "club": 113,
+   "stadium": "Reifen Platt-Kessel",
+   "capacity": 12000,
+   "pitch": 59
+  },
+  {
+   "club": 114,
+   "stadium": "Jahnsportplatz",
+   "capacity": 4500,
+   "pitch": 54
+  },
+  {
+   "club": 115,
+   "stadium": "Sportanlage Am Bahndamm",
+   "capacity": 1700,
+   "pitch": 48
+  },
+  {
+   "club": 116,
+   "stadium": "Arena am Autohof",
+   "capacity": 11600,
+   "pitch": 48
+  },
+  {
+   "club": 117,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 10600,
+   "pitch": 51
+  },
+  {
+   "club": 118,
+   "stadium": "Sportplatz Hinter den Gärten",
+   "capacity": 2400,
+   "pitch": 59
+  },
+  {
+   "club": 119,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 3200,
+   "pitch": 62
+  },
+  {
+   "club": 120,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 3700,
+   "pitch": 45
+  },
+  {
+   "club": 121,
+   "stadium": "Stadion am Schlachthof",
+   "capacity": 2900,
+   "pitch": 48
+  },
+  {
+   "club": 122,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 2300,
+   "pitch": 52
+  },
+  {
+   "club": 123,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 5900,
+   "pitch": 53
+  },
+  {
+   "club": 124,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 7900,
+   "pitch": 53
+  },
+  {
+   "club": 125,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 5800,
+   "pitch": 53
+  },
+  {
+   "club": 126,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 2800,
+   "pitch": 45
+  },
+  {
+   "club": 127,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 3900,
+   "pitch": 57
+  },
+  {
+   "club": 128,
+   "stadium": "Sportanlage Am Bahndamm",
+   "capacity": 10700,
+   "pitch": 53
+  },
+  {
+   "club": 129,
+   "stadium": "Sportplatz Hinter den Gärten",
+   "capacity": 1900,
+   "pitch": 50
+  },
+  {
+   "club": 130,
+   "stadium": "Sportanlage Am Bahndamm",
+   "capacity": 2200,
+   "pitch": 59
+  },
+  {
+   "club": 131,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 2400,
+   "pitch": 56
+  },
+  {
+   "club": 132,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 800,
+   "pitch": 47
+  },
+  {
+   "club": 133,
+   "stadium": "Bausparfuchs-Park",
+   "capacity": 12000,
+   "pitch": 51
+  },
+  {
+   "club": 134,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 1400,
+   "pitch": 46
+  },
+  {
+   "club": 135,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 2600,
+   "pitch": 62
+  },
+  {
+   "club": 136,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 7500,
+   "pitch": 56
+  },
+  {
+   "club": 137,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 1900,
+   "pitch": 51
+  },
+  {
+   "club": 138,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 1000,
+   "pitch": 60
+  },
+  {
+   "club": 139,
+   "stadium": "Sportplatz Hinter den Gärten",
+   "capacity": 2900,
+   "pitch": 66
+  },
+  {
+   "club": 140,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 3900,
+   "pitch": 54
+  },
+  {
+   "club": 141,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 5800,
+   "pitch": 54
+  },
+  {
+   "club": 142,
+   "stadium": "Stadion am Schlachthof",
+   "capacity": 2100,
+   "pitch": 40
+  },
+  {
+   "club": 143,
+   "stadium": "Arena am Autohof",
+   "capacity": 2400,
+   "pitch": 63
+  },
+  {
+   "club": 144,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 1200,
+   "pitch": 51
+  },
+  {
+   "club": 145,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 2900,
+   "pitch": 49
+  },
+  {
+   "club": 146,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 1600,
+   "pitch": 48
+  },
+  {
+   "club": 147,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 1000,
+   "pitch": 49
+  },
+  {
+   "club": 148,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 4800,
+   "pitch": 54
+  },
+  {
+   "club": 149,
+   "stadium": "Stadion am Schlachthof",
+   "capacity": 2300,
+   "pitch": 39
+  },
+  {
+   "club": 150,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 2500,
+   "pitch": 33
+  },
+  {
+   "club": 151,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 4500,
+   "pitch": 52
+  },
+  {
+   "club": 152,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 5000,
+   "pitch": 53
+  },
+  {
+   "club": 153,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 500,
+   "pitch": 32
+  },
+  {
+   "club": 154,
+   "stadium": "Jahnsportplatz",
+   "capacity": 500,
+   "pitch": 41
+  },
+  {
+   "club": 155,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 3000,
+   "pitch": 56
+  },
+  {
+   "club": 156,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 5300,
+   "pitch": 44
+  },
+  {
+   "club": 157,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 5400,
+   "pitch": 46
+  },
+  {
+   "club": 158,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 3800,
+   "pitch": 52
+  },
+  {
+   "club": 159,
+   "stadium": "Arena am Autohof",
+   "capacity": 4900,
+   "pitch": 26
+  },
+  {
+   "club": 160,
+   "stadium": "Stadion am Schlachthof",
+   "capacity": 3600,
+   "pitch": 50
+  },
+  {
+   "club": 161,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 700,
+   "pitch": 34
+  },
+  {
+   "club": 162,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 4900,
+   "pitch": 48
+  },
+  {
+   "club": 163,
+   "stadium": "Jahnsportplatz",
+   "capacity": 1700,
+   "pitch": 42
+  },
+  {
+   "club": 164,
+   "stadium": "Sportanlage Am Bahndamm",
+   "capacity": 2000,
+   "pitch": 45
+  },
+  {
+   "club": 165,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 1800,
+   "pitch": 41
+  },
+  {
+   "club": 166,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 700,
+   "pitch": 22
+  },
+  {
+   "club": 167,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 1400,
+   "pitch": 47
+  },
+  {
+   "club": 168,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 1000,
+   "pitch": 37
+  },
+  {
+   "club": 169,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 1300,
+   "pitch": 33
+  },
+  {
+   "club": 170,
+   "stadium": "Waldsportplatz",
+   "capacity": 600,
+   "pitch": 39
+  },
+  {
+   "club": 171,
+   "stadium": "Sportplatz am Wasserturm",
+   "capacity": 4700,
+   "pitch": 47
+  },
+  {
+   "club": 172,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 1600,
+   "pitch": 43
+  },
+  {
+   "club": 173,
+   "stadium": "Sportplatz am Wasserturm",
+   "capacity": 2200,
+   "pitch": 40
+  },
+  {
+   "club": 174,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 2600,
+   "pitch": 57
+  },
+  {
+   "club": 175,
+   "stadium": "Sportanlage Am Bahndamm",
+   "capacity": 5400,
+   "pitch": 44
+  },
+  {
+   "club": 176,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 1700,
+   "pitch": 35
+  },
+  {
+   "club": 177,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 1200,
+   "pitch": 54
+  },
+  {
+   "club": 178,
+   "stadium": "Waldsportplatz",
+   "capacity": 1500,
+   "pitch": 40
+  },
+  {
+   "club": 179,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 900,
+   "pitch": 48
+  },
+  {
+   "club": 180,
+   "stadium": "Jahnsportplatz",
+   "capacity": 2200,
+   "pitch": 45
+  },
+  {
+   "club": 181,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 1200,
+   "pitch": 31
+  },
+  {
+   "club": 182,
+   "stadium": "Sportplatz Hinter den Gärten",
+   "capacity": 1400,
+   "pitch": 42
+  },
+  {
+   "club": 183,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 400,
+   "pitch": 36
+  },
+  {
+   "club": 184,
+   "stadium": "Sportpark Kuhweide",
+   "capacity": 3000,
+   "pitch": 43
+  },
+  {
+   "club": 185,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 800,
+   "pitch": 53
+  },
+  {
+   "club": 186,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 900,
+   "pitch": 43
+  },
+  {
+   "club": 187,
+   "stadium": "Sportplatz am Wasserturm",
+   "capacity": 700,
+   "pitch": 58
+  },
+  {
+   "club": 188,
+   "stadium": "Waldsportplatz",
+   "capacity": 2300,
+   "pitch": 44
+  },
+  {
+   "club": 189,
+   "stadium": "Sportplatz am Gewerbegebiet",
+   "capacity": 5400,
+   "pitch": 46
+  },
+  {
+   "club": 190,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 4300,
+   "pitch": 46
+  },
+  {
+   "club": 191,
+   "stadium": "Sportpark an der Umgehungsstraße",
+   "capacity": 3500,
+   "pitch": 53
+  },
+  {
+   "club": 192,
+   "stadium": "Stadion an der Kläranlage",
+   "capacity": 1600,
+   "pitch": 39
+  },
+  {
+   "club": 193,
+   "stadium": "Sportplatz am Wasserturm",
+   "capacity": 1400,
+   "pitch": 35
+  },
+  {
+   "club": 194,
+   "stadium": "Kampfbahn am Friedhof",
+   "capacity": 600,
+   "pitch": 46
+  },
+  {
+   "club": 195,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 900,
+   "pitch": 47
+  },
+  {
+   "club": 196,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 400,
+   "pitch": 43
+  },
+  {
+   "club": 197,
+   "stadium": "Kampfbahn am Friedhof",
+   "capacity": 2600,
+   "pitch": 52
+  },
+  {
+   "club": 198,
+   "stadium": "Sportplatz am Wasserturm",
+   "capacity": 5300,
+   "pitch": 45
+  },
+  {
+   "club": 199,
+   "stadium": "Waldsportplatz",
+   "capacity": 1500,
+   "pitch": 46
+  },
+  {
+   "club": 200,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 900,
+   "pitch": 39
+  },
+  {
+   "club": 201,
+   "stadium": "Kampfbahn am Friedhof",
+   "capacity": 400,
+   "pitch": 40
+  },
+  {
+   "club": 202,
+   "stadium": "Sportplatz Hinter den Gärten",
+   "capacity": 2200,
+   "pitch": 42
+  },
+  {
+   "club": 203,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 400,
+   "pitch": 55
+  },
+  {
+   "club": 204,
+   "stadium": "Kunstwiese am Hallenbad",
+   "capacity": 1300,
+   "pitch": 70
+  },
+  {
+   "club": 205,
+   "stadium": "Stadion am Baggersee",
+   "capacity": 500,
+   "pitch": 47
+  },
+  {
+   "club": 206,
+   "stadium": "Sportplatz an der Kirche",
+   "capacity": 4700,
+   "pitch": 36
+  }
+ ],
+ "derbies": [
+  {
+   "a": 2,
+   "b": 16,
+   "level": 3,
+   "name": "Revierderby"
+  },
+  {
+   "a": 13,
+   "b": 15,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 13,
+   "b": 70,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 13,
+   "b": 156,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 13,
+   "b": 157,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 21,
+   "b": 15,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 21,
+   "b": 70,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 21,
+   "b": 156,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 21,
+   "b": 157,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 68,
+   "b": 15,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 68,
+   "b": 70,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 68,
+   "b": 156,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 68,
+   "b": 157,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 148,
+   "b": 15,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 148,
+   "b": 70,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 148,
+   "b": 156,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 148,
+   "b": 157,
+   "level": 2,
+   "name": "Nordderby"
+  },
+  {
+   "a": 1,
+   "b": 26,
+   "level": 2,
+   "name": "Bayernderby"
+  },
+  {
+   "a": 1,
+   "b": 198,
+   "level": 2,
+   "name": "Bayernderby"
+  },
+  {
+   "a": 133,
+   "b": 26,
+   "level": 2,
+   "name": "Bayernderby"
+  },
+  {
+   "a": 133,
+   "b": 198,
+   "level": 2,
+   "name": "Bayernderby"
+  },
+  {
+   "a": 14,
+   "b": 12,
+   "level": 3,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 45,
+   "b": 12,
+   "level": 3,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 46,
+   "b": 12,
+   "level": 3,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 14,
+   "b": 39,
+   "level": 2,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 45,
+   "b": 39,
+   "level": 2,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 46,
+   "b": 39,
+   "level": 2,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 14,
+   "b": 6,
+   "level": 2,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 45,
+   "b": 6,
+   "level": 2,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 46,
+   "b": 6,
+   "level": 2,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 8,
+   "b": 124,
+   "level": 3,
+   "name": "Mainderby"
+  },
+  {
+   "a": 113,
+   "b": 124,
+   "level": 3,
+   "name": "Mainderby"
+  },
+  {
+   "a": 4,
+   "b": 28,
+   "level": 3,
+   "name": "Baden-Württemberg-Derby"
+  },
+  {
+   "a": 117,
+   "b": 28,
+   "level": 3,
+   "name": "Baden-Württemberg-Derby"
+  },
+  {
+   "a": 33,
+   "b": 22,
+   "level": 3,
+   "name": "Niedersachsenderby"
+  },
+  {
+   "a": 33,
+   "b": 67,
+   "level": 3,
+   "name": "Niedersachsenderby"
+  },
+  {
+   "a": 32,
+   "b": 80,
+   "level": 3,
+   "name": "Elbe-Saale-Derby"
+  },
+  {
+   "a": 26,
+   "b": 34,
+   "level": 3,
+   "name": "Frankenderby"
+  },
+  {
+   "a": 198,
+   "b": 34,
+   "level": 3,
+   "name": "Frankenderby"
+  },
+  {
+   "a": 79,
+   "b": 75,
+   "level": 3,
+   "name": "Thüringenderby"
+  },
+  {
+   "a": 24,
+   "b": 52,
+   "level": 2,
+   "name": "Südwestderby"
+  },
+  {
+   "a": 24,
+   "b": 10,
+   "level": 2,
+   "name": "Rheinland-Pfalz-Derby"
+  },
+  {
+   "a": 24,
+   "b": 189,
+   "level": 2,
+   "name": "Rheinland-Pfalz-Derby"
+  },
+  {
+   "a": 31,
+   "b": 18,
+   "level": 2,
+   "name": "Ostwestfalenderby"
+  },
+  {
+   "a": 29,
+   "b": 3,
+   "level": 2,
+   "name": "Sachsenderby"
+  },
+  {
+   "a": 29,
+   "b": 85,
+   "level": 2,
+   "name": "Sachsenderby"
+  },
+  {
+   "a": 29,
+   "b": 88,
+   "level": 2,
+   "name": "Sachsenderby"
+  },
+  {
+   "a": 76,
+   "b": 83,
+   "level": 2,
+   "name": "Westsachsenderby"
+  },
+  {
+   "a": 77,
+   "b": 83,
+   "level": 2,
+   "name": "Erzgebirgsderby"
+  },
+  {
+   "a": 36,
+   "b": 86,
+   "level": 2,
+   "name": "Brandenburgderby"
+  },
+  {
+   "a": 30,
+   "b": 60,
+   "level": 2,
+   "name": "Schleswig-Holstein-Derby"
+  },
+  {
+   "a": 30,
+   "b": 74,
+   "level": 2,
+   "name": "Schleswig-Holstein-Derby"
+  },
+  {
+   "a": 30,
+   "b": 152,
+   "level": 2,
+   "name": "Schleswig-Holstein-Derby"
+  },
+  {
+   "a": 151,
+   "b": 60,
+   "level": 2,
+   "name": "Schleswig-Holstein-Derby"
+  },
+  {
+   "a": 151,
+   "b": 74,
+   "level": 2,
+   "name": "Schleswig-Holstein-Derby"
+  },
+  {
+   "a": 151,
+   "b": 152,
+   "level": 2,
+   "name": "Schleswig-Holstein-Derby"
+  },
+  {
+   "a": 51,
+   "b": 13,
+   "level": 1,
+   "name": "Ostsee-Elbe-Derby"
+  },
+  {
+   "a": 51,
+   "b": 21,
+   "level": 1,
+   "name": "Ostsee-Elbe-Derby"
+  },
+  {
+   "a": 51,
+   "b": 68,
+   "level": 1,
+   "name": "Ostsee-Elbe-Derby"
+  },
+  {
+   "a": 51,
+   "b": 148,
+   "level": 1,
+   "name": "Ostsee-Elbe-Derby"
+  },
+  {
+   "a": 27,
+   "b": 2,
+   "level": 2,
+   "name": "Revierderby"
+  },
+  {
+   "a": 106,
+   "b": 2,
+   "level": 2,
+   "name": "Revierderby"
+  },
+  {
+   "a": 27,
+   "b": 16,
+   "level": 2,
+   "name": "Revierderby"
+  },
+  {
+   "a": 106,
+   "b": 16,
+   "level": 2,
+   "name": "Revierderby"
+  },
+  {
+   "a": 38,
+   "b": 40,
+   "level": 2,
+   "name": "Revierderby"
+  },
+  {
+   "a": 38,
+   "b": 175,
+   "level": 2,
+   "name": "Revierderby"
+  },
+  {
+   "a": 40,
+   "b": 94,
+   "level": 2,
+   "name": "Revierderby"
+  },
+  {
+   "a": 175,
+   "b": 94,
+   "level": 2,
+   "name": "Revierderby"
+  },
+  {
+   "a": 9,
+   "b": 1,
+   "level": 2,
+   "name": "Bayernderby"
+  },
+  {
+   "a": 9,
+   "b": 133,
+   "level": 2,
+   "name": "Bayernderby"
+  },
+  {
+   "a": 206,
+   "b": 1,
+   "level": 2,
+   "name": "Bayernderby"
+  },
+  {
+   "a": 206,
+   "b": 133,
+   "level": 2,
+   "name": "Bayernderby"
+  },
+  {
+   "a": 7,
+   "b": 4,
+   "level": 1,
+   "name": "Baden-Württemberg-Derby"
+  },
+  {
+   "a": 7,
+   "b": 117,
+   "level": 1,
+   "name": "Baden-Württemberg-Derby"
+  },
+  {
+   "a": 23,
+   "b": 8,
+   "level": 2,
+   "name": "Hessenderby"
+  },
+  {
+   "a": 23,
+   "b": 113,
+   "level": 2,
+   "name": "Hessenderby"
+  },
+  {
+   "a": 19,
+   "b": 33,
+   "level": 2,
+   "name": "Niedersachsenderby"
+  },
+  {
+   "a": 35,
+   "b": 49,
+   "level": 2,
+   "name": "Westfalenderby"
+  },
+  {
+   "a": 35,
+   "b": 171,
+   "level": 2,
+   "name": "Westfalenderby"
+  },
+  {
+   "a": 37,
+   "b": 14,
+   "level": 1,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 37,
+   "b": 45,
+   "level": 1,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 37,
+   "b": 46,
+   "level": 1,
+   "name": "Rheinderby"
+  },
+  {
+   "a": 47,
+   "b": 24,
+   "level": 1,
+   "name": "Kurpfalzderby"
+  },
+  {
+   "a": 128,
+   "b": 24,
+   "level": 1,
+   "name": "Kurpfalzderby"
+  },
+  {
+   "a": 111,
+   "b": 4,
+   "level": 1,
+   "name": "Schwabenderby"
+  },
+  {
+   "a": 111,
+   "b": 117,
+   "level": 1,
+   "name": "Schwabenderby"
+  },
+  {
+   "a": 56,
+   "b": 139,
+   "level": 3,
+   "name": "Unterfrankenderby"
+  },
+  {
+   "a": 50,
+   "b": 44,
+   "level": 2,
+   "name": "Donauderby"
+  },
+  {
+   "a": 11,
+   "b": 86,
+   "level": 1,
+   "name": "Hauptstadtderby"
+  },
+  {
+   "a": 25,
+   "b": 86,
+   "level": 1,
+   "name": "Hauptstadtderby"
+  },
+  {
+   "a": 81,
+   "b": 86,
+   "level": 1,
+   "name": "Hauptstadtderby"
+  },
+  {
+   "a": 82,
+   "b": 86,
+   "level": 1,
+   "name": "Hauptstadtderby"
+  },
+  {
+   "a": 87,
+   "b": 86,
+   "level": 1,
+   "name": "Hauptstadtderby"
+  },
+  {
+   "a": 91,
+   "b": 86,
+   "level": 1,
+   "name": "Hauptstadtderby"
+  },
+  {
+   "a": 159,
+   "b": 86,
+   "level": 1,
+   "name": "Hauptstadtderby"
+  },
+  {
+   "a": 162,
+   "b": 86,
+   "level": 1,
+   "name": "Hauptstadtderby"
+  },
+  {
+   "a": 58,
+   "b": 15,
+   "level": 1,
+   "name": "Nordwestderby"
+  },
+  {
+   "a": 58,
+   "b": 70,
+   "level": 1,
+   "name": "Nordwestderby"
+  },
+  {
+   "a": 58,
+   "b": 156,
+   "level": 1,
+   "name": "Nordwestderby"
+  },
+  {
+   "a": 58,
+   "b": 157,
+   "level": 1,
+   "name": "Nordwestderby"
+  },
+  {
+   "a": 48,
+   "b": 35,
+   "level": 2,
+   "name": "Emslandderby"
+  }
+ ]
+}

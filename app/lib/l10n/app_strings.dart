@@ -79,6 +79,34 @@ abstract interface class AppStrings {
   // Match day: preview, live ticker, report.
   String get matchKickOff;
   String get matchPreviewStrength;
+
+  // Types and dressing room (step 10f1).
+  String get headArchetypes;
+  String get infoArchetypes;
+  String get archetypeNone;
+  String get archetypeUnknown;
+  String archetypeName(Archetype type);
+  String get headCabin;
+  String get infoCabin;
+  String cabinRoleText(CabinRole role, {required bool unhappy});
+  String cabinMoodName(double mood);
+  String squadCabinLine(double mood, List<String> council);
+  String cabinConflictName(CabinConflict conflict);
+
+  // Ground, crowd and weather (steps 10e4 and 10e5).
+  String get matchPreviewConditions;
+  String weatherName(String kind);
+  String groundName(String state);
+  String matchPreviewVenue(String? stadium, int capacity);
+  String matchPreviewWeather(String weather, String ground);
+  String jourFixForecast(String weather);
+  String matchReportConditions({
+    required String? referee,
+    required int attendance,
+    required String weather,
+    required bool video,
+    required int overturned,
+  });
   String matchPreviewLineup(String formation, String system);
   String get matchPreviewAbsent;
   String matchAbsence(Absence reason);
@@ -292,6 +320,59 @@ abstract interface class AppStrings {
   String get profileNoContract;
   String get profileForm;
   String get profileFormNone;
+  String conditionLine({
+    required double form,
+    required double confidence,
+    required double load,
+    double? mood,
+  });
+  String moodName(double mood);
+  String get lineupChemistry;
+  String get lineupInstruction;
+  String get matchPlanButton;
+  String get halfTimeButton;
+  String loadedIn(String seconds);
+  String shoutButton(int left);
+  String get infoShout;
+  String shoutName(Shout shout);
+  String get halfTimeTitle;
+  String get infoHalfTime;
+  String halfTimeStats(int shots, int against, int duelPercent);
+  String get halfTimeNothing;
+  String halfNote(HalfNoteKind kind, {Wing? wing, String? player});
+  String get halfTimeApply;
+  String get halfTimeDone;
+  String get matchPlanTitle;
+  String get infoMatchPlan;
+  String get scoutTitle;
+  String get scoutNone;
+  String scoutNote(PlanFocus focus, {Wing? wing, String? player});
+  String get matchPlanPick;
+  String get matchPlanConfirm;
+  String planFocusName(PlanFocus focus);
+  String get infoInstructions;
+  String get instructionNone;
+  String instructionName(PlayerInstruction i);
+  String get teamInstructions;
+  String get infoTeamInstructions;
+  String wingName(Wing? wing);
+  String get wasteTimeName;
+  String get profilePromise;
+  String get teamTalkButton;
+  String get teamTalkTitle;
+  String get infoTeamTalk;
+  String teamTalkName(TeamTalk talk);
+  String teamTalkHint(TeamTalk talk);
+  String teamTalkResult(TeamTalk talk, int landed);
+  String get playerTalkTitle;
+  String get infoPlayerTalk;
+  String playerTalkName(PlayerTalk talk);
+  String playerTalkHint(PlayerTalk talk);
+  String playerTalkResult(PlayerTalk talk, int landed, String name);
+  String get playerTalkUsed;
+  String jourFixUnhappy(List<String> names);
+  String get reportMarks;
+  String get infoReportMarks;
   String get infoProfileOverall;
   String get infoProfileRole;
   String get infoProfileAbilities;
@@ -500,6 +581,21 @@ abstract interface class AppStrings {
   String get jourFixGreeting;
   String get jourFixSign;
   String cupName(Competition competition);
+
+  // Sports court after a red card (step 10e3).
+  String get courtSender;
+  String get courtAccept;
+  String get courtAppeal;
+  String courtSubject(String player, CourtStatus status);
+  String courtBody({
+    required String player,
+    required String kind,
+    required String? competition,
+    required int motion,
+    required bool weeks,
+    required CourtStatus status,
+    int? verdict,
+  });
   String cupRoundName(bool isFinal, int round);
   String matchShootoutLine(String winner, int home, int away);
   String get confCupTab;
@@ -744,9 +840,11 @@ class AppStringsDe implements AppStrings {
     ManagerValue.presidentTrust => 'Wie fest der Präsident an dich glaubt. Davon hängen dein Budget und deine Zukunft ab. Vertrauen gewinnt man in Jahren und verliert es in einer Halbzeit.',
     ManagerValue.pressImage => 'Was die Zeitung über dich schreibt. Ein gutes Bild gibt Rückenwind, ein schlechtes Schlagzeilen, die man nicht rahmen will.',
     ManagerValue.contacts => 'Wen du anrufen kannst. Hilft bei Transfers und beim Personal. Fußball ist ein Dorf mit Telefonnummern.',
-    ManagerValue.tacticalKnowledge => 'Wie gut du Taktik verstehst. Davon hängt ab, wie viele und wie schlaue Hinweise du zur Aufstellung bekommst. Wächst mit der Zeit.',
+    ManagerValue.tacticalKnowledge => 'Wie gut du Taktik verstehst. Davon hängt ab, wie viele und wie schlaue Hinweise du zur Aufstellung bekommst und wie schnell die Mannschaft eine Umstellung im Spiel umsetzt. Wächst mit der Zeit.',
     ManagerValue.negotiation => 'Wie hart du feilschst. Bessere Preise bei Transfers und Verträgen. Wächst mit der Erfahrung.',
     ManagerValue.talentEye => 'Wie gut du Talente erkennst, bevor es alle anderen tun. Macht dein Scouting genauer. Wächst mit der Zeit.',
+    ManagerValue.motivation => 'Wie sehr du eine Kabine anzünden kannst. Macht deine Ansprachen vor dem Spiel und in der Halbzeit stärker, zusammen mit dem Charisma.',
+    ManagerValue.manManagement => 'Wie gut du mit Menschen umgehst. Hält die Stimmung der Spieler oben und macht Einzelgespräche wirksamer. Divas brauchen das, Profis weniger.',
   };
   @override
   String get hookInfo =>
@@ -787,6 +885,127 @@ class AppStringsDe implements AppStrings {
   String get matchKickOff => 'Anpfiff';
   @override
   String get matchPreviewStrength => 'Mannschaftsstärke';
+  @override
+  String get headArchetypes => 'Typ';
+  @override
+  String get infoArchetypes =>
+      'Der Typ fasst den Charakter in ein Etikett: Diva, Heißsporn, '
+      'Vereinsseele und so weiter. Er ist nur eine Lesehilfe, wirken tun die '
+      'einzelnen Charakterwerte. Bei fremden Spielern siehst du ihn erst, '
+      'wenn es Scouting gibt.';
+  @override
+  String get archetypeNone => 'Kein besonderer Typ. Unauffällig, im Guten wie im Schlechten.';
+  @override
+  String get archetypeUnknown => 'Unbekannt. Dafür bräuchtest du einen Scout.';
+  @override
+  String archetypeName(Archetype type) => switch (type) {
+    Archetype.captain => 'Kapitän',
+    Archetype.modelPro => 'Musterprofi',
+    Archetype.diva => 'Diva',
+    Archetype.hothead => 'Heißsporn',
+    Archetype.mercenary => 'Söldner',
+    Archetype.clubLegend => 'Vereinsseele',
+    Archetype.partyAnimal => 'Partylöwe',
+    Archetype.rock => 'Fels in der Brandung',
+    Archetype.flawedGenius => 'Genie mit Macken',
+    Archetype.terrier => 'Wadenbeißer',
+    Archetype.mediaDarling => 'Liebling der Medien',
+    Archetype.workhorse => 'Arbeitstier',
+  };
+  @override
+  String get headCabin => 'Kabine';
+  @override
+  String get infoCabin =>
+      'In der Kabine hat jeder seinen Platz. Den Kapitän ernennst du. Die vier '
+      'mit dem höchsten Rang bilden den Mannschaftsrat und geben die Stimmung '
+      'vor, alle anderen laufen mit. Der Rang kommt aus Führung, Alter, Jahren '
+      'im Verein und Stärke.';
+  @override
+  String cabinRoleText(CabinRole role, {required bool unhappy}) {
+    final base = switch (role) {
+      CabinRole.captain => 'Kapitän. Trägt die Binde und redet mit dem Schiri.',
+      CabinRole.council => 'Mannschaftsrat. Hat in der Kabine das Sagen.',
+      CabinRole.follower => 'Mitläufer. Folgt der Stimmung des Rats.',
+    };
+    return unhappy
+        ? '$base Ist sauer, dass er nicht im Rat sitzt.'
+        : base;
+  }
+  @override
+  String cabinMoodName(double mood) => mood >= 0.65
+      ? 'bestens'
+      : mood >= 0.55
+      ? 'gut'
+      : mood >= 0.45
+      ? 'neutral'
+      : mood >= 0.35
+      ? 'angespannt'
+      : 'vergiftet';
+  @override
+  String squadCabinLine(double mood, List<String> council) =>
+      'Kabine: ${cabinMoodName(mood)} · Rat: ${council.join(', ')}';
+  @override
+  String cabinConflictName(CabinConflict conflict) => switch (conflict) {
+    CabinConflict.divaOutside => 'Eine Diva fühlt sich übergangen',
+    CabinConflict.powerStruggle => 'Machtkampf im Rat',
+    CabinConflict.partyCouncil => 'Partylöwen im Rat',
+    CabinConflict.mercenaryCouncil => 'Ein Söldner im Rat',
+  };
+  @override
+  String get matchPreviewConditions => 'Stadion und Wetter';
+  @override
+  String weatherName(String kind) => switch (kind) {
+    'sunny' => 'sonnig',
+    'cloudy' => 'bewölkt',
+    'rain' => 'Regen',
+    'heavy_rain' => 'Starkregen',
+    'snow' => 'Schnee',
+    'heat' => 'Hitze',
+    'wind' => 'stürmisch',
+    _ => kind,
+  };
+  @override
+  String groundName(String state) => switch (state) {
+    'good' => 'gut',
+    'wet' => 'nass',
+    'heavy' => 'tief (Acker)',
+    'frozen' => 'gefroren',
+    _ => state,
+  };
+  @override
+  String matchPreviewVenue(String? stadium, int capacity) => stadium == null
+      ? 'Neutraler Platz, $capacity Plätze'
+      : '$stadium, $capacity Plätze';
+  @override
+  String matchPreviewWeather(String weather, String ground) =>
+      'Wetter: ${weatherName(weather)} · Platz: ${groundName(ground)}';
+  @override
+  String matchReportConditions({
+    required String? referee,
+    required int attendance,
+    required String weather,
+    required bool video,
+    required int overturned,
+  }) {
+    final parts = <String>[
+      if (referee != null) 'Schiri: $referee',
+      if (attendance > 0) '$attendance Zuschauer',
+      'Wetter: ${weatherName(weather)}',
+      if (video)
+        overturned == 0
+            ? 'VAR: kein Eingriff'
+            : overturned == 1
+            ? 'VAR: 1 Eingriff'
+            : 'VAR: $overturned Eingriffe',
+      if (!video && overturned > 0)
+        overturned == 1 ? '1 Fehlentscheidung' : '$overturned Fehlentscheidungen',
+    ];
+    return parts.join(' · ');
+  }
+  @override
+  String jourFixForecast(String weather) =>
+      'Der Wetterbericht für das Spiel sagt: ${weatherName(weather)}. '
+      'Meteorologen haben übrigens eine ähnliche Trefferquote wie unser Sturm.';
   @override
   String matchPreviewLineup(String formation, String system) =>
       'Deine Elf: $formation · $system';
@@ -1179,7 +1398,19 @@ class AppStringsDe implements AppStrings {
     TickerKind.shotUp ||
     TickerKind.freeKick ||
     TickerKind.colour ||
-    TickerKind.calm => const [],
+    TickerKind.calm ||
+    TickerKind.varCheck ||
+    TickerKind.varDecision => const [],
+    TickerKind.slowChange => const [
+      '{p} schleicht vom Platz, zehn Sekunden sind um. Der Neue muss eine '
+          'Minute warten, {team} spielt zu zehnt.',
+      'Zu langsam gewechselt: {p} trödelt, {team} ist eine Minute in '
+          'Unterzahl.',
+    ],
+    TickerKind.treatment => const [
+      '{p} wird behandelt und muss danach eine Minute draußen bleiben.',
+      'Behandlungspause für {p}. Eine Minute Unterzahl für {team}.',
+    ],
     TickerKind.captainOff => const [
       '{p} verlässt den Platz, die Kapitänsbinde wandert weiter.',
       'Ohne {p} fehlt {team} die Stimme auf dem Platz. Wer redet jetzt mit '
@@ -1407,6 +1638,8 @@ class AppStringsDe implements AppStrings {
     ManagerValue.tacticalKnowledge => 'Taktikkenntnis',
     ManagerValue.negotiation => 'Verhandlungsgeschick',
     ManagerValue.talentEye => 'Talentblick',
+    ManagerValue.motivation => 'Motivation',
+    ManagerValue.manManagement => 'Menschenführung',
   };
   @override
   String levelName(TraitLevel level) => switch (level) {
@@ -1747,6 +1980,291 @@ class AppStringsDe implements AppStrings {
   @override
   String get profileForm => 'Form und Stimmung';
   @override
+  String conditionLine({
+    required double form,
+    required double confidence,
+    required double load,
+    double? mood,
+  }) {
+    final f = form >= 62
+        ? 'stark'
+        : form >= 54
+        ? 'gut'
+        : form >= 46
+        ? 'normal'
+        : form >= 38
+        ? 'schwach'
+        : 'im Keller';
+    final c = confidence >= 70
+        ? 'strotzt vor Selbstvertrauen'
+        : confidence >= 58
+        ? 'selbstbewusst'
+        : confidence >= 42
+        ? 'normal'
+        : confidence >= 30
+        ? 'verunsichert'
+        : 'am Boden';
+    final l = load >= 1.1
+        ? 'überlastet'
+        : load >= 0.75
+        ? 'hoch'
+        : load >= 0.4
+        ? 'normal'
+        : 'frisch';
+    final m = mood == null ? '' : ' · Stimmung: ${moodName(mood)}';
+    return 'Form: $f · Selbstvertrauen: $c · Belastung: $l$m';
+  }
+
+  @override
+  String moodName(double mood) => mood >= 75
+      ? 'bestens gelaunt'
+      : mood >= 60
+      ? 'zufrieden'
+      : mood >= 45
+      ? 'geht so'
+      : mood >= 30
+      ? 'unzufrieden'
+      : 'stinksauer';
+  @override
+  String get lineupChemistry => 'Eingespielt';
+  @override
+  String get lineupInstruction => 'Anweisung';
+  @override
+  String get matchPlanButton => 'Matchplan';
+  @override
+  String get halfTimeButton => 'Analyse';
+  @override
+  String loadedIn(String seconds) => 'Geladen in $seconds s';
+  @override
+  String shoutButton(int left) => 'Zuruf ($left)';
+  @override
+  String get infoShout =>
+      'Drei Zurufe pro Halbzeit. Einer wirkt etwa zehn Minuten und kostet '
+      'keine Strafe fürs Umstellen. Ob er ankommt, hängt von deinem Charisma '
+      'ab, vom Lärm im Stadion (auswärts und im Derby lauter) und von den '
+      'Spielern: Profis hören hin, Egoisten weniger.';
+  @override
+  String shoutName(Shout shout) => switch (shout) {
+    Shout.push => 'Mehr Druck!',
+    Shout.calm => 'Ruhig bleiben!',
+    Shout.wide => 'Über außen!',
+    Shout.tight => 'Hinten dicht!',
+    Shout.slow => 'Zeit lassen!',
+    Shout.shoot => 'Schieß doch!',
+  };
+  @override
+  String get halfTimeTitle => 'Halbzeitanalyse';
+  @override
+  String get infoHalfTime =>
+      'Dein Assistent fasst die Halbzeit zusammen. Mit mehr Taktikwissen '
+      'sieht er mehr und irrt sich seltener. Zu jeder Beobachtung schlägt er '
+      'eine Änderung vor; „Umsetzen“ trägt sie ein, ändern kannst du danach '
+      'trotzdem alles.';
+  @override
+  String halfTimeStats(int shots, int against, int duelPercent) =>
+      'Schüsse $shots:$against · Zweikämpfe gewonnen $duelPercent %';
+  @override
+  String get halfTimeNothing =>
+      'Dem Assistenten fällt nichts auf. Das ist entweder gut oder sein '
+      'Problem.';
+  @override
+  String halfNote(HalfNoteKind kind, {Wing? wing, String? player}) =>
+      switch (kind) {
+        HalfNoteKind.losingFlank =>
+          'Über ${wing == Wing.right ? 'rechts' : 'links'} verlieren wir fast '
+              'jeden Zweikampf.${player == null ? '' : ' $player soll hinten bleiben.'}',
+        HalfNoteKind.dominant =>
+          '${player ?? 'Einer von denen'} macht drüben, was er will. Den '
+              'sollte jemand eng nehmen.',
+        HalfNoteKind.tired =>
+          '${player ?? 'Einer'} pfeift aus dem letzten Loch.',
+        HalfNoteKind.booked =>
+          '${player ?? 'Einer'} hat Gelb und kocht. Das nächste Foul ist Rot.',
+        HalfNoteKind.planWorks => 'Der Plan geht auf. Weiter so.',
+        HalfNoteKind.planFails =>
+          'Der Plan greift nicht. Da war wohl keine Schwäche.',
+        HalfNoteKind.pressNeeded =>
+          'Wir liegen hinten und schauen zu. Mehr Druck!',
+      };
+  @override
+  String get halfTimeApply => 'Umsetzen';
+  @override
+  String get halfTimeDone => 'Erledigt';
+  @override
+  String get matchPlanTitle => 'Gegneranalyse und Matchplan';
+  @override
+  String get infoMatchPlan =>
+      'Dein Assistent schaut sich den Gegner an. Je mehr Taktikwissen du '
+      'hast, desto mehr sieht er, und desto seltener sieht er Gespenster. '
+      'Wähle bis zu zwei Schwerpunkte. Trifft einer eine echte Schwäche, '
+      'laufen die passenden Aktionen etwa 5 % besser. Ist da keine Schwäche, '
+      'kostet es etwa 2 %. Festgelegt wird vor dem Anpfiff.';
+  @override
+  String get scoutTitle => 'Was der Assistent sieht';
+  @override
+  String get scoutNone =>
+      'Nichts Auffälliges. Oder er hat nicht richtig hingeschaut.';
+  @override
+  String scoutNote(PlanFocus focus, {Wing? wing, String? player}) =>
+      switch (focus) {
+        PlanFocus.weakSide => wing == Wing.right
+            ? 'Ihr Linksverteidiger ist die Schwachstelle. Über rechts geht was.'
+            : 'Ihr Rechtsverteidiger ist die Schwachstelle. Über links geht was.',
+        PlanFocus.pressHigh =>
+          'Ihr Spielaufbau ist wacklig. Wer hoch presst, erbt Bälle.',
+        PlanFocus.counter =>
+          'Hinten stehen sie hoch oder sind langsam. Konter tun weh.',
+        PlanFocus.longShots =>
+          'Ihr Torwart ist kein Fels. Fernschüsse probieren.',
+        PlanFocus.avoidAir =>
+          'In der Luft sind sie stark. Flanken bringen nichts.',
+        PlanFocus.stopKey => player == null
+            ? 'Bei ihnen läuft alles über einen Mann.'
+            : 'Bei ihnen läuft alles über $player.',
+      };
+  @override
+  String get matchPlanPick => 'Schwerpunkte (bis zu zwei)';
+  @override
+  String get matchPlanConfirm => 'Plan festlegen';
+  @override
+  String planFocusName(PlanFocus focus) => switch (focus) {
+    PlanFocus.weakSide => 'Über die schwache Seite',
+    PlanFocus.pressHigh => 'Aufbau anlaufen',
+    PlanFocus.counter => 'Konter',
+    PlanFocus.longShots => 'Fernschüsse',
+    PlanFocus.avoidAir => 'Flach spielen',
+    PlanFocus.stopKey => 'Schlüsselspieler stoppen',
+  };
+  @override
+  String get infoInstructions =>
+      'Eine Anweisung pro Spieler, sie bleibt bei ihm, auch auf einem anderen '
+      'Platz. Manndeckung: klebt am gefährlichsten Gegner, fehlt dafür in '
+      'der Abwehrordnung. Öfter schießen: mehr Fernschüsse. Sicher spielen: '
+      'kurze Pässe, weniger Risiko. Hart rangehen: mehr Balleroberungen, mehr '
+      'Fouls, Heißsporne übertreiben. Aufrücken oder hinten bleiben: mehr '
+      'vorn oder mehr hinten. Steil spielen: mehr Steilpässe, mehr Risiko. '
+      'Im Spiel jederzeit änderbar, ohne Strafe fürs Umstellen.';
+  @override
+  String get instructionNone => 'keine';
+  @override
+  String instructionName(PlayerInstruction i) => switch (i) {
+    PlayerInstruction.manMark => 'Manndeckung',
+    PlayerInstruction.shootMore => 'Öfter schießen',
+    PlayerInstruction.safe => 'Sicher spielen',
+    PlayerInstruction.hard => 'Hart rangehen',
+    PlayerInstruction.forward => 'Aufrücken',
+    PlayerInstruction.stayBack => 'Hinten bleiben',
+    PlayerInstruction.through => 'Steil spielen',
+  };
+  @override
+  String get teamInstructions => 'Mannschaft';
+  @override
+  String get infoTeamInstructions =>
+      'Flügel überladen: mehr Angriffe über diese Seite, die andere wird '
+      'dünn. Zeit schinden: früher und öfter, auch beim Unentschieden. Der '
+      'Schiri zeigt dafür mal Gelb und hängt Nachspielzeit an.';
+  @override
+  String wingName(Wing? wing) => switch (wing) {
+    null => 'Beide Flügel',
+    Wing.left => 'Links überladen',
+    Wing.right => 'Rechts überladen',
+  };
+  @override
+  String get wasteTimeName => 'Zeit schinden';
+  @override
+  String get profilePromise =>
+      'Du hast ihm Einsatzzeit versprochen. Er zählt die Minuten.';
+  @override
+  String get teamTalkButton => 'Ansprache';
+  @override
+  String get teamTalkTitle => 'Ansprache in der Kabine';
+  @override
+  String get infoTeamTalk =>
+      'Einmal vor dem Anpfiff und einmal in jeder Pause darfst du reden. '
+      'Wie es ankommt, hängt von deinem Charisma und deiner Motivation ab, '
+      'vom Spielstand und vom Charakter der Spieler: Profis lässt das kalt, '
+      'Divas lieben Lob, Heißsporne werden beim Anstacheln zu heiß und holen '
+      'sich Karten. Wer nach einer schwachen Halbzeit lobt, macht es '
+      'schlimmer.';
+  @override
+  String teamTalkName(TeamTalk talk) => switch (talk) {
+    TeamTalk.calm => 'Beruhigen',
+    TeamTalk.fire => 'Anstacheln',
+    TeamTalk.praise => 'Loben',
+  };
+  @override
+  String teamTalkHint(TeamTalk talk) => switch (talk) {
+    TeamTalk.calm => 'Ruhe reinbringen. Gut bei Führung, im Derby, für Nervöse.',
+    TeamTalk.fire => 'Tür zu, laut werden. Gut bei Rückstand oder Gleichstand.',
+    TeamTalk.praise =>
+      'Schulter klopfen. Gut, wenn es läuft. Divas mögen das immer.',
+  };
+  @override
+  String teamTalkResult(TeamTalk talk, int landed) => switch (landed) {
+    1 => 'Das hat gesessen. Die Jungs gehen anders raus.',
+    -1 => switch (talk) {
+      TeamTalk.praise => 'Lob? Jetzt? Die Mannschaft guckt dich an, als hättest '
+          'du ein anderes Spiel gesehen.',
+      TeamTalk.fire => 'Zu viel Gebrüll. Ein paar sind jetzt zu heiß.',
+      TeamTalk.calm => 'Beruhigen war das Falsche. Die schlafen gleich ein.',
+    },
+    _ => 'Höfliches Nicken. Viel bewegt hast du nicht.',
+  };
+  @override
+  String get playerTalkTitle => 'Gespräch unter vier Augen';
+  @override
+  String get infoPlayerTalk =>
+      'Einmal pro Woche hast du Zeit für ein Gespräch mit einem Spieler. '
+      'Aufbauen hilft, wenn er unten ist. Eine Ansage weckt Profis und '
+      'Ehrgeizige, die anderen sind beleidigt. Ein Versprechen hebt die '
+      'Stimmung sofort, aber wenn er in den nächsten drei Spielen nicht '
+      'spielt, ist es schlimmer als vorher. Deine Menschenführung macht '
+      'jedes Gespräch stärker.';
+  @override
+  String playerTalkName(PlayerTalk talk) => switch (talk) {
+    PlayerTalk.encourage => 'Aufbauen',
+    PlayerTalk.warn => 'Ansage machen',
+    PlayerTalk.promise => 'Einsatz versprechen',
+  };
+  @override
+  String playerTalkHint(PlayerTalk talk) => switch (talk) {
+    PlayerTalk.encourage => 'Für einen, der in der Krise steckt.',
+    PlayerTalk.warn => 'Klare Worte. Profis ziehen an, Mimosen schmollen.',
+    PlayerTalk.promise => 'Hebt die Stimmung. Halte es, sonst knallt es.',
+  };
+  @override
+  String playerTalkResult(PlayerTalk talk, int landed, String name) =>
+      switch ((talk, landed)) {
+        (PlayerTalk.encourage, 1) =>
+          '$name geht mit erhobenem Kopf raus. Das hat er gebraucht.',
+        (PlayerTalk.encourage, _) =>
+          '$name nickt freundlich. Gebraucht hätte er es nicht.',
+        (PlayerTalk.warn, 1) =>
+          '$name hat verstanden. Im Training gibt er jetzt Gas.',
+        (PlayerTalk.warn, _) =>
+          '$name knallt die Tür. Das war wohl nicht seine Sprache.',
+        (PlayerTalk.promise, 1) =>
+          '$name strahlt. Jetzt musst du ihn aber auch bringen.',
+        (PlayerTalk.promise, _) =>
+          '$name winkt ab. Ein Versprechen hat er schon, das zweite glaubt '
+              'er nicht.',
+      };
+  @override
+  String get playerTalkUsed =>
+      'Diese Woche hattest du schon dein Gespräch. Nächste Woche wieder.';
+  @override
+  String jourFixUnhappy(List<String> names) => names.length == 1
+      ? 'In der Kabine grummelt es: ${names.first} ist unzufrieden.'
+      : 'In der Kabine grummelt es: ${names.join(', ')} sind unzufrieden.';
+  @override
+  String get reportMarks => 'Noten';
+  @override
+  String get infoReportMarks =>
+      'Noten wie in der Zeitung, von 1 (Weltklasse) bis 6 (bitte nie wieder). '
+      'Sie kommen aus Toren, Vorlagen, Zweikämpfen, Paraden, Fehlern, Karten '
+      'und dem Ergebnis. Wer kürzer als eine Viertelstunde spielt, bekommt '
+      'keine Note. Die Noten machen die Form der Spieler.';
+  @override
   String get profileFormNone =>
       'Noch kein Spiel gespielt. Gute Laune ist also reine Theorie.';
   @override
@@ -1764,8 +2282,13 @@ class AppStringsDe implements AppStrings {
       'sie sind. Mehr als vier hat niemand, und höchstens eine ist Gold.';
   @override
   String get infoProfileForm =>
-      'Wie gut es ihm gerade läuft und wie er drauf ist. Kommt, sobald du '
-      'das erste Spiel hinter sich haben.';
+      'Form kommt aus den Noten der letzten Spiele und wirkt auf die Tagesform. '
+      'Selbstvertrauen springt mit Toren, Paraden und Fehlern und wirkt auf '
+      'Abschlüsse und mutige Aktionen. Belastung sind die Minuten der letzten '
+      'Wochen: wer zu viel spielt, verletzt sich leichter. Rotation hilft. '
+      'Stimmung kommt aus Ergebnissen, Einsatzzeit, der Kabine und dir: '
+      'gute Laune bringt ein paar Prozent Tagesform, sehr schlechte Laune '
+      'mehr Fouls.';
   @override
   String get valuesHint => 'Alle Werte von 1 bis 100';
   @override
@@ -2158,7 +2681,12 @@ class AppStringsDe implements AppStrings {
       'Stärke: der Durchschnitt deiner Elf auf den Plätzen, auf denen sie '
       'steht (100 wäre Weltklasse). Rollenpassung: wie gut jeder in seiner '
       'Rolle ist, von 0 bis 100 Prozent. Systempassung: wie gut die Elf zur '
-      'Spielidee passt. Alles nur Vorschau, gespielt wird auf dem Platz.';
+      'Spielidee passt. Eingespielt: wie gut sich die Elf kennt; jede '
+      'gemeinsame Minute in dieser Saison zählt, gemeinsame Jahre im Verein '
+      'und die Vorbereitung geben einen Vorschuss. Eine eingespielte Elf '
+      'spielt bis zu 4 % bessere Kurz- und Steilpässe, eine '
+      'zusammengewürfelte bis zu 4 % schlechtere. Wer ständig rotiert, zahlt '
+      'dafür. Alles nur Vorschau, gespielt wird auf dem Platz.';
   @override
   String get lineupStrength => 'Stärke';
   @override
@@ -2695,6 +3223,80 @@ class AppStringsDe implements AppStrings {
       'Kaffee:';
   @override
   String get jourFixSign => 'Mit freundlichen Grüßen, dein Präsident';
+  @override
+  String get courtSender => 'Kontrollausschuss des Verbands';
+  @override
+  String get courtAccept => 'Annehmen';
+  @override
+  String get courtAppeal => 'Einspruch';
+  @override
+  String courtSubject(String player, CourtStatus status) => switch (status) {
+    CourtStatus.open => 'Strafantrag gegen $player',
+    CourtStatus.accepted => 'Sperre für $player rechtskräftig',
+    CourtStatus.appealed => 'Urteil des Sportgerichts: $player',
+    CourtStatus.stopped => 'Verfahren gegen $player eingestellt',
+  };
+  @override
+  String courtBody({
+    required String player,
+    required String kind,
+    required String? competition,
+    required int motion,
+    required bool weeks,
+    required CourtStatus status,
+    int? verdict,
+  }) {
+    String ban(int n) => weeks
+        ? (n == 1 ? '1 Woche' : '$n Wochen')
+        : (n == 1 ? '1 Spiel' : '$n Spiele');
+    final why = switch (kind) {
+      'dogso' => 'wegen einer Notbremse',
+      'rough' => 'wegen rohen Spiels',
+      'violent' => 'wegen einer Tätlichkeit',
+      'insult' => 'wegen Schiedsrichterbeleidigung',
+      _ => 'wegen eines groben Foulspiels',
+    };
+    final where = competition == null
+        ? 'im Ligaspiel'
+        : 'im Spiel im $competition';
+    final scope = weeks
+        ? 'Die Sperre gilt für alle Pflichtspiele.'
+        : competition == null
+        ? 'Die Sperre gilt für Ligaspiele.'
+        : 'Die Sperre gilt für Spiele im $competition.';
+    const sign = 'Mit sportlichen Grüßen\nDer Kontrollausschuss';
+    final head =
+        'Sehr geehrter Herr Trainer,\n\nIhr Spieler $player wurde $where $why '
+        'des Feldes verwiesen.';
+    final after = verdict ?? motion;
+    final outcome = after < motion
+        ? 'Gute Nachricht: Die Sperre sinkt von ${ban(motion)} auf '
+              '${ban(after)}.'
+        : after > motion
+        ? 'Das ging nach hinten los: Das Gericht erhöht die Sperre von '
+              '${ban(motion)} auf ${ban(after)}.'
+        : 'Das Gericht bestätigt den Antrag: ${ban(motion)} Sperre.';
+    return switch (status) {
+      CourtStatus.open =>
+        '$head Der Kontrollausschuss beantragt eine Sperre von '
+            '${ban(motion)}. $scope\n\nStimmen Sie zu, entscheidet der '
+            'Einzelrichter genau so. Legen Sie Einspruch ein, verhandelt das '
+            'Sportgericht. Das kann milder ausgehen, gleich oder auch härter: '
+            'Das Gericht ist an unseren Antrag nicht gebunden. Bis dahin ist '
+            '$player gesperrt.\n\n$sign',
+      CourtStatus.accepted =>
+        '$head Sie haben dem Antrag zugestimmt. $player ist für '
+            '${ban(motion)} gesperrt. $scope\n\n$sign',
+      CourtStatus.appealed =>
+        '$head Auf Ihren Einspruch hin hat das Sportgericht verhandelt. '
+            '$outcome $scope\n\n$sign',
+      CourtStatus.stopped =>
+        '$head Die Auswertung der Bilder zeigt: Der Schiedsrichter hat den '
+            'falschen Spieler vom Platz gestellt. Das Verfahren ist '
+            'eingestellt, $player ist nicht gesperrt.\n\n$sign',
+    };
+  }
+
   @override
   String cupName(Competition competition) =>
       competition == Competition.pott ? 'Pott der Provinz' : 'Bolzplatzpokal';

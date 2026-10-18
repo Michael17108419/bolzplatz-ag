@@ -10,6 +10,8 @@ class LoadedWorld {
     required this.names,
     required this.calendarRules,
     required this.strengths,
+    this.referees,
+    this.venues,
   });
 
   /// Reads world, rules and name lists from their JSON texts.
@@ -17,8 +19,10 @@ class LoadedWorld {
     String worldText,
     String rulesText,
     String namesText,
-    String calendarText,
-  ) {
+    String calendarText, {
+    String? refereesText,
+    String? venuesText,
+  }) {
     final world = WorldJson.decode(worldText);
     final rules = Rules.parse(rulesText).valueOrNull;
     if (rules == null) throw const FormatException('rules file is invalid');
@@ -28,10 +32,22 @@ class LoadedWorld {
       names: NameLists.fromJson(namesText),
       calendarRules: CalendarRules.fromJsonString(calendarText),
       strengths: ClubStrengths.compute(world, rules),
+      referees: refereesText == null
+          ? null
+          : RefereePool.fromJson(refereesText),
+      venues: venuesText == null ? null : VenueData.fromJson(venuesText),
     );
   }
 
   final World world;
+
+  /// The referees of the matches (engine 2, step 10e1); null in tests that
+  /// do not load them (every match then has a plain referee).
+  final RefereePool? referees;
+
+  /// Places, stadiums and derbies (engine 2, step 10e4); null in tests that
+  /// do not load them.
+  final VenueData? venues;
   final Rules rules;
   final NameLists names;
 
@@ -73,6 +89,8 @@ class LoadedWorld {
       names: names,
       calendarRules: calendarRules,
       strengths: ClubStrengths.compute(next, rules),
+      referees: referees,
+      venues: venues,
     );
   }
 
@@ -103,9 +121,22 @@ final worldLoaderProvider = Provider<Future<LoadedWorld> Function()>((ref) {
     final calendarText = await rootBundle.loadString(
       'assets/data/calendar_rules.json',
     );
+    final refereesText = await rootBundle.loadString(
+      'assets/data/referees_de.json',
+    );
+    final venuesText = await rootBundle.loadString(
+      'assets/data/venues_de.json',
+    );
     // Let the loading screen draw once before the parsing blocks the thread.
     await Future<void>.delayed(const Duration(milliseconds: 50));
-    return LoadedWorld.fromTexts(worldText, rulesText, namesText, calendarText);
+    return LoadedWorld.fromTexts(
+      worldText,
+      rulesText,
+      namesText,
+      calendarText,
+      refereesText: refereesText,
+      venuesText: venuesText,
+    );
   };
 });
 

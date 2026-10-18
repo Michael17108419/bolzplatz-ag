@@ -1,4 +1,6 @@
 import '../model/ids.dart';
+import 'match_session.dart';
+import 'team_sheet.dart';
 
 enum MatchEventType {
   kickOff,
@@ -34,10 +36,139 @@ enum MatchEventType {
 
   /// A delay punished by the Laws (engine 2): [side] is the team that
   /// wasted time, [MatchEvent.action] says how (`keeper_eight_seconds`,
-  /// `goal_kick_countdown`, `throw_in_countdown`), [MatchEvent.player] is
-  /// the culprit.
+  /// `goal_kick_countdown`, `throw_in_countdown`, `sub_ten_seconds`),
+  /// [MatchEvent.player] is the culprit.
   timeWasting,
+
+  /// A foul in an attack (engine 2, step 10e1): [side] is the team that
+  /// fouled, [MatchEvent.player] the fouler, [MatchEvent.otherPlayer] the
+  /// player fouled; [MatchEvent.action] is `whistle` or `advantage` (play
+  /// ran on), [MatchEvent.value] 1 if it denied a clear chance (Notbremse).
+  foul,
+
+  /// Protest against the referee (engine 2, step 10e1): [side] protests,
+  /// [MatchEvent.player] is the one who talks; [MatchEvent.action] is
+  /// `captain` (allowed, IFAB 2025/26) or `protest` (anyone else).
+  dissent,
+
+  /// A decision checked by the VAR or a wrong decision without one (engine
+  /// 2, step 10e2), when it is not part of a goal, penalty or card event:
+  /// [MatchEvent.action] is `penalty_given` (VAR gives a penalty),
+  /// `penalty_missed` (no VAR, a penalty not given), `red_given` (VAR sends
+  /// a player off), `red_missed` (no VAR, a red not seen), `red_downgraded`
+  /// (VAR makes a red a yellow), `identity` (VAR corrects the player),
+  /// `second_cancelled` (VAR takes back a second yellow). [side] is the
+  /// team the decision is about, [MatchEvent.value] 1 with VAR, 0 without.
+  varReview,
+
+  /// A player is treated on the pitch (engine 2, step 10e6) and must stay
+  /// off for a minute ([MatchEvent.value] 1; 0 for the keeper, who may
+  /// stay).
+  treatment,
+
+  /// A team talk in the dressing room (engine 2, step 10f3), before
+  /// kick-off or at a break: [side] is the team, [MatchEvent.action] the
+  /// kind (`calm`, `fire`, `praise`), [MatchEvent.value] how it landed (1
+  /// well, 0 flat, -1 badly).
+  teamTalk,
+
+  /// The match plan of a team (engine 2, step 10g2), set before kick-off:
+  /// [MatchEvent.action] the focus points joined by commas.
+  matchPlan,
+
+  /// A shout of the coach from the touchline (engine 2, step 10g4):
+  /// [MatchEvent.action] the shout, [MatchEvent.value] how it got through
+  /// (1 loud and clear, 0 half, -1 lost in the noise).
+  shout,
 }
+
+/// What the coach shouts from the touchline (engine 2, step 10g4): more
+/// pressure, calm down, go wide, close up at the back, slow it down, shoot.
+enum Shout { push, calm, wide, tight, slow, shoot }
+
+/// A focus point of the match plan (engine 2, step 10g2): attack their weak
+/// side, press their build-up, counter their high line, shoot from
+/// distance at a weak keeper, keep the ball on the ground against tall
+/// defenders, stop their key player.
+enum PlanFocus { weakSide, pressHigh, counter, longShots, avoidAir, stopKey }
+
+/// What the assistant noticed in a half (engine 2, step 10g3).
+enum HalfNoteKind {
+  /// We lose most duels on one flank ([HalfNote.wing]).
+  losingFlank,
+
+  /// One of theirs runs the show ([HalfNote.player]).
+  dominant,
+
+  /// One of ours is running on empty ([HalfNote.player]).
+  tired,
+
+  /// One of ours is booked and hot-headed ([HalfNote.player]).
+  booked,
+
+  /// The match plan works.
+  planWorks,
+
+  /// The match plan does not work.
+  planFails,
+
+  /// Behind and too passive.
+  pressNeeded,
+}
+
+/// One observation at half time with the change the assistant suggests
+/// ([fix], null if there is nothing to change). [real] is false when a
+/// weak assistant got it wrong.
+class HalfNote {
+  const HalfNote(
+    this.kind, {
+    required this.real,
+    this.wing,
+    this.player,
+    this.fix,
+  });
+
+  final HalfNoteKind kind;
+  final bool real;
+  final Wing? wing;
+  final PlayerId? player;
+  final SessionAction? fix;
+}
+
+/// The half-time analysis of the assistant (step 10g3): shots, duels and
+/// a few observations.
+class HalfTimeReport {
+  const HalfTimeReport({
+    required this.shots,
+    required this.shotsAgainst,
+    required this.duelsWon,
+    required this.duels,
+    required this.notes,
+  });
+
+  final int shots;
+  final int shotsAgainst;
+  final int duelsWon;
+  final int duels;
+  final List<HalfNote> notes;
+}
+
+/// One observation of the assistant about the opponent (step 10g2). [real]
+/// says whether it is true; a weak coach also sees things that are not
+/// there. [wing] is the side to attack for [PlanFocus.weakSide], [player]
+/// the key man for [PlanFocus.stopKey].
+class ScoutNote {
+  const ScoutNote(this.focus, {required this.real, this.wing, this.player});
+
+  final PlanFocus focus;
+  final bool real;
+  final Wing? wing;
+  final PlayerId? player;
+}
+
+/// What the coach says in the dressing room (engine 2, step 10f3): calm
+/// the team down, fire it up or praise it.
+enum TeamTalk { calm, fire, praise }
 
 enum ShotOutcome { goal, saved, blocked, offTarget }
 
@@ -113,6 +244,8 @@ class MatchEvent {
     this.value,
     this.spot,
     this.steps = const [],
+    this.keeper,
+    this.review,
   }) : tick = tick ?? minute;
 
   /// Minute on the clock (45 and 90 during stoppage time, see [added]).
@@ -155,7 +288,9 @@ class MatchEvent {
 
   /// Id of the action from the rules (engine 2): for a shot the last action
   /// of the attack before it (`long_shot` for a shot from distance the
-  /// player chose), for a lost ball the action that failed.
+  /// player chose), for a lost ball the action that failed. For a card the
+  /// reason (`foul`, `dogso`, `dogso_box`, `advantage`, `dissent`), null for
+  /// a card without a told reason.
   final String? action;
 
   /// A number that belongs to the event: minutes of stoppage time.
@@ -169,10 +304,72 @@ class MatchEvent {
   /// (engine 2); empty for other events.
   final List<AttackStep> steps;
 
+  /// The keeper who faced a shot (engine 2, step 10e1).
+  final PlayerId? keeper;
+
+  /// What became of a goal, penalty or card under review (engine 2, step
+  /// 10e2). Goals: `goal_overturned` (VAR: offside, no goal),
+  /// `goal_given` (VAR: the flag was wrong, goal), `goal_confirmed` (VAR
+  /// checked, goal stands), `offside_missed` (no VAR, an offside goal
+  /// stands), `goal_disallowed` (no VAR, a fair goal flagged off).
+  /// Penalties: `penalty_overturned` (VAR: no foul, no penalty),
+  /// `penalty_soft` (no VAR, a penalty without a foul). Cards: `red_harsh`
+  /// and `second_harsh` (no VAR, too hard), `identity` (no VAR, the wrong
+  /// player; the real culprit is [otherPlayer]).
+  final String? review;
+
+  /// A goal taken away (by the VAR or a wrong flag): told, but not counted.
+  bool get annulled =>
+      review == 'goal_overturned' || review == 'goal_disallowed';
+
   /// The minute as shown: "45+2" in stoppage time, else "45".
   String get clockLabel => added > 0 ? '$minute+$added' : '$minute';
 
-  bool get isGoal => outcome == ShotOutcome.goal;
+  bool get isGoal => outcome == ShotOutcome.goal && !annulled;
+}
+
+/// Where and how a match is played (engine 2, step 10e4): the ground, the
+/// crowd, whether it is a derby and how far the guests travelled.
+class MatchSetting {
+  const MatchSetting({
+    this.stadium,
+    this.capacity = 0,
+    this.attendance = 0,
+    this.derby = 0,
+    this.derbyName,
+    this.travelKm = 0,
+    this.travel = 0,
+    this.pitch = 70,
+    this.weather = 'cloudy',
+    this.ground = 'good',
+  });
+
+  final String? stadium;
+  final int capacity;
+  final int attendance;
+
+  /// 0 none to 3 (city derby, great rivalry).
+  final int derby;
+  final String? derbyName;
+
+  /// Road kilometres of the guests.
+  final int travelKm;
+
+  /// Share of energy the guests lost on the road (0.02 is 2 %).
+  final double travel;
+
+  /// Quality of the grass of the home ground, 1 to 100.
+  final int pitch;
+
+  /// Weather (engine 2, step 10e5): sunny, cloudy, rain, heavy_rain, snow,
+  /// heat or wind.
+  final String weather;
+
+  /// State of the ground: good, wet, heavy or frozen.
+  final String ground;
+
+  /// How full the ground is, 0 to 1.
+  double get fill => capacity == 0 ? 0 : (attendance / capacity).clamp(0, 1);
 }
 
 /// Counted values of one team in one match.

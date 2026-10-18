@@ -10,6 +10,8 @@ export 'ids.dart';
 export 'league.dart';
 export 'player.dart';
 export 'position.dart';
+export 'referee.dart';
 export 'region.dart';
 export 'shirt_numbers.dart';
 export 'special_ability.dart';
+export 'venue.dart';

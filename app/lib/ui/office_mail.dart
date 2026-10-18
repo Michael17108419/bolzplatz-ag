@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
 import '../game/career.dart';
@@ -23,6 +24,7 @@ class OfficeMail {
     required this.portrait,
     this.actions = const [],
     this.date,
+    this.courtCase,
   });
 
   final String id;
@@ -34,6 +36,42 @@ class OfficeMail {
 
   /// The day of the mail, null for the first mails of the career.
   final GameDate? date;
+
+  /// An open case of the sports court this mail asks about: the mail then
+  /// shows "Annehmen" and "Einspruch" (step 10e3).
+  final String? courtCase;
+}
+
+/// The two answers to a motion of the control committee.
+class CourtButtons extends ConsumerWidget {
+  const CourtButtons({required this.caseId, super.key});
+
+  final String caseId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(stringsProvider);
+    return Wrap(
+      spacing: Tokens.gapS,
+      runSpacing: Tokens.gapS,
+      children: [
+        OutlinedButton(
+          key: ValueKey('court-accept-$caseId'),
+          onPressed: () => ref
+              .read(seasonProvider.notifier)
+              .decideCase(caseId, appeal: false),
+          child: Text(s.courtAccept),
+        ),
+        FilledButton(
+          key: ValueKey('court-appeal-$caseId'),
+          onPressed: () => ref
+              .read(seasonProvider.notifier)
+              .decideCase(caseId, appeal: true),
+          child: Text(s.courtAppeal),
+        ),
+      ],
+    );
+  }
 }
 
 /// The inbox of the career: the "Jour Fix" before the match day, then the
@@ -88,6 +126,20 @@ List<OfficeMail> buildMails(
         if (place > 0) lines.add(s.jourFixTable(place, standing.length));
       }
       lines.add(s.jourFixAbsent(absent));
+      // Who sulks in the dressing room (engine 2, step 10f3).
+      final squad = game.run.state.squads[game.clubId] ?? const <Player>[];
+      final unhappy = [
+        for (final p in squad)
+          if (game.runner.moodOf(p.id) < 40) p,
+      ]..sort(
+          (x, y) =>
+              game.runner.moodOf(x.id).compareTo(game.runner.moodOf(y.id)),
+        );
+      if (unhappy.isNotEmpty) {
+        lines.add(
+          s.jourFixUnhappy([for (final p in unhappy.take(3)) p.lastName]),
+        );
+      }
     }
     lines.add(s.jourFixNext(view.matchday, view.opponent.name, view.atHome));
     final others = all
@@ -115,6 +167,16 @@ List<OfficeMail> buildMails(
     }
     if (vacation != null && !vacation.kept) {
       lines.add(s.jourFixVacation(vacation.total, vacation.minTotal));
+    }
+    final g = game;
+    if (g != null) {
+      final next = g.runner.nextMatchOf(g.run, g.clubId);
+      if (next != null) {
+        final home = view.atHome ? g.clubId : view.opponent.id;
+        lines.add(
+          s.jourFixForecast(g.runner.forecastOn(home, next.$1.epochDay)),
+        );
+      }
     }
     lines.add(s.jourFixSign);
     return lines.join('\n\n');
@@ -189,9 +251,34 @@ List<OfficeMail> buildMails(
       portrait: presidentPortrait,
     );
   }
+  String playerName(PlayerId id) => loaded.player(id)?.lastName ?? '?';
+  final courtMails = <OfficeMail>[
+    if (game != null)
+      for (final c in game.runner.casesOf(game.clubId).reversed)
+        OfficeMail(
+          id: 'court:${c.id}',
+          sender: s.courtSender,
+          subject: s.courtSubject(playerName(c.player), c.status),
+          body: s.courtBody(
+            player: playerName(c.player),
+            kind: c.kind,
+            competition: c.competition == Competition.league
+                ? null
+                : s.cupName(c.competition),
+            motion: c.motion,
+            weeks: c.weeks,
+            status: c.status,
+            verdict: c.verdict,
+          ),
+          portrait: const _Initial('§'),
+          date: c.date.plusDays(1),
+          courtCase: c.status == CourtStatus.open ? c.id : null,
+        ),
+  ];
   return [
     ?seasonEnd,
     ?verdict,
+    ...courtMails,
     ...appointmentMails,
     OfficeMail(
       id: 'jourfix',

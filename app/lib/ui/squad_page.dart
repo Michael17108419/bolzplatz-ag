@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
+import '../game/cabin.dart';
+
 import '../game/desk.dart';
 import '../game/loaded_world.dart';
 import '../game/season_game.dart';
@@ -84,6 +86,7 @@ class _SquadPageState extends ConsumerState<SquadPage> {
                 const SizedBox(height: Tokens.gapS),
                 _HeaderRow(sort: _sort, reversed: _reversed, onSort: _pick),
               ],
+              const _CabinLine(),
               const SizedBox(height: 4),
               Expanded(
                 child: rows.isEmpty
@@ -282,6 +285,7 @@ class _SquadTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final p = row.player;
     final reason = ref.watch(ownAbsencesProvider)[p.id];
+    final mood = ref.watch(seasonProvider)?.runner.moodOf(p.id);
     final look = PlayerLook.of(p, age: row.age, crestColour: crestIndex);
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -312,11 +316,21 @@ class _SquadTile extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        p.displayName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              p.displayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall,
+                            ),
+                          ),
+                          if (mood != null) ...[
+                            const SizedBox(width: 4),
+                            MoodIcon(mood: mood, label: s.moodName(mood)),
+                          ],
+                        ],
                       ),
                       Text(
                         reason == null
@@ -543,6 +557,7 @@ class _NarrowTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final p = row.player;
     final reason = ref.watch(ownAbsencesProvider)[p.id];
+    final mood = ref.watch(seasonProvider)?.runner.moodOf(p.id);
     final look = PlayerLook.of(p, age: row.age, crestColour: crestIndex);
     Widget avatar = PersonAvatar(
       appearance: look.appearance,
@@ -581,13 +596,27 @@ class _NarrowTile extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          row.number == null
-                              ? p.displayName
-                              : '${row.number}  ${p.displayName}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                row.number == null
+                                    ? p.displayName
+                                    : '${row.number}  ${p.displayName}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.titleSmall,
+                              ),
+                            ),
+                            if (mood != null) ...[
+                              const SizedBox(width: 4),
+                              MoodIcon(
+                                key: ValueKey('mood-${p.id.value}'),
+                                mood: mood,
+                                label: s.moodName(mood),
+                              ),
+                            ],
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Row(
@@ -640,6 +669,43 @@ class _NarrowTile extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The dressing room in one line: its mood and the council (step 10f1).
+class _CabinLine extends ConsumerWidget {
+  const _CabinLine();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cabin = ref.watch(cabinProvider);
+    final loaded = ref.watch(loadedWorldProvider).value;
+    if (cabin == null || loaded == null) return const SizedBox.shrink();
+    final s = ref.watch(stringsProvider);
+    final theme = Theme.of(context);
+    final names = [
+      for (final id in cabin.council) loaded.player(id)?.lastName ?? '?',
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              [
+                s.squadCabinLine(cabin.mood, names),
+                for (final c in cabin.conflicts) s.cabinConflictName(c),
+              ].join(' · '),
+              key: const ValueKey('squad-cabin'),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+          InfoButton(message: s.infoCabin),
+        ],
       ),
     );
   }

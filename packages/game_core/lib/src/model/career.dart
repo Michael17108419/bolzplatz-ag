@@ -15,7 +15,7 @@ enum TraitLevel {
   );
 }
 
-/// The nine values of the manager (document 01 and 16). Four of them are
+/// The values of the manager (document 01 and 16). Four of them are
 /// skills that grow ([tacticalKnowledge], [charisma], [negotiation],
 /// [talentEye]), [standing] is the reputation, the rest are states.
 enum ManagerValue {
@@ -27,7 +27,13 @@ enum ManagerValue {
   contacts('contacts'),
   tacticalKnowledge('tactical_knowledge'),
   negotiation('negotiation'),
-  talentEye('talent_eye');
+  talentEye('talent_eye'),
+
+  /// Engine 2, step 10f3: how well the manager fires up a team.
+  motivation('motivation'),
+
+  /// Engine 2, step 10f3: how well he keeps players happy.
+  manManagement('man_management');
 
   const ManagerValue(this.id);
 
@@ -37,7 +43,9 @@ enum ManagerValue {
       this == charisma ||
       this == tacticalKnowledge ||
       this == negotiation ||
-      this == talentEye;
+      this == talentEye ||
+      this == motivation ||
+      this == manManagement;
 }
 
 /// The seven traits of a club president (document 01). For [thrift], a low
@@ -204,7 +212,7 @@ class TrainerAppearance {
   );
 }
 
-/// The player's manager: name, looks, backstory and the nine values.
+/// The player's manager: name, looks, backstory and the values.
 class Trainer {
   Trainer({
     required this.name,
@@ -227,11 +235,18 @@ class Trainer {
       m['appearance'] as Map<String, dynamic>,
     ),
     backstoryId: m['backstory'] as String,
-    values: {
-      for (final v in ManagerValue.values)
-        v: ((m['values'] as Map<String, dynamic>)[v.id] as num).toDouble(),
-    },
+    values: _values(m['values'] as Map<String, dynamic>),
   );
+
+  /// Values of a saved trainer. Saves from before step 10f3 know no
+  /// motivation and man management: both start at the charisma.
+  static Map<ManagerValue, double> _values(Map<String, dynamic> m) {
+    final charisma = (m[ManagerValue.charisma.id] as num).toDouble();
+    return {
+      for (final v in ManagerValue.values)
+        v: (m[v.id] as num?)?.toDouble() ?? charisma,
+    };
+  }
 
   final String name;
   final TrainerAppearance appearance;

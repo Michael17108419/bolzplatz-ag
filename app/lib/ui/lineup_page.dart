@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
+import '../game/cabin.dart';
 import '../game/desk.dart';
 import '../game/lineup.dart';
 import '../game/season_game.dart';
@@ -875,6 +876,7 @@ class _PreviewCard extends ConsumerWidget {
       ),
     );
     final roleFit = preview.roleFit * 100;
+    final chemistry = ref.watch(lineupChemistryProvider);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(Tokens.gapM),
@@ -924,6 +926,18 @@ class _PreviewCard extends ConsumerWidget {
                 style: theme.textTheme.titleSmall,
               ),
             ),
+            if (chemistry != null)
+              line(
+                s.lineupChemistry,
+                Text(
+                  '${(chemistry * 100).round()} %',
+                  key: const ValueKey('lineup-chemistry'),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: valueColor(chemistry * 100),
+                  ),
+                ),
+                bar: ValueBar(chemistry * 100),
+              ),
             Text(
               s.lineupOutOfPosition(preview.outOfPosition),
               key: const ValueKey('lineup-outofposition'),
@@ -1046,6 +1060,34 @@ class _SlotCard extends ConsumerWidget {
                   ),
               ],
             ),
+            if (!slot.isGoalkeeper) ...[
+              const SizedBox(height: Tokens.gapS),
+              Row(
+                children: [
+                  Text(s.lineupInstruction, style: theme.textTheme.labelLarge),
+                  InfoButton(message: s.infoInstructions),
+                ],
+              ),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  ChoiceChip(
+                    key: const ValueKey('lineup-instr-none'),
+                    label: Text(s.instructionNone),
+                    selected: sheet.instructions[player.id] == null,
+                    onSelected: (_) => notifier.setInstruction(player.id, null),
+                  ),
+                  for (final i in PlayerInstruction.values)
+                    ChoiceChip(
+                      key: ValueKey('lineup-instr-${i.name}'),
+                      label: Text(s.instructionName(i)),
+                      selected: sheet.instructions[player.id] == i,
+                      onSelected: (_) => notifier.setInstruction(player.id, i),
+                    ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -1162,6 +1204,26 @@ class _TacticsTab extends ConsumerWidget {
               ],
             ),
           ),
+        head(s.teamInstructions, s.infoTeamInstructions),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final w in [null, ...Wing.values])
+              ChoiceChip(
+                key: ValueKey('lineup-wing-${w?.name ?? 'none'}'),
+                label: Text(s.wingName(w)),
+                selected: sheet.wing == w,
+                onSelected: (_) => notifier.setWing(w),
+              ),
+            FilterChip(
+              key: const ValueKey('lineup-waste'),
+              label: Text(s.wasteTimeName),
+              selected: sheet.wasteTime,
+              onSelected: notifier.setWasteTime,
+            ),
+          ],
+        ),
         head(s.lineupCaptain, s.infoLineupCaptain),
         Wrap(
           spacing: 6,
@@ -1428,6 +1490,7 @@ class _PhoneStrip extends ConsumerWidget {
     final s = ref.watch(stringsProvider);
     final theme = Theme.of(context);
     final roleFit = preview.roleFit * 100;
+    final chemistry = ref.watch(lineupChemistryProvider);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: Tokens.gapM,
@@ -1467,6 +1530,12 @@ class _PhoneStrip extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall,
                     ),
+                    if (chemistry != null)
+                      Text(
+                        '${s.lineupChemistry} ${(chemistry * 100).round()} %',
+                        key: const ValueKey('lineup-chemistry'),
+                        style: theme.textTheme.bodySmall,
+                      ),
                   ],
                 ),
               ),

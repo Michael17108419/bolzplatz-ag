@@ -22,6 +22,8 @@ class Reporter {
     this.player,
     this.captainOf,
     this.tier = 1,
+    this.referee,
+    this.setting = const MatchSetting(),
   });
 
   final ReporterStrings strings;
@@ -38,6 +40,28 @@ class Reporter {
 
   /// League level of the match: from 3 on the reporter talks like a local.
   final int tier;
+
+  /// Who whistles (step 10e1), named at kick-off; null for a plain referee.
+  final Referee? referee;
+
+  /// Ground, crowd, derby and travel of the match (step 10e4).
+  final MatchSetting setting;
+
+  /// "24.500": a number with dots between the thousands.
+  static String thousands(int n) {
+    final digits = '$n';
+    final out = StringBuffer();
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) out.write('.');
+      out.write(digits[i]);
+    }
+    return out.toString();
+  }
+
+  /// A foul with advantage: the attacking side and whether it was a
+  /// Notbremse; told once the attack is over.
+  int _advSide = -1;
+  bool _advDogso = false;
 
   /// Counts of the memory ("the third time down the left").
   final Map<String, int> _count = {};
@@ -160,7 +184,13 @@ class Reporter {
         .replaceAll('{score}', '${e.homeGoals}:${e.awayGoals}')
         .replaceAll('{ours}', '$own:$other')
         .replaceAll('{days}', '${e.injuryDays ?? 0}')
-        .replaceAll('{n}', '${e.value ?? 0}');
+        .replaceAll('{n}', '${e.value ?? 0}')
+        .replaceAll('{k}', playerName(e.keeper))
+        .replaceAll('{ref}', referee?.name ?? '')
+        .replaceAll('{crowd}', thousands(setting.attendance))
+        .replaceAll('{stadium}', setting.stadium ?? '')
+        .replaceAll('{derby}', setting.derbyName ?? '')
+        .replaceAll('{km}', '${setting.travelKm}');
   }
 
   static const _neutral = {
@@ -204,12 +234,20 @@ class Reporter {
     final hasO = step ? o != null : (o ?? e.otherPlayer) != null;
     final hasQ = (q ?? e.otherPlayer) != null;
     final hasP = (p ?? e.player) != null;
+    final hasK = e.keeper != null;
+    final hasRef = referee != null;
+    final hasStadium = setting.stadium != null;
+    final hasDerby = setting.derbyName != null;
     final text = _pick(
       keys,
       ok: (t) =>
           (hasO || !t.contains('{o}')) &&
           (hasQ || !t.contains('{q}')) &&
-          (hasP || !t.contains('{p}')),
+          (hasP || !t.contains('{p}')) &&
+          (hasK || !t.contains('{k}')) &&
+          (hasRef || !t.contains('{ref}')) &&
+          (hasStadium || !t.contains('{stadium}')) &&
+          (hasDerby || !t.contains('{derby}')),
     );
     if (text.isEmpty) return;
     out.add(
@@ -236,9 +274,17 @@ class Reporter {
     _seed = (index * 7919 + e.tick * 31) & 0x3fffffff;
     _goalSaid = !e.isGoal;
     final out = <TickerLine>[];
+    // An advantage that led to nothing: the attack ended without a shot.
+    if (_advSide >= 0 &&
+        e.type != MatchEventType.shot &&
+        e.type != MatchEventType.foul) {
+      _advantageOver(e, out, scored: false);
+    }
     switch (e.type) {
       case MatchEventType.kickOff:
         _say(out, e, TickerKind.kickOff, ['kickoff']);
+        _venueIntro(e, out);
+        _refereeIntro(e, out);
         if (tier >= 3) _say(out, e, TickerKind.colour, ['local.kickoff']);
       case MatchEventType.shot:
         _shot(e, out);
@@ -249,7 +295,29 @@ class Reporter {
         _counterTick = e.tick;
         _say(out, e, TickerKind.counter, ['counter.${_who(e.side)}']);
       case MatchEventType.penalty:
-        _say(out, e, TickerKind.penalty, ['pen.award.${_who(e.side)}']);
+        final w = _who(e.side);
+        final prev = _previous;
+        // After the VAR gave it, the award was told already.
+        final given =
+            prev != null &&
+            prev.type == MatchEventType.varReview &&
+            prev.action == 'penalty_given';
+        if (!given) _say(out, e, TickerKind.penalty, ['pen.award.$w']);
+        if (e.review == 'penalty_overturned') {
+          _say(out, e, TickerKind.varCheck, ['var.check.penalty', 'var.check']);
+          _say(out, e, TickerKind.varDecision, ['var.penalty_overturned.$w']);
+        } else if (e.review == 'penalty_soft' && _sometimes(2)) {
+          _say(out, e, TickerKind.colour, ['ref.penalty_soft.$w']);
+        }
+      case MatchEventType.varReview:
+        final w = _who(e.side);
+        final a = e.action;
+        if ((e.value ?? 0) == 1) {
+          _say(out, e, TickerKind.varCheck, ['var.check.$a', 'var.check']);
+          _say(out, e, TickerKind.varDecision, ['var.$a.$w']);
+        } else {
+          _say(out, e, TickerKind.colour, ['ref.$a.$w']);
+        }
       case MatchEventType.corner:
         final n = _bump('corner.${e.side}');
         _say(out, e, TickerKind.corner, ['corner.${_who(e.side)}']);
@@ -273,7 +341,10 @@ class Reporter {
         ]);
         _captain(e, e.otherPlayer, out);
       case MatchEventType.tacticChange:
-        _say(out, e, TickerKind.tactic, ['tactic.${_who(e.side)}']);
+        _say(out, e, TickerKind.tactic, [
+          if (e.action != null) 'coach.${e.action}.${_who(e.side)}',
+          'tactic.${_who(e.side)}',
+        ]);
       case MatchEventType.addedTime:
         final situation = _situation(e);
         final half = e.minute <= 45 ? 'half' : situation;
@@ -289,6 +360,39 @@ class Reporter {
         _say(out, e, TickerKind.extraTime, ['extra']);
       case MatchEventType.fullTime:
         _fullTime(e, out);
+      case MatchEventType.foul:
+        _foul(e, out);
+      case MatchEventType.dissent:
+        _say(out, e, TickerKind.colour, ['dissent.${e.action}.${_who(e.side)}']);
+      case MatchEventType.treatment:
+        final w = _who(e.side);
+        _say(out, e, TickerKind.treatment, [
+          (e.value ?? 0) == 1 ? 'treatment.$w' : 'treatment.keeper.$w',
+        ]);
+      case MatchEventType.teamTalk:
+        final how = switch (e.value ?? 0) {
+          1 => 'good',
+          -1 => 'bad',
+          _ => 'flat',
+        };
+        _say(out, e, TickerKind.colour, [
+          'talk.${e.action}.$how.${_who(e.side)}',
+        ]);
+      case MatchEventType.matchPlan:
+        final first = (e.action ?? '').split(',').first;
+        _say(out, e, TickerKind.colour, [
+          if (e.side == ownSide) 'plan.$first.own' else 'plan.opp',
+        ]);
+      case MatchEventType.shout:
+        final how = switch (e.value ?? 0) {
+          1 => 'good',
+          -1 => 'bad',
+          _ => 'flat',
+        };
+        _say(out, e, TickerKind.colour, [
+          'shout.${e.action}.$how.${_who(e.side)}',
+          'shout.$how.${_who(e.side)}',
+        ]);
       case MatchEventType.shootoutKick:
         break;
     }
@@ -374,7 +478,10 @@ class Reporter {
   }
 
   void _shot(MatchEvent e, List<TickerLine> out) {
-    final kind = tickerKindOf(e);
+    // A goal taken away is still a goal scene first.
+    final kind = e.annulled
+        ? (e.otherPlayer == null ? TickerKind.goal : TickerKind.goalAssist)
+        : tickerKindOf(e);
     if (kind == null) return;
     final w = _who(e.side);
     final prev = _previous;
@@ -427,11 +534,14 @@ class Reporter {
     // The end.
     switch (e.outcome) {
       case ShotOutcome.goal:
-        _goal(e, out, kind, pen: pen, level: level);
+        _goalReviewed(e, out, kind, pen: pen, level: level);
       case ShotOutcome.saved:
+        final named = e.keeper != null && _sometimes(2);
         _say(out, e, kind, [
           if (pen) 'pen.save.$w',
+          if (big && named) 'save.$w.big.k',
           if (big) 'save.$w.big',
+          if (named) 'save.$w.k',
           'save.$w',
         ]);
         final keeper = 1 - e.side;
@@ -453,6 +563,150 @@ class Reporter {
         _missed(e, out);
     }
     if (e.outcome != ShotOutcome.goal) _pressure(e, out);
+    _advantageOver(e, out, scored: e.isGoal);
+  }
+
+  /// The ground at kick-off: the crowd, a derby, a long trip (step 10e4).
+  void _venueIntro(MatchEvent e, List<TickerLine> out) {
+    final s = setting;
+    if (s.capacity > 0) {
+      final band = s.stadium == null
+          ? 'final'
+          : s.fill >= 0.97
+          ? 'sold'
+          : s.fill >= 0.75
+          ? 'high'
+          : s.fill >= 0.45
+          ? 'mid'
+          : 'low';
+      _say(out, e, TickerKind.colour, ['crowd.$band'], side: -1);
+    }
+    if (s.derby > 0) {
+      _say(out, e, TickerKind.colour, [
+        if (s.derbyName != null) 'derby.named.${s.derby}',
+        if (s.derbyName != null) 'derby.named',
+        'derby.${s.derby}',
+      ], side: -1);
+    }
+    if (s.travel > 0) {
+      _say(out, e, TickerKind.colour, [
+        'travel.${_who(1)}',
+      ], side: 1);
+    }
+    // Weather and ground (step 10e5): only told when worth a word.
+    if (s.weather != 'cloudy' || s.ground != 'good') {
+      _say(out, e, TickerKind.colour, [
+        if (s.ground != 'good') 'ground.${s.ground}',
+        'weather.${s.weather}',
+      ], side: -1);
+    }
+  }
+
+  /// The referee at kick-off, by the trait he is known for.
+  void _refereeIntro(MatchEvent e, List<TickerLine> out) {
+    final r = referee;
+    if (r == null) return;
+    final trait = r.standsOut;
+    final keys = [
+      if (trait != null)
+        'ref.intro.${trait.id}.${(r.traits[trait] ?? 50) >= 50 ? 'hi' : 'lo'}',
+      'ref.intro',
+    ];
+    _say(out, e, TickerKind.colour, keys, side: -1);
+  }
+
+  /// A foul: told when it denied a clear chance or when play ran on.
+  void _foul(MatchEvent e, List<TickerLine> out) {
+    final attacker = 1 - e.side;
+    final w = _who(attacker);
+    final dogso = (e.value ?? 0) == 1;
+    if (e.action == 'advantage') {
+      _advSide = attacker;
+      _advDogso = dogso;
+      _say(
+        out,
+        e,
+        TickerKind.colour,
+        [if (dogso) 'adv.dogso.$w', 'adv.$w'],
+        p: e.otherPlayer,
+        o: e.player,
+        side: attacker,
+      );
+      return;
+    }
+    if (dogso) {
+      _say(
+        out,
+        e,
+        TickerKind.colour,
+        ['foul.dogso.$w'],
+        p: e.otherPlayer,
+        o: e.player,
+        side: attacker,
+      );
+    } else if (_sometimes(3)) {
+      _say(
+        out,
+        e,
+        TickerKind.colour,
+        ['foul.whistle.$w'],
+        p: e.otherPlayer,
+        o: e.player,
+        side: attacker,
+      );
+    }
+  }
+
+  /// After an attack with advantage: worth it, or wasted.
+  void _advantageOver(MatchEvent e, List<TickerLine> out, {required bool scored}) {
+    if (_advSide < 0) return;
+    final w = _who(_advSide);
+    final side = _advSide;
+    final dogso = _advDogso;
+    _advSide = -1;
+    if (scored) {
+      _say(out, e, TickerKind.colour, [
+        if (dogso) 'adv.nocard',
+        'adv.goal.$w',
+      ], side: side);
+    } else {
+      _say(out, e, TickerKind.colour, ['adv.wasted.$w'], side: side);
+    }
+  }
+
+  /// A goal, with what the flag and the VAR made of it (step 10e2).
+  void _goalReviewed(
+    MatchEvent e,
+    List<TickerLine> out,
+    TickerKind kind, {
+    required bool pen,
+    required int level,
+  }) {
+    final w = _who(e.side);
+    final loud = (level + 1).clamp(0, 3);
+    switch (e.review) {
+      case 'goal_overturned':
+        _say(out, e, TickerKind.colour, ['goal.$w.e$loud', 'goal.$w']);
+        _say(out, e, TickerKind.varCheck, ['var.check.goal', 'var.check']);
+        _say(out, e, TickerKind.varDecision, ['var.goal_overturned.$w']);
+      case 'goal_disallowed':
+        _say(out, e, TickerKind.colour, ['goal.$w.e$loud', 'goal.$w']);
+        _say(out, e, TickerKind.miss, ['ref.goal_disallowed.$w']);
+      case 'goal_given':
+        _say(out, e, TickerKind.colour, ['flag.up']);
+        _say(out, e, TickerKind.varCheck, ['var.check.offside', 'var.check']);
+        _goal(e, out, kind, pen: pen, level: level);
+        _say(out, e, TickerKind.colour, ['var.goal_given.$w']);
+      case 'goal_confirmed':
+        _goal(e, out, kind, pen: pen, level: level);
+        _say(out, e, TickerKind.varCheck, ['var.check.goal', 'var.check']);
+        _say(out, e, TickerKind.varDecision, ['var.goal_confirmed.$w']);
+      case 'offside_missed':
+        _goal(e, out, kind, pen: pen, level: level);
+        _say(out, e, TickerKind.colour, ['ref.offside_missed.$w']);
+      default:
+        _goal(e, out, kind, pen: pen, level: level);
+    }
   }
 
   void _pressure(MatchEvent e, List<TickerLine> out) {
@@ -586,7 +840,10 @@ class Reporter {
       MatchEventType.secondYellow => (TickerKind.secondYellow, 'second'),
       _ => (TickerKind.red, 'red'),
     };
-    _say(out, e, kind, ['$key.$w']);
+    _say(out, e, kind, [
+      if (e.action != null) '$key.${e.action}.$w',
+      '$key.$w',
+    ]);
     final n = _bump('cards.${e.side}');
     if (n == 4) {
       _say(out, e, TickerKind.colour, ['mem.cards.$w']);
@@ -596,6 +853,9 @@ class Reporter {
       } else if (_trait(e.player, CharacterTrait.aggression) >= 75) {
         _say(out, e, TickerKind.colour, ['wit.card.aggression']);
       }
+    }
+    if (e.review != null) {
+      _say(out, e, TickerKind.colour, ['ref.${e.review}.$w']);
     }
     if (kind != TickerKind.yellow) _captain(e, e.player, out);
   }

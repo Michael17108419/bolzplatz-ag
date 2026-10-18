@@ -11,13 +11,24 @@ import '../match/limits.dart';
 import '../match/match_session.dart';
 import '../match/match_types.dart';
 import '../match/team_sheet.dart';
+import '../model/character.dart';
+import '../model/coach.dart';
 import '../model/ids.dart';
+import '../model/player.dart';
+import '../model/referee.dart';
 import '../model/region.dart';
+import '../model/venue.dart';
 import '../pyramid/pyramid.dart';
 import '../result/result.dart';
 import '../rng/seeded_random.dart';
 import '../rules/rules.dart';
+import '../squad/cabin.dart';
+import '../squad/chemistry.dart';
+import '../squad/ratings.dart';
+import '../squad/talk.dart';
+import '../world/world_report.dart';
 import 'conference.dart';
+import 'court.dart';
 import 'cup.dart';
 import 'league_table.dart';
 import 'schedule.dart';
@@ -139,8 +150,13 @@ class SeasonRun {
 /// Plays a whole season of all leagues and both cups without a user
 /// interface. Everything depends only on the state, the rules and the seed.
 class SeasonRunner {
-  SeasonRunner(this.rules, {required this.calendarRules, this.forcedFormation})
-    : _engine = MatchEngine(rules),
+  SeasonRunner(
+    this.rules, {
+    required this.calendarRules,
+    this.forcedFormation,
+    this.referees,
+    this.venues,
+  }) : _engine = MatchEngine(rules),
       _auto = AutoManager(rules),
       _calendar = CalendarGenerator(calendarRules);
 
@@ -152,6 +168,143 @@ class SeasonRunner {
 
   /// If set, every club plays this formation (for tests and analysis).
   final String? forcedFormation;
+
+  /// The referees (engine 2, step 10e1); without them every match has a
+  /// plain referee.
+  final RefereePool? referees;
+
+  /// Places, stadiums and derbies (engine 2, step 10e4); without them every
+  /// match has the plain home advantage of the rules.
+  final VenueData? venues;
+
+  /// The last match day of each club: a short rest makes travel harder.
+  Map<ClubId, int> _lastMatch = {};
+
+  /// Ground, crowd, derby and travel of a match. The crowd follows the
+  /// usual fill of the league, the form of the home team, a derby and the
+  /// weekday, with a little chance from the seed of [label].
+  MatchSetting _setting(
+    ClubId home,
+    ClubId away,
+    String label, {
+    bool neutral = false,
+  }) {
+    final v = venues;
+    final hc = _state.clubs[home];
+    final ac = _state.clubs[away];
+    if (v == null || hc == null || ac == null) return const MatchSetting();
+    final c = rules.match.crowd;
+    final derby = v.derbyLevel(hc, ac);
+    final name = v.derbyName(hc, ac);
+    final (weather, ground) = conditionsOn(home, _today);
+    if (neutral) {
+      return MatchSetting(
+        capacity: c.finalCapacity,
+        attendance: c.finalCapacity,
+        derby: derby,
+        derbyName: name,
+        pitch: 90,
+        weather: weather,
+        ground: ground == 'heavy' || ground == 'frozen' ? 'wet' : ground,
+      );
+    }
+    final stadium = v.stadiums[home];
+    final level = _tierOf(_state, home);
+    final capacity = stadium?.capacity ?? 3000;
+    var fill = _state.members.values.any((l) => l.contains(home))
+        ? c.fillByLevel[(level - 1).clamp(0, c.fillByLevel.length - 1)]
+        : c.poolFill;
+    final form =
+        ((_form[home] ?? rules.match.defaultForm) - rules.match.defaultForm) /
+        rules.match.defaultForm;
+    fill *= 1 + c.formEffect * form;
+    fill *= 1 + c.derbyFill * derby;
+    if (GameDate.fromEpochDay(_today).weekday <= 4) fill *= c.midweek;
+    // Nobody likes standing in the snow or the pouring rain.
+    if (weather == 'heavy_rain' || weather == 'snow') fill *= 0.9;
+    final rng = SeededRandom(_seed).fork('crowd:$label');
+    fill *= 1 + c.noise * (2 * rng.nextDouble() - 1);
+    fill = fill.clamp(0.05, 1.0);
+    final km = v.distanceKm(hc.place, ac.place) * c.roadFactor;
+    final last = _lastMatch[away];
+    final shortRest = last != null && _today - last < c.shortRestDays;
+    return MatchSetting(
+      stadium: stadium?.name,
+      capacity: capacity,
+      attendance: (capacity * fill).round(),
+      derby: derby,
+      derbyName: name,
+      travelKm: km.round(),
+      travel: c.travelLoss(km, shortRest: shortRest),
+      pitch: stadium?.pitch ?? 60,
+      weather: weather,
+      ground: ground,
+    );
+  }
+
+  /// Weather and ground at the ground of [home] on [epochDay] (engine 2,
+  /// step 10e5): the weather from month and region, the ground from the
+  /// weather, winter and the grass of the home club. The same every time,
+  /// so the Jour Fix can forecast it.
+  (String, String) conditionsOn(ClubId home, int epochDay) {
+    final w = rules.match.weather;
+    final date = GameDate.fromEpochDay(epochDay);
+    final region = _state.clubs[home]?.region.id;
+    final factors = w.region[region] ?? const <String, double>{};
+    final base = w.months[date.month]!;
+    final weights = [
+      for (var i = 0; i < w.kinds.length; i++)
+        base[i] * (factors[w.kinds[i]] ?? 1.0),
+    ];
+    final rng = SeededRandom(_seed).fork('weather:${home.value}:$epochDay');
+    final weather = w.kinds[rng.weightedIndex(weights)];
+    final pitch = venues?.stadiums[home]?.pitch ?? 60;
+    final good = ((pitch - 50) / 50).clamp(-1.0, 1.0);
+    final winter = w.winterMonths.contains(date.month);
+    final frozen = weather == 'snow'
+        ? (w.frozenSnow * (1 - 0.5 * good)).clamp(0.0, 1.0)
+        : 0.0;
+    final heavy =
+        (((w.heavyByWeather[weather] ?? 0) + (winter ? w.winterHeavy : 0)) *
+                (1 - w.pitchEffect * good))
+            .clamp(0.0, 1.0);
+    final wet = w.wetByWeather[weather] ?? 0;
+    final roll = rng.nextDouble();
+    final ground = roll < frozen
+        ? 'frozen'
+        : roll < frozen + heavy
+        ? 'heavy'
+        : roll < frozen + heavy + wet
+        ? 'wet'
+        : 'good';
+    return (weather, ground);
+  }
+
+  /// The weather the Jour Fix forecasts for that match: mostly right,
+  /// sometimes not.
+  String forecastOn(ClubId home, int epochDay) {
+    final w = rules.match.weather;
+    final (weather, _) = conditionsOn(home, epochDay);
+    final rng = SeededRandom(_seed).fork('forecast:${home.value}:$epochDay');
+    if (rng.nextDouble() < w.forecastRight) return weather;
+    final i = w.kinds.indexOf(weather);
+    final shift = rng.nextDouble() < 0.5 ? -1 : 1;
+    return w.kinds[(i + shift).clamp(0, w.kinds.length - 1)];
+  }
+
+  /// The referee of a match, picked by the seed of its [label] from the
+  /// pool of the higher league of both clubs (league 4 by the region of
+  /// the home club).
+  Referee? _referee(SeasonState state, ClubId home, ClubId away, String label) {
+    final pool = referees;
+    if (pool == null) return null;
+    final level = math.min(_tierOf(state, home), _tierOf(state, away));
+    return pool.pick(
+      level,
+      state.clubs[home]?.region,
+      SeededRandom(_seed).fork('ref:$label').seed,
+    );
+  }
   final MatchEngine _engine;
   final AutoManager _auto;
 
@@ -159,6 +312,329 @@ class SeasonRunner {
   late Map<ClubId, double> _form;
   late Map<PlayerId, int> _injuredUntil;
   late Map<String, int> _bans;
+
+  /// Bans in weeks after a straight red: the last day of the ban.
+  late Map<PlayerId, int> _bannedUntil;
+
+  /// Cases of the sports court this season (engine 2, step 10e3).
+  late List<CourtCase> _cases;
+
+  /// Form, confidence and load of every player this season (engine 2,
+  /// step 10f2), and the day the load was last brought up to date.
+  Map<PlayerId, double> _playerForm = {};
+  Map<PlayerId, double> _confidence = {};
+  Map<PlayerId, double> _load = {};
+  Map<PlayerId, int> _loadDay = {};
+
+  /// Form of a player, 0 to 100 (50 average).
+  double formOf(PlayerId p) => _playerForm[p] ?? rules.match.defaultForm;
+
+  /// Confidence of a player, 0 to 100 (50 normal).
+  double confidenceOf(PlayerId p) => _confidence[p] ?? 50;
+
+  /// Load of a player on [epochDay]: 1 is a full load of the last weeks.
+  double loadOf(PlayerId p, int epochDay) {
+    final c = rules.season.condition;
+    final v = _load[p] ?? 0;
+    final since = epochDay - (_loadDay[p] ?? epochDay);
+    final decayed = v * math.pow(0.5, since / c['load_half_days']).toDouble();
+    return (decayed / c['load_reference']).clamp(0.0, 3.0);
+  }
+
+  /// After a match: ratings move form and confidence, minutes add load.
+  void _condition(ClubId home, ClubId away, MatchResult r) {
+    final c = rules.season.condition;
+    final homePlayers = {for (final p in _state.squads[home]!) p.id};
+    final ratings = matchRatings(r, c, homePlayers: homePlayers);
+    final base = c['rating_base'];
+    for (final e in ratings.entries) {
+      final target = 50 + (e.value - base) * c['rating_to_form'];
+      final f = formOf(e.key);
+      _playerForm[e.key] = (f + c['form_weight'] * (target - f)).clamp(
+        0.0,
+        100.0,
+      );
+      _confidence[e.key] =
+          (confidenceOf(e.key) + (e.value - base) * c['confidence_from_rating'])
+              .clamp(0.0, 100.0);
+    }
+    for (final club in [home, away]) {
+      for (final p in _state.squads[club]!) {
+        final conf = confidenceOf(p.id);
+        _confidence[p.id] = conf + (50 - conf) * c['confidence_decay'];
+      }
+    }
+    _moodAfter(home, r.homeGoals, r.awayGoals, r);
+    _moodAfter(away, r.awayGoals, r.homeGoals, r);
+    _pairsAfter(r, homePlayers);
+    _pairsAfter(r, {for (final p in _state.squads[away]!) p.id});
+    for (final e in r.minutesPlayed.entries) {
+      if (e.value <= 0) continue;
+      final now = loadOf(e.key, _today) * c['load_reference'];
+      _load[e.key] = now + e.value;
+      _loadDay[e.key] = _today;
+    }
+  }
+
+  /// Mood of every player this season (step 10f3), the run of results of
+  /// every club (wins positive, defeats negative), the coaches, the
+  /// dressing rooms (with the strength order of the squad, refreshed every
+  /// few weeks), the week of the last talk of a club and open promises of
+  /// playing time (matches left).
+  Map<PlayerId, double> _mood = {};
+  Map<ClubId, int> _streak = {};
+  Map<ClubId, CoachProfile> _coaches = {};
+  final Map<ClubId, (int, Cabin, Map<PlayerId, int>)> _cabins = {};
+  Map<ClubId, int> _talkWeek = {};
+  Map<PlayerId, int> _promises = {};
+
+  /// Mood of a player, 0 to 100.
+  double moodOf(PlayerId p) => _mood[p] ?? _moodStart;
+
+  double get _moodStart {
+    final v = rules.season.condition['mood_start'];
+    return v == 0 ? 60 : v;
+  }
+
+  /// The coach of a club (a plain one when the world names none).
+  CoachProfile coachOf(ClubId club) => _coaches[club] ?? const CoachProfile();
+
+  /// True if the player was promised playing time and still waits for it.
+  bool hasPromise(PlayerId p) => _promises.containsKey(p);
+
+  static double _traitOf(Player p, CharacterTrait t) =>
+      (((p.traits[t] ?? 50) - 50) / 50).clamp(-1.0, 1.0);
+
+  /// The dressing room of [club] and the strength order of its squad
+  /// (0 is the best player), kept for a few weeks.
+  (Cabin, Map<PlayerId, int>) _cabinOf(ClubId club) {
+    final kept = _cabins[club];
+    final days = rules.season.condition['cabin_days'];
+    if (kept != null && _today - kept.$1 < days) return (kept.$2, kept.$3);
+    final squad = _state.squads[club]!;
+    final strength = {
+      for (final p in squad) p.id: WorldReport.overall(p, rules),
+    };
+    final cabin = Cabin.of(
+      squad,
+      rules.season.cabin,
+      today: GameDate.fromEpochDay(_today),
+      strength: (p) => strength[p.id] ?? 50,
+      captain: (_userSheets[club] ?? _sheets[club])?.captain,
+    );
+    final order = [...squad]
+      ..sort((a, b) => strength[b.id]!.compareTo(strength[a.id]!));
+    final rank = {for (var i = 0; i < order.length; i++) order[i].id: i};
+    _cabins[club] = (_today, cabin, rank);
+    return (cabin, rank);
+  }
+
+  /// The dressing room of [club] today (for the screens).
+  Cabin cabinOf(ClubId club) => _cabinOf(club).$1;
+
+  /// After a match of [club]: results (runs count more), playing time
+  /// measured by the place in the squad, the dressing room and the coach
+  /// move the mood of every player. Professionals take it calmer, egoists
+  /// harder.
+  void _moodAfter(ClubId club, int goalsFor, int goalsAgainst, MatchResult r) {
+    final c = rules.season.condition;
+    final res = goalsFor.compareTo(goalsAgainst);
+    final before = _streak[club] ?? 0;
+    final streak = res > 0
+        ? (before > 0 ? before + 1 : 1)
+        : res < 0
+        ? (before < 0 ? before - 1 : -1)
+        : 0;
+    _streak[club] = streak;
+    final run = 1 + c['mood_streak'] * (streak.abs() - 1).clamp(0, 3);
+    final result = res > 0
+        ? c['mood_win'] * run
+        : res < 0
+        ? -c['mood_loss'] * run
+        : 0.0;
+    final (cabin, rank) = _cabinOf(club);
+    final coach = coachOf(club);
+    final target =
+        _moodStart +
+        (cabin.mood - 0.5) * c['mood_cabin'] +
+        (coach.leadership - 50) * c['mood_leadership'] +
+        (coach.charisma - 50) * c['mood_charisma'];
+    for (final p in _state.squads[club]!) {
+      final minutes = r.minutesPlayed[p.id] ?? 0;
+      final out =
+          (_injuredUntil[p.id] ?? -1) >= _today ||
+          (_bannedUntil[p.id] ?? -1) >= _today;
+      final place = rank[p.id] ?? 99;
+      var time = 0.0;
+      if (!out) {
+        if (place < 11) {
+          time = minutes == 0
+              ? -c['mood_benched']
+              : minutes >= 60
+              ? c['mood_starter_played']
+              : 0.0;
+        } else if (place < 18) {
+          time = minutes > 0 ? c['mood_chance'] : 0.0;
+        } else {
+          time = minutes > 0 ? c['mood_fringe_played'] : 0.0;
+        }
+        time *=
+            1 + c['mood_ambition'] * _traitOf(p, CharacterTrait.ambition);
+      }
+      var d = result + time;
+      if (cabin.unhappy.contains(p.id)) d -= c['mood_unhappy'];
+      final promise = _promises[p.id];
+      if (promise != null) {
+        if (minutes >= c['talk_promise_minutes']) {
+          _promises.remove(p.id);
+          d += c['talk_promise_kept'];
+        } else if (promise <= 1) {
+          _promises.remove(p.id);
+          d -= c['talk_promise_broken'];
+        } else {
+          _promises[p.id] = promise - 1;
+        }
+      }
+      d *=
+          (1 -
+              c['mood_professional'] *
+                  _traitOf(p, CharacterTrait.professionalism)) *
+          (1 + c['mood_ego'] * _traitOf(p, CharacterTrait.egoism));
+      final m = moodOf(p.id) + d;
+      _mood[p.id] = (m + (target - m) * c['mood_drift']).clamp(0.0, 100.0);
+    }
+  }
+
+  static int _weekOf(int epochDay) =>
+      epochDay - (GameDate.fromEpochDay(epochDay).weekday - 1);
+
+  /// True if the coach of [club] still has his talk with one player this
+  /// week.
+  bool canTalkTo(ClubId club, int epochDay) =>
+      _talkWeek[club] != _weekOf(epochDay);
+
+  /// A talk of the coach of [club] with [player] (step 10f3), once a week.
+  /// Building up helps a player who is down, a warning wakes up a
+  /// professional and annoys the others, a promise of playing time lifts
+  /// the mood now and costs it twice if the coach does not keep it.
+  /// Returns how it landed (1 well, 0 flat, -1 badly), null if not allowed.
+  int? talkTo(ClubId club, PlayerId player, PlayerTalk talk, int epochDay) {
+    if (!canTalkTo(club, epochDay)) return null;
+    final p = _state.squads[club]?.where((x) => x.id == player).firstOrNull;
+    if (p == null) return null;
+    _talkWeek[club] = _weekOf(epochDay);
+    final c = rules.season.condition;
+    final f = 0.5 + coachOf(club).leadership / 100;
+    final mood = moodOf(player);
+    final ego = math.max(
+      _traitOf(p, CharacterTrait.egoism),
+      _traitOf(p, CharacterTrait.mediaHunger),
+    );
+    var landed = 0;
+    var dm = 0.0;
+    switch (talk) {
+      case PlayerTalk.encourage:
+        final down = mood < 50 || confidenceOf(player) < 45;
+        dm = c['talk_encourage_mood'] * f * (down ? 1 : 0.4);
+        if (ego > 0.3) dm *= 1.3;
+        if (down) {
+          landed = 1;
+          _confidence[player] = (confidenceOf(player) +
+                  c['talk_encourage_confidence'] * f)
+              .clamp(0.0, 100.0);
+        }
+      case PlayerTalk.warn:
+        final takes =
+            _traitOf(p, CharacterTrait.professionalism) +
+                _traitOf(p, CharacterTrait.ambition) >=
+            0;
+        if (takes) {
+          landed = 1;
+          dm = -1;
+          _playerForm[player] = (formOf(player) + c['talk_warn_form'] * f)
+              .clamp(0.0, 100.0);
+        } else {
+          landed = -1;
+          dm =
+              -c['talk_warn_mood'] *
+              (2 - f) *
+              (1 + 0.5 * _traitOf(p, CharacterTrait.temper));
+        }
+      case PlayerTalk.promise:
+        if (_promises.containsKey(player)) {
+          landed = -1;
+          dm = -3;
+        } else {
+          landed = 1;
+          dm = c['talk_promise_mood'] * f;
+          _promises[player] = c['talk_promise_matches'].round();
+        }
+    }
+    _mood[player] = (mood + dm).clamp(0.0, 100.0);
+    return landed;
+  }
+
+  /// Minutes every pair of team mates played together this season (step
+  /// 10f4, keyed by [pairKey]) and the years each player has been at his
+  /// club at the start of the season.
+  Map<int, double> _pairMinutes = {};
+  Map<PlayerId, double> _yearsAtClub = {};
+
+  double _yearsOf(PlayerId id) {
+    if (_yearsAtClub.isEmpty) {
+      final start = Season(_state.startYear).start;
+      for (final squad in _state.squads.values) {
+        for (final p in squad) {
+          final since = p.contract?.start;
+          _yearsAtClub[p.id] = since == null
+              ? 0.0
+              : (since.daysUntil(start) / 365.25).clamp(0.0, 10.0);
+        }
+      }
+    }
+    return _yearsAtClub[id] ?? 0.0;
+  }
+
+  /// Chemistry of two team mates, 0 to 1 (step 10f4).
+  double pairChemistryOf(PlayerId a, PlayerId b) {
+    final c = rules.season.condition;
+    return pairChemistry(
+      _pairMinutes[pairKey(a, b)] ?? 0,
+      math.min(_yearsOf(a), _yearsOf(b)),
+      minutesUnit: c['chem_minutes'] == 0 ? 1800 : c['chem_minutes'],
+      yearsUnit: c['chem_years'] == 0 ? 3 : c['chem_years'],
+      base: c['chem_base'],
+    );
+  }
+
+  /// Chemistry of the starting eleven of [sheet], 0 to 1 (step 10f4).
+  double chemistryOf(TeamSheet sheet) {
+    final slots = rules.tactics.formation(sheet.formationId).slots;
+    final players = [
+      for (var i = 0; i < sheet.startingXi.length && i < slots.length; i++)
+        (sheet.startingXi[i], slots[i]),
+    ];
+    return teamChemistry(players, pairChemistryOf);
+  }
+
+  /// Adds the minutes a match gave to every pair of team mates.
+  void _pairsAfter(MatchResult r, Set<PlayerId> club) {
+    final played = [
+      for (final e in r.minutesPlayed.entries)
+        if (e.value > 0 && club.contains(e.key)) e,
+    ];
+    for (var i = 0; i < played.length; i++) {
+      for (var j = i + 1; j < played.length; j++) {
+        final key = pairKey(played[i].key, played[j].key);
+        _pairMinutes[key] =
+            (_pairMinutes[key] ?? 0) +
+            math.min(played[i].value, played[j].value);
+      }
+    }
+  }
+
+  /// Clubs of human managers: their cases wait for a decision.
+  Set<ClubId> _humans = const {};
   late Map<String, int> _cardsByCompetition;
   late Map<ClubId, TeamSheet> _sheets;
   late Map<ClubId, String> _sheetKey;
@@ -208,6 +684,7 @@ class SeasonRunner {
   /// injured, or banned in this competition.
   bool _isOut(PlayerId p, String comp, int epochDay) =>
       (_injuredUntil[p] ?? -1) >= epochDay ||
+      (_bannedUntil[p] ?? -1) >= epochDay ||
       (_bans['$comp:${p.value}'] ?? 0) > 0;
 
   MatchTeam _team(ClubId club, String comp) {
@@ -241,17 +718,139 @@ class SeasonRunner {
       _sheets[club] = sheet;
       _sheetKey[club] = key;
     }
-    final form = _form[club] ?? rules.match.defaultForm;
     return MatchTeam(
       clubId: club,
       name: _state.clubs[club]!.name,
       squad: squad,
       sheet: sheet,
-      form: {for (final p in squad) p.id: form},
+      form: {for (final p in squad) p.id: formOf(p.id)},
+      confidence: {for (final p in squad) p.id: confidenceOf(p.id)},
+      load: {for (final p in squad) p.id: loadOf(p.id, _today)},
+      mood: {for (final p in squad) p.id: moodOf(p.id)},
+      coach: coachOf(club),
+      chemistry: pairChemistryOf,
     );
   }
 
   int _matchSeed(String label) => SeededRandom(_seed).fork(label).seed;
+
+  static Competition _competitionOf(String comp) => switch (comp) {
+    'B' => Competition.bolzplatz,
+    'P' => Competition.pott,
+    _ => Competition.league,
+  };
+
+  /// The control committee moves a ban after a straight red (DFB): by the
+  /// kind of the red within its range. The player is banned at once; other
+  /// clubs accept, a human club decides. Proceedings stop if the referee
+  /// sent off the wrong player.
+  void _openCase(MatchEvent e, String comp, ClubId club) {
+    final player = e.player!;
+    final id = '$_today:${player.value}';
+    final kind = e.action ?? 'other';
+    final range = rules.season.court.banFor(kind);
+    if (e.review == 'identity') {
+      _cases.add(
+        CourtCase(
+          id: id,
+          player: player,
+          club: club,
+          competition: _competitionOf(comp),
+          kind: kind,
+          review: e.review,
+          epochDay: _today,
+          motion: 0,
+          weeks: range.weeks,
+          status: CourtStatus.stopped,
+        ),
+      );
+      return;
+    }
+    final rng = SeededRandom(_seed).fork('court:$id');
+    final motion = range.min + rng.nextInt(range.max - range.min + 1);
+    final c = CourtCase(
+      id: id,
+      player: player,
+      club: club,
+      competition: _competitionOf(comp),
+      kind: kind,
+      review: e.review,
+      epochDay: _today,
+      motion: motion,
+      weeks: range.weeks,
+      status: _humans.contains(club) ? CourtStatus.open : CourtStatus.accepted,
+    );
+    _cases.add(c);
+    _setBan(c, comp, 0, motion);
+  }
+
+  /// Moves the ban of case [c] from [before] to [after] (matches left in
+  /// the competition, or the last day of a ban in weeks).
+  void _setBan(CourtCase c, String comp, int before, int after) {
+    if (c.weeks) {
+      if (after <= 0) {
+        _bannedUntil.remove(c.player);
+      } else {
+        _bannedUntil[c.player] = math.max(
+          _bannedUntil[c.player] ?? -1,
+          c.epochDay + after * 7 - 1,
+        );
+        if (after < before) {
+          _bannedUntil[c.player] = c.epochDay + after * 7 - 1;
+        }
+      }
+      return;
+    }
+    final key = '$comp:${c.player.value}';
+    _bans[key] = math.max(0, (_bans[key] ?? 0) + after - before);
+  }
+
+  /// True if [player] may not play in [competition] on [epochDay]: banned
+  /// in weeks, or matches of a ban left in that competition.
+  bool isSuspended(PlayerId player, Competition competition, int epochDay) {
+    final comp = _compKey(competition);
+    return (_bannedUntil[player] ?? -1) >= epochDay ||
+        (_bans['$comp:${player.value}'] ?? 0) > 0;
+  }
+
+  /// Cases of the sports court of [club] this season, oldest first.
+  List<CourtCase> casesOf(ClubId club) => [
+    for (final c in _cases)
+      if (c.club == club) c,
+  ];
+
+  /// A human club decides an open case: accept the motion, or appeal to
+  /// the sports court. The court decides at once and is not bound to the
+  /// motion: milder, the same or harder; a red the referee gave too hard
+  /// has better chances. False if there is no open case [id].
+  bool decideCase(String id, {required bool appeal}) {
+    final c = _cases.where((x) => x.id == id).firstOrNull;
+    if (c == null || c.status != CourtStatus.open) return false;
+    if (!appeal) {
+      c.status = CourtStatus.accepted;
+      return true;
+    }
+    final court = rules.season.court;
+    final harsh = c.review == 'red_harsh';
+    final lower = harsh ? court.harshLower : court.appealLower;
+    final higher = harsh ? court.harshHigher : court.appealHigher;
+    final roll = SeededRandom(_seed).fork('appeal:$id').nextDouble();
+    final verdict = roll < lower
+        ? (harsh ? 1 : math.max(1, c.motion - 1))
+        : roll < lower + higher
+        ? c.motion + 1
+        : c.motion;
+    final comp = switch (c.competition) {
+      Competition.league => 'L',
+      Competition.bolzplatz => 'B',
+      Competition.pott => 'P',
+    };
+    _setBan(c, comp, c.motion, verdict);
+    c
+      ..status = CourtStatus.appealed
+      ..verdict = verdict;
+    return true;
+  }
 
   void _afterMatch(
     ClubId home,
@@ -260,6 +859,9 @@ class SeasonRunner {
     required bool countForm,
     required String comp,
   }) {
+    _lastMatch[home] = _today;
+    _lastMatch[away] = _today;
+    _condition(home, away, r);
     // A club that plays serves one match of every ban it has in this
     // competition (before new cards of this match count).
     for (final club in [home, away]) {
@@ -282,11 +884,8 @@ class SeasonRunner {
       if (e.type == MatchEventType.secondYellow) {
         _bans[key] = math.max(_bans[key] ?? 0, 1);
       }
-      if (e.type == MatchEventType.redCard) {
-        _bans[key] = math.max(
-          _bans[key] ?? 0,
-          rules.season.straightRedBanMatches,
-        );
+      if (e.type == MatchEventType.redCard && e.player != null) {
+        _openCase(e, comp, e.side == 0 ? home : away);
       }
     }
     for (final id in countedYellowCards(r.events)) {
@@ -353,8 +952,26 @@ class SeasonRunner {
     SeasonState state, {
     required int seed,
     Map<ClubId, TeamSheet> userSheets = const {},
+    Set<ClubId> humanClubs = const {},
+    Map<ClubId, CoachProfile> coaches = const {},
   }) {
     _userSheets = Map.of(userSheets);
+    _coaches = Map.of(coaches);
+    _mood = {};
+    _streak = {};
+    _cabins.clear();
+    _talkWeek = {};
+    _promises = {};
+    _pairMinutes = {};
+    _yearsAtClub = {};
+    _humans = Set.of({...humanClubs, ...userSheets.keys});
+    _bannedUntil = {};
+    _cases = [];
+    _lastMatch = {};
+    _playerForm = {};
+    _confidence = {};
+    _load = {};
+    _loadDay = {};
     _state = state;
     _seed = seed;
     _form = {};
@@ -515,12 +1132,16 @@ class SeasonRunner {
     String label,
     String comp, {
     bool neutral = false,
+    bool video = false,
   }) {
     final k = _engine.simulateKnockout(
       _team(home, comp),
       _team(away, comp),
       seed: _matchSeed(label),
       neutral: neutral,
+      referee: _referee(_state, home, away, label),
+      video: video,
+      setting: _setting(home, away, label, neutral: neutral),
     );
     _afterMatch(home, away, k.match, countForm: false, comp: comp);
     return k.winnerSide == 0 ? home : away;
@@ -562,6 +1183,8 @@ class SeasonRunner {
           'l:${k.league.value}:${k.matchday}:${f.home.value}',
         );
         final isOwn = own != null && (f.home == own || f.away == own);
+        final video =
+            _tierOf(_state, f.home) <= rules.match.video.leaguesUpToLevel;
         if (isOwn && sheet != null) {
           final usable =
               !sheet.startingXi.any(out.contains) &&
@@ -575,6 +1198,11 @@ class SeasonRunner {
               squad: base.squad,
               sheet: usable ? sheet : base.sheet,
               form: base.form,
+              confidence: base.confidence,
+              load: base.load,
+              mood: base.mood,
+              coach: base.coach,
+              chemistry: base.chemistry,
               autoManage: false,
             );
           }
@@ -591,6 +1219,9 @@ class SeasonRunner {
               home: team(f.home),
               away: team(f.away),
               seed: seed,
+              referee: _referee(_state, f.home, f.away, 'l:$seed'),
+              video: video,
+              setting: _setting(f.home, f.away, 'l:$seed'),
             ),
             isOwn: true,
             sheetReplaced: !usable,
@@ -610,6 +1241,9 @@ class SeasonRunner {
                 _team(f.home, 'L'),
                 _team(f.away, 'L'),
                 seed: seed,
+                referee: _referee(_state, f.home, f.away, 'l:$seed'),
+                video: video,
+                setting: _setting(f.home, f.away, 'l:$seed'),
               ),
               isOwn: isOwn,
             ),
@@ -691,6 +1325,10 @@ class SeasonRunner {
     final comp = _compKey(competition);
     final pending = cup.pendingTies;
     final neutral = cup.nextRoundIsNeutral;
+    // The big cup has the VAR from the round of 16 on (DFB-Pokal).
+    final video =
+        competition == Competition.bolzplatz &&
+        pending.length <= rules.match.video.cupFromTies;
     // The ties are spread over the windows. The tie of the own club goes to
     // the first window: the round is decided on that day, so the live match
     // of the player is part of it.
@@ -733,6 +1371,11 @@ class SeasonRunner {
             squad: base.squad,
             sheet: usable ? sheet : base.sheet,
             form: base.form,
+            confidence: base.confidence,
+            load: base.load,
+            mood: base.mood,
+            coach: base.coach,
+            chemistry: base.chemistry,
             autoManage: false,
           );
         }
@@ -751,6 +1394,9 @@ class SeasonRunner {
               away: team(a),
               seed: _matchSeed(label),
               neutral: neutral,
+              referee: _referee(_state, h, a, label),
+              video: video,
+              setting: _setting(h, a, label, neutral: neutral),
             ),
             isOwn: true,
             sheetReplaced: !usable,
@@ -771,6 +1417,9 @@ class SeasonRunner {
             _team(a, comp),
             seed: _matchSeed(label),
             neutral: neutral,
+            referee: _referee(_state, h, a, label),
+            video: video,
+            setting: _setting(h, a, label, neutral: neutral),
           ),
           isOwn: isOwn,
         ),
@@ -911,7 +1560,8 @@ class SeasonRunner {
     for (final p in run.state.squads[club]!) {
       if ((_injuredUntil[p.id] ?? -1) >= day) {
         out[p.id] = Absence.injured;
-      } else if ((_bans['$comp:${p.id.value}'] ?? 0) > 0) {
+      } else if ((_bans['$comp:${p.id.value}'] ?? 0) > 0 ||
+          (_bannedUntil[p.id] ?? -1) >= day) {
         out[p.id] = Absence.suspended;
       }
     }
@@ -942,8 +1592,17 @@ class SeasonRunner {
     while (!bolzplatz.isFinished) {
       final round = bolzRound++;
       final neutral = bolzplatz.nextRoundIsNeutral;
+      final video =
+          bolzplatz.pendingTies.length <= rules.match.video.cupFromTies;
       bolzplatz.playNextRound(
-        (h, a) => _playTie(h, a, 'bp:$round:${h.value}', 'B', neutral: neutral),
+        (h, a) => _playTie(
+          h,
+          a,
+          'bp:$round:${h.value}',
+          'B',
+          neutral: neutral,
+          video: video,
+        ),
       );
     }
     for (final region in Region.values) {

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../model/attribute.dart';
 import '../model/position.dart';
 import '../model/special_ability.dart';
@@ -481,6 +483,412 @@ class CounterRules {
 
 /// How hidden character traits work in the match (engine 2). A trait
 /// counts as (value - [reference]) / [scale], limited to -1 and 1.
+/// Confidence in the match (engine 2, step 10f2): it lifts finishing and
+/// bold actions and moves with what a player does on the day.
+class ConfidenceRules {
+  const ConfidenceRules(this._v);
+
+  factory ConfidenceRules.fromJson(Map<String, dynamic> m) => ConfidenceRules(
+    Map.unmodifiable({
+      for (final e in m.entries)
+        if (e.value is num) e.key: (e.value as num).toDouble(),
+    }),
+  );
+
+  final Map<String, double> _v;
+
+  /// A value by key (`shot`, `goal`, `big_miss` …), 0 if missing.
+  double operator [](String key) => _v[key] ?? 0;
+}
+
+/// What instructions of the coach do (engine 2, step 10g1): weights of
+/// actions, success of steps, duels, fouls, zones, lanes and time wasting.
+class InstructionRules {
+  const InstructionRules(this._v);
+
+  factory InstructionRules.fromJson(Map<String, dynamic>? m) =>
+      InstructionRules(
+        Map.unmodifiable({
+          for (final e in (m ?? const <String, dynamic>{}).entries)
+            if (e.value is num) e.key: (e.value as num).toDouble(),
+        }),
+      );
+
+  final Map<String, double> _v;
+
+  /// A value by key (`shoot_weight`, `hard_foul` …), [fallback] if missing.
+  double get(String key, [double fallback = 0]) => _v[key] ?? fallback;
+}
+
+/// Short absences by the Laws 2026/27 (engine 2, step 10e6): a player
+/// treated on the pitch stays off for a minute (not the keeper), and a
+/// substitution that takes longer than ten seconds makes the new man wait a
+/// minute. The team plays that minute a man short.
+class TreatmentRules {
+  const TreatmentRules({
+    required this.perMatch,
+    required this.shortFactor,
+    required this.stoppage,
+    required this.subTenSeconds,
+  });
+
+  factory TreatmentRules.fromJson(Map<String, dynamic> m) => TreatmentRules(
+    perMatch: (m['per_match'] as num).toDouble(),
+    shortFactor: (m['short_factor'] as num).toDouble(),
+    stoppage: (m['stoppage'] as num).toDouble(),
+    subTenSeconds: (m['sub_ten_seconds'] as num).toDouble(),
+  );
+
+  /// Treatments (knocks without injury) per match.
+  final double perMatch;
+
+  /// Attack and defence of a team a man short for a minute.
+  final double shortFactor;
+
+  /// Minutes of stoppage time per treatment.
+  final double stoppage;
+
+  /// Chance that a late change of a leading team takes too long.
+  final double subTenSeconds;
+}
+
+/// Weather and the state of the ground (engine 2, step 10e5): rolled from
+/// month and region, the ground from the weather, the season and how good
+/// the grass of the home club is; what rain, a heavy pitch, wind and heat
+/// do to the game.
+class WeatherRules {
+  const WeatherRules({
+    required this.kinds,
+    required this.months,
+    required this.region,
+    required this.forecastRight,
+    required this.heavyByWeather,
+    required this.wetByWeather,
+    required this.winterMonths,
+    required this.winterHeavy,
+    required this.frozenSnow,
+    required this.pitchEffect,
+    required this.technique,
+    required this.techniqueActions,
+    required this.windLong,
+    required this.windLongShot,
+    required this.heatDrain,
+  });
+
+  factory WeatherRules.fromJson(Map<String, dynamic> m) {
+    Map<String, double> map(Object? raw) => Map.unmodifiable({
+      for (final e in (raw as Map<String, dynamic>).entries)
+        e.key: (e.value as num).toDouble(),
+    });
+    final kinds = [for (final k in m['kinds'] as List<dynamic>) k as String];
+    final months = <int, List<double>>{};
+    for (final e in (m['months'] as Map<String, dynamic>).entries) {
+      final w = [
+        for (final x in e.value as List<dynamic>) (x as num).toDouble(),
+      ];
+      if (w.length != kinds.length) {
+        throw RulesError('match.weather.months.${e.key} needs ${kinds.length}');
+      }
+      months[int.parse(e.key)] = List.unmodifiable(w);
+    }
+    if (months.length != 12) {
+      throw const RulesError('match.weather.months needs all 12 months');
+    }
+    return WeatherRules(
+      kinds: List.unmodifiable(kinds),
+      months: Map.unmodifiable(months),
+      region: Map.unmodifiable({
+        for (final e in (m['region'] as Map<String, dynamic>).entries)
+          e.key: map(e.value),
+      }),
+      forecastRight: (m['forecast_right'] as num).toDouble(),
+      heavyByWeather: map(m['heavy_by_weather']),
+      wetByWeather: map(m['wet_by_weather']),
+      winterMonths: Set.unmodifiable({
+        for (final x in m['winter_months'] as List<dynamic>) x as int,
+      }),
+      winterHeavy: (m['winter_heavy'] as num).toDouble(),
+      frozenSnow: (m['frozen_snow'] as num).toDouble(),
+      pitchEffect: (m['pitch_effect'] as num).toDouble(),
+      technique: map(m['technique']),
+      techniqueActions: Set.unmodifiable({
+        for (final x in m['technique_actions'] as List<dynamic>) x as String,
+      }),
+      windLong: (m['wind_long'] as num).toDouble(),
+      windLongShot: (m['wind_long_shot'] as num).toDouble(),
+      heatDrain: (m['heat_drain'] as num).toDouble(),
+    );
+  }
+
+  /// sunny, cloudy, rain, heavy_rain, snow, heat, wind.
+  final List<String> kinds;
+
+  /// Weights of the [kinds] by month (1 to 12).
+  final Map<int, List<double>> months;
+
+  /// Factors on the weights by region id.
+  final Map<String, Map<String, double>> region;
+
+  /// Chance that the forecast in the Jour Fix is right.
+  final double forecastRight;
+  final Map<String, double> heavyByWeather;
+  final Map<String, double> wetByWeather;
+  final Set<int> winterMonths;
+  final double winterHeavy;
+  final double frozenSnow;
+
+  /// How much good grass keeps a heavy or frozen ground away.
+  final double pitchEffect;
+
+  /// Factors on technical steps by weather and by ground.
+  final Map<String, double> technique;
+  final Set<String> techniqueActions;
+  final double windLong;
+  final double windLongShot;
+  final double heatDrain;
+}
+
+/// The crowd, derbies and travel (engine 2, step 10e4): how full grounds
+/// are, how a crowd makes the home advantage, how a derby heats up a match
+/// and how a long trip tires the guests.
+class CrowdRules {
+  const CrowdRules(
+    this._v,
+    this.fillByLevel,
+    this.travelStepsKm,
+    this.travelEnergy,
+  );
+
+  factory CrowdRules.fromJson(Map<String, dynamic> m) {
+    const keys = [
+      'home_base',
+      'fill_exponent',
+      'loud_attendance',
+      'small_weight',
+      'pool_fill',
+      'midweek',
+      'form_effect',
+      'noise',
+      'derby_fill',
+      'derby_home',
+      'derby_cards',
+      'derby_tempo',
+      'final_capacity',
+      'road_factor',
+      'short_rest_days',
+      'short_rest_factor',
+    ];
+    final v = <String, double>{};
+    for (final k in keys) {
+      final raw = m[k];
+      if (raw is! num) throw RulesError('match.crowd.$k is missing');
+      v[k] = raw.toDouble();
+    }
+    List<double> list(String k) => [
+      for (final x in m[k] as List<dynamic>) (x as num).toDouble(),
+    ];
+    final steps = list('travel_steps_km');
+    final energy = list('travel_energy');
+    if (steps.length != energy.length) {
+      throw const RulesError('match.crowd travel steps and energy differ');
+    }
+    return CrowdRules(
+      Map.unmodifiable(v),
+      List.unmodifiable(list('fill_by_level')),
+      List.unmodifiable(steps),
+      List.unmodifiable(energy),
+    );
+  }
+
+  final Map<String, double> _v;
+
+  /// Usual share of seats taken, league 1 to 4.
+  final List<double> fillByLevel;
+  final List<double> travelStepsKm;
+  final List<double> travelEnergy;
+
+  double get homeBase => _v['home_base']!;
+  double get fillExponent => _v['fill_exponent']!;
+  double get loudAttendance => _v['loud_attendance']!;
+  double get smallWeight => _v['small_weight']!;
+  double get poolFill => _v['pool_fill']!;
+  double get midweek => _v['midweek']!;
+  double get formEffect => _v['form_effect']!;
+  double get noise => _v['noise']!;
+  double get derbyFill => _v['derby_fill']!;
+  double get derbyHome => _v['derby_home']!;
+  double get derbyCards => _v['derby_cards']!;
+  double get derbyTempo => _v['derby_tempo']!;
+  int get finalCapacity => _v['final_capacity']!.round();
+  double get roadFactor => _v['road_factor']!;
+  int get shortRestDays => _v['short_rest_days']!.round();
+  double get shortRestFactor => _v['short_rest_factor']!;
+
+  /// The home advantage a crowd makes: fuller and bigger is louder.
+  double homeFactor(int attendance, double fill, int derby) =>
+      1 +
+      homeBase *
+          math.pow(fill.clamp(0.0, 1.0), fillExponent).toDouble() *
+          ((1 - smallWeight) +
+              smallWeight * (attendance / loudAttendance).clamp(0.0, 1.0)) +
+      derbyHome * derby;
+
+  /// Energy the guests lose on a road trip of [km]; more after a short rest.
+  double travelLoss(double km, {required bool shortRest}) {
+    var loss = 0.0;
+    for (var i = 0; i < travelStepsKm.length; i++) {
+      if (km >= travelStepsKm[i]) loss = travelEnergy[i];
+    }
+    return shortRest ? loss * shortRestFactor : loss;
+  }
+}
+
+/// Wrong decisions and the video assistant (engine 2, step 10e2). Rates
+/// are per goal, penalty or card unless they say per match; the errors
+/// trait of the referee bends them. Where there is no VAR (league 3 and 4,
+/// cup before the round of 16) a wrong decision stands.
+class VideoRules {
+  const VideoRules(this._v);
+
+  factory VideoRules.fromJson(Map<String, dynamic> m) {
+    const keys = [
+      'error_trait',
+      'goal_offside_missed',
+      'goal_wrongly_flagged',
+      'goal_check',
+      'penalty_soft',
+      'penalty_missed_per_match',
+      'red_harsh',
+      'red_missed_per_match',
+      'identity',
+      'second_harsh',
+      'stoppage_per_check',
+      'leagues_up_to_level',
+      'cup_from_ties',
+    ];
+    final v = <String, double>{};
+    for (final k in keys) {
+      final raw = m[k];
+      if (raw is! num) throw RulesError('match.video.$k is missing');
+      if (raw < 0) throw RulesError('match.video.$k must not be negative');
+      v[k] = raw.toDouble();
+    }
+    return VideoRules(Map.unmodifiable(v));
+  }
+
+  final Map<String, double> _v;
+
+  double get errorTrait => _v['error_trait']!;
+
+  /// An offside goal the assistant did not flag.
+  double get goalOffsideMissed => _v['goal_offside_missed']!;
+
+  /// A fair goal wrongly flagged offside.
+  double get goalWronglyFlagged => _v['goal_wrongly_flagged']!;
+
+  /// The VAR looks at a goal and lets it stand.
+  double get goalCheck => _v['goal_check']!;
+
+  /// A penalty without a foul.
+  double get penaltySoft => _v['penalty_soft']!;
+  double get penaltyMissedPerMatch => _v['penalty_missed_per_match']!;
+
+  /// A straight red that should have been yellow.
+  double get redHarsh => _v['red_harsh']!;
+  double get redMissedPerMatch => _v['red_missed_per_match']!;
+
+  /// A red for the wrong player.
+  double get identity => _v['identity']!;
+
+  /// A clearly wrong second yellow.
+  double get secondHarsh => _v['second_harsh']!;
+  double get stoppagePerCheck => _v['stoppage_per_check']!;
+
+  /// Leagues with VAR: level 1 up to this level.
+  int get leaguesUpToLevel => _v['leagues_up_to_level']!.round();
+
+  /// The big cup has VAR from the round with this many ties (8: round of
+  /// 16).
+  int get cupFromTies => _v['cup_from_ties']!.round();
+}
+
+/// The referee in the match (engine 2, step 10e1): how his traits bend
+/// cards, penalties and free kicks, fouls in an attack with or without
+/// advantage, and protest against him (only the captain may talk to him).
+/// The shares of the old per-minute rates keep the averages where they were
+/// now that some free kicks, penalties and cards come from fouls.
+class RefereeRules {
+  const RefereeRules(this._v);
+
+  factory RefereeRules.fromJson(Map<String, dynamic> m) {
+    const keys = [
+      'strictness_yellow',
+      'strictness_red',
+      'penalty_love',
+      'home_bias_cards',
+      'home_bias_penalties',
+      'foul_chance',
+      'foul_aggression',
+      'dogso_share',
+      'box_penalty_share',
+      'advantage_base',
+      'advantage_trait',
+      'card_after_foul',
+      'free_kick_minute_share',
+      'penalty_minute_share',
+      'yellow_minute_share',
+      'red_minute_share',
+      'dissent_chance',
+      'dissent_temper',
+      'dissent_card',
+      'dissent_authority',
+      'missing_captain_dissent',
+      'captain_first',
+    ];
+    final v = <String, double>{};
+    for (final k in keys) {
+      final raw = m[k];
+      if (raw is! num) throw RulesError('match.referee.$k is missing');
+      if (raw < 0) throw RulesError('match.referee.$k must not be negative');
+      v[k] = raw.toDouble();
+    }
+    return RefereeRules(Map.unmodifiable(v));
+  }
+
+  final Map<String, double> _v;
+
+  double get strictnessYellow => _v['strictness_yellow']!;
+  double get strictnessRed => _v['strictness_red']!;
+  double get penaltyLove => _v['penalty_love']!;
+  double get homeBiasCards => _v['home_bias_cards']!;
+  double get homeBiasPenalties => _v['home_bias_penalties']!;
+
+  /// Chance of a foul when an attacker wins a duel from column 2 on.
+  double get foulChance => _v['foul_chance']!;
+  double get foulAggression => _v['foul_aggression']!;
+
+  /// Share of fouls on a breakthrough that deny a clear chance (Notbremse).
+  double get dogsoShare => _v['dogso_share']!;
+
+  /// Share of fouls on a breakthrough that lie in the box (penalty).
+  double get boxPenaltyShare => _v['box_penalty_share']!;
+  double get advantageBase => _v['advantage_base']!;
+  double get advantageTrait => _v['advantage_trait']!;
+  double get cardAfterFoul => _v['card_after_foul']!;
+  double get freeKickMinuteShare => _v['free_kick_minute_share']!;
+  double get penaltyMinuteShare => _v['penalty_minute_share']!;
+  double get yellowMinuteShare => _v['yellow_minute_share']!;
+  double get redMinuteShare => _v['red_minute_share']!;
+  double get dissentChance => _v['dissent_chance']!;
+  double get dissentTemper => _v['dissent_temper']!;
+  double get dissentCard => _v['dissent_card']!;
+  double get dissentAuthority => _v['dissent_authority']!;
+  double get missingCaptainDissent => _v['missing_captain_dissent']!;
+
+  /// Chance that the captain, if on the pitch, does the talking.
+  double get captainFirst => _v['captain_first']!;
+}
+
 class CharacterMatchRules {
   const CharacterMatchRules(this._v);
 
@@ -742,6 +1150,17 @@ class MatchRules {
     required this.character,
     required this.addedTime,
     required this.timeWasting,
+    required this.referee,
+    required this.video,
+    required this.crowd,
+    required this.weather,
+    required this.treatment,
+    required this.confidence,
+    this.instructions = const InstructionRules({}),
+    this.mood = const ConfidenceRules({}),
+    this.talk = const ConfidenceRules({}),
+    this.chemistry = const ConfidenceRules({}),
+    this.coach = const ConfidenceRules({}),
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -929,6 +1348,31 @@ class MatchRules {
       timeWasting: TimeWastingRules.fromJson(
         m['time_wasting'] as Map<String, dynamic>,
       ),
+      referee: RefereeRules.fromJson(m['referee'] as Map<String, dynamic>),
+      video: VideoRules.fromJson(m['video'] as Map<String, dynamic>),
+      crowd: CrowdRules.fromJson(m['crowd'] as Map<String, dynamic>),
+      weather: WeatherRules.fromJson(m['weather'] as Map<String, dynamic>),
+      treatment: TreatmentRules.fromJson(
+        m['treatment'] as Map<String, dynamic>,
+      ),
+      confidence: ConfidenceRules.fromJson(
+        m['confidence'] as Map<String, dynamic>,
+      ),
+      instructions: InstructionRules.fromJson(
+        m['instructions'] as Map<String, dynamic>?,
+      ),
+      mood: ConfidenceRules.fromJson(
+        (m['mood'] as Map<String, dynamic>?) ?? const {},
+      ),
+      talk: ConfidenceRules.fromJson(
+        (m['talk'] as Map<String, dynamic>?) ?? const {},
+      ),
+      chemistry: ConfidenceRules.fromJson(
+        (m['chemistry'] as Map<String, dynamic>?) ?? const {},
+      ),
+      coach: ConfidenceRules.fromJson(
+        (m['coach'] as Map<String, dynamic>?) ?? const {},
+      ),
     );
     result._validate();
     return result;
@@ -1100,4 +1544,32 @@ class MatchRules {
 
   /// Time wasting punished by the Laws (engine 2).
   final TimeWastingRules timeWasting;
+
+  /// The referee and his influence (engine 2, step 10e1).
+  final RefereeRules referee;
+
+  /// Wrong decisions and the VAR (engine 2, step 10e2).
+  final VideoRules video;
+
+  /// Crowd, derbies and travel (engine 2, step 10e4).
+  final CrowdRules crowd;
+
+  /// Weather and ground (engine 2, step 10e5).
+  final WeatherRules weather;
+
+  /// A minute off after treatment, the ten-second change (step 10e6).
+  final TreatmentRules treatment;
+
+  /// Confidence in the match (step 10f2).
+  final ConfidenceRules confidence;
+
+  /// Instructions of the coach (engine 2, step 10g1).
+  final InstructionRules instructions;
+
+  /// Mood on the day (step 10f3), team talks (10f3), chemistry (10f4) and
+  /// the AI coaches (10f5); split off [confidence] in step 10h2.
+  final ConfidenceRules mood;
+  final ConfidenceRules talk;
+  final ConfidenceRules chemistry;
+  final ConfidenceRules coach;
 }

@@ -6,7 +6,9 @@ import 'package:game_core/game_core.dart';
 
 import '../game/career.dart';
 import '../game/loaded_world.dart';
+import '../game/preview.dart';
 import '../game/saves.dart';
+import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
 import '../theme/tokens.dart';
 import 'adaptive.dart';
@@ -90,6 +92,7 @@ class _CareerWizardState extends ConsumerState<_CareerWizard> {
   void _go(int step) => setState(() => _step = step);
 
   void _accept(Trainer trainer, JobOffer offer) {
+    final watch = Stopwatch()..start();
     ref
         .read(careerProvider.notifier)
         .start(
@@ -98,7 +101,14 @@ class _CareerWizardState extends ConsumerState<_CareerWizard> {
           seed: ref.read(careerDraftProvider).seed,
           wishClubId: ref.read(careerDraftProvider).wishClubId,
         );
+    // The season begins here (in the preview build the time is shown).
+    ref.read(seasonProvider);
     ref.read(saveServiceProvider).autosave();
+    showLoadTime(
+      ScaffoldMessenger.of(context),
+      ref.read(stringsProvider),
+      watch..stop(),
+    );
     final route = MaterialPageRoute<void>(builder: (_) => const OfficePage());
     if (widget.jobSearch) {
       Navigator.of(context).pushAndRemoveUntil(route, (r) => r.isFirst);

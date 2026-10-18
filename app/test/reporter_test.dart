@@ -19,6 +19,9 @@ void main() {
     File('../rules/calendar_rules.json').readAsStringSync(),
   );
   const strings = ReporterStringsDe();
+  final pool = RefereePool.fromJson(
+    File('../data/referees_de.json').readAsStringSync(),
+  );
   final rules = loaded.rules;
   final top = loaded.world.leagues.firstWhere((l) => l.level == 1).id;
   final clubs = [
@@ -51,6 +54,7 @@ void main() {
         player: loaded.player,
         captainOf: session.captainOf,
         tier: tier,
+        referee: session.referee,
       );
 
   (MatchSession, MatchResult) play(int i) {
@@ -61,6 +65,7 @@ void main() {
       home: home,
       away: away,
       seed: 3000 + i,
+      referee: pool.referees[i % pool.referees.length],
     );
     return (session, session.finish());
   }
@@ -169,6 +174,15 @@ void main() {
         'full.$k',
       'local.fulltime',
       'local.calm',
+      for (final k in ['calm', 'fire', 'praise'])
+        for (final h in ['good', 'flat', 'bad'])
+          for (final w in sides) 'talk.$k.$h.$w',
+      for (final k in ['deep', 'chase', 'hold', 'open', 'ten', 'panic'])
+        for (final w in sides) 'coach.$k.$w',
+      for (final f in PlanFocus.values) 'plan.${f.name}.own',
+      'plan.opp',
+      for (final h in ['good', 'flat', 'bad'])
+        for (final w in sides) 'shout.$h.$w',
     ];
     for (final key in needed) {
       expect(strings.texts(key), isNotEmpty, reason: key);
@@ -186,6 +200,12 @@ void main() {
       '{where}',
       '{n}',
       '{days}',
+      '{k}',
+      '{ref}',
+      '{crowd}',
+      '{stadium}',
+      '{derby}',
+      '{km}',
     };
     final placeholder = RegExp(r'\{[a-z]+\}');
     var total = 0;
@@ -301,6 +321,11 @@ void main() {
     final rep = reporter(session, tier: 4);
     final kick = rep.linesOf(r.events.first, 0);
     expect(kick.map((l) => l.kind), contains(TickerKind.colour));
+    // The referee is named at kick-off.
+    expect(
+      kick.any((l) => l.text.contains(session.referee!.lastName)),
+      isTrue,
+    );
     expect(rep.quiet(3, 3, '3'), isNull);
     final calm = rep.quiet(9, 9, '9');
     expect(calm, isNotNull);
