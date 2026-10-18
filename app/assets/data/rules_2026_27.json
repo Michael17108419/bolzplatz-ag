@@ -2447,7 +2447,14 @@
       "talk_nervous": 0.4,
       "talk_confidence": 8,
       "talk_mood": 12,
-      "chemistry": 0.04
+      "chemistry": 0.04,
+      "coach_delay": 20,
+      "coach_error": 0.3,
+      "coach_stronger": 0.12,
+      "coach_chase_minute": 60,
+      "coach_hold_minute": 72,
+      "coach_booked_minute": 55,
+      "coach_booked_sub": 0.25
     },
     "treatment": {
       "per_match": 1.5,

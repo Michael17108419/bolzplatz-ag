@@ -1,6 +1,7 @@
-// The German texts of the radio reporter, part seven (step 10f3): team
-// talks in the dressing room. Keys `talk.<kind>.<how>.<side>` with kind
-// `calm`, `fire` or `praise` and how `good`, `flat` or `bad`.
+// The German texts of the radio reporter, part seven (steps 10f3, 10f5):
+// team talks in the dressing room, keys `talk.<kind>.<how>.<side>` with
+// kind `calm`, `fire` or `praise` and how `good`, `flat` or `bad`; changes
+// of the coach, keys `coach.<what>.<side>`.
 
 const Map<String, List<String>> reporterTeamDe = {
   // ----------------------------------------------------------------- calm
@@ -93,5 +94,63 @@ const Map<String, List<String>> reporterTeamDe = {
   "talk.praise.bad.opp": [
     "Der Trainer von {team} hat gelobt, wo es nichts zu loben gab. Die "
         "wirken jetzt satt. Danke!",
+  ],
+
+  // ---------------------------------------------------------------- coach
+  "coach.deep.own": [
+    "Unser Trainer lässt tiefer stehen. Respekt vor dem Gegner, oder Angst?",
+    "Wir ziehen uns zurück und lauern. Kontern ist auch Fußball.",
+  ],
+  "coach.deep.opp": [
+    "{team} stellt sich hinten rein. Die haben Respekt vor uns!",
+    "Der Trainer drüben lässt tief verteidigen. Da müssen wir Geduld haben.",
+    "{team} mauert von Beginn an. Das wird ein Geduldsspiel.",
+  ],
+  "coach.chase.own": [
+    "Unser Trainer wirft alles nach vorn! Pressing, Tempo, alles oder "
+        "nichts.",
+    "Jetzt wird umgestellt: hoch pressen, schnell spielen. Hinten wird's "
+        "luftig.",
+  ],
+  "coach.chase.opp": [
+    "Der Trainer drüben stellt um: {team} läuft jetzt hoch an.",
+    "{team} macht auf, die wollen den Ausgleich. Platz für unsere Konter!",
+    "Drüben wird gewunken und gebrüllt. {team} geht volles Risiko.",
+  ],
+  "coach.hold.own": [
+    "Unser Trainer zieht die Handbremse. Hinten dicht, die Uhr ist unser "
+        "Freund.",
+    "Wir parken den Bus. Schön ist anders, aber Punkte sind Punkte.",
+  ],
+  "coach.hold.opp": [
+    "{team} zieht sich zurück und verwaltet. Der Trainer drüben will das "
+        "über die Zeit bringen.",
+    "Drüben wird der Bus geparkt. Jetzt müssen wir das Bollwerk knacken.",
+    "{team} spielt auf Zeit. Zehn Mann am eigenen Strafraum.",
+  ],
+  "coach.open.own": [
+    "Die Führung ist weg, unser Trainer schaltet wieder auf normal.",
+  ],
+  "coach.open.opp": [
+    "Der Bus ist ausgeparkt: {team} muss nach dem Ausgleich wieder "
+        "mitspielen.",
+  ],
+  "coach.ten.own": [
+    "In Unterzahl stellt unser Trainer um: hinten dicht, vorne hoffen.",
+  ],
+  "coach.ten.opp": [
+    "{team} stellt nach dem Platzverweis um, zehn Mann ziehen sich zurück.",
+    "Der Trainer drüben reagiert auf die Rote: Abwehrriegel.",
+  ],
+  "coach.panic.own": [
+    "Was macht unser Trainer da? Die Umstellung versteht auf der Tribüne "
+        "keiner.",
+    "Hektik an unserer Bank. Das sieht nach Panik aus, nicht nach Plan.",
+  ],
+  "coach.panic.opp": [
+    "Was macht der Trainer drüben? Eine Umstellung, die keiner versteht. "
+        "Uns soll's recht sein.",
+    "Panik an der Bank von {team}. Da wird wild durcheinander gewechselt.",
+    "Der Trainer von {team} hat offenbar sein Taktikbuch verlegt.",
   ],
 };

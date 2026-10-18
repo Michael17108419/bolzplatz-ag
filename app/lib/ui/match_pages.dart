@@ -488,6 +488,8 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     _stopTimer();
     _flush();
     _live = false;
+    // The assistant coaches the rest of the match (engine 2, step 10f5).
+    _session.handOver(_ownSide);
     if (_cup) {
       _session.finishKnockout();
     } else {

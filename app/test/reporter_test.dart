@@ -177,6 +177,8 @@ void main() {
       for (final k in ['calm', 'fire', 'praise'])
         for (final h in ['good', 'flat', 'bad'])
           for (final w in sides) 'talk.$k.$h.$w',
+      for (final k in ['deep', 'chase', 'hold', 'open', 'ten', 'panic'])
+        for (final w in sides) 'coach.$k.$w',
     ];
     for (final key in needed) {
       expect(strings.texts(key), isNotEmpty, reason: key);

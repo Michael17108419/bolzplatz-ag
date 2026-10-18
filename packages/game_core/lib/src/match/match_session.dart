@@ -143,6 +143,13 @@ class _Side {
   double chemistry = 0.5;
   double chemFactor = 1;
 
+  /// The assistant coaches this side (step 10f5): AI clubs always, the club
+  /// of the player after he handed over.
+  bool assistant = false;
+
+  /// What the coach has done in this match (step 10f5), see [_Coach].
+  int coachDone = 0;
+
   /// The minute (session minutes) up to which the team plays a man short
   /// for a treatment or a slow change (engine 2, step 10e6).
   int shortUntil = -1;
@@ -183,7 +190,22 @@ class SessionAction {
     this.tempo,
     this.defensiveLine, [
     this.talk,
+    this.handOver = false,
   ]);
+
+  /// The assistant takes over for the rest of the match (step 10f5).
+  factory SessionAction.handOver(int minute, int side) => SessionAction._(
+    minute,
+    side,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    true,
+  );
 
   /// A team talk (step 10f3).
   factory SessionAction.teamTalk(int minute, int side, TeamTalk talk) =>
@@ -227,6 +249,7 @@ class SessionAction {
       m['tempo'] as int?,
       m['line'] as int?,
       m['talk'] == null ? null : TeamTalk.values.byName(m['talk'] as String),
+      m['handover'] == true,
     );
   }
 
@@ -246,6 +269,9 @@ class SessionAction {
   /// Set for a team talk.
   final TeamTalk? talk;
 
+  /// True when the assistant took over.
+  final bool handOver;
+
   bool get isSubstitution => off != null;
 
   Map<String, dynamic> toJson() => {
@@ -258,11 +284,14 @@ class SessionAction {
     if (tempo != null) 'tempo': tempo,
     if (defensiveLine != null) 'line': defensiveLine,
     if (talk != null) 'talk': talk!.name,
+    if (handOver) 'handover': true,
   };
 
   /// Does the change in [session].
   void applyTo(MatchSession session) {
-    if (talk != null) {
+    if (handOver) {
+      session.handOver(side);
+    } else if (talk != null) {
       session.teamTalk(side, talk!);
     } else if (isSubstitution) {
       session.substitute(side, off!, on!);
@@ -335,6 +364,9 @@ class MatchSession {
   final MatchSetting setting;
   final bool _neutral;
   final SeededRandom _rng;
+
+  /// Dice of the coaches (step 10f5), apart from the dice of the play.
+  late final SeededRandom _coachRng = _rng.fork('coach');
   final Fit _fit;
   final SystemFit _systemFit;
   final List<_Side> _sides;
@@ -1041,6 +1073,10 @@ class MatchSession {
       _add(MatchEventType.halfTime, -1);
       _half++;
       _breakNow = true;
+      for (var i = 0; i < _sides.length; i++) {
+        final side = _sides[i];
+        if (side.team.autoManage || side.assistant) _aiTalk(i);
+      }
     }
     _stoppage = null;
     _added = 0;
@@ -1270,7 +1306,10 @@ class MatchSession {
     _tire(minute);
     if (minute % _m.aiCheckInterval == 0 || _dirty) {
       for (final side in _sides) {
-        if (side.team.autoManage) _assistant(side);
+        if (side.team.autoManage || side.assistant) {
+          _assistant(side);
+          _coach(side);
+        }
         _refresh(side);
       }
       _dirty = false;
@@ -2803,6 +2842,24 @@ class MatchSession {
   int? teamTalk(int side, TeamTalk talk) {
     if (!canTalk(side)) return null;
     _actions.add(SessionAction.teamTalk(_minute, side, talk));
+    return _talk(side, talk);
+  }
+
+  /// The half-time talk of an AI coach (step 10f5): he picks what fits the
+  /// score, a coach without charisma sometimes picks at random.
+  void _aiTalk(int side) {
+    final coach = _sides[side].team.coach;
+    final fitting = TeamTalk.values.reduce(
+      (a, b) => _talkFit(side, a) >= _talkFit(side, b) ? a : b,
+    );
+    final sure = 0.4 + 0.6 * coach.charisma / 100;
+    final talk = _coachRng.nextDouble() < sure
+        ? fitting
+        : TeamTalk.values[_coachRng.nextInt(TeamTalk.values.length)];
+    _talk(side, talk);
+  }
+
+  int _talk(int side, TeamTalk talk) {
     final s = _sides[side];
     s.talkMinute = _minute;
     final c = _m.confidence;
@@ -2904,6 +2961,33 @@ class MatchSession {
         defensiveLine: defensiveLine,
       ),
     );
+    _setTactics(
+      side,
+      systemId: systemId,
+      pressing: pressing,
+      tempo: tempo,
+      defensiveLine: defensiveLine,
+    );
+  }
+
+  /// The assistant takes over [side] for the rest of the match (step
+  /// 10f5): substitutions and changes like the AI coaches, with average
+  /// tactical knowledge.
+  void handOver(int side) {
+    final s = _sides[side];
+    if (s.assistant || _finished) return;
+    _actions.add(SessionAction.handOver(_minute, side));
+    s.assistant = true;
+  }
+
+  void _setTactics(
+    int side, {
+    String? systemId,
+    int? pressing,
+    int? tempo,
+    int? defensiveLine,
+    String? action,
+  }) {
     final s = _sides[side];
     final before = s.sheet;
     s.sheet = before.copyWith(
@@ -2917,8 +3001,112 @@ class MatchSession {
     final free =
         _clock <= rules.tactics.warmupMinutes || inBreak;
     if (!free) s.countedChanges++;
-    _add(MatchEventType.tacticChange, side);
+    _add(MatchEventType.tacticChange, side, action: action);
     _refresh(s);
+  }
+
+  /// The coach of an AI side reads the match (step 10f5): deeper against a
+  /// stronger team, everything forward when behind, the bus parked when
+  /// ahead late, a back line of four after a red card, a booked defender
+  /// off. Tactical knowledge decides how early he sees it; a weak coach
+  /// now and then does the opposite.
+  void _coach(_Side side) {
+    final i = _sides.indexOf(side);
+    final c = _m.confidence;
+    final q = (side.assistant ? 50.0 : side.team.coach.tactics) / 100;
+    final delay = ((1 - q) * c['coach_delay']).round();
+    final wrong =
+        _coachRng.nextDouble() <
+        c['coach_error'] * math.max(0.0, 0.5 - q) * 2;
+    final lead = _lead(i);
+    final sheet = side.sheet;
+    void set(int pressing, int tempo, int line, String action) {
+      if (sheet.pressing == pressing &&
+          sheet.tempo == tempo &&
+          sheet.defensiveLine == line) {
+        return;
+      }
+      _setTactics(
+        i,
+        pressing: pressing,
+        tempo: tempo,
+        defensiveLine: line,
+        action: action,
+      );
+    }
+
+    // Against a clearly stronger team: deeper from the start.
+    if (side.coachDone & _Coach.start == 0) {
+      side.coachDone |= _Coach.start;
+      final other = _sides[1 - i].ratings;
+      final own = side.ratings;
+      final mine = own.build + own.attack + own.defense;
+      final theirs = other.build + other.attack + other.defense;
+      if (theirs > mine * (1 + c['coach_stronger']) && q >= 0.3) {
+        wrong ? set(2, 2, 2, 'panic') : set(sheet.pressing, 1, 0, 'deep');
+      }
+      return;
+    }
+    // A red card: tighten up unless chasing the game.
+    if (side.missing > 0 && side.coachDone & _Coach.tenMen == 0 && q >= 0.25) {
+      side.coachDone |= _Coach.tenMen;
+      if (lead >= 0) set(0, 1, 0, 'ten');
+      return;
+    }
+    // Behind: everything forward.
+    if (lead < 0 &&
+        side.coachDone & _Coach.chase == 0 &&
+        _clock >= c['coach_chase_minute'] + delay) {
+      side.coachDone = (side.coachDone | _Coach.chase) & ~_Coach.hold;
+      if (wrong) {
+        set(0, 0, 0, 'panic');
+      } else {
+        set(2, 2, lead <= -2 || _clock >= 75 ? 2 : 1, 'chase');
+      }
+      return;
+    }
+    // Ahead late: park the bus.
+    if (lead > 0 &&
+        side.coachDone & _Coach.hold == 0 &&
+        _clock >= c['coach_hold_minute'] + delay) {
+      side.coachDone = (side.coachDone | _Coach.hold) & ~_Coach.chase;
+      wrong ? set(2, 2, 2, 'panic') : set(0, 0, 0, 'hold');
+      return;
+    }
+    // The lead is gone: a good coach opens up again.
+    if (lead <= 0 && side.coachDone & _Coach.hold != 0 && q >= 0.4) {
+      side.coachDone &= ~_Coach.hold;
+      set(1, 1, 1, 'open');
+      return;
+    }
+    // A booked defender goes off before he sees red.
+    if (_clock >= c['coach_booked_minute'] &&
+        q >= 0.5 &&
+        _canSub(side) &&
+        _coachRng.nextDouble() < c['coach_booked_sub'] * q) {
+      for (final s in side.pitch) {
+        final p = s.position;
+        if ((side.yellows[s.player.id] ?? 0) == 0 ||
+            !(p == Position.iv ||
+                p == Position.lv ||
+                p == Position.rv ||
+                p == Position.zdm)) {
+          continue;
+        }
+        final options =
+            [
+              for (final b in side.bench)
+                if (!b.position.isGoalkeeper) b,
+            ]..sort(
+              (a, b) => _fit
+                  .slotScore(b, p)
+                  .compareTo(_fit.slotScore(a, p)),
+            );
+        if (options.isEmpty) return;
+        _substitute(i, s.player.id, options.first.id);
+        return;
+      }
+    }
   }
 
   void _assistant(_Side side) {
@@ -2993,6 +3181,14 @@ class MatchSession {
       }
     }
   }
+}
+
+/// What an AI coach has done in a match (step 10f5), as bits.
+abstract final class _Coach {
+  static const start = 1;
+  static const chase = 2;
+  static const hold = 4;
+  static const tenMen = 8;
 }
 
 /// Plays whole matches without a user interface.

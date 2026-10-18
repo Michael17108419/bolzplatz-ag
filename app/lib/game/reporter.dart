@@ -337,7 +337,10 @@ class Reporter {
         ]);
         _captain(e, e.otherPlayer, out);
       case MatchEventType.tacticChange:
-        _say(out, e, TickerKind.tactic, ['tactic.${_who(e.side)}']);
+        _say(out, e, TickerKind.tactic, [
+          if (e.action != null) 'coach.${e.action}.${_who(e.side)}',
+          'tactic.${_who(e.side)}',
+        ]);
       case MatchEventType.addedTime:
         final situation = _situation(e);
         final half = e.minute <= 45 ? 'half' : situation;
