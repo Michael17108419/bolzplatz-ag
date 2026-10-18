@@ -36,9 +36,13 @@ class Career {
   League get league => currentLeague ?? offer.league;
   SeasonGoal get goal => currentGoal ?? offer.goal;
 
-  /// The same career in a later season.
-  Career inSeason({required League league, required SeasonGoal goal}) => Career(
-    trainer: trainer,
+  /// The same career in a later season, with the manager as he grew.
+  Career inSeason({
+    required League league,
+    required SeasonGoal goal,
+    Trainer? trainer,
+  }) => Career(
+    trainer: trainer ?? this.trainer,
     offer: offer,
     seed: seed,
     wishClubId: wishClubId,
@@ -66,10 +70,14 @@ class CareerNotifier extends Notifier<Career?> {
   }
 
   /// The club plays on in a new season, maybe in another league.
-  void newSeason({required League league, required SeasonGoal goal}) {
+  void newSeason({
+    required League league,
+    required SeasonGoal goal,
+    Trainer? trainer,
+  }) {
     final career = state;
     if (career == null) return;
-    state = career.inSeason(league: league, goal: goal);
+    state = career.inSeason(league: league, goal: goal, trainer: trainer);
   }
 }
 

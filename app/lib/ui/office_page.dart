@@ -20,6 +20,7 @@ import 'office_pages.dart';
 import 'round_play_button.dart';
 import 'office_scene.dart';
 import 'person_avatar.dart';
+import 'trainer_page.dart';
 
 /// The home screen of a career: the office as a picture filling the screen.
 /// Every thing in it opens one screen, the door and the round play button
@@ -189,6 +190,18 @@ class _Office extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: Tokens.gapS),
+              ListTile(
+                key: const ValueKey('menu-trainer'),
+                title: Text(s.officeTrainerProfile),
+                onTap: () {
+                  Navigator.of(sheet).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const TrainerPage(),
+                    ),
+                  );
+                },
+              ),
               ListTile(
                 key: const ValueKey('menu-saves'),
                 title: Text(s.deskName(DeskItem.saves)),

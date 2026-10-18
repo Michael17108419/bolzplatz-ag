@@ -335,6 +335,35 @@ abstract interface class AppStrings {
   String loadedIn(String seconds);
   String get filesSquad;
   String get filesTraining;
+
+  // Step 11e: the profile of the manager, licences and courses.
+  String get officeTrainerProfile;
+  String get infoTrainer;
+  String trainerLicenceName(Licence licence);
+  String trainerLicenceLine(String licence, int seasons);
+  String trainerLicenceMissing(String need);
+  String trainerCoverHint(int trust, int press);
+  String trainerCoverName(LicenceCover cover);
+  String trainerCoverChosen(LicenceCover cover);
+  String get trainerCourseHeading;
+  String trainerCourseNext(String licence, int days);
+  String trainerCourseBooked(
+    String licence,
+    String date,
+    int days,
+    String value,
+  );
+  String trainerCourseBlocked(String reason);
+  String get trainerCourseNone;
+  String get trainerCourseBook;
+  String get trainerCourseStart;
+  String get trainerCourseValue;
+  String get trainerCourseConfirm;
+  String get trainerCourseDone;
+  String get trainerValuesHeading;
+  String get licenceSender;
+  String get licenceSubject;
+  String licenceBody(String name, String need);
   String get trainingNone;
   String trainingFreshness(int fresh);
   String get infoTraining;
@@ -2075,6 +2104,124 @@ class AppStringsDe implements AppStrings {
   String get filesSquad => 'Kader';
   @override
   String get filesTraining => 'Training';
+
+  @override
+  String get officeTrainerProfile => 'Trainerprofil';
+
+  @override
+  String get infoTrainer =>
+      'Du wächst mit der Arbeit: Ansprachen, die sitzen, machen dich '
+      'charismatischer und motivierender, getroffene Matchpläne und selbst '
+      'geplante Trainingswochen schulen dein Taktikwissen, gute Gespräche '
+      'deine Menschenführung. Je besser du schon bist, desto langsamer geht '
+      'es. Das Ansehen rechnet am Saisonende ab: Ziel, Auf- oder Abstieg, '
+      'Pokal. Stress kommt mit Niederlagen und geht im Urlaub. Ab 60 hören '
+      'dir die Spieler bei Ansprachen schlechter zu. Die Pfeile zeigen, was '
+      'sich seit Saisonbeginn getan hat.';
+
+  @override
+  String trainerLicenceName(Licence licence) => switch (licence) {
+    Licence.none => 'keine Lizenz',
+    Licence.c => 'C-Lizenz',
+    Licence.b => 'B-Lizenz',
+    Licence.a => 'A-Lizenz',
+    Licence.pro => 'Pro-Lizenz',
+  };
+
+  @override
+  String trainerLicenceLine(String licence, int seasons) =>
+      '$licence · ${seasons == 1 ? 'ein Jahr' : '$seasons Jahre'} als Trainer';
+
+  @override
+  String trainerLicenceMissing(String need) =>
+      'Die Liga verlangt die $need. Die hast du nicht. Der Verband guckt '
+      'hin, der Präsident könnte weggucken.';
+
+  @override
+  String trainerCoverHint(int trust, int press) =>
+      'Augen zudrücken kostet $trust Punkte Präsidentenvertrauen, ein '
+      'Strohmann $press Punkte Presse-Image. Entscheidest du nicht, drückt '
+      'der Präsident am Saisonende ungefragt zu.';
+
+  @override
+  String trainerCoverName(LicenceCover cover) => switch (cover) {
+    LicenceCover.waiver => 'Präsident drückt beide Augen zu',
+    LicenceCover.strawMan => 'Strohmann auf die Bank',
+  };
+
+  @override
+  String trainerCoverChosen(LicenceCover cover) => switch (cover) {
+    LicenceCover.waiver =>
+      'Der Präsident hat beide Augen zugedrückt. Sein Vertrauen hat dabei '
+          'gelitten, die Augen auch.',
+    LicenceCover.strawMan =>
+      'Offiziell sitzt ein Herr mit Lizenz auf der Bank. Du „berätst“. Die '
+          'Presse hat es gemerkt.',
+  };
+
+  @override
+  String get trainerCourseHeading => 'Lehrgang';
+
+  @override
+  String trainerCourseNext(String licence, int days) =>
+      'Nächste Stufe: $licence. $days Tage Schulbank statt Urlaub, nur in '
+      'der Sommer- oder Winterpause. Der Assistent übernimmt so lange, dazu '
+      'trainierst du einen Wert deiner Wahl.';
+
+  @override
+  String trainerCourseBooked(
+    String licence,
+    String date,
+    int days,
+    String value,
+  ) => 'Gebucht: $licence ab $date, $days Tage, dazu $value.';
+
+  @override
+  String trainerCourseBlocked(String reason) => switch (reason) {
+    'standing' => 'Dafür fehlt dir das Ansehen. Erst Erfolge, dann Zertifikate.',
+    'seasons' => 'Dafür brauchst du mehr Jahre als Trainer.',
+    'taken' => 'In dieser Pause drückst du schon die Schulbank.',
+    'match' => 'In der Pause steht ein Spiel an. Kein Platz für die Schulbank.',
+    'licence' => 'Mehr Lizenz gibt es nicht.',
+    _ => 'Gerade ist kein Urlaubsfenster frei. Sommer und Winter kommen wieder.',
+  };
+
+  @override
+  String get trainerCourseNone =>
+      'Du hast die höchste Lizenz. Mehr Papier gibt es nicht.';
+
+  @override
+  String get trainerCourseBook => 'Lehrgang buchen';
+
+  @override
+  String get trainerCourseStart => 'Beginn';
+
+  @override
+  String get trainerCourseValue => 'Dazu trainierst du';
+
+  @override
+  String get trainerCourseConfirm => 'Buchen';
+
+  @override
+  String get trainerCourseDone => 'Gebucht. Der Assistent übernimmt so lange.';
+
+  @override
+  String get trainerValuesHeading => 'Werte (Pfeile: seit Saisonbeginn)';
+
+  @override
+  String get licenceSender => 'Verband, Abteilung Lizenzen';
+
+  @override
+  String get licenceSubject => 'Ihre Trainerlizenz';
+
+  @override
+  String licenceBody(String name, String need) =>
+      'Guten Tag, $name,\n\nfür Ihre Liga ist die $need '
+      'vorgeschrieben. In unseren Unterlagen findet sich nichts dergleichen. '
+      'Wir bitten um Klärung.\n\nMit sportlichen Grüßen\nIhr Verband\n\n'
+      'PS (vom Berater): Im Menü unter „Trainerprofil“ regelst du das. Der '
+      'Präsident drückt gern ein Auge zu, ein Strohmann tut es auch, und im '
+      'Urlaub gibt es Lehrgänge.';
   @override
   String get trainingNone => 'Training gibt es, sobald die Saison läuft.';
   @override

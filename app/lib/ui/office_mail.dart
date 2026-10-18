@@ -276,9 +276,22 @@ List<OfficeMail> buildMails(
           courtCase: c.status == CourtStatus.open ? c.id : null,
         ),
   ];
+  // The federation asks for the licence the league wants (step 11e).
+  final missing = game?.runner.licenceMissing(game.clubId);
+  final licenceMail =
+      missing != null && game!.runner.progressOf(game.clubId)?.cover == null
+      ? OfficeMail(
+          id: 'licence:${game.run.state.startYear}',
+          sender: s.licenceSender,
+          subject: s.licenceSubject,
+          body: s.licenceBody(trainer.name, s.trainerLicenceName(missing)),
+          portrait: const _Initial('V'),
+        )
+      : null;
   return [
     ?seasonEnd,
     ?verdict,
+    ?licenceMail,
     ...courtMails,
     ...appointmentMails,
     OfficeMail(

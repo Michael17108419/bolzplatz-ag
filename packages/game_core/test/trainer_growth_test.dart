@@ -193,7 +193,8 @@ void main() {
     expect(runner.courseBlock(club, start), isNull);
     expect(runner.bookCourse(club, start, ManagerValue.tacticalKnowledge),
         isTrue);
-    expect(runner.courseBlock(club, start + 10), anyOf('taken', 'window'));
+    // After the course B stands; A asks for a season as manager.
+    expect(runner.courseBlock(club, start + 10), 'seasons');
     final course = runner.progressOf(club)!.courses.single;
     expect(course.licence, Licence.b);
     expect(runner.canTalkTo(club, start), isFalse);

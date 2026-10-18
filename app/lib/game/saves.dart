@@ -348,7 +348,14 @@ class SaveService {
     final world = start.world;
     final clubs = {for (final c in world.clubs) c.id: c};
     final leagues = {for (final l in world.leagues) l.id: l};
-    final trainer = Trainer.fromJson(data.trainer);
+    // Saves from before step 11e know no licence: the one of the backstory.
+    final story = start.rules.career.backstories
+        .where((b) => b.id == data.trainer['backstory'])
+        .firstOrNull;
+    final trainer = Trainer.fromJson(
+      data.trainer,
+      licence: story?.licence ?? Licence.none,
+    );
     final wish = data.wishClubId == null ? null : ClubId(data.wishClubId!);
     JobOffer? offer;
     if (data.offerData != null) {
