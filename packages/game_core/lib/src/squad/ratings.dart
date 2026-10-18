@@ -45,7 +45,9 @@ Map<PlayerId, double> matchRatings(
           add(e.keeper, -c['rating_conceded']);
         } else {
           if (pen) add(e.player, -c['rating_penalty_miss']);
-          if (e.quality == ChanceQuality.big) add(e.player, -c['rating_big_miss']);
+          if (e.quality == ChanceQuality.big) {
+            add(e.player, -c['rating_big_miss']);
+          }
           if (e.outcome == ShotOutcome.saved) add(e.keeper, c['rating_save']);
         }
       case MatchEventType.ballWon:
