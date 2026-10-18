@@ -153,4 +153,15 @@ const Map<String, List<String>> reporterTeamDe = {
     "Panik an der Bank von {team}. Da wird wild durcheinander gewechselt.",
     "Der Trainer von {team} hat offenbar sein Taktikbuch verlegt.",
   ],
+
+  // ---------------------------------------------------- cards for delay
+  "yellow.delay.own": [
+    "Gelb für {p} wegen Zeitspiel. Der Trainer hat es so gewollt, der Schiri "
+        "nicht.",
+    "{p} trödelt zu auffällig: Gelb. Clever ist anders.",
+  ],
+  "yellow.delay.opp": [
+    "Gelb für {p}, der wollte den Ball am liebsten mit nach Hause nehmen.",
+    "Endlich! Gelb wegen Zeitspiel für {p}. Das hat gedauert.",
+  ],
 };

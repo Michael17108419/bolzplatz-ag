@@ -59,6 +59,9 @@ class _Slot {
   /// Extra foul risk of a hothead fired up in the dressing room (step 10f3).
   double heat = 0;
 
+  /// What the coach told him (step 10g1).
+  PlayerInstruction? instr;
+
   /// Forgets the cached values after the place or role changed.
   void reset() {
     base.clear();
@@ -150,6 +153,10 @@ class _Side {
   /// What the coach has done in this match (step 10f5), see [_Coach].
   int coachDone = 0;
 
+  /// Opponents followed by a man marker of this side and the factor on
+  /// their duels (step 10g1).
+  Map<PlayerId, double> marked = const {};
+
   /// The minute (session minutes) up to which the team plays a man short
   /// for a treatment or a slow change (engine 2, step 10e6).
   int shortUntil = -1;
@@ -182,41 +189,35 @@ class _Side {
 class SessionAction {
   const SessionAction._(
     this.minute,
-    this.side,
+    this.side, {
     this.off,
     this.on,
     this.systemId,
     this.pressing,
     this.tempo,
-    this.defensiveLine, [
+    this.defensiveLine,
     this.talk,
     this.handOver = false,
-  ]);
-
-  /// The assistant takes over for the rest of the match (step 10f5).
-  factory SessionAction.handOver(int minute, int side) => SessionAction._(
-    minute,
-    side,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    true,
-  );
+    this.instructed,
+    this.instruction,
+    this.wing,
+    this.wasteTime,
+  });
 
   /// A team talk (step 10f3).
   factory SessionAction.teamTalk(int minute, int side, TeamTalk talk) =>
-      SessionAction._(minute, side, null, null, null, null, null, null, talk);
+      SessionAction._(minute, side, talk: talk);
+
+  /// The assistant takes over for the rest of the match (step 10f5).
+  factory SessionAction.handOver(int minute, int side) =>
+      SessionAction._(minute, side, handOver: true);
 
   factory SessionAction.substitution(
     int minute,
     int side,
     PlayerId off,
     PlayerId on,
-  ) => SessionAction._(minute, side, off, on, null, null, null, null);
+  ) => SessionAction._(minute, side, off: off, on: on);
 
   factory SessionAction.tactics(
     int minute,
@@ -228,28 +229,56 @@ class SessionAction {
   }) => SessionAction._(
     minute,
     side,
-    null,
-    null,
-    systemId,
-    pressing,
-    tempo,
-    defensiveLine,
+    systemId: systemId,
+    pressing: pressing,
+    tempo: tempo,
+    defensiveLine: defensiveLine,
   );
+
+  /// An instruction for one player, null takes it back (step 10g1).
+  factory SessionAction.instruction(
+    int minute,
+    int side,
+    PlayerId player,
+    PlayerInstruction? instruction,
+  ) => SessionAction._(
+    minute,
+    side,
+    instructed: player,
+    instruction: instruction,
+  );
+
+  /// The team instructions (step 10g1): the wing to overload ("none" for
+  /// none) and time wasting.
+  factory SessionAction.team(
+    int minute,
+    int side, {
+    required String wing,
+    required bool wasteTime,
+  }) => SessionAction._(minute, side, wing: wing, wasteTime: wasteTime);
 
   factory SessionAction.fromJson(Map<String, dynamic> m) {
     final off = m['off'] as int?;
     final on = m['on'] as int?;
+    final instructed = m['instructed'] as int?;
+    final instruction = m['instruction'] as String?;
     return SessionAction._(
       m['minute'] as int,
       m['side'] as int,
-      off == null ? null : PlayerId(off),
-      on == null ? null : PlayerId(on),
-      m['system'] as String?,
-      m['pressing'] as int?,
-      m['tempo'] as int?,
-      m['line'] as int?,
-      m['talk'] == null ? null : TeamTalk.values.byName(m['talk'] as String),
-      m['handover'] == true,
+      off: off == null ? null : PlayerId(off),
+      on: on == null ? null : PlayerId(on),
+      systemId: m['system'] as String?,
+      pressing: m['pressing'] as int?,
+      tempo: m['tempo'] as int?,
+      defensiveLine: m['line'] as int?,
+      talk: m['talk'] == null ? null : TeamTalk.values.byName(m['talk'] as String),
+      handOver: m['handover'] == true,
+      instructed: instructed == null ? null : PlayerId(instructed),
+      instruction: instruction == null
+          ? null
+          : PlayerInstruction.values.byName(instruction),
+      wing: m['wing'] as String?,
+      wasteTime: m['waste'] as bool?,
     );
   }
 
@@ -272,6 +301,15 @@ class SessionAction {
   /// True when the assistant took over.
   final bool handOver;
 
+  /// Set for an instruction: the player and what he is told (null: none).
+  final PlayerId? instructed;
+  final PlayerInstruction? instruction;
+
+  /// Set for the team instructions: wing (`left`, `right`, `none`) and
+  /// time wasting.
+  final String? wing;
+  final bool? wasteTime;
+
   bool get isSubstitution => off != null;
 
   Map<String, dynamic> toJson() => {
@@ -285,6 +323,10 @@ class SessionAction {
     if (defensiveLine != null) 'line': defensiveLine,
     if (talk != null) 'talk': talk!.name,
     if (handOver) 'handover': true,
+    if (instructed != null) 'instructed': instructed!.value,
+    if (instruction != null) 'instruction': instruction!.name,
+    if (wing != null) 'wing': wing,
+    if (wasteTime != null) 'waste': wasteTime,
   };
 
   /// Does the change in [session].
@@ -293,6 +335,14 @@ class SessionAction {
       session.handOver(side);
     } else if (talk != null) {
       session.teamTalk(side, talk!);
+    } else if (instructed != null) {
+      session.instruct(side, instructed!, instruction);
+    } else if (wing != null || wasteTime != null) {
+      session.teamInstructions(
+        side,
+        wing: wing == null || wing == 'none' ? null : Wing.values.byName(wing!),
+        wasteTime: wasteTime ?? false,
+      );
     } else if (isSubstitution) {
       session.substitute(side, off!, on!);
     } else {
@@ -500,6 +550,9 @@ class MatchSession {
   /// follow every [changeTactics].
   TeamSheet sheetOf(int side) => _sides[side].sheet;
 
+  /// Opponents followed by the man markers of [side] (step 10g1).
+  Set<PlayerId> markedBy(int side) => _sides[side].marked.keys.toSet();
+
   /// Energy (0 to 100) of a player now: tired on the pitch, the fitness he
   /// came with on the bench.
   double energyOf(int side, PlayerId id) {
@@ -634,6 +687,7 @@ class MatchSession {
     }
     slot.conf = side.team.confidence[player.id] ?? 50;
     slot.mood = side.team.mood[player.id] ?? _moodNeutral;
+    slot.instr = side.sheet.instructions[player.id];
     slot.counterMult = _abilityMult(
       player,
       const [SpecialAbilityType.counterPlayer],
@@ -763,6 +817,7 @@ class MatchSession {
         tactics.penaltyPerExtraChange *
         (1.5 - side.team.coach.tactics / 100).clamp(0.5, 1.5);
     side.fitBonus = math.max(0.0, tactics.fitBonusMax * teamFit - unsettled);
+    side.marked = _marks(side);
     final pair = side.team.chemistry;
     // Only when the players on the pitch changed (the zone tables are
     // dropped then as well).
@@ -835,7 +890,10 @@ class MatchSession {
             _abilityMult(s.player, a.defendAbilities, acts.abilityBonus) *
                 (1 +
                     c.aggressionDuel *
-                        s.tx[CharacterTrait.aggression.index]),
+                        s.tx[CharacterTrait.aggression.index]) *
+                (s.instr == PlayerInstruction.hard
+                    ? 1 + _m.instructions.get('hard_duel')
+                    : 1.0),
         ]),
     ];
     final system = [
@@ -855,14 +913,17 @@ class MatchSession {
       // other side: column and lane are mirrored.
       final cw = Float64List.fromList([
         for (final s in slots)
-          z.columnWeights[s.position]![column] * z.laneFactor(s.position, lane),
+          z.columnWeights[s.position]![column] *
+              z.laneFactor(s.position, lane) *
+              _instrCarry(s, column),
       ]);
       final dw = Float64List.fromList([
         for (final s in slots)
           s.position.isGoalkeeper
               ? 0.0
               : z.columnWeights[s.position]![ZoneRules.columns - 1 - column] *
-                    z.laneFactor(s.position, lanes - 1 - lane),
+                    z.laneFactor(s.position, lanes - 1 - lane) *
+                    _instrDefend(s, ZoneRules.columns - 1 - column),
       ]);
       _fallback(cw, slots);
       _fallback(dw, slots);
@@ -930,6 +991,87 @@ class MatchSession {
       defRel: defRel,
       shooter: shooter,
     );
+  }
+
+  /// Pushing up or staying back moves where a player has the ball (step
+  /// 10g1): [column] of the own view, 0 at the own goal.
+  double _instrCarry(_Slot s, int column) {
+    final r = _m.instructions;
+    final deep = column >= ZoneRules.columns - 2;
+    final back = column <= 1;
+    return switch (s.instr) {
+      PlayerInstruction.forward when deep => r.get('forward_attack', 1),
+      PlayerInstruction.forward when back => r.get('forward_back', 1),
+      PlayerInstruction.stayBack when deep => r.get('stay_attack', 1),
+      PlayerInstruction.stayBack when back => r.get('stay_back', 1),
+      _ => 1,
+    };
+  }
+
+  /// And where he defends ([column] of the own view); a man marker is busy
+  /// with his man and missing in the zones.
+  double _instrDefend(_Slot s, int column) {
+    final r = _m.instructions;
+    final back = column <= 1;
+    return switch (s.instr) {
+      PlayerInstruction.manMark => 1 - r.get('mark_absent'),
+      PlayerInstruction.forward when back => r.get('forward_back', 1),
+      PlayerInstruction.stayBack when back => r.get('stay_back', 1),
+      _ => 1,
+    };
+  }
+
+  /// The lanes an attack starts in: by system, more on an overloaded wing
+  /// (step 10g1). Lane 0 is the left wing of the attacking team.
+  List<double> _lanes(_Side side) {
+    final base = _m.zones.lanesFor(side.sheet.systemId);
+    final wing = side.sheet.wing;
+    if (wing == null) return base;
+    final r = _m.instructions;
+    const last = ZoneRules.lanes - 1;
+    double factor(int l) {
+      // Distance of the lane from the chosen touchline: 0 wing, 1 half
+      // space; the far side gets less.
+      final near = wing == Wing.left ? l : last - l;
+      if (near == 0) return r.get('wing', 1);
+      if (near == 1) return r.get('wing_half', 1);
+      if (near >= last - 1) return r.get('wing_other', 1);
+      return 1;
+    }
+
+    return [for (var l = 0; l < base.length; l++) base[l] * factor(l)];
+  }
+
+  /// The opponents the man markers of [side] follow: each takes the most
+  /// dangerous attacker not yet taken (step 10g1). The factor on their
+  /// duels grows with the marker's defending against the target's skill.
+  Map<PlayerId, double> _marks(_Side side) {
+    final markers = [
+      for (final s in side.pitch)
+        if (s.instr == PlayerInstruction.manMark) s,
+    ];
+    if (markers.isEmpty) return const {};
+    final other = _sides[1 - _sides.indexOf(side)];
+    final attackers = [
+      for (final s in other.pitch)
+        if (!s.position.isGoalkeeper && lineOf(s.position) >= 2) s,
+    ]..sort(
+        (a, b) => _fit
+            .slotScore(b.player, b.position)
+            .compareTo(_fit.slotScore(a.player, a.position)),
+      );
+    final out = <PlayerId, double>{};
+    final strength = _m.instructions.get('mark_target');
+    for (var i = 0; i < markers.length && i < attackers.length; i++) {
+      final marker = markers[i];
+      final target = attackers[i];
+      final q =
+          (_fit.slotScore(marker.player, marker.position) /
+                  math.max(1.0, _fit.slotScore(target.player, target.position)))
+              .clamp(0.6, 1.4);
+      out[target.player.id] = 1 - strength * q;
+    }
+    return out;
   }
 
   /// A zone nobody covers (after red cards, for example) is shared by all
@@ -1513,7 +1655,17 @@ class MatchSession {
         ((_sides[o].yellows[fouler.player.id] ?? 0) > 0
             ? _m.repeatYellowWeight
             : 1.0) *
-        (1 + fouler.heat + _sulk(fouler));
+        (1 + fouler.heat + _sulk(fouler)) *
+        (fouler.instr == PlayerInstruction.hard
+            ? 1 +
+                  _m.instructions.get('hard_foul') *
+                      (1 +
+                          0.5 *
+                              math.max(
+                                0.0,
+                                fouler.tx[CharacterTrait.temper.index],
+                              ))
+            : 1.0);
     if (_rng.nextDouble() >= p) return false;
     final dogso = through && _rng.nextDouble() < r.dogsoShare;
     final advantage =
@@ -1630,9 +1782,7 @@ class MatchSession {
     const last = ZoneRules.columns - 1;
     var column =
         counter?.$2 ?? _rng.weightedIndex(z.startColumnWeights);
-    var lane =
-        counter?.$3 ??
-        _rng.weightedIndex(z.lanesFor(attacker.sheet.systemId));
+    var lane = counter?.$3 ?? _rng.weightedIndex(_lanes(attacker));
     final reference = z.referenceShare;
     final chain = <Player>[];
     final steps = <AttackStep>[];
@@ -1671,6 +1821,7 @@ class MatchSession {
         ratio *= carrier.counterMult / _m.counter.disorder;
       }
       ratio *= _characterDuel(t, carrier, tackler);
+      ratio *= defender.marked[carrier.player.id] ?? 1.0;
       final duel = math
           .pow(ratio, z.duelExponent)
           .toDouble()
@@ -1691,6 +1842,7 @@ class MatchSession {
                   (action.id == 'short_pass' || action.id == 'through_ball'
                       ? _sides[t].chemFactor
                       : 1.0) *
+                  _instrStep(carrier, action.id) *
                   (action.id == 'dribble' || action.id == 'through_ball'
                       ? 1 + _m.confidence['bold'] * (carrier.conf - 50) / 50
                       : 1.0))
@@ -1833,7 +1985,42 @@ class MatchSession {
 
   /// How the character of [p] changes the weight of the action [id]:
   /// egoists shoot from distance, creative players try the through ball.
-  double _characterWeight(_Slot s, String id) {
+  double _characterWeight(_Slot s, String id) =>
+      _traitWeight(s, id) * _instrWeight(s, id);
+
+  /// How an instruction moves the choice of an action (step 10g1).
+  double _instrWeight(_Slot s, String id) {
+    final r = _m.instructions;
+    switch (s.instr) {
+      case PlayerInstruction.shootMore:
+        if (id == 'long_shot') return r.get('shoot_weight', 1);
+        if (id == 'short_pass') return r.get('shoot_pass', 1);
+      case PlayerInstruction.safe:
+        if (id == 'short_pass') return r.get('safe_short', 1);
+        if (id == 'through_ball' || id == 'dribble' || id == 'long_ball') {
+          return r.get('safe_risky', 1);
+        }
+      case PlayerInstruction.through:
+        if (id == 'through_ball') return r.get('through_weight', 1);
+      default:
+        break;
+    }
+    return 1;
+  }
+
+  /// How an instruction moves the success of a step (step 10g1).
+  double _instrStep(_Slot s, String id) {
+    final r = _m.instructions;
+    if (s.instr == PlayerInstruction.safe && id == 'short_pass') {
+      return 1 + r.get('safe_step');
+    }
+    if (s.instr == PlayerInstruction.through && id == 'through_ball') {
+      return 1 + r.get('through_step');
+    }
+    return 1;
+  }
+
+  double _traitWeight(_Slot s, String id) {
     final c = _m.character;
     switch (id) {
       case 'long_shot':
@@ -2263,15 +2450,27 @@ class MatchSession {
   /// seconds or a late goal kick gives a corner, a late throw-in goes to
   /// the opponent.
   void _timeWasting() {
+    for (var t = 0; t < _sides.length; t++) {
+      _wasteFor(t);
+    }
+  }
+
+  /// Time wasting of side [t]: when ahead late, or earlier and also level
+  /// when the coach told them to (step 10g1, then more often and with a
+  /// yellow card now and then).
+  void _wasteFor(int t) {
     final w = _m.timeWasting;
-    if (_clock < w.fromMinute || _goalsHome == _goalsAway) return;
-    final t = _goalsHome > _goalsAway ? 0 : 1;
+    final r0 = _m.instructions;
     final side = _sides[t];
+    final lead = _lead(t);
+    final told = side.sheet.wasteTime;
+    final from = told ? w.fromMinute - r0.get('waste_early') : w.fromMinute;
+    if (_clock < from || lead < 0 || (lead == 0 && !told)) return;
     if (side.pitch.isEmpty) return;
     final keeper = side.pitch
         .where((s) => s.position.isGoalkeeper)
         .firstOrNull;
-    final r = _rng.nextDouble();
+    final r = _rng.nextDouble() / (told ? r0.get('waste_factor', 1) : 1);
     String? kind;
     _Slot? culprit;
     if (r < w.keeperEightSeconds && keeper != null) {
@@ -2294,6 +2493,9 @@ class MatchSession {
     if (kind == null || culprit == null) return;
     _halfWasted++;
     _add(MatchEventType.timeWasting, t, player: culprit.player, action: kind);
+    if (told && _rng.nextDouble() < r0.get('waste_yellow')) {
+      _yellow(t, culprit, reason: 'delay');
+    }
     if (kind != 'throw_in_countdown') _corner(1 - t);
   }
 
@@ -2981,6 +3183,50 @@ class MatchSession {
       pressing: pressing,
       tempo: tempo,
       defensiveLine: defensiveLine,
+    );
+  }
+
+  /// Gives [player] of [side] an instruction, null takes it back (step
+  /// 10g1). Free of the penalty for changes.
+  void instruct(int side, PlayerId player, PlayerInstruction? instruction) {
+    final s = _sides[side];
+    final now = s.sheet.instructions[player];
+    if (now == instruction || _finished) return;
+    _actions.add(SessionAction.instruction(_minute, side, player, instruction));
+    final map = Map.of(s.sheet.instructions);
+    if (instruction == null) {
+      map.remove(player);
+    } else {
+      map[player] = instruction;
+    }
+    s.sheet = s.sheet.copyWith(instructions: map);
+    for (final slot in s.pitch) {
+      if (slot.player.id == player) slot.instr = instruction;
+    }
+    s.zones = null;
+    _refresh(s);
+  }
+
+  /// The team instructions of [side] (step 10g1): a wing to overload (null
+  /// for none) and time wasting.
+  void teamInstructions(int side, {Wing? wing, bool wasteTime = false}) {
+    final s = _sides[side];
+    if (_finished ||
+        (s.sheet.wing == wing && s.sheet.wasteTime == wasteTime)) {
+      return;
+    }
+    _actions.add(
+      SessionAction.team(
+        _minute,
+        side,
+        wing: wing?.name ?? 'none',
+        wasteTime: wasteTime,
+      ),
+    );
+    s.sheet = s.sheet.copyWith(
+      wing: wing,
+      clearWing: wing == null,
+      wasteTime: wasteTime,
     );
   }
 

@@ -273,6 +273,33 @@ class LineupNotifier extends Notifier<LineupState?> {
     _set(now.sheet.copyWith(slotRoles: roles));
   }
 
+  /// One instruction for a player, null takes it back (engine 2, 10g1).
+  void setInstruction(PlayerId player, PlayerInstruction? instruction) {
+    final now = state;
+    if (now == null) return;
+    final map = Map.of(now.sheet.instructions);
+    if (instruction == null) {
+      map.remove(player);
+    } else {
+      map[player] = instruction;
+    }
+    _set(now.sheet.copyWith(instructions: map));
+  }
+
+  /// The wing to overload, null for none (engine 2, 10g1).
+  void setWing(Wing? wing) {
+    final now = state;
+    if (now == null) return;
+    _set(now.sheet.copyWith(wing: wing, clearWing: wing == null));
+  }
+
+  /// Time wasting on or off (engine 2, 10g1).
+  void setWasteTime(bool on) {
+    final now = state;
+    if (now == null) return;
+    _set(now.sheet.copyWith(wasteTime: on));
+  }
+
   /// Names the captain; null lets the assistant choose (most leadership).
   void setCaptain(PlayerId? id) {
     final now = state;

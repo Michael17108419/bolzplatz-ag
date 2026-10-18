@@ -563,6 +563,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
           session: _session,
           side: _ownSide,
           rules: _loaded.rules,
+          playerOf: _loaded.player,
           onChanged: () {
             _ingest();
             setState(() {});
@@ -577,6 +578,7 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
         session: _session,
         side: _ownSide,
         rules: _loaded.rules,
+        playerOf: _loaded.player,
         onChanged: () {
           _ingest();
           setState(() {});
@@ -1658,6 +1660,7 @@ class _TacticsDialog extends ConsumerStatefulWidget {
     required this.side,
     required this.rules,
     required this.onChanged,
+    required this.playerOf,
     this.asSheet = false,
   });
 
@@ -1665,6 +1668,9 @@ class _TacticsDialog extends ConsumerStatefulWidget {
   final int side;
   final Rules rules;
   final VoidCallback onChanged;
+
+  /// The players, for the instructions (engine 2, step 10g1).
+  final Player? Function(PlayerId id) playerOf;
 
   /// Phone: shown as a sheet from the bottom instead of a dialog.
   final bool asSheet;
@@ -1754,6 +1760,86 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
             ],
           ),
         ],
+        const SizedBox(height: Tokens.gapM),
+        Row(
+          children: [
+            Flexible(child: Text(s.teamInstructions, style: titleStyle)),
+            InfoButton(message: s.infoTeamInstructions),
+          ],
+        ),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final w in [null, ...Wing.values])
+              ChoiceChip(
+                key: ValueKey('match-wing-${w?.name ?? 'none'}'),
+                label: Text(s.wingName(w)),
+                selected: sheet.wing == w,
+                onSelected: (_) {
+                  widget.session.teamInstructions(
+                    widget.side,
+                    wing: w,
+                    wasteTime: sheet.wasteTime,
+                  );
+                  widget.onChanged();
+                  setState(() {});
+                },
+              ),
+            FilterChip(
+              key: const ValueKey('match-waste'),
+              label: Text(s.wasteTimeName),
+              selected: sheet.wasteTime,
+              onSelected: (on) {
+                widget.session.teamInstructions(
+                  widget.side,
+                  wing: sheet.wing,
+                  wasteTime: on,
+                );
+                widget.onChanged();
+                setState(() {});
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: Tokens.gapM),
+        Row(
+          children: [
+            Flexible(child: Text(s.lineupInstruction, style: titleStyle)),
+            InfoButton(message: s.infoInstructions),
+          ],
+        ),
+        for (final id in widget.session.onPitch(widget.side))
+          if (widget.playerOf(id) case final p?
+              when !p.position.isGoalkeeper)
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    p.lastName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                DropdownButton<PlayerInstruction?>(
+                  key: ValueKey('match-instr-${id.value}'),
+                  value: sheet.instructions[id],
+                  onChanged: (i) {
+                    widget.session.instruct(widget.side, id, i);
+                    widget.onChanged();
+                    setState(() {});
+                  },
+                  items: [
+                    DropdownMenuItem(child: Text(s.instructionNone)),
+                    for (final i in PlayerInstruction.values)
+                      DropdownMenuItem(
+                        value: i,
+                        child: Text(s.instructionName(i)),
+                      ),
+                  ],
+                ),
+              ],
+            ),
       ],
     );
     if (widget.asSheet) {

@@ -328,6 +328,14 @@ abstract interface class AppStrings {
   });
   String moodName(double mood);
   String get lineupChemistry;
+  String get lineupInstruction;
+  String get infoInstructions;
+  String get instructionNone;
+  String instructionName(PlayerInstruction i);
+  String get teamInstructions;
+  String get infoTeamInstructions;
+  String wingName(Wing? wing);
+  String get wasteTimeName;
   String get profilePromise;
   String get teamTalkButton;
   String get teamTalkTitle;
@@ -1997,6 +2005,44 @@ class AppStringsDe implements AppStrings {
       : 'stinksauer';
   @override
   String get lineupChemistry => 'Eingespielt';
+  @override
+  String get lineupInstruction => 'Anweisung';
+  @override
+  String get infoInstructions =>
+      'Eine Anweisung pro Spieler, sie bleibt bei ihm, auch auf einem anderen '
+      'Platz. Manndeckung: klebt am gefährlichsten Gegner, fehlt dafür in '
+      'der Abwehrordnung. Öfter schießen: mehr Fernschüsse. Sicher spielen: '
+      'kurze Pässe, weniger Risiko. Hart rangehen: mehr Balleroberungen, mehr '
+      'Fouls, Heißsporne übertreiben. Aufrücken oder hinten bleiben: mehr '
+      'vorn oder mehr hinten. Steil spielen: mehr Steilpässe, mehr Risiko. '
+      'Im Spiel jederzeit änderbar, ohne Strafe fürs Umstellen.';
+  @override
+  String get instructionNone => 'keine';
+  @override
+  String instructionName(PlayerInstruction i) => switch (i) {
+    PlayerInstruction.manMark => 'Manndeckung',
+    PlayerInstruction.shootMore => 'Öfter schießen',
+    PlayerInstruction.safe => 'Sicher spielen',
+    PlayerInstruction.hard => 'Hart rangehen',
+    PlayerInstruction.forward => 'Aufrücken',
+    PlayerInstruction.stayBack => 'Hinten bleiben',
+    PlayerInstruction.through => 'Steil spielen',
+  };
+  @override
+  String get teamInstructions => 'Mannschaft';
+  @override
+  String get infoTeamInstructions =>
+      'Flügel überladen: mehr Angriffe über diese Seite, die andere wird '
+      'dünn. Zeit schinden: früher und öfter, auch beim Unentschieden. Der '
+      'Schiri zeigt dafür mal Gelb und hängt Nachspielzeit an.';
+  @override
+  String wingName(Wing? wing) => switch (wing) {
+    null => 'Beide Flügel',
+    Wing.left => 'Links überladen',
+    Wing.right => 'Rechts überladen',
+  };
+  @override
+  String get wasteTimeName => 'Zeit schinden';
   @override
   String get profilePromise =>
       'Du hast ihm Einsatzzeit versprochen. Er zählt die Minuten.';

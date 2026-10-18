@@ -502,6 +502,25 @@ class ConfidenceRules {
   double operator [](String key) => _v[key] ?? 0;
 }
 
+/// What instructions of the coach do (engine 2, step 10g1): weights of
+/// actions, success of steps, duels, fouls, zones, lanes and time wasting.
+class InstructionRules {
+  const InstructionRules(this._v);
+
+  factory InstructionRules.fromJson(Map<String, dynamic>? m) =>
+      InstructionRules(
+        Map.unmodifiable({
+          for (final e in (m ?? const <String, dynamic>{}).entries)
+            if (e.value is num) e.key: (e.value as num).toDouble(),
+        }),
+      );
+
+  final Map<String, double> _v;
+
+  /// A value by key (`shoot_weight`, `hard_foul` …), [fallback] if missing.
+  double get(String key, [double fallback = 0]) => _v[key] ?? fallback;
+}
+
 /// Short absences by the Laws 2026/27 (engine 2, step 10e6): a player
 /// treated on the pitch stays off for a minute (not the keeper), and a
 /// substitution that takes longer than ten seconds makes the new man wait a
@@ -1139,6 +1158,7 @@ class MatchRules {
     required this.weather,
     required this.treatment,
     required this.confidence,
+    this.instructions = const InstructionRules({}),
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -1336,6 +1356,9 @@ class MatchRules {
       confidence: ConfidenceRules.fromJson(
         m['confidence'] as Map<String, dynamic>,
       ),
+      instructions: InstructionRules.fromJson(
+        m['instructions'] as Map<String, dynamic>?,
+      ),
     );
     result._validate();
     return result;
@@ -1525,4 +1548,7 @@ class MatchRules {
 
   /// Confidence in the match (step 10f2).
   final ConfidenceRules confidence;
+
+  /// Instructions of the coach (engine 2, step 10g1).
+  final InstructionRules instructions;
 }
