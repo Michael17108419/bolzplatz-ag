@@ -172,6 +172,51 @@ void main() {
     expect(_table(b), _table(a));
   });
 
+  test('training days load to the same freshness (step 11a)', () async {
+    final repo = _MemoryRepository();
+    final a = _container(loaded, repo);
+    addTearDown(a.dispose);
+    await a.read(loadedWorldProvider.future);
+    final career = startCareer(a);
+    a.read(lineupProvider);
+    final season = a.read(seasonProvider.notifier);
+    final today = a.read(seasonProvider)!.today.epochDay;
+    final hard = TrainingDay(const [
+      TrainingSession('endurance', Intensity.hard),
+      TrainingSession('pressing', Intensity.hard),
+    ]);
+    for (var d = today; d < today + 5; d++) {
+      season.setTrainingDay(d, hard);
+    }
+    _playMatch(a);
+    expect(season.advanceDay(), DayStep.played);
+    final service = a.read(saveServiceProvider);
+    expect(await service.save('2'), isTrue);
+    final data = SaveData.tryParse(repo.files['2']!)!;
+    final b = _container(loaded, repo);
+    addTearDown(b.dispose);
+    await b.read(loadedWorldProvider.future);
+    expect(await b.read(saveServiceProvider).load(data), isTrue);
+    final ga = a.read(seasonProvider)!;
+    final gb = b.read(seasonProvider)!;
+    for (final p in ga.run.state.squads[career.clubId]!) {
+      expect(
+        gb.runner.freshnessOf(
+          p.id,
+          club: career.clubId,
+          epochDay: gb.today.epochDay,
+        ),
+        ga.runner.freshnessOf(
+          p.id,
+          club: career.clubId,
+          epochDay: ga.today.epochDay,
+        ),
+        reason: '${p.id.value}',
+      );
+    }
+    expect(_table(b), _table(a));
+  });
+
   test('a preview that is only open is not saved', () async {
     final repo = _MemoryRepository();
     final c = _container(loaded, repo);
