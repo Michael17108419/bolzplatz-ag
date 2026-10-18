@@ -2178,12 +2178,14 @@ class AppStringsDe implements AppStrings {
 
   @override
   String trainerCourseBlocked(String reason) => switch (reason) {
-    'standing' => 'Dafür fehlt dir das Ansehen. Erst Erfolge, dann Zertifikate.',
+    'standing' =>
+      'Dafür fehlt dir das Ansehen. Erst Erfolge, dann Zertifikate.',
     'seasons' => 'Dafür brauchst du mehr Jahre als Trainer.',
     'taken' => 'In dieser Pause drückst du schon die Schulbank.',
     'match' => 'In der Pause steht ein Spiel an. Kein Platz für die Schulbank.',
     'licence' => 'Mehr Lizenz gibt es nicht.',
-    _ => 'Gerade ist kein Urlaubsfenster frei. Sommer und Winter kommen wieder.',
+    _ =>
+      'Gerade ist kein Urlaubsfenster frei. Sommer und Winter kommen wieder.',
   };
 
   @override
@@ -2259,7 +2261,8 @@ class AppStringsDe implements AppStrings {
     'match_prep' =>
       'Nach dem Spiel Regeneration, unter der Woche Spielform und Pressing, '
           'am Vortag Video und Standards.',
-    'english_week' => 'Zwei Spiele in der Woche: nur Erholung und etwas Taktik.',
+    'english_week' =>
+      'Zwei Spiele in der Woche: nur Erholung und etwas Taktik.',
     'recovery' => 'Durchschnaufen. Frische rauf, Wirkung runter.',
     'preseason' =>
       'Ausdauer, Kraft, Spielform. Für die Vorbereitung, nicht für die '
@@ -2368,6 +2371,7 @@ class AppStringsDe implements AppStrings {
     if (pos != null) return 'Umschulung auf ${pos.id} · $weeks Wochen';
     return 'Rolle: ${roleName(plan.role!)} · $weeks Wochen';
   }
+
   @override
   String get trainingIndividualNone => 'Kein Einzeltraining';
   @override

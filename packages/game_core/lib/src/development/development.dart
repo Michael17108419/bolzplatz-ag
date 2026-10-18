@@ -136,7 +136,10 @@ class Development {
         final cap = dev.couplingCapPerSeason * fraction;
         change += extra.limit(-cap, cap);
       }
-      final next = (p.attributes[a] + change).limit(Attribute.min, Attribute.max);
+      final next = (p.attributes[a] + change).limit(
+        Attribute.min,
+        Attribute.max,
+      );
       // A year rounds to tenths; weekly steps are too small for that.
       values[a] = fraction >= 1 ? (next * 10).round() / 10 : next;
     }

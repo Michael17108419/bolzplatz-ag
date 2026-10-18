@@ -8,10 +8,8 @@ enum Intensity { light, normal, hard }
 class TrainingSession {
   const TrainingSession(this.unit, this.intensity);
 
-  factory TrainingSession.fromJson(List<dynamic> j) => TrainingSession(
-    j[0] as String,
-    Intensity.values.byName(j[1] as String),
-  );
+  factory TrainingSession.fromJson(List<dynamic> j) =>
+      TrainingSession(j[0] as String, Intensity.values.byName(j[1] as String));
 
   /// Id of the unit in the rules (`endurance`, `pressing` …).
   final String unit;

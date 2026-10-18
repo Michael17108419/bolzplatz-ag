@@ -828,8 +828,7 @@ class SeasonRunner {
         ..sort((a, b) => a.value.compareTo(b.value));
       for (final club in clubs) {
         _trainUpTo(club, end);
-        final due =
-            _humans.contains(club) || (w + 1) % every == 0 || lastWeek;
+        final due = _humans.contains(club) || (w + 1) % every == 0 || lastWeek;
         if (!due) continue;
         final from = _devDone[club] ?? 0;
         final weeks = w + 1 - from;

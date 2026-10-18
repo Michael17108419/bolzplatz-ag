@@ -60,28 +60,16 @@ void main() {
     for (var i = 0; i < 200; i++) {
       final a = tier1[i % tier1.length];
       final b = tier1[(i * 7 + 3) % tier1.length];
-      final r1 = MatchEngine(rules).simulate(
-        _with(a, known: 95),
-        _with(b),
-        seed: 3300 + i,
-      );
-      final r2 = MatchEngine(rules).simulate(
-        _with(a, known: 5),
-        _with(b),
-        seed: 3300 + i,
-      );
+      final r1 = MatchEngine(rules)
+          .simulate(_with(a, known: 95), _with(b), seed: 3300 + i);
+      final r2 = MatchEngine(rules)
+          .simulate(_with(a, known: 5), _with(b), seed: 3300 + i);
       known += r1.homeGoals - r1.awayGoals;
       unknown += r2.homeGoals - r2.awayGoals;
-      final s1 = MatchEngine(rules).simulate(
-        _with(a, setPieces: (95, 95)),
-        _with(b),
-        seed: 3500 + i,
-      );
-      final s2 = MatchEngine(rules).simulate(
-        _with(a, setPieces: (5, 5)),
-        _with(b),
-        seed: 3500 + i,
-      );
+      final s1 = MatchEngine(rules)
+          .simulate(_with(a, setPieces: (95, 95)), _with(b), seed: 3500 + i);
+      final s2 = MatchEngine(rules)
+          .simulate(_with(a, setPieces: (5, 5)), _with(b), seed: 3500 + i);
       setGood += s1.homeGoals - s1.awayGoals;
       setPoor += s2.homeGoals - s2.awayGoals;
     }
@@ -122,9 +110,7 @@ void main() {
     );
     final knowledge = runner.systemKnowledgeOf(club);
     final (att, def) = runner.setPiecesOf(club);
-    final systems = {
-      for (final e in knowledge.entries) e.key: e.value.round(),
-    };
+    final systems = {for (final e in knowledge.entries) e.key: e.value.round()};
     stdout.writeln(
       'KNOWLEDGE-REPORT systems=$systems '
       'set pieces=${att.round()}/${def.round()}',

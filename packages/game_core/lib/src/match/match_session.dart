@@ -874,7 +874,8 @@ class MatchSession {
     side.fitBonus = math.max(0.0, tactics.fitBonusMax * teamFit - unsettled);
     // How well the team knows the system (step 11d): about ±5 %.
     final known = side.team.systemKnowledge[side.sheet.systemId] ?? 50;
-    side.fitBonus += _m.instructions.get('system_knowledge') * (known - 50) / 50;
+    side.fitBonus +=
+        _m.instructions.get('system_knowledge') * (known - 50) / 50;
     if (side.markedVersion != _pitchVersion) {
       side.marked = _marks(side);
       side.markedVersion = _pitchVersion;

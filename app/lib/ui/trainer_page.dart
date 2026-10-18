@@ -26,8 +26,7 @@ class TrainerPage extends ConsumerWidget {
     final base = career.trainer;
     final runner = game?.runner;
     final club = career.clubId;
-    final now =
-        runner?.trainerOf(club, epochDay: game!.today.epochDay) ?? base;
+    final now = runner?.trainerOf(club, epochDay: game!.today.epochDay) ?? base;
     final missing = runner?.licenceMissing(club);
     final progress = runner?.progressOf(club);
     return ScreenFrame(
@@ -315,9 +314,9 @@ class _CourseCard extends ConsumerWidget {
                         .bookCourse(day, value);
                     Navigator.of(sheet).pop();
                     if (ok) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(s.trainerCourseDone)));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(s.trainerCourseDone)),
+                      );
                     }
                   },
                   child: Text(s.trainerCourseConfirm),

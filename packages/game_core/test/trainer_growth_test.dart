@@ -106,10 +106,7 @@ void main() {
     expect(p.courseOn(101), isNotNull);
     expect(growth.current(p, 101).licence, Licence.none);
     expect(growth.current(p, 103).licence, Licence.c);
-    expect(
-      growth.current(p, 103)[ManagerValue.charisma],
-      50 + g.courseGain,
-    );
+    expect(growth.current(p, 103)[ManagerValue.charisma], 50 + g.courseGain);
     p.cover = LicenceCover.waiver;
     expect(
       growth.current(p, 0)[ManagerValue.presidentTrust],
@@ -146,8 +143,7 @@ void main() {
       levelChange: -1,
       cupWon: true,
     );
-    final expected =
-        50 + s['exceeded']! + s['promoted']! + 3 * s['cup_round']!;
+    final expected = 50 + s['exceeded']! + s['promoted']! + 3 * s['cup_round']!;
     expect(up[ManagerValue.standing], closeTo(expected + s['cup_win']!, 0.05));
     expect(up.seasons, 1);
     final down = growth.close(
@@ -203,10 +199,7 @@ void main() {
       TrainingSession('speed', Intensity.hard),
     ]);
     runner.setTrainingDay(club, start, own);
-    expect(
-      runner.trainingDayOf(club, start).toJson(),
-      isNot(own.toJson()),
-    );
+    expect(runner.trainingDayOf(club, start).toJson(), isNot(own.toJson()));
 
     final squad = state.squads[club]!;
     final dayOne = run.timeline.days.first.date.epochDay;

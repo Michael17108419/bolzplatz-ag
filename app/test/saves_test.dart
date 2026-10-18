@@ -253,7 +253,10 @@ void main() {
     expect(await b.read(saveServiceProvider).load(data), isTrue);
     final ga = a.read(seasonProvider)!;
     final gb = b.read(seasonProvider)!;
-    expect(gb.runner.progressOf(club)!.cover, ga.runner.progressOf(club)!.cover);
+    expect(
+      gb.runner.progressOf(club)!.cover,
+      ga.runner.progressOf(club)!.cover,
+    );
     expect(
       gb.runner.progressOf(club)!.courses.length,
       ga.runner.progressOf(club)!.courses.length,

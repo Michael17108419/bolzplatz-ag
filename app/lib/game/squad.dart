@@ -51,11 +51,7 @@ class SquadRow {
 /// The players of a club with their strength and age at the world's date.
 /// [live] are the players as they are now in the running season (they
 /// develop every week, step 11b); without them the start of the season.
-List<SquadRow> squadOf(
-  LoadedWorld loaded,
-  ClubId club, {
-  List<Player>? live,
-}) {
+List<SquadRow> squadOf(LoadedWorld loaded, ClubId club, {List<Player>? live}) {
   final today = loaded.today;
   final players = live != null && live.isNotEmpty
       ? live

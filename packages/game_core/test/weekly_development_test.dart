@@ -54,7 +54,8 @@ void main() {
     }
     double mean(List<double> l) => l.reduce((a, b) => a + b) / l.length;
     final line = [
-      for (final e in bands.entries) '${e.key}=${mean(e.value).toStringAsFixed(2)}',
+      for (final e in bands.entries)
+        '${e.key}=${mean(e.value).toStringAsFixed(2)}',
     ].join(' ');
     stdout.writeln(
       'DEV-REPORT $line (600 players, a year plus 52 weeks: '
@@ -96,8 +97,10 @@ void main() {
           minutesShare: 0.5,
         );
       }
-      trained += a.attributes[Attribute.finishing] - p.attributes[Attribute.finishing];
-      plain += b.attributes[Attribute.finishing] - p.attributes[Attribute.finishing];
+      trained +=
+          a.attributes[Attribute.finishing] - p.attributes[Attribute.finishing];
+      plain +=
+          b.attributes[Attribute.finishing] - p.attributes[Attribute.finishing];
     }
     expect(trained, greaterThan(plain));
   });
@@ -133,10 +136,10 @@ void main() {
     final a = season(shooting);
     final b = season(resting);
     final again = season(shooting);
-    double finishing(SeasonRunner r) =>
-        r.squadOf(club).map((p) => p.attributes[Attribute.finishing]).reduce(
-          (x, y) => x + y,
-        );
+    double finishing(SeasonRunner r) => r
+        .squadOf(club)
+        .map((p) => p.attributes[Attribute.finishing])
+        .reduce((x, y) => x + y);
     final before = state.squads[club]!
         .map((p) => p.attributes[Attribute.finishing])
         .reduce((x, y) => x + y);

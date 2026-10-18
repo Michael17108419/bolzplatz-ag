@@ -66,9 +66,8 @@ enum Licence {
   );
 
   /// The next step, null after Pro.
-  Licence? get next => index + 1 < Licence.values.length
-      ? Licence.values[index + 1]
-      : null;
+  Licence? get next =>
+      index + 1 < Licence.values.length ? Licence.values[index + 1] : null;
 
   bool covers(Licence required) => index >= required.index;
 }

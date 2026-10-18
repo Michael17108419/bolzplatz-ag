@@ -33,7 +33,8 @@ class TrainingView extends ConsumerWidget {
         ? 100.0
         : squad
                   .map(
-                    (p) => runner.freshnessOf(p.id, club: club, epochDay: today),
+                    (p) =>
+                        runner.freshnessOf(p.id, club: club, epochDay: today),
                   )
                   .reduce((a, b) => a + b) /
               squad.length;
@@ -191,9 +192,9 @@ class TrainingView extends ConsumerWidget {
                         ActionChip(
                           key: ValueKey('individual-unit-${u.id}'),
                           label: Text(s.trainingUnitName(u.id)),
-                          onPressed: () => Navigator.of(
-                            sheet,
-                          ).pop((IndividualPlan.unit(u.id),)),
+                          onPressed: () =>
+                              Navigator.of(sheet)
+                                  .pop((IndividualPlan.unit(u.id),)),
                         ),
                   ],
                 ),
@@ -208,9 +209,9 @@ class TrainingView extends ConsumerWidget {
                           ActionChip(
                             key: ValueKey('individual-pos-${pos.id}'),
                             label: Text(pos.id),
-                            onPressed: () => Navigator.of(
-                              sheet,
-                            ).pop((IndividualPlan.position(pos),)),
+                            onPressed: () =>
+                                Navigator.of(sheet)
+                                    .pop((IndividualPlan.position(pos),)),
                           ),
                     ],
                   ),
@@ -225,9 +226,9 @@ class TrainingView extends ConsumerWidget {
                         ActionChip(
                           key: ValueKey('individual-role-$r'),
                           label: Text(s.roleName(r)),
-                          onPressed: () => Navigator.of(
-                            sheet,
-                          ).pop((IndividualPlan.role(r),)),
+                          onPressed: () =>
+                              Navigator.of(sheet)
+                                  .pop((IndividualPlan.role(r),)),
                         ),
                     ],
                   ),
@@ -333,7 +334,8 @@ class TrainingView extends ConsumerWidget {
                       ),
                   ],
                   selected: {intensity},
-                  onSelectionChanged: (v) => setSheet(() => intensity = v.first),
+                  onSelectionChanged: (v) =>
+                      setSheet(() => intensity = v.first),
                 ),
                 const SizedBox(height: Tokens.gapM),
                 FilledButton(
@@ -425,7 +427,8 @@ class TrainingView extends ConsumerWidget {
                       ],
                       selected: {slots[i]!.intensity},
                       onSelectionChanged: (v) => setSheet(
-                        () => slots[i] = TrainingSession(slots[i]!.unit, v.first),
+                        () =>
+                            slots[i] = TrainingSession(slots[i]!.unit, v.first),
                       ),
                     ),
                 ],
@@ -484,7 +487,10 @@ class _DayCard extends ConsumerWidget {
               ),
               Expanded(
                 child: match
-                    ? Text(s.trainingMatchDay, style: theme.textTheme.bodyMedium)
+                    ? Text(
+                        s.trainingMatchDay,
+                        style: theme.textTheme.bodyMedium,
+                      )
                     : plan.sessions.isEmpty
                     ? Text(s.trainingRestDay, style: theme.textTheme.bodySmall)
                     : Wrap(

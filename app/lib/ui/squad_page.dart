@@ -62,7 +62,10 @@ class _SquadPageState extends ConsumerState<SquadPage> {
           final all = squadOf(
             loaded,
             career.offer.club.id,
-            live: ref.watch(seasonProvider)?.runner.squadOf(career.offer.club.id),
+            live: ref
+                .watch(seasonProvider)
+                ?.runner
+                .squadOf(career.offer.club.id),
           );
           final rows = arrangeSquad(
             all,

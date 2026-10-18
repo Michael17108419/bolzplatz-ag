@@ -143,9 +143,7 @@ void main() {
       CharacterTrait.mediaHunger: 90,
       CharacterTrait.leadership: 5,
     });
-    final withDivaSquad = [
-      for (final p in plain) p.id == young.id ? diva : p,
-    ];
+    final withDivaSquad = [for (final p in plain) p.id == young.id ? diva : p];
     final withDiva = room(withDivaSquad, plain.first.id);
     expect(withDiva.unhappy, contains(diva.id));
     expect(withDiva.conflicts, contains(CabinConflict.divaOutside));
