@@ -54,7 +54,10 @@ class SaveData {
   /// 4: steps 10f to 10h (mood, chemistry, coaches, instructions, plans,
   /// shouts, home advantage) play matches differently again and log talks
   /// and instructions.
-  static const int version = 4;
+  /// 5: step 11 (training, freshness, weekly development, the manager
+  /// grows, licences) plays seasons differently and logs training plans,
+  /// individual training, licence decisions and courses.
+  static const int version = 5;
 
   factory SaveData.fromJson(Map<String, dynamic> m) {
     if (m['version'] != version) {
