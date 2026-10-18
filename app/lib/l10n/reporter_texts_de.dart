@@ -4,6 +4,7 @@
 
 import 'reporter_texts_de_match.dart';
 import 'reporter_texts_de_ref.dart';
+import 'reporter_texts_de_var.dart';
 import 'reporter_texts_de_shots.dart';
 
 const Map<String, List<String>> reporterTextsDe = {
@@ -11,6 +12,7 @@ const Map<String, List<String>> reporterTextsDe = {
   ...reporterShotsDe,
   ...reporterMatchDe,
   ...reporterRefereeDe,
+  ...reporterVideoDe,
 };
 
 const Map<String, List<String>> reporterPlayDe = {

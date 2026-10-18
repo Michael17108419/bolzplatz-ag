@@ -48,6 +48,16 @@ enum MatchEventType {
   /// [MatchEvent.player] is the one who talks; [MatchEvent.action] is
   /// `captain` (allowed, IFAB 2025/26) or `protest` (anyone else).
   dissent,
+
+  /// A decision checked by the VAR or a wrong decision without one (engine
+  /// 2, step 10e2), when it is not part of a goal, penalty or card event:
+  /// [MatchEvent.action] is `penalty_given` (VAR gives a penalty),
+  /// `penalty_missed` (no VAR, a penalty not given), `red_given` (VAR sends
+  /// a player off), `red_missed` (no VAR, a red not seen), `red_downgraded`
+  /// (VAR makes a red a yellow), `identity` (VAR corrects the player),
+  /// `second_cancelled` (VAR takes back a second yellow). [side] is the
+  /// team the decision is about, [MatchEvent.value] 1 with VAR, 0 without.
+  varReview,
 }
 
 enum ShotOutcome { goal, saved, blocked, offTarget }
@@ -125,6 +135,7 @@ class MatchEvent {
     this.spot,
     this.steps = const [],
     this.keeper,
+    this.review,
   }) : tick = tick ?? minute;
 
   /// Minute on the clock (45 and 90 during stoppage time, see [added]).
@@ -186,10 +197,25 @@ class MatchEvent {
   /// The keeper who faced a shot (engine 2, step 10e1).
   final PlayerId? keeper;
 
+  /// What became of a goal, penalty or card under review (engine 2, step
+  /// 10e2). Goals: `goal_overturned` (VAR: offside, no goal),
+  /// `goal_given` (VAR: the flag was wrong, goal), `goal_confirmed` (VAR
+  /// checked, goal stands), `offside_missed` (no VAR, an offside goal
+  /// stands), `goal_disallowed` (no VAR, a fair goal flagged off).
+  /// Penalties: `penalty_overturned` (VAR: no foul, no penalty),
+  /// `penalty_soft` (no VAR, a penalty without a foul). Cards: `red_harsh`
+  /// and `second_harsh` (no VAR, too hard), `identity` (no VAR, the wrong
+  /// player; the real culprit is [otherPlayer]).
+  final String? review;
+
+  /// A goal taken away (by the VAR or a wrong flag): told, but not counted.
+  bool get annulled =>
+      review == 'goal_overturned' || review == 'goal_disallowed';
+
   /// The minute as shown: "45+2" in stoppage time, else "45".
   String get clockLabel => added > 0 ? '$minute+$added' : '$minute';
 
-  bool get isGoal => outcome == ShotOutcome.goal;
+  bool get isGoal => outcome == ShotOutcome.goal && !annulled;
 }
 
 /// Counted values of one team in one match.

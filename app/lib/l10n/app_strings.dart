@@ -1178,7 +1178,9 @@ class AppStringsDe implements AppStrings {
     TickerKind.shotUp ||
     TickerKind.freeKick ||
     TickerKind.colour ||
-    TickerKind.calm => const [],
+    TickerKind.calm ||
+    TickerKind.varCheck ||
+    TickerKind.varDecision => const [],
     TickerKind.captainOff => const [
       '{p} verlässt den Platz, die Kapitänsbinde wandert weiter.',
       'Ohne {p} fehlt {team} die Stimme auf dem Platz. Wer redet jetzt mit '

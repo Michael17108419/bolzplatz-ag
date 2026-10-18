@@ -57,6 +57,10 @@ enum TickerKind {
   freeKick,
   colour,
   calm,
+
+  /// The VAR looks at a decision, and what came of it (step 10e2).
+  varCheck,
+  varDecision,
 }
 
 /// The kinds only the reporter writes; the plain ticker has no texts for them.
@@ -66,6 +70,8 @@ const reporterOnlyKinds = {
   TickerKind.freeKick,
   TickerKind.colour,
   TickerKind.calm,
+  TickerKind.varCheck,
+  TickerKind.varDecision,
 };
 
 /// The symbol before a highlight; plain story lines have none.
@@ -79,6 +85,9 @@ enum TickerSymbol {
   sub,
   time,
   bigChance,
+
+  /// The video assistant.
+  video,
 }
 
 /// How long a line needs to be read: story, chance or card, big moment.
@@ -101,6 +110,7 @@ TickerSymbol? _symbolOf(TickerKind kind) => switch (kind) {
   TickerKind.goalKickCountdown ||
   TickerKind.throwInCountdown => TickerSymbol.time,
   TickerKind.penalty => TickerSymbol.bigChance,
+  TickerKind.varCheck || TickerKind.varDecision => TickerSymbol.video,
   _ => null,
 };
 
@@ -109,6 +119,7 @@ TickerWeight _weightOf(TickerKind kind) => switch (kind) {
   TickerKind.goalAssist ||
   TickerKind.penalty ||
   TickerKind.red ||
+  TickerKind.varDecision ||
   TickerKind.secondYellow => TickerWeight.heavy,
   TickerKind.parade ||
   TickerKind.miss ||
@@ -121,6 +132,7 @@ TickerWeight _weightOf(TickerKind kind) => switch (kind) {
   TickerKind.fullTime ||
   TickerKind.captainOff ||
   TickerKind.shotUp ||
+  TickerKind.varCheck ||
   TickerKind.keeperEightSeconds ||
   TickerKind.goalKickCountdown => TickerWeight.normal,
   _ => TickerWeight.light,

@@ -2346,6 +2346,21 @@
       "missing_captain_dissent": 0.5,
       "captain_first": 0.6
     },
+    "video": {
+      "error_trait": 0.8,
+      "goal_offside_missed": 0.04,
+      "goal_wrongly_flagged": 0.025,
+      "goal_check": 0.15,
+      "penalty_soft": 0.12,
+      "penalty_missed_per_match": 0.1,
+      "red_harsh": 0.12,
+      "red_missed_per_match": 0.03,
+      "identity": 0.03,
+      "second_harsh": 0.08,
+      "stoppage_per_check": 1.0,
+      "leagues_up_to_level": 2,
+      "cup_from_ties": 8
+    },
     "time_wasting": {
       "note": "Delays punished by the Laws: keeper holds the ball over 8 seconds (corner, IFAB 2025/26), five-second countdown at throw-in and goal kick (IFAB 2026/27). Chance per minute for a leading team from the minute on.",
       "from_minute": 70,

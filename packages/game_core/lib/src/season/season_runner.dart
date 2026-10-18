@@ -538,6 +538,7 @@ class SeasonRunner {
     String label,
     String comp, {
     bool neutral = false,
+    bool video = false,
   }) {
     final k = _engine.simulateKnockout(
       _team(home, comp),
@@ -545,6 +546,7 @@ class SeasonRunner {
       seed: _matchSeed(label),
       neutral: neutral,
       referee: _referee(_state, home, away, label),
+      video: video,
     );
     _afterMatch(home, away, k.match, countForm: false, comp: comp);
     return k.winnerSide == 0 ? home : away;
@@ -586,6 +588,8 @@ class SeasonRunner {
           'l:${k.league.value}:${k.matchday}:${f.home.value}',
         );
         final isOwn = own != null && (f.home == own || f.away == own);
+        final video =
+            _tierOf(_state, f.home) <= rules.match.video.leaguesUpToLevel;
         if (isOwn && sheet != null) {
           final usable =
               !sheet.startingXi.any(out.contains) &&
@@ -616,6 +620,7 @@ class SeasonRunner {
               away: team(f.away),
               seed: seed,
               referee: _referee(_state, f.home, f.away, 'l:$seed'),
+              video: video,
             ),
             isOwn: true,
             sheetReplaced: !usable,
@@ -636,6 +641,7 @@ class SeasonRunner {
                 _team(f.away, 'L'),
                 seed: seed,
                 referee: _referee(_state, f.home, f.away, 'l:$seed'),
+                video: video,
               ),
               isOwn: isOwn,
             ),
@@ -717,6 +723,10 @@ class SeasonRunner {
     final comp = _compKey(competition);
     final pending = cup.pendingTies;
     final neutral = cup.nextRoundIsNeutral;
+    // The big cup has the VAR from the round of 16 on (DFB-Pokal).
+    final video =
+        competition == Competition.bolzplatz &&
+        pending.length <= rules.match.video.cupFromTies;
     // The ties are spread over the windows. The tie of the own club goes to
     // the first window: the round is decided on that day, so the live match
     // of the player is part of it.
@@ -778,6 +788,7 @@ class SeasonRunner {
               seed: _matchSeed(label),
               neutral: neutral,
               referee: _referee(_state, h, a, label),
+              video: video,
             ),
             isOwn: true,
             sheetReplaced: !usable,
@@ -799,6 +810,7 @@ class SeasonRunner {
             seed: _matchSeed(label),
             neutral: neutral,
             referee: _referee(_state, h, a, label),
+            video: video,
           ),
           isOwn: isOwn,
         ),
@@ -970,8 +982,17 @@ class SeasonRunner {
     while (!bolzplatz.isFinished) {
       final round = bolzRound++;
       final neutral = bolzplatz.nextRoundIsNeutral;
+      final video =
+          bolzplatz.pendingTies.length <= rules.match.video.cupFromTies;
       bolzplatz.playNextRound(
-        (h, a) => _playTie(h, a, 'bp:$round:${h.value}', 'B', neutral: neutral),
+        (h, a) => _playTie(
+          h,
+          a,
+          'bp:$round:${h.value}',
+          'B',
+          neutral: neutral,
+          video: video,
+        ),
       );
     }
     for (final region in Region.values) {

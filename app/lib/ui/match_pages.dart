@@ -1039,6 +1039,11 @@ class TickerSymbolView extends StatelessWidget {
         size: 18,
         color: Tokens.orange,
       ),
+      TickerSymbol.video => const Icon(
+        Icons.tv,
+        size: 17,
+        color: Tokens.text,
+      ),
     };
   }
 }

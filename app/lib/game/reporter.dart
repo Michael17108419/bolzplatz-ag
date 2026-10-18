@@ -267,7 +267,29 @@ class Reporter {
         _counterTick = e.tick;
         _say(out, e, TickerKind.counter, ['counter.${_who(e.side)}']);
       case MatchEventType.penalty:
-        _say(out, e, TickerKind.penalty, ['pen.award.${_who(e.side)}']);
+        final w = _who(e.side);
+        final prev = _previous;
+        // After the VAR gave it, the award was told already.
+        final given =
+            prev != null &&
+            prev.type == MatchEventType.varReview &&
+            prev.action == 'penalty_given';
+        if (!given) _say(out, e, TickerKind.penalty, ['pen.award.$w']);
+        if (e.review == 'penalty_overturned') {
+          _say(out, e, TickerKind.varCheck, ['var.check.penalty', 'var.check']);
+          _say(out, e, TickerKind.varDecision, ['var.penalty_overturned.$w']);
+        } else if (e.review == 'penalty_soft' && _sometimes(2)) {
+          _say(out, e, TickerKind.colour, ['ref.penalty_soft.$w']);
+        }
+      case MatchEventType.varReview:
+        final w = _who(e.side);
+        final a = e.action;
+        if ((e.value ?? 0) == 1) {
+          _say(out, e, TickerKind.varCheck, ['var.check.$a', 'var.check']);
+          _say(out, e, TickerKind.varDecision, ['var.$a.$w']);
+        } else {
+          _say(out, e, TickerKind.colour, ['ref.$a.$w']);
+        }
       case MatchEventType.corner:
         final n = _bump('corner.${e.side}');
         _say(out, e, TickerKind.corner, ['corner.${_who(e.side)}']);
@@ -396,7 +418,10 @@ class Reporter {
   }
 
   void _shot(MatchEvent e, List<TickerLine> out) {
-    final kind = tickerKindOf(e);
+    // A goal taken away is still a goal scene first.
+    final kind = e.annulled
+        ? (e.otherPlayer == null ? TickerKind.goal : TickerKind.goalAssist)
+        : tickerKindOf(e);
     if (kind == null) return;
     final w = _who(e.side);
     final prev = _previous;
@@ -450,7 +475,7 @@ class Reporter {
     // The end.
     switch (e.outcome) {
       case ShotOutcome.goal:
-        _goal(e, out, kind, pen: pen, level: level);
+        _goalReviewed(e, out, kind, pen: pen, level: level);
       case ShotOutcome.saved:
         final named = e.keeper != null && _sometimes(2);
         _say(out, e, kind, [
@@ -479,7 +504,7 @@ class Reporter {
         _missed(e, out);
     }
     if (e.outcome != ShotOutcome.goal) _pressure(e, out);
-    _advantageOver(e, out, scored: e.outcome == ShotOutcome.goal);
+    _advantageOver(e, out, scored: e.isGoal);
   }
 
   /// The referee at kick-off, by the trait he is known for.
@@ -551,6 +576,41 @@ class Reporter {
       ], side: side);
     } else {
       _say(out, e, TickerKind.colour, ['adv.wasted.$w'], side: side);
+    }
+  }
+
+  /// A goal, with what the flag and the VAR made of it (step 10e2).
+  void _goalReviewed(
+    MatchEvent e,
+    List<TickerLine> out,
+    TickerKind kind, {
+    required bool pen,
+    required int level,
+  }) {
+    final w = _who(e.side);
+    final loud = (level + 1).clamp(0, 3);
+    switch (e.review) {
+      case 'goal_overturned':
+        _say(out, e, TickerKind.colour, ['goal.$w.e$loud', 'goal.$w']);
+        _say(out, e, TickerKind.varCheck, ['var.check.goal', 'var.check']);
+        _say(out, e, TickerKind.varDecision, ['var.goal_overturned.$w']);
+      case 'goal_disallowed':
+        _say(out, e, TickerKind.colour, ['goal.$w.e$loud', 'goal.$w']);
+        _say(out, e, TickerKind.miss, ['ref.goal_disallowed.$w']);
+      case 'goal_given':
+        _say(out, e, TickerKind.colour, ['flag.up']);
+        _say(out, e, TickerKind.varCheck, ['var.check.offside', 'var.check']);
+        _goal(e, out, kind, pen: pen, level: level);
+        _say(out, e, TickerKind.colour, ['var.goal_given.$w']);
+      case 'goal_confirmed':
+        _goal(e, out, kind, pen: pen, level: level);
+        _say(out, e, TickerKind.varCheck, ['var.check.goal', 'var.check']);
+        _say(out, e, TickerKind.varDecision, ['var.goal_confirmed.$w']);
+      case 'offside_missed':
+        _goal(e, out, kind, pen: pen, level: level);
+        _say(out, e, TickerKind.colour, ['ref.offside_missed.$w']);
+      default:
+        _goal(e, out, kind, pen: pen, level: level);
     }
   }
 
@@ -702,6 +762,9 @@ class Reporter {
       } else if (_trait(e.player, CharacterTrait.aggression) >= 75) {
         _say(out, e, TickerKind.colour, ['wit.card.aggression']);
       }
+    }
+    if (e.review != null) {
+      _say(out, e, TickerKind.colour, ['ref.${e.review}.$w']);
     }
     if (kind != TickerKind.yellow) _captain(e, e.player, out);
   }

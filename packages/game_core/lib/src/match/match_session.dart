@@ -252,6 +252,7 @@ class MatchSession {
     required int seed,
     bool neutral = false,
     this.referee,
+    this.video = false,
   }) : _rng = SeededRandom(seed),
        _neutral = neutral,
        _fit = Fit(rules),
@@ -282,6 +283,10 @@ class MatchSession {
   /// Who whistles (engine 2, step 10e1); null is a plain referee with all
   /// traits in the middle.
   final Referee? referee;
+
+  /// True if the match has a video assistant (league 1 and 2, the big cup
+  /// from the round of 16; engine 2, step 10e2).
+  final bool video;
   final bool _neutral;
   final SeededRandom _rng;
   final Fit _fit;
@@ -314,6 +319,7 @@ class MatchSession {
   int _halfInjuries = 0;
   int _halfCards = 0;
   int _halfWasted = 0;
+  int _halfChecks = 0;
   int _goalsHome = 0;
   int _goalsAway = 0;
   bool _finished = false;
@@ -325,6 +331,10 @@ class MatchSession {
 
   /// A trait of the referee from -1 to 1, 0 without referee.
   double _rt(RefereeTrait trait) => referee?.tx(trait) ?? 0;
+
+  /// How error-prone the referee is: rates of wrong decisions times this.
+  double get _err =>
+      (1 + _m.video.errorTrait * _rt(RefereeTrait.errors)).limit(0.1, 3.0);
 
   /// A foul with advantage that waits for the end of the attack: the team
   /// that fouled, the fouler, and whether it denied a clear chance.
@@ -919,6 +929,7 @@ class MatchSession {
         a.perInjury * _halfInjuries +
         a.perCard * _halfCards +
         a.perTimeWasting * _halfWasted +
+        _m.video.stoppagePerCheck * _halfChecks +
         a.random * _rng.nextDouble();
     return minutes.round().clamp(0, a.max);
   }
@@ -930,6 +941,7 @@ class MatchSession {
     _halfInjuries = 0;
     _halfCards = 0;
     _halfWasted = 0;
+    _halfChecks = 0;
     if (last) {
       _add(MatchEventType.fullTime, -1);
       _closeBooks();
@@ -1110,10 +1122,12 @@ class MatchSession {
     int? spot,
     List<AttackStep> steps = const [],
     Player? keeper,
+    String? review,
   }) {
     _events.add(
       MatchEvent(
         keeper: keeper?.id,
+        review: review,
         minute: _clock,
         added: _added,
         tick: _minute,
@@ -1884,7 +1898,26 @@ class MatchSession {
     if (outcome == ShotOutcome.goal || outcome == ShotOutcome.saved) {
       attacker.stats.shotsOnTarget++;
     }
+    // Was it offside? The assistant may miss it or flag a fair goal; the
+    // VAR, where there is one, puts it right (engine 2, step 10e2).
+    String? review;
     if (outcome == ShotOutcome.goal) {
+      final v = _m.video;
+      final roll = _rng.nextDouble();
+      if (roll < v.goalOffsideMissed * _err) {
+        review = video ? 'goal_overturned' : 'offside_missed';
+      } else if (roll < (v.goalOffsideMissed + v.goalWronglyFlagged) * _err) {
+        review = video ? 'goal_given' : 'goal_disallowed';
+      } else if (video && _rng.nextDouble() < v.goalCheck) {
+        review = 'goal_confirmed';
+      }
+      if (video && review != null) _halfChecks++;
+    }
+    final counts =
+        outcome == ShotOutcome.goal &&
+        review != 'goal_overturned' &&
+        review != 'goal_disallowed';
+    if (counts) {
       attacker.stats.goals++;
       _halfGoals++;
       if (t == 0) {
@@ -1902,7 +1935,7 @@ class MatchSession {
         1.0,
       );
     }
-    final Player? assister = outcome == ShotOutcome.goal
+    final Player? assister = counts
         ? _pickAssister(
             attacker,
             shooter,
@@ -1929,6 +1962,7 @@ class MatchSession {
           .where((s) => s.position.isGoalkeeper)
           .firstOrNull
           ?.player,
+      review: review,
     );
   }
 
@@ -1983,6 +2017,22 @@ class MatchSession {
                     (t == 0 ? 1 : -1);
       if (_rng.nextDouble() < bias) {
         _penalty(t);
+        _dissent(1 - t);
+      }
+    }
+    // A penalty the referee did not see: the VAR gives it, without VAR the
+    // reporter can only complain.
+    if (_rng.nextDouble() < _m.video.penaltyMissedPerMatch * _err / minutes) {
+      final t = _attackingSide();
+      _add(
+        MatchEventType.varReview,
+        t,
+        action: video ? 'penalty_given' : 'penalty_missed',
+        value: video ? 1 : 0,
+      );
+      if (video) {
+        _halfChecks++;
+        _penalty(t, reviewed: true);
         _dissent(1 - t);
       }
     }
@@ -2129,11 +2179,22 @@ class MatchSession {
     _crossChance(t, _m.cornerGoal, score, MatchEventType.corner);
   }
 
-  void _penalty(int t) {
+  void _penalty(int t, {bool reviewed = false}) {
     final attacker = _sides[t];
     final defender = _sides[1 - t];
-    attacker.stats.penalties++;
     final (taker, score) = _taker(attacker, _m.penaltyAttributes);
+    // A penalty without a foul: the VAR takes it back, without VAR it is
+    // taken (engine 2, step 10e2).
+    String? review;
+    if (!reviewed && _rng.nextDouble() < _m.video.penaltySoft * _err) {
+      review = video ? 'penalty_overturned' : 'penalty_soft';
+    }
+    if (review == 'penalty_overturned') {
+      _halfChecks++;
+      _add(MatchEventType.penalty, t, player: taker, review: review);
+      return;
+    }
+    attacker.stats.penalties++;
     var goal =
         _m.penaltyGoal *
         math.pow(score / math.max(20.0, defender.ratings.keeper), 0.5) *
@@ -2147,7 +2208,7 @@ class MatchSession {
         }
       }
     }
-    _add(MatchEventType.penalty, t, player: taker);
+    _add(MatchEventType.penalty, t, player: taker, review: review);
     _shot(t, taker, 'close_range', null, goal.limit(0.2, 0.95));
   }
 
@@ -2220,6 +2281,30 @@ class MatchSession {
         _sendOff(i, side.pitch[_rng.weightedIndex(weights)], false);
       }
     }
+    // A red behind the referee's back: the VAR sees it.
+    if (_rng.nextDouble() <
+        _m.video.redMissedPerMatch * _err * _rate / _m.minutes) {
+      final i = _rng.nextInt(2);
+      final side = _sides[i];
+      if (side.pitch.length > 7) {
+        final who =
+            side.pitch[_rng.weightedIndex([
+              for (final s in side.pitch)
+                math.max(0.1, 1 + s.tx[CharacterTrait.temper.index]),
+            ])];
+        _add(
+          MatchEventType.varReview,
+          i,
+          player: who.player,
+          action: video ? 'red_given' : 'red_missed',
+          value: video ? 1 : 0,
+        );
+        if (video) {
+          _halfChecks++;
+          _sendOff(i, who, false, reason: 'violent', reviewed: true);
+        }
+      }
+    }
     for (var i = 0; i < 2; i++) {
       final side = _sides[i];
       for (final s in List<_Slot>.of(side.pitch)) {
@@ -2240,6 +2325,22 @@ class MatchSession {
     final side = _sides[i];
     final id = s.player.id;
     final count = (side.yellows[id] ?? 0) + 1;
+    // A clearly wrong second yellow: the VAR takes it back (IFAB 2026/27).
+    String? review;
+    if (count >= 2 && _rng.nextDouble() < _m.video.secondHarsh * _err) {
+      if (video) {
+        _halfChecks++;
+        _add(
+          MatchEventType.varReview,
+          i,
+          player: s.player,
+          action: 'second_cancelled',
+          value: 1,
+        );
+        return;
+      }
+      review = 'second_harsh';
+    }
     side.yellows[id] = count;
     side.stats.yellowCards++;
     if (count >= 2) {
@@ -2248,6 +2349,7 @@ class MatchSession {
         i,
         player: s.player,
         action: reason,
+        review: review,
       );
       _sendOff(i, s, true);
     } else {
@@ -2256,15 +2358,74 @@ class MatchSession {
     if (reason != 'dissent') _dissent(i);
   }
 
-  void _sendOff(int i, _Slot s, bool secondYellow, {String? reason}) {
+  void _sendOff(
+    int i,
+    _Slot s,
+    bool secondYellow, {
+    String? reason,
+    bool reviewed = false,
+  }) {
     if (!_sides[i].pitch.contains(s)) return;
-    if (!secondYellow) _halfCards++;
     final side = _sides[i];
+    var target = s;
+    _Slot? culprit;
+    String? review;
+    if (!secondYellow && !reviewed) {
+      // Too hard, or the wrong man (engine 2, step 10e2).
+      final v = _m.video;
+      final roll = _rng.nextDouble();
+      if (roll < v.redHarsh * _err) {
+        if (video) {
+          _halfChecks++;
+          _add(
+            MatchEventType.varReview,
+            i,
+            player: s.player,
+            action: 'red_downgraded',
+            value: 1,
+          );
+          _yellow(i, s, reason: reason);
+          return;
+        }
+        review = 'red_harsh';
+      } else if (roll < (v.redHarsh + v.identity) * _err) {
+        final others = [
+          for (final o in side.pitch)
+            if (o != s && !o.position.isGoalkeeper) o,
+        ];
+        if (others.isNotEmpty) {
+          final wrong = others[_rng.nextInt(others.length)];
+          if (video) {
+            _halfChecks++;
+            _add(
+              MatchEventType.varReview,
+              i,
+              player: s.player,
+              other: wrong.player,
+              action: 'identity',
+              value: 1,
+            );
+          } else {
+            culprit = s;
+            target = wrong;
+            review = 'identity';
+          }
+        }
+      }
+    }
+    if (!secondYellow) _halfCards++;
     side.stats.redCards++;
     if (!secondYellow) {
-      _add(MatchEventType.redCard, i, player: s.player, action: reason);
+      _add(
+        MatchEventType.redCard,
+        i,
+        player: target.player,
+        other: culprit?.player,
+        action: reason,
+        review: review,
+      );
     }
-    _remove(i, s, replace: false);
+    _remove(i, target, replace: false);
     if (!secondYellow) _dissent(i);
   }
 
@@ -2508,6 +2669,7 @@ class MatchEngine {
     MatchTeam away, {
     required int seed,
     Referee? referee,
+    bool video = false,
   }) {
     return MatchSession(
       rules: rules,
@@ -2515,6 +2677,7 @@ class MatchEngine {
       away: away,
       seed: seed,
       referee: referee,
+      video: video,
     ).finish();
   }
 
@@ -2525,6 +2688,7 @@ class MatchEngine {
     required int seed,
     bool neutral = false,
     Referee? referee,
+    bool video = false,
   }) {
     final session = MatchSession(
       rules: rules,
@@ -2533,6 +2697,7 @@ class MatchEngine {
       seed: seed,
       neutral: neutral,
       referee: referee,
+      video: video,
     );
     return session.finishKnockout();
   }

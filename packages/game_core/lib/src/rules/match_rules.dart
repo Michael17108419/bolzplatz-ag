@@ -483,6 +483,75 @@ class CounterRules {
 
 /// How hidden character traits work in the match (engine 2). A trait
 /// counts as (value - [reference]) / [scale], limited to -1 and 1.
+/// Wrong decisions and the video assistant (engine 2, step 10e2). Rates
+/// are per goal, penalty or card unless they say per match; the errors
+/// trait of the referee bends them. Where there is no VAR (league 3 and 4,
+/// cup before the round of 16) a wrong decision stands.
+class VideoRules {
+  const VideoRules(this._v);
+
+  factory VideoRules.fromJson(Map<String, dynamic> m) {
+    const keys = [
+      'error_trait',
+      'goal_offside_missed',
+      'goal_wrongly_flagged',
+      'goal_check',
+      'penalty_soft',
+      'penalty_missed_per_match',
+      'red_harsh',
+      'red_missed_per_match',
+      'identity',
+      'second_harsh',
+      'stoppage_per_check',
+      'leagues_up_to_level',
+      'cup_from_ties',
+    ];
+    final v = <String, double>{};
+    for (final k in keys) {
+      final raw = m[k];
+      if (raw is! num) throw RulesError('match.video.$k is missing');
+      if (raw < 0) throw RulesError('match.video.$k must not be negative');
+      v[k] = raw.toDouble();
+    }
+    return VideoRules(Map.unmodifiable(v));
+  }
+
+  final Map<String, double> _v;
+
+  double get errorTrait => _v['error_trait']!;
+
+  /// An offside goal the assistant did not flag.
+  double get goalOffsideMissed => _v['goal_offside_missed']!;
+
+  /// A fair goal wrongly flagged offside.
+  double get goalWronglyFlagged => _v['goal_wrongly_flagged']!;
+
+  /// The VAR looks at a goal and lets it stand.
+  double get goalCheck => _v['goal_check']!;
+
+  /// A penalty without a foul.
+  double get penaltySoft => _v['penalty_soft']!;
+  double get penaltyMissedPerMatch => _v['penalty_missed_per_match']!;
+
+  /// A straight red that should have been yellow.
+  double get redHarsh => _v['red_harsh']!;
+  double get redMissedPerMatch => _v['red_missed_per_match']!;
+
+  /// A red for the wrong player.
+  double get identity => _v['identity']!;
+
+  /// A clearly wrong second yellow.
+  double get secondHarsh => _v['second_harsh']!;
+  double get stoppagePerCheck => _v['stoppage_per_check']!;
+
+  /// Leagues with VAR: level 1 up to this level.
+  int get leaguesUpToLevel => _v['leagues_up_to_level']!.round();
+
+  /// The big cup has VAR from the round with this many ties (8: round of
+  /// 16).
+  int get cupFromTies => _v['cup_from_ties']!.round();
+}
+
 /// The referee in the match (engine 2, step 10e1): how his traits bend
 /// cards, penalties and free kicks, fouls in an attack with or without
 /// advantage, and protest against him (only the captain may talk to him).
@@ -823,6 +892,7 @@ class MatchRules {
     required this.addedTime,
     required this.timeWasting,
     required this.referee,
+    required this.video,
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -1011,6 +1081,7 @@ class MatchRules {
         m['time_wasting'] as Map<String, dynamic>,
       ),
       referee: RefereeRules.fromJson(m['referee'] as Map<String, dynamic>),
+      video: VideoRules.fromJson(m['video'] as Map<String, dynamic>),
     );
     result._validate();
     return result;
@@ -1185,4 +1256,7 @@ class MatchRules {
 
   /// The referee and his influence (engine 2, step 10e1).
   final RefereeRules referee;
+
+  /// Wrong decisions and the VAR (engine 2, step 10e2).
+  final VideoRules video;
 }
