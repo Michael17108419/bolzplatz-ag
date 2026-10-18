@@ -2574,7 +2574,7 @@
       "mood_loss": 3,
       "mood_streak": 0.25,
       "mood_benched": 4,
-      "mood_starter_played": 1,
+      "mood_starter_played": 0,
       "mood_chance": 2,
       "mood_fringe_played": 3,
       "mood_ambition": 0.5,

@@ -239,12 +239,18 @@ void main() {
     stdout.writeln(
       'MOOD-REPORT top three=${up.toStringAsFixed(1)} '
       'bottom three=${down.toStringAsFixed(1)} '
+      'mean=${(all.reduce((a, b) => a + b) / all.length).toStringAsFixed(1)} '
       'min=${all.first.toStringAsFixed(0)} max=${all.last.toStringAsFixed(0)} '
       'promised=${runner.moodOf(waiting).toStringAsFixed(1)} '
       'control=${control.moodOf(waiting).toStringAsFixed(1)}',
     );
     expect(up, greaterThan(down));
     expect(all.last - all.first, greaterThan(15));
+    // Neither a league of grumblers nor one of sunshine.
+    expect(
+      all.reduce((a, b) => a + b) / all.length,
+      inInclusiveRange(52, 70),
+    );
     expect(runner.hasPromise(waiting), isFalse);
     expect(runner.moodOf(waiting), lessThan(control.moodOf(waiting)));
   });
