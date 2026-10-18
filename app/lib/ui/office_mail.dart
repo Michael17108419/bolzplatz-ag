@@ -127,7 +127,7 @@ List<OfficeMail> buildMails(
       }
       lines.add(s.jourFixAbsent(absent));
       // Who sulks in the dressing room (engine 2, step 10f3).
-      final squad = game.run.state.squads[game.clubId] ?? const <Player>[];
+      final squad = game.runner.squadOf(game.clubId);
       final unhappy =
           [
             for (final p in squad)

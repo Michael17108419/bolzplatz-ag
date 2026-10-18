@@ -110,6 +110,7 @@ class TrainingRules {
     required this.units,
     required this.templates,
     required this.values,
+    this.devPoints = const [0.5, 1.0, 1.6],
   });
 
   factory TrainingRules.fromJson(Map<String, dynamic>? m) {
@@ -137,7 +138,15 @@ class TrainingRules {
       for (final e in m.entries)
         if (e.value is num) e.key: (e.value as num).toDouble(),
     };
-    return TrainingRules(units: units, templates: templates, values: values);
+    final points = m['dev_points'] as List<dynamic>?;
+    return TrainingRules(
+      units: units,
+      templates: templates,
+      values: values,
+      devPoints: points == null
+          ? const [0.5, 1.0, 1.6]
+          : [for (final x in points) (x as num).toDouble()],
+    );
   }
 
   final Map<String, UnitRule> units;
@@ -145,6 +154,15 @@ class TrainingRules {
   final Map<String, double> values;
 
   double operator [](String key) => values[key] ?? 0;
+
+  /// Development points of one unit by intensity (step 11b).
+  double pointsOf(Intensity i) {
+    final list = devPoints;
+    return i.index < list.length ? list[i.index] : 1;
+  }
+
+  /// Points per intensity, read from `dev_points`.
+  final List<double> devPoints;
 
   /// The groups in the order of the rules, with their units.
   Map<String, List<UnitRule>> get groups {

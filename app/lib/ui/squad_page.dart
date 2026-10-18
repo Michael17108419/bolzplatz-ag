@@ -59,7 +59,11 @@ class _SquadPageState extends ConsumerState<SquadPage> {
       item: DeskItem.files,
       child: WithCareer(
         builder: (context, career, loaded, view) {
-          final all = squadOf(loaded, career.offer.club.id);
+          final all = squadOf(
+            loaded,
+            career.offer.club.id,
+            live: ref.watch(seasonProvider)?.runner.squadOf(career.offer.club.id),
+          );
           final rows = arrangeSquad(
             all,
             sort: _sort,

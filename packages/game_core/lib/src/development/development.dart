@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../calendar/game_date.dart';
 import '../match/limits.dart';
 import '../model/attribute.dart';
@@ -34,10 +36,49 @@ class Development {
     required GameDate newSeasonStart,
     required SeededRandom rng,
     required double minutesShare,
+  }) => _step(
+    p,
+    date: newSeasonStart,
+    rng: rng,
+    minutesShare: minutesShare,
+    fraction: 1,
+    focus: const {},
+  );
+
+  /// The player one week later (step 11b): a 52nd of the year, with the
+  /// noise of a week. [focus] moves the growth between the attributes (1
+  /// is neutral; training a group makes it grow faster and decline slower)
+  /// and [volume] scales it for the amount of training.
+  Player week(
+    Player p, {
+    required GameDate date,
+    required SeededRandom rng,
+    required double minutesShare,
+    Map<Attribute, double> focus = const {},
+    double volume = 1,
+  }) => _step(
+    p,
+    date: date,
+    rng: rng,
+    minutesShare: minutesShare,
+    fraction: 1 / 52,
+    focus: focus,
+    volume: volume,
+  );
+
+  Player _step(
+    Player p, {
+    required GameDate date,
+    required SeededRandom rng,
+    required double minutesShare,
+    required double fraction,
+    required Map<Attribute, double> focus,
+    double volume = 1,
   }) {
     final g = rules.generator;
     final dev = rules.development;
-    final age = p.ageOn(newSeasonStart);
+    final age = p.ageOn(date);
+    final noise = math.sqrt(fraction);
     final shift = g.developmentShiftYears[p.developmentType]!;
     final isKeeper = p.position.isGoalkeeper;
     final overall = WorldReport.overall(p, rules);
@@ -60,11 +101,17 @@ class Development {
       final mental = a.group == AttributeGroup.intelligence;
       final s = mental ? shift * g.mentalShiftFactor : shift;
       final curve = rules.ageCurves[a]!;
-      var delta = _ageAdjust(curve, age - s) - _ageAdjust(curve, age - 1 - s);
+      var delta =
+          (_ageAdjust(curve, age - s) - _ageAdjust(curve, age - 1 - s)) *
+          fraction;
+      final f = focus[a] ?? 1;
       if (delta > 0) {
-        delta *= headroom * playing;
+        delta *= headroom * playing * f * volume;
+      } else if (delta < 0) {
+        // Training an attribute slows its decline.
+        delta *= (2 - f).limit(0.5, 1.5);
       }
-      delta += rng.nextGaussian() * dev.annualNoiseSd;
+      delta += rng.nextGaussian() * dev.annualNoiseSd * noise;
       own[a] = delta;
     }
 
@@ -85,13 +132,12 @@ class Development {
       var change = own[a]! * (1 - (weight[a] ?? 0));
       final extra = coupled[a];
       if (extra != null) {
-        change += extra.limit(
-          -dev.couplingCapPerSeason,
-          dev.couplingCapPerSeason,
-        );
+        final cap = dev.couplingCapPerSeason * fraction;
+        change += extra.limit(-cap, cap);
       }
-      final next = p.attributes[a] + change;
-      values[a] = (next.limit(Attribute.min, Attribute.max) * 10).round() / 10;
+      final next = (p.attributes[a] + change).limit(Attribute.min, Attribute.max);
+      // A year rounds to tenths; weekly steps are too small for that.
+      values[a] = fraction >= 1 ? (next * 10).round() / 10 : next;
     }
 
     // The dynamic part of the potential rises with playing time and with a
@@ -103,19 +149,22 @@ class Development {
       for (final e in dev.dynamicTraitEffect.entries) {
         change += e.value * (p.traits[e.key]! - 50) / 50;
       }
-      dynamic = (dynamic + change).limit(-dev.dynamicMax, dev.dynamicMax);
+      dynamic = (dynamic + change * fraction).limit(
+        -dev.dynamicMax,
+        dev.dynamicMax,
+      );
     }
 
+    double tenth(double x) => fraction >= 1 ? (x * 10).round() / 10 : x;
     final traits = {
       for (final e in p.traits.entries)
-        e.key:
-            ((e.value + dev.traitDelta(e.key, age)).limit(1.0, 100.0) * 10)
-                .round() /
-            10,
+        e.key: tenth(
+          (e.value + dev.traitDelta(e.key, age) * fraction).limit(1.0, 100.0),
+        ),
     };
     return p.copyWith(
       attributes: AttributeSet.fromMap(values),
-      potentialDynamic: (dynamic * 10).round() / 10,
+      potentialDynamic: tenth(dynamic),
       traits: traits,
     );
   }

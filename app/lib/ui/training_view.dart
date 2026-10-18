@@ -27,7 +27,7 @@ class TrainingView extends ConsumerWidget {
     final club = game.clubId;
     final today = game.today.epochDay;
     final matchDays = runner.matchDaysOf(club);
-    final squad = game.run.state.squads[club] ?? const <Player>[];
+    final squad = runner.squadOf(club);
     final fresh = squad.isEmpty
         ? 100.0
         : squad

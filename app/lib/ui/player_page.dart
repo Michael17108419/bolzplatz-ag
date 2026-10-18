@@ -48,7 +48,15 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     final canStep = (widget.squadOrder?.length ?? 0) > 1;
     return WithCareer(
       builder: (context, career, loaded, view) {
-        final p = loaded.player(PlayerId(_id));
+        // The player as he is now in the running season (step 11b).
+        final id = PlayerId(_id);
+        final live = ref
+            .watch(seasonProvider)
+            ?.runner
+            .squadOf(career.offer.club.id)
+            .where((x) => x.id == id)
+            .firstOrNull;
+        final p = live ?? loaded.player(id);
         if (p == null) {
           return DeskFrame(
             item: DeskItem.files,
