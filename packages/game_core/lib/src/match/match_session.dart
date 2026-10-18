@@ -764,7 +764,9 @@ class MatchSession {
         (1.5 - side.team.coach.tactics / 100).clamp(0.5, 1.5);
     side.fitBonus = math.max(0.0, tactics.fitBonusMax * teamFit - unsettled);
     final pair = side.team.chemistry;
-    if (pair != null) {
+    // Only when the players on the pitch changed (the zone tables are
+    // dropped then as well).
+    if (pair != null && side.zones == null) {
       final players = [
         for (final s in side.pitch) (s.player.id, s.position),
       ];
@@ -1073,13 +1075,17 @@ class MatchSession {
       _add(MatchEventType.halfTime, -1);
       _half++;
       _breakNow = true;
+    }
+    _stoppage = null;
+    _added = 0;
+    // The AI coaches talk in the break (on the clock of the break, so the
+    // conference clock runs on from the half).
+    if (!last) {
       for (var i = 0; i < _sides.length; i++) {
         final side = _sides[i];
         if (side.team.autoManage || side.assistant) _aiTalk(i);
       }
     }
-    _stoppage = null;
-    _added = 0;
   }
 
   /// Adds extra time to a finished match (two halves of [halfMinutes]).
@@ -2893,11 +2899,19 @@ class MatchSession {
       final effect = fit * strength * react;
       sum += effect;
       slot.conf = (slot.conf + c['talk_confidence'] * effect).clamp(0.0, 100.0);
+      // The mood is a factor in the cached means (linear): scale them
+      // instead of building everything anew. The zone tables keep their
+      // order within the team; the talk moves the strength of the team.
+      final before = _moodFactor(slot);
       slot.mood = (slot.mood + c['talk_mood'] * effect).clamp(0.0, 100.0);
-      slot.reset();
+      final ratio = _moodFactor(slot) / before;
+      if (ratio != 1) {
+        slot.base.updateAll((k, v) => v * ratio);
+        slot
+          ..act = [for (final x in slot.act) x * ratio]
+          ..def = [for (final x in slot.def) x * ratio];
+      }
     }
-    s.zones = null;
-    s.fxStale = true;
     _refresh(s);
     final mean = s.pitch.isEmpty ? 0.0 : sum / s.pitch.length;
     final landed = mean >= 0.35
@@ -2997,7 +3011,8 @@ class MatchSession {
       defensiveLine: defensiveLine,
     );
     s.fxStale = true;
-    s.zones = null;
+    // The zone tables only know the system, not the sliders.
+    if (systemId != null && systemId != before.systemId) s.zones = null;
     final free =
         _clock <= rules.tactics.warmupMinutes || inBreak;
     if (!free) s.countedChanges++;
