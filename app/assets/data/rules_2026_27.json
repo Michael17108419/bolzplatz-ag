@@ -2596,6 +2596,7 @@
       "party_night": 4,
       "professional_cost": 0.25,
       "match_cost": 0.22,
+      "fit_floor": 70,
       "units": {
         "endurance": {
           "group": "fitness",
@@ -2939,7 +2940,7 @@
             ],
             [
               "strength",
-              "normal"
+              "light"
             ],
             [
               "practice_match",

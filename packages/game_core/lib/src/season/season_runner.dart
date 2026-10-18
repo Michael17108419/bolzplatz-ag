@@ -688,6 +688,13 @@ class SeasonRunner {
     return planner.fromTemplate(template, epochDay, days);
   }
 
+  /// The energy a player starts a match with (step 11a): even a player
+  /// who is run down keeps the floor of the rules.
+  double _fitnessOf(PlayerId p) {
+    final floor = rules.season.training['fit_floor'];
+    return floor + (100 - floor) * (_fresh[p] ?? 100) / 100;
+  }
+
   /// Freshness of a player now, 0 to 100 (step 11a). Brings the training
   /// of his club up to [epochDay] first when given.
   double freshnessOf(PlayerId p, {ClubId? club, int? epochDay}) {
@@ -826,7 +833,7 @@ class SeasonRunner {
       squad: squad,
       sheet: sheet,
       form: {for (final p in squad) p.id: formOf(p.id)},
-      fitness: {for (final p in squad) p.id: _fresh[p.id] ?? 100},
+      fitness: {for (final p in squad) p.id: _fitnessOf(p.id)},
       confidence: {for (final p in squad) p.id: confidenceOf(p.id)},
       load: {for (final p in squad) p.id: loadOf(p.id, _today)},
       mood: {for (final p in squad) p.id: moodOf(p.id)},
