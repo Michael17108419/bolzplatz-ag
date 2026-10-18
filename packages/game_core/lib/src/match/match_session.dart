@@ -452,7 +452,7 @@ class MatchSession {
 
   /// Confidence (0 to 100) of a player of [side] now (step 10f2).
   double confidenceOf(int side, PlayerId id) =>
-      _slotOf(side, id)?.conf ?? _sides[side].team.confidence[id] ?? 50;
+      _placeOf(side, id)?.conf ?? _sides[side].team.confidence[id] ?? 50;
 
   /// Form (0 to 100) of a player of [side].
   double formOf(int side, PlayerId id) =>
@@ -1330,7 +1330,7 @@ class MatchSession {
   }
 
   /// The place of [id] on the pitch of side [i], null if he is not there.
-  _Slot? _slotOf(int i, PlayerId? id) {
+  _Slot? _placeOf(int i, PlayerId? id) {
     if (id == null) return null;
     for (final s in _sides[i].pitch) {
       if (s.player.id == id) return s;
@@ -1969,7 +1969,7 @@ class MatchSession {
     attacker.stats.shots++;
     // Wind makes shots from distance less sure (engine 2, step 10e5), a
     // confident shooter finishes better (step 10f2).
-    final shooterSlot = _slotOf(t, shooter.id);
+    final shooterSlot = _placeOf(t, shooter.id);
     final conf = shooterSlot?.conf ?? 50;
     final goalProbability =
         ((typeId == 'long_shot' && setting.weather == 'wind'
@@ -2067,7 +2067,7 @@ class MatchSession {
         .firstOrNull;
     if (counts) {
       _boost(shooterSlot, cr['goal']);
-      _boost(_slotOf(t, assister?.id), cr['assist']);
+      _boost(_placeOf(t, assister?.id), cr['assist']);
       _boost(keeperSlot, -cr['conceded']);
     } else {
       if (quality == ChanceQuality.big) _boost(shooterSlot, -cr['big_miss']);
@@ -2320,7 +2320,7 @@ class MatchSession {
     _add(MatchEventType.penalty, t, player: taker, review: review);
     _shot(t, taker, 'close_range', null, goal.limit(0.2, 0.95));
     if (!_events.last.isGoal) {
-      _boost(_slotOf(t, taker.id), -_m.confidence['penalty_miss']);
+      _boost(_placeOf(t, taker.id), -_m.confidence['penalty_miss']);
     }
   }
 
