@@ -929,18 +929,12 @@ class _PreviewCard extends ConsumerWidget {
             if (chemistry != null)
               line(
                 s.lineupChemistry,
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${(chemistry * 100).round()} %',
-                      key: const ValueKey('lineup-chemistry'),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: valueColor(chemistry * 100),
-                      ),
-                    ),
-                    InfoButton(message: s.infoLineupChemistry),
-                  ],
+                Text(
+                  '${(chemistry * 100).round()} %',
+                  key: const ValueKey('lineup-chemistry'),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: valueColor(chemistry * 100),
+                  ),
                 ),
                 bar: ValueBar(chemistry * 100),
               ),

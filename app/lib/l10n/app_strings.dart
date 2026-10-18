@@ -328,7 +328,6 @@ abstract interface class AppStrings {
   });
   String moodName(double mood);
   String get lineupChemistry;
-  String get infoLineupChemistry;
   String get profilePromise;
   String get teamTalkButton;
   String get teamTalkTitle;
@@ -1999,14 +1998,6 @@ class AppStringsDe implements AppStrings {
   @override
   String get lineupChemistry => 'Eingespielt';
   @override
-  String get infoLineupChemistry =>
-      'Wie gut sich die Elf kennt. Jede gemeinsame Minute in dieser Saison '
-      'zählt, gemeinsame Jahre im Verein geben einen Vorschuss. Gezählt '
-      'werden Spieler in derselben oder einer benachbarten Reihe. Eine '
-      'eingespielte Elf spielt bis zu 4 % bessere Kurzpässe und Steilpässe, '
-      'eine zusammengewürfelte bis zu 4 % schlechtere. Wer ständig '
-      'rotiert, zahlt dafür.';
-  @override
   String get profilePromise =>
       'Du hast ihm Einsatzzeit versprochen. Er zählt die Minuten.';
   @override
@@ -2516,7 +2507,12 @@ class AppStringsDe implements AppStrings {
       'Stärke: der Durchschnitt deiner Elf auf den Plätzen, auf denen sie '
       'steht (100 wäre Weltklasse). Rollenpassung: wie gut jeder in seiner '
       'Rolle ist, von 0 bis 100 Prozent. Systempassung: wie gut die Elf zur '
-      'Spielidee passt. Alles nur Vorschau, gespielt wird auf dem Platz.';
+      'Spielidee passt. Eingespielt: wie gut sich die Elf kennt; jede '
+      'gemeinsame Minute in dieser Saison zählt, gemeinsame Jahre im Verein '
+      'und die Vorbereitung geben einen Vorschuss. Eine eingespielte Elf '
+      'spielt bis zu 4 % bessere Kurz- und Steilpässe, eine '
+      'zusammengewürfelte bis zu 4 % schlechtere. Wer ständig rotiert, zahlt '
+      'dafür. Alles nur Vorschau, gespielt wird auf dem Platz.';
   @override
   String get lineupStrength => 'Stärke';
   @override

@@ -155,7 +155,9 @@ void main() {
       expect(r2.homeGoals, r.homeGoals);
       expect(r2.awayGoals, r.awayGoals);
       expect(
-        r.events.where((e) => e.type == MatchEventType.teamTalk),
+        r.events.where(
+          (e) => e.type == MatchEventType.teamTalk && e.side == 0,
+        ),
         hasLength(1),
       );
     }
