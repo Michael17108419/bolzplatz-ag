@@ -77,7 +77,11 @@ List<Archetype> archetypesOf(Player p, CabinRules r) {
   const crea = CharacterTrait.creativity;
   const amb = CharacterTrait.ambition;
   final scores = <Archetype, double?>{
-    Archetype.captain: over([(lead, hi, true), (loy, hi, true), (pro, 50, true)]),
+    Archetype.captain: over([
+      (lead, hi, true),
+      (loy, hi, true),
+      (pro, 50, true),
+    ]),
     Archetype.modelPro: over([
       (pro, ex, true),
       (party, lo, false),

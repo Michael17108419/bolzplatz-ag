@@ -61,9 +61,8 @@ void main() {
       games++;
       final strong = i.isEven;
       final q = strong ? 90.0 : 10.0;
-      final r = MatchEngine(
-        rules,
-      ).simulate(_coached(a, q), _coached(b, q), seed: 5100 + i);
+      final r = MatchEngine(rules)
+          .simulate(_coached(a, q), _coached(b, q), seed: 5100 + i);
       final changes = r.events.where(
         (e) => e.type == MatchEventType.tacticChange,
       );
@@ -123,9 +122,7 @@ void main() {
     expect(r2.awayGoals, r.awayGoals);
     expect(r2.events.length, r.events.length);
     expect(
-      r.events.where(
-        (e) => e.side == 0 && e.type == MatchEventType.teamTalk,
-      ),
+      r.events.where((e) => e.side == 0 && e.type == MatchEventType.teamTalk),
       isNotEmpty,
     );
   });
@@ -154,9 +151,11 @@ void main() {
             .length;
         final markers = [
           for (final side in [0, 1])
-            ...s.sheetOf(side).instructions.values.where(
-              (x) => x == PlayerInstruction.manMark,
-            ),
+            ...s
+                .sheetOf(side)
+                .instructions
+                .values
+                .where((x) => x == PlayerInstruction.manMark),
         ].length;
         if (q > 50) {
           plansStrong += plans;

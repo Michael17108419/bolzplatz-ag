@@ -894,7 +894,8 @@ class AppStringsDe implements AppStrings {
       'einzelnen Charakterwerte. Bei fremden Spielern siehst du ihn erst, '
       'wenn es Scouting gibt.';
   @override
-  String get archetypeNone => 'Kein besonderer Typ. Unauffällig, im Guten wie im Schlechten.';
+  String get archetypeNone =>
+      'Kein besonderer Typ. Unauffällig, im Guten wie im Schlechten.';
   @override
   String get archetypeUnknown => 'Unbekannt. Dafür bräuchtest du einen Scout.';
   @override
@@ -927,10 +928,9 @@ class AppStringsDe implements AppStrings {
       CabinRole.council => 'Mannschaftsrat. Hat in der Kabine das Sagen.',
       CabinRole.follower => 'Mitläufer. Folgt der Stimmung des Rats.',
     };
-    return unhappy
-        ? '$base Ist sauer, dass er nicht im Rat sitzt.'
-        : base;
+    return unhappy ? '$base Ist sauer, dass er nicht im Rat sitzt.' : base;
   }
+
   @override
   String cabinMoodName(double mood) => mood >= 0.65
       ? 'bestens'
@@ -998,10 +998,13 @@ class AppStringsDe implements AppStrings {
             ? 'VAR: 1 Eingriff'
             : 'VAR: $overturned Eingriffe',
       if (!video && overturned > 0)
-        overturned == 1 ? '1 Fehlentscheidung' : '$overturned Fehlentscheidungen',
+        overturned == 1
+            ? '1 Fehlentscheidung'
+            : '$overturned Fehlentscheidungen',
     ];
     return parts.join(' · ');
   }
+
   @override
   String jourFixForecast(String weather) =>
       'Der Wetterbericht für das Spiel sagt: ${weatherName(weather)}. '
@@ -2068,24 +2071,25 @@ class AppStringsDe implements AppStrings {
       'Dem Assistenten fällt nichts auf. Das ist entweder gut oder sein '
       'Problem.';
   @override
-  String halfNote(HalfNoteKind kind, {Wing? wing, String? player}) =>
-      switch (kind) {
-        HalfNoteKind.losingFlank =>
-          'Über ${wing == Wing.right ? 'rechts' : 'links'} verlieren wir fast '
-              'jeden Zweikampf.${player == null ? '' : ' $player soll hinten bleiben.'}',
-        HalfNoteKind.dominant =>
-          '${player ?? 'Einer von denen'} macht drüben, was er will. Den '
-              'sollte jemand eng nehmen.',
-        HalfNoteKind.tired =>
-          '${player ?? 'Einer'} pfeift aus dem letzten Loch.',
-        HalfNoteKind.booked =>
-          '${player ?? 'Einer'} hat Gelb und kocht. Das nächste Foul ist Rot.',
-        HalfNoteKind.planWorks => 'Der Plan geht auf. Weiter so.',
-        HalfNoteKind.planFails =>
-          'Der Plan greift nicht. Da war wohl keine Schwäche.',
-        HalfNoteKind.pressNeeded =>
-          'Wir liegen hinten und schauen zu. Mehr Druck!',
-      };
+  String halfNote(
+    HalfNoteKind kind, {
+    Wing? wing,
+    String? player,
+  }) => switch (kind) {
+    HalfNoteKind.losingFlank =>
+      'Über ${wing == Wing.right ? 'rechts' : 'links'} verlieren wir fast '
+          'jeden Zweikampf.${player == null ? '' : ' $player soll hinten bleiben.'}',
+    HalfNoteKind.dominant =>
+      '${player ?? 'Einer von denen'} macht drüben, was er will. Den '
+          'sollte jemand eng nehmen.',
+    HalfNoteKind.tired => '${player ?? 'Einer'} pfeift aus dem letzten Loch.',
+    HalfNoteKind.booked =>
+      '${player ?? 'Einer'} hat Gelb und kocht. Das nächste Foul ist Rot.',
+    HalfNoteKind.planWorks => 'Der Plan geht auf. Weiter so.',
+    HalfNoteKind.planFails =>
+      'Der Plan greift nicht. Da war wohl keine Schwäche.',
+    HalfNoteKind.pressNeeded => 'Wir liegen hinten und schauen zu. Mehr Druck!',
+  };
   @override
   String get halfTimeApply => 'Umsetzen';
   @override
@@ -2105,23 +2109,26 @@ class AppStringsDe implements AppStrings {
   String get scoutNone =>
       'Nichts Auffälliges. Oder er hat nicht richtig hingeschaut.';
   @override
-  String scoutNote(PlanFocus focus, {Wing? wing, String? player}) =>
-      switch (focus) {
-        PlanFocus.weakSide => wing == Wing.right
-            ? 'Ihr Linksverteidiger ist die Schwachstelle. Über rechts geht was.'
-            : 'Ihr Rechtsverteidiger ist die Schwachstelle. Über links geht was.',
-        PlanFocus.pressHigh =>
-          'Ihr Spielaufbau ist wacklig. Wer hoch presst, erbt Bälle.',
-        PlanFocus.counter =>
-          'Hinten stehen sie hoch oder sind langsam. Konter tun weh.',
-        PlanFocus.longShots =>
-          'Ihr Torwart ist kein Fels. Fernschüsse probieren.',
-        PlanFocus.avoidAir =>
-          'In der Luft sind sie stark. Flanken bringen nichts.',
-        PlanFocus.stopKey => player == null
-            ? 'Bei ihnen läuft alles über einen Mann.'
-            : 'Bei ihnen läuft alles über $player.',
-      };
+  String scoutNote(
+    PlanFocus focus, {
+    Wing? wing,
+    String? player,
+  }) => switch (focus) {
+    PlanFocus.weakSide =>
+      wing == Wing.right
+          ? 'Ihr Linksverteidiger ist die Schwachstelle. Über rechts geht was.'
+          : 'Ihr Rechtsverteidiger ist die Schwachstelle. Über links geht was.',
+    PlanFocus.pressHigh =>
+      'Ihr Spielaufbau ist wacklig. Wer hoch presst, erbt Bälle.',
+    PlanFocus.counter =>
+      'Hinten stehen sie hoch oder sind langsam. Konter tun weh.',
+    PlanFocus.longShots => 'Ihr Torwart ist kein Fels. Fernschüsse probieren.',
+    PlanFocus.avoidAir => 'In der Luft sind sie stark. Flanken bringen nichts.',
+    PlanFocus.stopKey =>
+      player == null
+          ? 'Bei ihnen läuft alles über einen Mann.'
+          : 'Bei ihnen läuft alles über $player.',
+  };
   @override
   String get matchPlanPick => 'Schwerpunkte (bis zu zwei)';
   @override
@@ -2194,7 +2201,8 @@ class AppStringsDe implements AppStrings {
   };
   @override
   String teamTalkHint(TeamTalk talk) => switch (talk) {
-    TeamTalk.calm => 'Ruhe reinbringen. Gut bei Führung, im Derby, für Nervöse.',
+    TeamTalk.calm =>
+      'Ruhe reinbringen. Gut bei Führung, im Derby, für Nervöse.',
     TeamTalk.fire => 'Tür zu, laut werden. Gut bei Rückstand oder Gleichstand.',
     TeamTalk.praise =>
       'Schulter klopfen. Gut, wenn es läuft. Divas mögen das immer.',
@@ -2203,8 +2211,9 @@ class AppStringsDe implements AppStrings {
   String teamTalkResult(TeamTalk talk, int landed) => switch (landed) {
     1 => 'Das hat gesessen. Die Jungs gehen anders raus.',
     -1 => switch (talk) {
-      TeamTalk.praise => 'Lob? Jetzt? Die Mannschaft guckt dich an, als hättest '
-          'du ein anderes Spiel gesehen.',
+      TeamTalk.praise =>
+        'Lob? Jetzt? Die Mannschaft guckt dich an, als hättest '
+            'du ein anderes Spiel gesehen.',
       TeamTalk.fire => 'Zu viel Gebrüll. Ein paar sind jetzt zu heiß.',
       TeamTalk.calm => 'Beruhigen war das Falsche. Die schlafen gleich ein.',
     },

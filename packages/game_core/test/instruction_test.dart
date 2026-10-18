@@ -227,7 +227,8 @@ void main() {
   test('instructions in the match are recorded and replay the same', () {
     final a = tier1[0];
     final b = tier1[1];
-    MatchSession make() => MatchSession(rules: rules, home: a, away: b, seed: 99);
+    MatchSession make() =>
+        MatchSession(rules: rules, home: a, away: b, seed: 99);
     final s = make();
     final id = a.sheet.startingXi[5];
     s.advanceTo(30);

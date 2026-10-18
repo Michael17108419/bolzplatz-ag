@@ -48,15 +48,18 @@ void main() {
   });
 
   group('rules', () {
-    test('twelve backstories with all manager values, eight president types', () {
-      final career = rules.career;
-      expect(career.backstories, hasLength(12));
-      for (final b in career.backstories) {
-        expect(b.levels, hasLength(ManagerValue.values.length), reason: b.id);
-        expect(b.hook, startsWith('hook_'));
-      }
-      expect(career.presidentTypes, hasLength(8));
-    });
+    test(
+      'twelve backstories with all manager values, eight president types',
+      () {
+        final career = rules.career;
+        expect(career.backstories, hasLength(12));
+        for (final b in career.backstories) {
+          expect(b.levels, hasLength(ManagerValue.values.length), reason: b.id);
+          expect(b.hook, startsWith('hook_'));
+        }
+        expect(career.presidentTypes, hasLength(8));
+      },
+    );
 
     test('start levels of document 16 for some backstories', () {
       final b = rules.career;

@@ -16,9 +16,7 @@ Referee _ref(Map<RefereeTrait, double> traits) => Referee(
   firstName: 'Test',
   lastName: 'Pfeife',
   level: 1,
-  traits: {
-    for (final t in RefereeTrait.values) t: traits[t] ?? 50,
-  },
+  traits: {for (final t in RefereeTrait.values) t: traits[t] ?? 50},
 );
 
 void main() {
@@ -183,8 +181,7 @@ void main() {
     final shots = [
       for (final r in rs)
         for (final e in r.events)
-          if (e.type == MatchEventType.shot &&
-              e.outcome == ShotOutcome.saved)
+          if (e.type == MatchEventType.shot && e.outcome == ShotOutcome.saved)
             e,
     ];
     expect(shots, isNotEmpty);
@@ -193,10 +190,7 @@ void main() {
 
   test('averages stay where they belong with real referees (report)', () {
     const games = 400;
-    final rs = play(
-      games,
-      (i) => pool.pick(1, null, i * 7919)!,
-    );
+    final rs = play(games, (i) => pool.pick(1, null, i * 7919)!);
     double per(bool Function(MatchEvent e) test) => count(rs, test) / games;
     final goals = rs.fold(0, (n, r) => n + r.homeGoals + r.awayGoals) / games;
     final yellows = per(

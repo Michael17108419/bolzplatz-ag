@@ -94,16 +94,10 @@ void main() {
     for (var i = 0; i < 200; i++) {
       final a = tier1[i % tier1.length];
       final b = tier1[(i * 7 + 3) % tier1.length];
-      final up = MatchEngine(rules).simulate(
-        _tuned(a, mood: 95),
-        _tuned(b),
-        seed: 9800 + i,
-      );
-      final down = MatchEngine(rules).simulate(
-        _tuned(a, mood: 15),
-        _tuned(b),
-        seed: 9800 + i,
-      );
+      final up = MatchEngine(rules)
+          .simulate(_tuned(a, mood: 95), _tuned(b), seed: 9800 + i);
+      final down = MatchEngine(rules)
+          .simulate(_tuned(a, mood: 15), _tuned(b), seed: 9800 + i);
       happy += up.homeGoals - up.awayGoals;
       sulking += down.homeGoals - down.awayGoals;
     }
@@ -155,9 +149,7 @@ void main() {
       expect(r2.homeGoals, r.homeGoals);
       expect(r2.awayGoals, r.awayGoals);
       expect(
-        r.events.where(
-          (e) => e.type == MatchEventType.teamTalk && e.side == 0,
-        ),
+        r.events.where((e) => e.type == MatchEventType.teamTalk && e.side == 0),
         hasLength(1),
       );
     }
@@ -202,10 +194,7 @@ void main() {
       final day0 = run.timeline.days.first.date.epochDay;
       if (promise) {
         expect(runner.canTalkTo(club, day0), isTrue);
-        expect(
-          runner.talkTo(club, waiting, PlayerTalk.promise, day0),
-          1,
-        );
+        expect(runner.talkTo(club, waiting, PlayerTalk.promise, day0), 1);
         expect(runner.hasPromise(waiting), isTrue);
         expect(runner.canTalkTo(club, day0), isFalse);
         expect(runner.talkTo(club, waiting, PlayerTalk.warn, day0), isNull);
@@ -247,10 +236,7 @@ void main() {
     expect(up, greaterThan(down));
     expect(all.last - all.first, greaterThan(15));
     // Neither a league of grumblers nor one of sunshine.
-    expect(
-      all.reduce((a, b) => a + b) / all.length,
-      inInclusiveRange(52, 70),
-    );
+    expect(all.reduce((a, b) => a + b) / all.length, inInclusiveRange(52, 70));
     expect(runner.hasPromise(waiting), isFalse);
     expect(runner.moodOf(waiting), lessThan(control.moodOf(waiting)));
   });

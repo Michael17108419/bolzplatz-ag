@@ -322,10 +322,7 @@ void main() {
     final kick = rep.linesOf(r.events.first, 0);
     expect(kick.map((l) => l.kind), contains(TickerKind.colour));
     // The referee is named at kick-off.
-    expect(
-      kick.any((l) => l.text.contains(session.referee!.lastName)),
-      isTrue,
-    );
+    expect(kick.any((l) => l.text.contains(session.referee!.lastName)), isTrue);
     expect(rep.quiet(3, 3, '3'), isNull);
     final calm = rep.quiet(9, 9, '9');
     expect(calm, isNotNull);

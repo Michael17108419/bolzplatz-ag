@@ -363,7 +363,9 @@ class Reporter {
       case MatchEventType.foul:
         _foul(e, out);
       case MatchEventType.dissent:
-        _say(out, e, TickerKind.colour, ['dissent.${e.action}.${_who(e.side)}']);
+        _say(out, e, TickerKind.colour, [
+          'dissent.${e.action}.${_who(e.side)}',
+        ]);
       case MatchEventType.treatment:
         final w = _who(e.side);
         _say(out, e, TickerKind.treatment, [
@@ -589,9 +591,7 @@ class Reporter {
       ], side: -1);
     }
     if (s.travel > 0) {
-      _say(out, e, TickerKind.colour, [
-        'travel.${_who(1)}',
-      ], side: 1);
+      _say(out, e, TickerKind.colour, ['travel.${_who(1)}'], side: 1);
     }
     // Weather and ground (step 10e5): only told when worth a word.
     if (s.weather != 'cloudy' || s.ground != 'good') {
@@ -658,7 +658,11 @@ class Reporter {
   }
 
   /// After an attack with advantage: worth it, or wasted.
-  void _advantageOver(MatchEvent e, List<TickerLine> out, {required bool scored}) {
+  void _advantageOver(
+    MatchEvent e,
+    List<TickerLine> out, {
+    required bool scored,
+  }) {
     if (_advSide < 0) return;
     final w = _who(_advSide);
     final side = _advSide;

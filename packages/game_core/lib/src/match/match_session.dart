@@ -295,7 +295,9 @@ class SessionAction {
       pressing: m['pressing'] as int?,
       tempo: m['tempo'] as int?,
       defensiveLine: m['line'] as int?,
-      talk: m['talk'] == null ? null : TeamTalk.values.byName(m['talk'] as String),
+      talk: m['talk'] == null
+          ? null
+          : TeamTalk.values.byName(m['talk'] as String),
       handOver: m['handover'] == true,
       instructed: instructed == null ? null : PlayerId(instructed),
       instruction: instruction == null
@@ -422,11 +424,7 @@ class MatchSession {
     _sides[0].homeFactor = neutral
         ? 1
         : setting.capacity > 0
-        ? _m.crowd.homeFactor(
-            setting.attendance,
-            setting.fill,
-            setting.derby,
-          )
+        ? _m.crowd.homeFactor(setting.attendance, setting.fill, setting.derby)
         : rules.match.homeAdvantage;
     for (final side in _sides) {
       _setUp(side);
@@ -472,6 +470,7 @@ class MatchSession {
   final List<_Side> _sides;
   final List<MatchEvent> _events = [];
   final List<MatchInjury> _injuries = [];
+
   /// Minutes played including stoppage time (the clock of the session).
   int _minute = 0;
 
@@ -747,11 +746,9 @@ class MatchSession {
     slot.conf = side.team.confidence[player.id] ?? 50;
     slot.mood = side.team.mood[player.id] ?? _moodNeutral;
     slot.instr = side.sheet.instructions[player.id];
-    slot.counterMult = _abilityMult(
-      player,
-      const [SpecialAbilityType.counterPlayer],
-      _m.counter.abilityBonus,
-    );
+    slot.counterMult = _abilityMult(player, const [
+      SpecialAbilityType.counterPlayer,
+    ], _m.counter.abilityBonus);
     return slot;
   }
 
@@ -777,7 +774,8 @@ class MatchSession {
   }
 
   /// Goal difference from the view of side [t].
-  int _lead(int t) => t == 0 ? _goalsHome - _goalsAway : _goalsAway - _goalsHome;
+  int _lead(int t) =>
+      t == 0 ? _goalsHome - _goalsAway : _goalsAway - _goalsHome;
 
   // -------------------------------------------------------------- ratings
 
@@ -796,8 +794,7 @@ class MatchSession {
   /// Mood on the day form (step 10f3): a few per cent up or down.
   double _moodFactor(_Slot s) =>
       1 +
-      _m.mood['mood_form'] *
-          ((s.mood - _moodNeutral) / 40).clamp(-1.5, 1.0);
+      _m.mood['mood_form'] * ((s.mood - _moodNeutral) / 40).clamp(-1.5, 1.0);
 
   /// A sulking player fouls more (step 10f3).
   double _sulk(_Slot s) {
@@ -884,9 +881,7 @@ class MatchSession {
     // Only when the players on the pitch changed (the zone tables are
     // dropped then as well).
     if (pair != null && side.zones == null) {
-      final players = [
-        for (final s in side.pitch) (s.player.id, s.position),
-      ];
+      final players = [for (final s in side.pitch) (s.player.id, s.position)];
       side.chemistry = teamChemistry(players, pair);
       side.chemFactor =
           1 + 2 * _m.chemistry['chemistry'] * (side.chemistry - 0.5);
@@ -950,9 +945,7 @@ class MatchSession {
         Float64List.fromList([
           for (final a in actions)
             _abilityMult(s.player, a.defendAbilities, acts.abilityBonus) *
-                (1 +
-                    c.aggressionDuel *
-                        s.tx[CharacterTrait.aggression.index]) *
+                (1 + c.aggressionDuel * s.tx[CharacterTrait.aggression.index]) *
                 (s.instr == PlayerInstruction.hard
                     ? 1 + _m.instructions.get('hard_duel')
                     : 1.0),
@@ -1544,8 +1537,7 @@ class MatchSession {
 
   /// Per-minute rates of the match are scaled down a little, so that the
   /// stoppage time does not make matches richer in goals and cards.
-  double get _rate =>
-      _m.minutes / (_m.minutes + _m.addedTime.expected);
+  double get _rate => _m.minutes / (_m.minutes + _m.addedTime.expected);
 
   void _tire(int minute) {
     for (final side in _sides) {
@@ -1857,8 +1849,7 @@ class MatchSession {
     if (own.slots.isEmpty || other.slots.isEmpty) return;
     const lanes = ZoneRules.lanes;
     const last = ZoneRules.columns - 1;
-    var column =
-        counter?.$2 ?? _rng.weightedIndex(z.startColumnWeights);
+    var column = counter?.$2 ?? _rng.weightedIndex(z.startColumnWeights);
     var lane = counter?.$3 ?? _rng.weightedIndex(_lanes(attacker));
     final reference = z.referenceShare;
     // Most attacks know no plan and no shout: skip those factors then.
@@ -1879,8 +1870,7 @@ class MatchSession {
       if (column >= 2 &&
           _shoutF(t, Shout.shoot) > 1 &&
           _rng.nextDouble() <
-              _m.instructions.get('shout_shoot') *
-                  attacker.shoutPower) {
+              _m.instructions.get('shout_shoot') * attacker.shoutPower) {
         final shot = acts.list.indexWhere((x) => x.id == 'long_shot');
         if (shot >= 0) a = shot;
       }
@@ -2170,11 +2160,7 @@ class MatchSession {
 
   /// 1 plus [bonus] for every ability of [p] among [types], scaled by its
   /// tier (bronze, silver, gold).
-  double _abilityMult(
-    Player p,
-    List<SpecialAbilityType> types,
-    double bonus,
-  ) {
+  double _abilityMult(Player p, List<SpecialAbilityType> types, double bonus) {
     if (types.isEmpty) return 1;
     var factor = 1.0;
     for (final a in p.abilities) {
@@ -2203,7 +2189,9 @@ class MatchSession {
             selfShot *
             math.max(
               0.05,
-              1 + _m.character.egoismSelfShot * s.tx[CharacterTrait.egoism.index],
+              1 +
+                  _m.character.egoismSelfShot *
+                      s.tx[CharacterTrait.egoism.index],
             );
       }
     }
@@ -2486,16 +2474,12 @@ class MatchSession {
   double _blow(_Side side) {
     final c = _m.character;
     final captain = side.captain;
-    final onPitch = side.pitch
-        .where((s) => s.player.id == captain)
-        .firstOrNull;
+    final onPitch = side.pitch.where((s) => s.player.id == captain).firstOrNull;
     if (onPitch == null) {
       return _m.momentumGoalAgainst * (1 + c.missingCaptainMomentum);
     }
     return _m.momentumGoalAgainst *
-        (1 -
-                c.leadershipMomentum *
-                    onPitch.tx[CharacterTrait.leadership.index])
+        (1 - c.leadershipMomentum * onPitch.tx[CharacterTrait.leadership.index])
             .limit(0.2, 2.0);
   }
 
@@ -2571,14 +2555,13 @@ class MatchSession {
     final r0 = _m.instructions;
     final side = _sides[t];
     final lead = _lead(t);
-    final told = side.sheet.wasteTime ||
+    final told =
+        side.sheet.wasteTime ||
         (side.shout == Shout.slow && side.shoutUntil >= _minute);
     final from = told ? w.fromMinute - r0.get('waste_early') : w.fromMinute;
     if (_clock < from || lead < 0 || (lead == 0 && !told)) return;
     if (side.pitch.isEmpty) return;
-    final keeper = side.pitch
-        .where((s) => s.position.isGoalkeeper)
-        .firstOrNull;
+    final keeper = side.pitch.where((s) => s.position.isGoalkeeper).firstOrNull;
     final r = _rng.nextDouble() / (told ? r0.get('waste_factor', 1) : 1);
     String? kind;
     _Slot? culprit;
@@ -2766,8 +2749,7 @@ class MatchSession {
             math.max(0.2, 1 + _m.character.cardTeamWeight * temper) *
             _m.referee.yellowMinuteShare *
             (1 + _m.crowd.derbyCards * setting.derby) *
-            (1 +
-                _m.referee.strictnessYellow * _rt(RefereeTrait.strictness)) *
+            (1 + _m.referee.strictnessYellow * _rt(RefereeTrait.strictness)) *
             _cardBias(i),
       );
       if (side.pitch.length > 1 && _rng.nextDouble() < p) {
@@ -3016,9 +2998,7 @@ class MatchSession {
     final severity = _rng.weightedIndex(_m.injurySeverityWeights);
     final range = _m.injuryDays[severity];
     final days = _rng.nextIntInRange(range[0], range[1]);
-    _injuries.add(
-      MatchInjury(player: s.player.id, minute: _clock, days: days),
-    );
+    _injuries.add(MatchInjury(player: s.player.id, minute: _clock, days: days));
     _add(MatchEventType.injury, i, player: s.player, days: days);
     _remove(i, s, replace: true);
   }
@@ -3324,8 +3304,7 @@ class MatchSession {
   /// for none) and time wasting.
   void teamInstructions(int side, {Wing? wing, bool wasteTime = false}) {
     final s = _sides[side];
-    if (_finished ||
-        (s.sheet.wing == wing && s.sheet.wasteTime == wasteTime)) {
+    if (_finished || (s.sheet.wing == wing && s.sheet.wasteTime == wasteTime)) {
       return;
     }
     _actions.add(
@@ -3406,8 +3385,7 @@ class MatchSession {
         if (!s.position.isGoalkeeper) s,
     ];
     final cache = <_Slot, double>{};
-    double score(_Slot s) =>
-        cache[s] ??= _fit.slotScore(s.player, s.position);
+    double score(_Slot s) => cache[s] ??= _fit.slotScore(s.player, s.position);
     switch (focus) {
       case PlanFocus.weakSide:
         final backs = [
@@ -3424,11 +3402,7 @@ class MatchSession {
         final rr = score(right.first);
         // Their right back faces our left wing.
         final wing = rr < l ? Wing.left : Wing.right;
-        return (
-          math.min(l, rr) < r.get('scout_weak', 0.92) * mean,
-          wing,
-          null,
-        );
+        return (math.min(l, rr) < r.get('scout_weak', 0.92) * mean, wing, null);
       case PlanFocus.pressHigh:
         final rt = o.ratings;
         return (
@@ -3473,8 +3447,8 @@ class MatchSession {
         if (attackers.isEmpty || outfield.isEmpty) return (false, null, null);
         attackers.sort((a, b) => score(b).compareTo(score(a)));
         final best = attackers.first;
-        final mean = outfield.map(score).reduce((a, b) => a + b) /
-            outfield.length;
+        final mean =
+            outfield.map(score).reduce((a, b) => a + b) / outfield.length;
         return (
           score(best) >= r.get('scout_key', 1.12) * mean,
           null,
@@ -3500,17 +3474,18 @@ class MatchSession {
     _applyPlan(side, plan);
     final key = notes.where((n) => n.focus == PlanFocus.stopKey).firstOrNull;
     if (key != null && q >= 0.5 && _coachRng.nextDouble() < q) {
-      final markers = [
-        for (final slot in s.pitch)
-          if ((slot.position == Position.zdm ||
-                  slot.position == Position.iv) &&
-              slot.instr == null)
-            slot,
-      ]..sort(
-          (a, b) => _fit
-              .slotScore(b.player, b.position)
-              .compareTo(_fit.slotScore(a.player, a.position)),
-        );
+      final markers =
+          [
+            for (final slot in s.pitch)
+              if ((slot.position == Position.zdm ||
+                      slot.position == Position.iv) &&
+                  slot.instr == null)
+                slot,
+          ]..sort(
+            (a, b) => _fit
+                .slotScore(b.player, b.position)
+                .compareTo(_fit.slotScore(a.player, a.position)),
+          );
       if (markers.isNotEmpty) {
         final m = markers.first;
         m.instr = PlayerInstruction.manMark;
@@ -3630,18 +3605,14 @@ class MatchSession {
 
     // A flank where we lose clearly more duels.
     if (flankAll[0] >= 6 && flankAll[1] >= 6) {
-      final rate = [
-        for (var i = 0; i < 2; i++) flankWon[i] / flankAll[i],
-      ];
+      final rate = [for (var i = 0; i < 2; i++) flankWon[i] / flankAll[i]];
       final worse = rate[0] < rate[1] ? 0 : 1;
       if ((rate[0] - rate[1]).abs() >= r.get('half_flank_gap', 0.15)) {
         final wrong = err() > 0;
         final f = wrong ? 1 - worse : worse;
         final wing = f == 0 ? Wing.left : Wing.right;
         final back = own.pitch
-            .where(
-              (s) => s.position == (f == 0 ? Position.lv : Position.rv),
-            )
+            .where((s) => s.position == (f == 0 ? Position.lv : Position.rv))
             .firstOrNull;
         notes.add(
           HalfNote(
@@ -3669,22 +3640,23 @@ class MatchSession {
     // Their man of the half.
     if (threat.isNotEmpty) {
       final onPitch = {for (final s in _sides[other].pitch) s.player.id};
-      final ranked = threat.entries.where((e) => onPitch.contains(e.key))
-          .toList()
-        ..sort((a, b) => b.value.compareTo(a.value));
+      final ranked =
+          threat.entries.where((e) => onPitch.contains(e.key)).toList()
+            ..sort((a, b) => b.value.compareTo(a.value));
       if (ranked.isNotEmpty && ranked.first.value >= r.get('half_threat', 6)) {
         final wrong = err() > 0 && ranked.length > 1;
         final who = wrong ? ranked.last.key : ranked.first.key;
-        final markers = [
-          for (final s in own.pitch)
-            if ((s.position == Position.zdm || s.position == Position.iv) &&
-                s.instr == null)
-              s,
-        ]..sort(
-            (a, b) => _fit
-                .slotScore(b.player, b.position)
-                .compareTo(_fit.slotScore(a.player, a.position)),
-          );
+        final markers =
+            [
+              for (final s in own.pitch)
+                if ((s.position == Position.zdm || s.position == Position.iv) &&
+                    s.instr == null)
+                  s,
+            ]..sort(
+              (a, b) => _fit
+                  .slotScore(b.player, b.position)
+                  .compareTo(_fit.slotScore(a.player, a.position)),
+            );
         notes.add(
           HalfNote(
             HalfNoteKind.dominant,
@@ -3705,14 +3677,15 @@ class MatchSession {
     // Ours: tired or booked and hot.
     SessionAction? subFor(_Slot s) {
       if (!_canSub(own)) return null;
-      final options = [
-        for (final b in own.bench)
-          if (b.position.isGoalkeeper == s.position.isGoalkeeper) b,
-      ]..sort(
-          (a, b) => _fit
-              .slotScore(b, s.position)
-              .compareTo(_fit.slotScore(a, s.position)),
-        );
+      final options =
+          [
+            for (final b in own.bench)
+              if (b.position.isGoalkeeper == s.position.isGoalkeeper) b,
+          ]..sort(
+            (a, b) => _fit
+                .slotScore(b, s.position)
+                .compareTo(_fit.slotScore(a, s.position)),
+          );
       if (options.isEmpty) return null;
       return SessionAction.substitution(
         _minute,
@@ -3880,8 +3853,7 @@ class MatchSession {
     s.fxStale = true;
     // The zone tables only know the system, not the sliders.
     if (systemId != null && systemId != before.systemId) s.zones = null;
-    final free =
-        _clock <= rules.tactics.warmupMinutes || inBreak;
+    final free = _clock <= rules.tactics.warmupMinutes || inBreak;
     if (!free) s.countedChanges++;
     _add(MatchEventType.tacticChange, side, action: action);
     _refresh(s);
@@ -3898,8 +3870,7 @@ class MatchSession {
     final q = (side.assistant ? 50.0 : side.team.coach.tactics) / 100;
     final delay = ((1 - q) * c['coach_delay']).round();
     final wrong =
-        _coachRng.nextDouble() <
-        c['coach_error'] * math.max(0.0, 0.5 - q) * 2;
+        _coachRng.nextDouble() < c['coach_error'] * math.max(0.0, 0.5 - q) * 2;
     final lead = _lead(i);
     final sheet = side.sheet;
     void set(int pressing, int tempo, int line, String action) {
@@ -3980,15 +3951,10 @@ class MatchSession {
                 p == Position.zdm)) {
           continue;
         }
-        final options =
-            [
-              for (final b in side.bench)
-                if (!b.position.isGoalkeeper) b,
-            ]..sort(
-              (a, b) => _fit
-                  .slotScore(b, p)
-                  .compareTo(_fit.slotScore(a, p)),
-            );
+        final options = [
+          for (final b in side.bench)
+            if (!b.position.isGoalkeeper) b,
+        ]..sort((a, b) => _fit.slotScore(b, p).compareTo(_fit.slotScore(a, p)));
         if (options.isEmpty) return;
         _substitute(i, s.player.id, options.first.id);
         return;

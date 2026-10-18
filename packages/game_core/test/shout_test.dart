@@ -78,10 +78,7 @@ void main() {
     final r2 = again.finish();
     expect(r2.homeGoals, r.homeGoals);
     expect(r2.awayGoals, r.awayGoals);
-    expect(
-      r.events.where((e) => e.type == MatchEventType.shout),
-      hasLength(4),
-    );
+    expect(r.events.where((e) => e.type == MatchEventType.shout), hasLength(4));
   });
 
   test('a charismatic coach gets through more often than a dull one away '

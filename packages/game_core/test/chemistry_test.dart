@@ -79,16 +79,10 @@ void main() {
     for (var i = 0; i < 200; i++) {
       final a = tier1[i % tier1.length];
       final b = tier1[(i * 7 + 3) % tier1.length];
-      final hi = MatchEngine(rules).simulate(
-        _with(a, 0.95),
-        _with(b, 0.5),
-        seed: 6100 + i,
-      );
-      final lo = MatchEngine(rules).simulate(
-        _with(a, 0.05),
-        _with(b, 0.5),
-        seed: 6100 + i,
-      );
+      final hi = MatchEngine(rules)
+          .simulate(_with(a, 0.95), _with(b, 0.5), seed: 6100 + i);
+      final lo = MatchEngine(rules)
+          .simulate(_with(a, 0.05), _with(b, 0.5), seed: 6100 + i);
       known += hi.homeGoals - hi.awayGoals;
       strangers += lo.homeGoals - lo.awayGoals;
     }

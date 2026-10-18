@@ -62,7 +62,10 @@ void main() {
     final gelsenkirchen = byPlace('Gelsenkirchen');
     expect(venues.derbyLevel(dortmund, gelsenkirchen), 3);
     expect(venues.derbyName(dortmund, gelsenkirchen), isNotNull);
-    final far = venues.derbyLevel(byPlace('Kiel'), byPlace('Freiburg im Breisgau'));
+    final far = venues.derbyLevel(
+      byPlace('Kiel'),
+      byPlace('Freiburg im Breisgau'),
+    );
     expect(far, 0);
     for (final c in world.clubs.where((c) => c.parentClubId != null)) {
       final parent = world.clubs.firstWhere((p) => p.id == c.parentClubId);

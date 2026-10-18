@@ -95,28 +95,16 @@ void main() {
     for (var i = 0; i < 200; i++) {
       final a = tier1[i % tier1.length];
       final b = tier1[(i * 7 + 3) % tier1.length];
-      final hi = MatchEngine(rules).simulate(
-        tuned(a, conf: 90),
-        tuned(b),
-        seed: 9300 + i,
-      );
-      final lo = MatchEngine(rules).simulate(
-        tuned(a, conf: 10),
-        tuned(b),
-        seed: 9300 + i,
-      );
+      final hi = MatchEngine(rules)
+          .simulate(tuned(a, conf: 90), tuned(b), seed: 9300 + i);
+      final lo = MatchEngine(rules)
+          .simulate(tuned(a, conf: 10), tuned(b), seed: 9300 + i);
       goalsHigh += hi.homeGoals;
       goalsLow += lo.homeGoals;
-      final tired = MatchEngine(rules).simulate(
-        tuned(a, load: 2),
-        tuned(b, load: 2),
-        seed: 9600 + i,
-      );
-      final fresh = MatchEngine(rules).simulate(
-        tuned(a),
-        tuned(b),
-        seed: 9600 + i,
-      );
+      final tired = MatchEngine(rules)
+          .simulate(tuned(a, load: 2), tuned(b, load: 2), seed: 9600 + i);
+      final fresh = MatchEngine(rules)
+          .simulate(tuned(a), tuned(b), seed: 9600 + i);
       injHigh += tired.injuries.length;
       injLow += fresh.injuries.length;
     }

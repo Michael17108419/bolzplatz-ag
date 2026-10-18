@@ -789,11 +789,7 @@ class _TalkSection extends ConsumerWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              s.playerTalkResult(
-                                t,
-                                landed,
-                                player.lastName,
-                              ),
+                              s.playerTalkResult(t, landed, player.lastName),
                             ),
                           ),
                         );

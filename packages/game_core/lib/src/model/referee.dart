@@ -74,8 +74,8 @@ class Referee {
   /// The reputation, 1 to 100: authority and few errors make a good name.
   double get reputation =>
       ((traits[RefereeTrait.authority] ?? 50) +
-              (100 - (traits[RefereeTrait.errors] ?? 50))) /
-          2;
+          (100 - (traits[RefereeTrait.errors] ?? 50))) /
+      2;
 
   /// The trait that stands out most (for the reporter), null if none does.
   RefereeTrait? get standsOut {
@@ -94,8 +94,7 @@ class Referee {
 
 /// All referees, and who whistles which match.
 class RefereePool {
-  RefereePool(List<Referee> referees)
-    : referees = List.unmodifiable(referees);
+  RefereePool(List<Referee> referees) : referees = List.unmodifiable(referees);
 
   factory RefereePool.fromJson(String text) {
     final m = jsonDecode(text) as Map<String, dynamic>;

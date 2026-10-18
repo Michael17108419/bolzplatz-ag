@@ -46,9 +46,7 @@ void main() {
 
   test('every straight red opens a case within the range of its kind', () {
     final (runner, run, humans) = season(21);
-    final cases = [
-      for (final c in run.state.clubs.keys) ...runner.casesOf(c),
-    ];
+    final cases = [for (final c in run.state.clubs.keys) ...runner.casesOf(c)];
     expect(cases, isNotEmpty);
     final kinds = <String, int>{};
     for (final c in cases) {

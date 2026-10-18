@@ -87,9 +87,7 @@ class SeasonRules {
     review: ReviewRules.fromJson(m['review'] as Map<String, dynamic>),
     court: CourtRules.fromJson(m['court'] as Map<String, dynamic>),
     cabin: CabinRules.fromJson(m['cabin'] as Map<String, dynamic>),
-    condition: ConditionRules.fromJson(
-      m['condition'] as Map<String, dynamic>,
-    ),
+    condition: ConditionRules.fromJson(m['condition'] as Map<String, dynamic>),
   );
 
   /// One matchday stands for this many days of recovery.

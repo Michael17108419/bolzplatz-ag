@@ -80,9 +80,8 @@ class VenueData {
   final Map<ClubId, Stadium> stadiums;
   final Map<String, (int, String)> _derbies;
 
-  static String _key(ClubId a, ClubId b) => a.value < b.value
-      ? '${a.value}:${b.value}'
-      : '${b.value}:${a.value}';
+  static String _key(ClubId a, ClubId b) =>
+      a.value < b.value ? '${a.value}:${b.value}' : '${b.value}:${a.value}';
 
   /// Distance in kilometres as the crow flies, 0 if a place is unknown.
   double distanceKm(String a, String b) {

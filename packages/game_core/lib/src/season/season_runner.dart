@@ -157,8 +157,8 @@ class SeasonRunner {
     this.referees,
     this.venues,
   }) : _engine = MatchEngine(rules),
-      _auto = AutoManager(rules),
-      _calendar = CalendarGenerator(calendarRules);
+       _auto = AutoManager(rules),
+       _calendar = CalendarGenerator(calendarRules);
 
   final Rules rules;
 
@@ -305,6 +305,7 @@ class SeasonRunner {
       SeededRandom(_seed).fork('ref:$label').seed,
     );
   }
+
   final MatchEngine _engine;
   final AutoManager _auto;
 
@@ -478,8 +479,7 @@ class SeasonRunner {
         } else {
           time = minutes > 0 ? c['mood_fringe_played'] : 0.0;
         }
-        time *=
-            1 + c['mood_ambition'] * _traitOf(p, CharacterTrait.ambition);
+        time *= 1 + c['mood_ambition'] * _traitOf(p, CharacterTrait.ambition);
       }
       var d = result + time;
       if (cabin.unhappy.contains(p.id)) d -= c['mood_unhappy'];
@@ -539,9 +539,11 @@ class SeasonRunner {
         if (ego > 0.3) dm *= 1.3;
         if (down) {
           landed = 1;
-          _confidence[player] = (confidenceOf(player) +
-                  c['talk_encourage_confidence'] * f)
-              .clamp(0.0, 100.0);
+          _confidence[player] =
+              (confidenceOf(player) + c['talk_encourage_confidence'] * f).clamp(
+                0.0,
+                100.0,
+              );
         }
       case PlayerTalk.warn:
         final takes =

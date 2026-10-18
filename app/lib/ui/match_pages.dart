@@ -896,7 +896,8 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                       tactics: ref
                           .read(careerProvider)!
                           .trainer[ManagerValue.tacticalKnowledge],
-                      seed: _own.fixture.home.value * 1009 +
+                      seed:
+                          _own.fixture.home.value * 1009 +
                           _own.fixture.away.value,
                       playerName: (id) => _shortName(_loaded, id),
                       onOpen: _pause,
@@ -1376,9 +1377,8 @@ class _TeamTalkButtonState extends ConsumerState<TeamTalkButton> {
     if (landed == null) return;
     setState(() {});
     widget.onDone?.call();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(s.teamTalkResult(talk, landed))));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(s.teamTalkResult(talk, landed))));
   }
 
   @override
@@ -1538,11 +1538,7 @@ class TickerSymbolView extends StatelessWidget {
         size: 18,
         color: Tokens.orange,
       ),
-      TickerSymbol.video => const Icon(
-        Icons.tv,
-        size: 17,
-        color: Tokens.text,
-      ),
+      TickerSymbol.video => const Icon(Icons.tv, size: 17, color: Tokens.text),
     };
   }
 }
@@ -2172,8 +2168,7 @@ class _TacticsDialogState extends ConsumerState<_TacticsDialog> {
           ],
         ),
         for (final id in widget.session.onPitch(widget.side))
-          if (widget.playerOf(id) case final p?
-              when !p.position.isGoalkeeper)
+          if (widget.playerOf(id) case final p? when !p.position.isGoalkeeper)
             Row(
               children: [
                 Expanded(

@@ -167,8 +167,7 @@ void main() {
     }
     final addOn = on.fold(0, (n, r) => n + r.length - 90) / games;
     final addOff = off.fold(0, (n, r) => n + r.length - 90) / games;
-    final goalsOn =
-        on.fold(0, (n, r) => n + r.homeGoals + r.awayGoals) / games;
+    final goalsOn = on.fold(0, (n, r) => n + r.homeGoals + r.awayGoals) / games;
     final goalsOff =
         off.fold(0, (n, r) => n + r.homeGoals + r.awayGoals) / games;
     stdout.writeln(

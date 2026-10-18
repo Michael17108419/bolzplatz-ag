@@ -6,9 +6,8 @@ import '../model/position.dart';
 /// side by side this season; years together at the club count in advance.
 
 /// One number for an unordered pair of players.
-int pairKey(PlayerId a, PlayerId b) => a.value < b.value
-    ? a.value * 100000 + b.value
-    : b.value * 100000 + a.value;
+int pairKey(PlayerId a, PlayerId b) =>
+    a.value < b.value ? a.value * 100000 + b.value : b.value * 100000 + a.value;
 
 /// The line of a position: 0 keeper, 1 defence, 2 midfield, 3 attack.
 int lineOf(Position p) => switch (p) {

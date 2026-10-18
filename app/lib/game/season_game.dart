@@ -414,12 +414,7 @@ class SeasonNotifier extends Notifier<SeasonGame?> {
   int? talkTo(PlayerId player, PlayerTalk talk) {
     final game = state;
     if (game == null) return null;
-    final landed = _talkTo(
-      player,
-      talk,
-      game.today.epochDay,
-      record: true,
-    );
+    final landed = _talkTo(player, talk, game.today.epochDay, record: true);
     if (landed != null) ref.read(saveServiceProvider).autosave();
     return landed;
   }

@@ -10,9 +10,7 @@ late Rules rules;
 late World world;
 
 Player _with(Player p, Map<CharacterTrait, double> set) => p.copyWith(
-  traits: {
-    for (final t in CharacterTrait.values) t: set[t] ?? 50,
-  },
+  traits: {for (final t in CharacterTrait.values) t: set[t] ?? 50},
 );
 
 void main() {
@@ -145,10 +143,9 @@ void main() {
       CharacterTrait.mediaHunger: 90,
       CharacterTrait.leadership: 5,
     });
-    final withDiva = room(
-      [for (final p in plain) p.id == young.id ? diva : p],
-      plain.first.id,
-    );
+    final withDiva = room([
+      for (final p in plain) p.id == young.id ? diva : p,
+    ], plain.first.id);
     expect(withDiva.unhappy, contains(diva.id));
     expect(withDiva.conflicts, contains(CabinConflict.divaOutside));
   });
