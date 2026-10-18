@@ -146,14 +146,9 @@ void main() {
       levelChange: -1,
       cupWon: true,
     );
-    expect(
-      up[ManagerValue.standing],
-      closeTo(
-        50 + s['exceeded']! + s['promoted']! + 3 * s['cup_round']! +
-            s['cup_win']!,
-        0.05,
-      ),
-    );
+    final expected =
+        50 + s['exceeded']! + s['promoted']! + 3 * s['cup_round']!;
+    expect(up[ManagerValue.standing], closeTo(expected + s['cup_win']!, 0.05));
     expect(up.seasons, 1);
     final down = growth.close(
       TrainerProgress(_trainer()),
@@ -191,8 +186,12 @@ void main() {
     final start = summer.$1 + 1;
     expect(runner.courseBlock(club, summer.$2 + 30), 'window');
     expect(runner.courseBlock(club, start), isNull);
-    expect(runner.bookCourse(club, start, ManagerValue.tacticalKnowledge),
-        isTrue);
+    final booked = runner.bookCourse(
+      club,
+      start,
+      ManagerValue.tacticalKnowledge,
+    );
+    expect(booked, isTrue);
     // After the course B stands; A asks for a season as manager.
     expect(runner.courseBlock(club, start + 10), 'seasons');
     final course = runner.progressOf(club)!.courses.single;
@@ -230,9 +229,12 @@ void main() {
     }
     final now = runner.trainerOf(club)!;
     final p = runner.progressOf(club)!;
+    final raw = {
+      for (final e in p.raw.entries) e.key.id: e.value.toStringAsFixed(2),
+    };
     stdout.writeln(
       'GROWTH-REPORT talks landed=$landed weeks planned=${p.plannedWeeks.length} '
-      'raw=${{for (final e in p.raw.entries) e.key.id: e.value.toStringAsFixed(2)}} '
+      'raw=$raw '
       'stress=${p.stress.toStringAsFixed(1)} licence=${now.licence.id} '
       'tactics=${now[ManagerValue.tacticalKnowledge]} '
       'man management=${now[ManagerValue.manManagement]} '

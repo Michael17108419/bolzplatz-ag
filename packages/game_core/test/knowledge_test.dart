@@ -115,11 +115,18 @@ void main() {
       runner.completeDay(run, runner.openDay(run));
     }
     final today = run.timeline.days[run.dayIndex].date.epochDay;
-    runner.freshnessOf(state.squads[club]!.first.id, club: club, epochDay: today);
+    runner.freshnessOf(
+      state.squads[club]!.first.id,
+      club: club,
+      epochDay: today,
+    );
     final knowledge = runner.systemKnowledgeOf(club);
     final (att, def) = runner.setPiecesOf(club);
+    final systems = {
+      for (final e in knowledge.entries) e.key: e.value.round(),
+    };
     stdout.writeln(
-      'KNOWLEDGE-REPORT systems=${{for (final e in knowledge.entries) e.key: e.value.round()}} '
+      'KNOWLEDGE-REPORT systems=$systems '
       'set pieces=${att.round()}/${def.round()}',
     );
     final best = knowledge.values.reduce((a, b) => a > b ? a : b);

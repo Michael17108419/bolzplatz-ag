@@ -146,8 +146,9 @@ class _Office extends ConsumerWidget {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Tokens.ground,
+      isScrollControlled: true,
       builder: (sheet) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(Tokens.gapM),
           child: Column(
             mainAxisSize: MainAxisSize.min,
