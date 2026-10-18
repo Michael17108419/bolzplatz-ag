@@ -762,12 +762,12 @@ class SeasonRunner {
   Map<ClubId, Map<int, Map<Attribute, double>>> _focusPts = {};
   Map<ClubId, int> _played = {};
 
-  int _weekOf(int epochDay) => (epochDay - _seasonStart) ~/ 7;
+  int _trainingWeekOf(int epochDay) => (epochDay - _seasonStart) ~/ 7;
 
   /// Adds the development points of a training day of [club].
   void _addFocus(ClubId club, int epochDay, TrainingDay day) {
     final tr = rules.season.training;
-    final week = (_focusPts[club] ??= {})[_weekOf(epochDay)] ??= {};
+    final week = (_focusPts[club] ??= {})[_trainingWeekOf(epochDay)] ??= {};
     for (final s in day.sessions) {
       final unit = tr.units[s.unit];
       if (unit == null || unit.targets.isEmpty) continue;
@@ -788,7 +788,7 @@ class SeasonRunner {
   void _developTo(int epochDay) {
     final tr = rules.season.training;
     if (tr.units.isEmpty) return;
-    final last = _weekOf(epochDay);
+    final last = _trainingWeekOf(epochDay);
     while (_devWeek < last) {
       final w = _devWeek;
       final end = _seasonStart + 7 * (w + 1);
