@@ -20,14 +20,16 @@ int lineOf(Position p) => switch (p) {
 
 /// Chemistry of a pair, 0 to 1, from [minutes] played together and
 /// [years] together at the club: 0.5 at one "unit" ([minutesUnit] minutes
-/// or [yearsUnit] years), then slower towards 1.
+/// or [yearsUnit] years), then slower towards 1. [base] is what the summer
+/// preparation gives every pair (in units).
 double pairChemistry(
   double minutes,
   double years, {
   required double minutesUnit,
   required double yearsUnit,
+  double base = 0,
 }) {
-  final x = minutes / minutesUnit + years / yearsUnit;
+  final x = base + minutes / minutesUnit + years / yearsUnit;
   return x / (1 + x);
 }
 

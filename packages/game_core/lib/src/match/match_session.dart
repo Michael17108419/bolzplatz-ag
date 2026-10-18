@@ -733,9 +733,10 @@ class MatchSession {
     side.fitBonus = math.max(0.0, tactics.fitBonusMax * teamFit - unsettled);
     final pair = side.team.chemistry;
     if (pair != null) {
-      side.chemistry = teamChemistry([
+      final players = [
         for (final s in side.pitch) (s.player.id, s.position),
-      ], pair);
+      ];
+      side.chemistry = teamChemistry(players, pair);
       side.chemFactor =
           1 + 2 * _m.confidence['chemistry'] * (side.chemistry - 0.5);
     }

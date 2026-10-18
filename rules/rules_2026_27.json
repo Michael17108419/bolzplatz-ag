@@ -2589,7 +2589,8 @@
       "talk_promise_kept": 2,
       "talk_promise_broken": 15,
       "chem_minutes": 1800,
-      "chem_years": 3
+      "chem_years": 3,
+      "chem_base": 0.6
     },
     "cabin": {
       "high": 70,

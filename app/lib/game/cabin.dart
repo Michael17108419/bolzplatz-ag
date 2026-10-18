@@ -24,3 +24,12 @@ final cabinProvider = Provider<Cabin?>((ref) {
     captain: sheet == null ? null : captainOf(sheet, squad),
   );
 });
+
+/// How well the eleven of the current line-up know each other, 0 to 1
+/// (engine 2, step 10f4); null before the season runs.
+final lineupChemistryProvider = Provider<double?>((ref) {
+  final game = ref.watch(seasonProvider);
+  final sheet = ref.watch(lineupProvider)?.sheet;
+  if (game == null || sheet == null) return null;
+  return game.runner.chemistryOf(sheet);
+});

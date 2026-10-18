@@ -327,6 +327,8 @@ abstract interface class AppStrings {
     double? mood,
   });
   String moodName(double mood);
+  String get lineupChemistry;
+  String get infoLineupChemistry;
   String get profilePromise;
   String get teamTalkButton;
   String get teamTalkTitle;
@@ -1994,6 +1996,16 @@ class AppStringsDe implements AppStrings {
       : mood >= 30
       ? 'unzufrieden'
       : 'stinksauer';
+  @override
+  String get lineupChemistry => 'Eingespielt';
+  @override
+  String get infoLineupChemistry =>
+      'Wie gut sich die Elf kennt. Jede gemeinsame Minute in dieser Saison '
+      'zählt, gemeinsame Jahre im Verein geben einen Vorschuss. Gezählt '
+      'werden Spieler in derselben oder einer benachbarten Reihe. Eine '
+      'eingespielte Elf spielt bis zu 4 % bessere Kurzpässe und Steilpässe, '
+      'eine zusammengewürfelte bis zu 4 % schlechtere. Wer ständig '
+      'rotiert, zahlt dafür.';
   @override
   String get profilePromise =>
       'Du hast ihm Einsatzzeit versprochen. Er zählt die Minuten.';

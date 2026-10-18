@@ -56,22 +56,19 @@ void main() {
       pairChemistry(18000, 0, minutesUnit: 1800, yearsUnit: 3),
       lessThan(1),
     );
-    expect(pairKey(PlayerId(3), PlayerId(9)), pairKey(PlayerId(9), PlayerId(3)));
-    final keeper = PlayerId(1);
-    final striker = PlayerId(2);
+    const keeper = PlayerId(1);
+    const back = PlayerId(3);
+    const striker = PlayerId(2);
+    expect(pairKey(back, striker), pairKey(striker, back));
+    const apart = [(keeper, Position.tw), (striker, Position.st)];
+    expect(teamChemistry(apart, (a, b) => 1), 0.5);
+    const three = [
+      (keeper, Position.tw),
+      (back, Position.iv),
+      (striker, Position.st),
+    ];
     expect(
-      teamChemistry([
-        (keeper, Position.tw),
-        (striker, Position.st),
-      ], (a, b) => 1),
-      0.5,
-    );
-    expect(
-      teamChemistry([
-        (keeper, Position.tw),
-        (PlayerId(3), Position.iv),
-        (striker, Position.st),
-      ], (a, b) => a == keeper || b == keeper ? 1 : 0),
+      teamChemistry(three, (a, b) => a == keeper || b == keeper ? 1 : 0),
       1,
     );
   });
@@ -127,6 +124,8 @@ void main() {
       'after 40 days=${mean(after).toStringAsFixed(2)} '
       'min=${lo.toStringAsFixed(2)} max=${hi.toStringAsFixed(2)}',
     );
+    // The summer preparation gives every eleven a start near average.
+    expect(mean(before), inInclusiveRange(0.3, 0.55));
     for (final c in clubs) {
       expect(after[c], greaterThan(before[c]!));
       expect(after[c], inInclusiveRange(0, 1));

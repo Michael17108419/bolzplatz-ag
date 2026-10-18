@@ -603,16 +603,18 @@ class SeasonRunner {
       math.min(_yearsOf(a), _yearsOf(b)),
       minutesUnit: c['chem_minutes'] == 0 ? 1800 : c['chem_minutes'],
       yearsUnit: c['chem_years'] == 0 ? 3 : c['chem_years'],
+      base: c['chem_base'],
     );
   }
 
   /// Chemistry of the starting eleven of [sheet], 0 to 1 (step 10f4).
   double chemistryOf(TeamSheet sheet) {
     final slots = rules.tactics.formation(sheet.formationId).slots;
-    return teamChemistry([
+    final players = [
       for (var i = 0; i < sheet.startingXi.length && i < slots.length; i++)
         (sheet.startingXi[i], slots[i]),
-    ], pairChemistryOf);
+    ];
+    return teamChemistry(players, pairChemistryOf);
   }
 
   /// Adds the minutes a match gave to every pair of team mates.
