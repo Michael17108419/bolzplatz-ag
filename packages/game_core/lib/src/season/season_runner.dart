@@ -19,6 +19,7 @@ import '../result/result.dart';
 import '../rng/seeded_random.dart';
 import '../rules/rules.dart';
 import 'conference.dart';
+import 'court.dart';
 import 'cup.dart';
 import 'league_table.dart';
 import 'schedule.dart';
@@ -182,6 +183,15 @@ class SeasonRunner {
   late Map<ClubId, double> _form;
   late Map<PlayerId, int> _injuredUntil;
   late Map<String, int> _bans;
+
+  /// Bans in weeks after a straight red: the last day of the ban.
+  late Map<PlayerId, int> _bannedUntil;
+
+  /// Cases of the sports court this season (engine 2, step 10e3).
+  late List<CourtCase> _cases;
+
+  /// Clubs of human managers: their cases wait for a decision.
+  Set<ClubId> _humans = const {};
   late Map<String, int> _cardsByCompetition;
   late Map<ClubId, TeamSheet> _sheets;
   late Map<ClubId, String> _sheetKey;
@@ -231,6 +241,7 @@ class SeasonRunner {
   /// injured, or banned in this competition.
   bool _isOut(PlayerId p, String comp, int epochDay) =>
       (_injuredUntil[p] ?? -1) >= epochDay ||
+      (_bannedUntil[p] ?? -1) >= epochDay ||
       (_bans['$comp:${p.value}'] ?? 0) > 0;
 
   MatchTeam _team(ClubId club, String comp) {
@@ -276,6 +287,124 @@ class SeasonRunner {
 
   int _matchSeed(String label) => SeededRandom(_seed).fork(label).seed;
 
+  static Competition _competitionOf(String comp) => switch (comp) {
+    'B' => Competition.bolzplatz,
+    'P' => Competition.pott,
+    _ => Competition.league,
+  };
+
+  /// The control committee moves a ban after a straight red (DFB): by the
+  /// kind of the red within its range. The player is banned at once; other
+  /// clubs accept, a human club decides. Proceedings stop if the referee
+  /// sent off the wrong player.
+  void _openCase(MatchEvent e, String comp, ClubId club) {
+    final player = e.player!;
+    final id = '$_today:${player.value}';
+    final kind = e.action ?? 'other';
+    final range = rules.season.court.banFor(kind);
+    if (e.review == 'identity') {
+      _cases.add(
+        CourtCase(
+          id: id,
+          player: player,
+          club: club,
+          competition: _competitionOf(comp),
+          kind: kind,
+          review: e.review,
+          epochDay: _today,
+          motion: 0,
+          weeks: range.weeks,
+          status: CourtStatus.stopped,
+        ),
+      );
+      return;
+    }
+    final rng = SeededRandom(_seed).fork('court:$id');
+    final motion = range.min + rng.nextInt(range.max - range.min + 1);
+    final c = CourtCase(
+      id: id,
+      player: player,
+      club: club,
+      competition: _competitionOf(comp),
+      kind: kind,
+      review: e.review,
+      epochDay: _today,
+      motion: motion,
+      weeks: range.weeks,
+      status: _humans.contains(club) ? CourtStatus.open : CourtStatus.accepted,
+    );
+    _cases.add(c);
+    _setBan(c, comp, 0, motion);
+  }
+
+  /// Moves the ban of case [c] from [before] to [after] (matches left in
+  /// the competition, or the last day of a ban in weeks).
+  void _setBan(CourtCase c, String comp, int before, int after) {
+    if (c.weeks) {
+      if (after <= 0) {
+        _bannedUntil.remove(c.player);
+      } else {
+        _bannedUntil[c.player] = math.max(
+          _bannedUntil[c.player] ?? -1,
+          c.epochDay + after * 7 - 1,
+        );
+        if (after < before) {
+          _bannedUntil[c.player] = c.epochDay + after * 7 - 1;
+        }
+      }
+      return;
+    }
+    final key = '$comp:${c.player.value}';
+    _bans[key] = math.max(0, (_bans[key] ?? 0) + after - before);
+  }
+
+  /// True if [player] may not play in [competition] on [epochDay]: banned
+  /// in weeks, or matches of a ban left in that competition.
+  bool isSuspended(PlayerId player, Competition competition, int epochDay) {
+    final comp = _compKey(competition);
+    return (_bannedUntil[player] ?? -1) >= epochDay ||
+        (_bans['$comp:${player.value}'] ?? 0) > 0;
+  }
+
+  /// Cases of the sports court of [club] this season, oldest first.
+  List<CourtCase> casesOf(ClubId club) => [
+    for (final c in _cases)
+      if (c.club == club) c,
+  ];
+
+  /// A human club decides an open case: accept the motion, or appeal to
+  /// the sports court. The court decides at once and is not bound to the
+  /// motion: milder, the same or harder; a red the referee gave too hard
+  /// has better chances. False if there is no open case [id].
+  bool decideCase(String id, {required bool appeal}) {
+    final c = _cases.where((x) => x.id == id).firstOrNull;
+    if (c == null || c.status != CourtStatus.open) return false;
+    if (!appeal) {
+      c.status = CourtStatus.accepted;
+      return true;
+    }
+    final court = rules.season.court;
+    final harsh = c.review == 'red_harsh';
+    final lower = harsh ? court.harshLower : court.appealLower;
+    final higher = harsh ? court.harshHigher : court.appealHigher;
+    final roll = SeededRandom(_seed).fork('appeal:$id').nextDouble();
+    final verdict = roll < lower
+        ? (harsh ? 1 : math.max(1, c.motion - 1))
+        : roll < lower + higher
+        ? c.motion + 1
+        : c.motion;
+    final comp = switch (c.competition) {
+      Competition.league => 'L',
+      Competition.bolzplatz => 'B',
+      Competition.pott => 'P',
+    };
+    _setBan(c, comp, c.motion, verdict);
+    c
+      ..status = CourtStatus.appealed
+      ..verdict = verdict;
+    return true;
+  }
+
   void _afterMatch(
     ClubId home,
     ClubId away,
@@ -305,11 +434,8 @@ class SeasonRunner {
       if (e.type == MatchEventType.secondYellow) {
         _bans[key] = math.max(_bans[key] ?? 0, 1);
       }
-      if (e.type == MatchEventType.redCard) {
-        _bans[key] = math.max(
-          _bans[key] ?? 0,
-          rules.season.straightRedBanMatches,
-        );
+      if (e.type == MatchEventType.redCard && e.player != null) {
+        _openCase(e, comp, e.side == 0 ? home : away);
       }
     }
     for (final id in countedYellowCards(r.events)) {
@@ -376,8 +502,12 @@ class SeasonRunner {
     SeasonState state, {
     required int seed,
     Map<ClubId, TeamSheet> userSheets = const {},
+    Set<ClubId> humanClubs = const {},
   }) {
     _userSheets = Map.of(userSheets);
+    _humans = Set.of({...humanClubs, ...userSheets.keys});
+    _bannedUntil = {};
+    _cases = [];
     _state = state;
     _seed = seed;
     _form = {};

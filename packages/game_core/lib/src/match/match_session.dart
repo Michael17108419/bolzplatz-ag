@@ -2278,7 +2278,8 @@ class MatchSession {
                       s.tx[CharacterTrait.temper.index],
             ),
         ];
-        _sendOff(i, side.pitch[_rng.weightedIndex(weights)], false);
+        final who = side.pitch[_rng.weightedIndex(weights)];
+        _sendOff(i, who, false, reason: _redKind(who));
       }
     }
     // A red behind the referee's back: the VAR sees it.
@@ -2317,6 +2318,21 @@ class MatchSession {
         if (_rng.nextDouble() < chance) _injure(i, s);
       }
     }
+  }
+
+  /// The kind of a straight red the match does not explain otherwise, for
+  /// the sports court (engine 2, step 10e3): rough play, violent conduct or
+  /// insulting the referee; hot heads lean to the last two.
+  String _redKind(_Slot s) {
+    final w = rules.season.court.kindWeights;
+    final temper = s.tx[CharacterTrait.temper.index];
+    const kinds = ['rough', 'violent', 'insult'];
+    final weights = [
+      (w['rough'] ?? 1).toDouble(),
+      (w['violent'] ?? 0) * math.max(0.1, 1 + 0.5 * temper),
+      (w['insult'] ?? 0) * math.max(0.1, 1 + 0.5 * temper),
+    ];
+    return kinds[_rng.weightedIndex(weights)];
   }
 
   void _yellow(int i, _Slot s, {String? reason}) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
 import '../game/career.dart';
@@ -23,6 +24,7 @@ class OfficeMail {
     required this.portrait,
     this.actions = const [],
     this.date,
+    this.courtCase,
   });
 
   final String id;
@@ -34,6 +36,42 @@ class OfficeMail {
 
   /// The day of the mail, null for the first mails of the career.
   final GameDate? date;
+
+  /// An open case of the sports court this mail asks about: the mail then
+  /// shows "Annehmen" and "Einspruch" (step 10e3).
+  final String? courtCase;
+}
+
+/// The two answers to a motion of the control committee.
+class CourtButtons extends ConsumerWidget {
+  const CourtButtons({required this.caseId, super.key});
+
+  final String caseId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(stringsProvider);
+    return Wrap(
+      spacing: Tokens.gapS,
+      runSpacing: Tokens.gapS,
+      children: [
+        OutlinedButton(
+          key: ValueKey('court-accept-$caseId'),
+          onPressed: () => ref
+              .read(seasonProvider.notifier)
+              .decideCase(caseId, appeal: false),
+          child: Text(s.courtAccept),
+        ),
+        FilledButton(
+          key: ValueKey('court-appeal-$caseId'),
+          onPressed: () => ref
+              .read(seasonProvider.notifier)
+              .decideCase(caseId, appeal: true),
+          child: Text(s.courtAppeal),
+        ),
+      ],
+    );
+  }
 }
 
 /// The inbox of the career: the "Jour Fix" before the match day, then the
@@ -189,9 +227,34 @@ List<OfficeMail> buildMails(
       portrait: presidentPortrait,
     );
   }
+  String playerName(PlayerId id) => loaded.player(id)?.lastName ?? '?';
+  final courtMails = <OfficeMail>[
+    if (game != null)
+      for (final c in game.runner.casesOf(game.clubId).reversed)
+        OfficeMail(
+          id: 'court:${c.id}',
+          sender: s.courtSender,
+          subject: s.courtSubject(playerName(c.player), c.status),
+          body: s.courtBody(
+            player: playerName(c.player),
+            kind: c.kind,
+            competition: c.competition == Competition.league
+                ? null
+                : s.cupName(c.competition),
+            motion: c.motion,
+            weeks: c.weeks,
+            status: c.status,
+            verdict: c.verdict,
+          ),
+          portrait: const _Initial('§'),
+          date: c.date.plusDays(1),
+          courtCase: c.status == CourtStatus.open ? c.id : null,
+        ),
+  ];
   return [
     ?seasonEnd,
     ?verdict,
+    ...courtMails,
     ...appointmentMails,
     OfficeMail(
       id: 'jourfix',

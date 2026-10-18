@@ -35,6 +35,7 @@ export 'src/rules/rules.dart';
 export 'src/rules/season_rules.dart';
 export 'src/rules/tactics_rules.dart';
 export 'src/season/conference.dart';
+export 'src/season/court.dart';
 export 'src/season/cup.dart';
 export 'src/season/league_table.dart';
 export 'src/season/schedule.dart';

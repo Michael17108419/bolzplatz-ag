@@ -71,6 +71,7 @@ class SeasonRules {
     required this.formDrift,
     required this.cups,
     required this.review,
+    required this.court,
   });
 
   factory SeasonRules.fromJson(Map<String, dynamic> m) => SeasonRules(
@@ -82,6 +83,7 @@ class SeasonRules {
     formDrift: (m['form_drift'] as num).toDouble(),
     cups: CupRules.fromJson(m['cups'] as Map<String, dynamic>),
     review: ReviewRules.fromJson(m['review'] as Map<String, dynamic>),
+    court: CourtRules.fromJson(m['court'] as Map<String, dynamic>),
   );
 
   /// One matchday stands for this many days of recovery.
@@ -97,6 +99,82 @@ class SeasonRules {
   final double formDrift;
   final CupRules cups;
   final ReviewRules review;
+
+  /// The sports court after a straight red (engine 2, step 10e3).
+  final CourtRules court;
+}
+
+/// The range of a ban for one kind of red card: matches of the competition
+/// or weeks on the calendar (DFB Rechts- und Verfahrensordnung).
+class BanRange {
+  const BanRange({required this.weeks, required this.min, required this.max});
+
+  factory BanRange.fromJson(Map<String, dynamic> m) {
+    final unit = m['unit'] as String;
+    if (unit != 'matches' && unit != 'weeks') {
+      throw RulesError('court unit must be matches or weeks, not $unit');
+    }
+    final range = BanRange(
+      weeks: unit == 'weeks',
+      min: m['min'] as int,
+      max: m['max'] as int,
+    );
+    if (range.min < 1 || range.max < range.min) {
+      throw const RulesError('court ban range invalid');
+    }
+    return range;
+  }
+
+  /// True for a ban in weeks, false for one in matches.
+  final bool weeks;
+  final int min;
+  final int max;
+}
+
+/// The sports court after a straight red card (engine 2, step 10e3): the
+/// ban by kind of the red card, how often a red card is of which kind when
+/// the match does not tell, and how an appeal goes. A red the referee gave
+/// too hard has better chances; the court is not bound to the motion, so an
+/// appeal can also make it worse.
+class CourtRules {
+  const CourtRules({
+    required this.bans,
+    required this.kindWeights,
+    required this.appealLower,
+    required this.appealHigher,
+    required this.harshLower,
+    required this.harshHigher,
+  });
+
+  factory CourtRules.fromJson(Map<String, dynamic> m) {
+    const kinds = ['dogso', 'rough', 'violent', 'insult', 'other'];
+    final weights = m['kind_weights'] as Map<String, dynamic>;
+    return CourtRules(
+      bans: Map.unmodifiable({
+        for (final k in kinds)
+          k: BanRange.fromJson(m[k] as Map<String, dynamic>),
+      }),
+      kindWeights: Map.unmodifiable({
+        for (final e in weights.entries) e.key: (e.value as num).toDouble(),
+      }),
+      appealLower: (m['appeal_lower'] as num).toDouble(),
+      appealHigher: (m['appeal_higher'] as num).toDouble(),
+      harshLower: (m['harsh_lower'] as num).toDouble(),
+      harshHigher: (m['harsh_higher'] as num).toDouble(),
+    );
+  }
+
+  /// Ban range by kind: dogso (Notbremse), rough, violent, insult, other.
+  final Map<String, BanRange> bans;
+
+  /// Kinds of a straight red without a told reason, by weight.
+  final Map<String, double> kindWeights;
+  final double appealLower;
+  final double appealHigher;
+  final double harshLower;
+  final double harshHigher;
+
+  BanRange banFor(String? kind) => bans[kind] ?? bans['other']!;
 }
 
 /// Numbers for the verdict on a season (document 13, drafts for mass tests).

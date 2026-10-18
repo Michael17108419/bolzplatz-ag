@@ -530,6 +530,10 @@ class _PostPageState extends ConsumerState<PostPage> {
                     ),
                     const SizedBox(height: Tokens.gapS),
                     Text(opened.body, style: theme.textTheme.bodyLarge),
+                    if (opened.courtCase != null) ...[
+                      const SizedBox(height: Tokens.gapS),
+                      CourtButtons(caseId: opened.courtCase!),
+                    ],
                     if (opened.actions.isNotEmpty) ...[
                       const SizedBox(height: Tokens.gapS),
                       Wrap(

@@ -500,6 +500,21 @@ abstract interface class AppStrings {
   String get jourFixGreeting;
   String get jourFixSign;
   String cupName(Competition competition);
+
+  // Sports court after a red card (step 10e3).
+  String get courtSender;
+  String get courtAccept;
+  String get courtAppeal;
+  String courtSubject(String player, CourtStatus status);
+  String courtBody({
+    required String player,
+    required String kind,
+    required String? competition,
+    required int motion,
+    required bool weeks,
+    required CourtStatus status,
+    int? verdict,
+  });
   String cupRoundName(bool isFinal, int round);
   String matchShootoutLine(String winner, int home, int away);
   String get confCupTab;
@@ -2696,6 +2711,80 @@ class AppStringsDe implements AppStrings {
       'Kaffee:';
   @override
   String get jourFixSign => 'Mit freundlichen Grüßen, dein Präsident';
+  @override
+  String get courtSender => 'Kontrollausschuss des Verbands';
+  @override
+  String get courtAccept => 'Annehmen';
+  @override
+  String get courtAppeal => 'Einspruch';
+  @override
+  String courtSubject(String player, CourtStatus status) => switch (status) {
+    CourtStatus.open => 'Strafantrag gegen $player',
+    CourtStatus.accepted => 'Sperre für $player rechtskräftig',
+    CourtStatus.appealed => 'Urteil des Sportgerichts: $player',
+    CourtStatus.stopped => 'Verfahren gegen $player eingestellt',
+  };
+  @override
+  String courtBody({
+    required String player,
+    required String kind,
+    required String? competition,
+    required int motion,
+    required bool weeks,
+    required CourtStatus status,
+    int? verdict,
+  }) {
+    String ban(int n) => weeks
+        ? (n == 1 ? '1 Woche' : '$n Wochen')
+        : (n == 1 ? '1 Spiel' : '$n Spiele');
+    final why = switch (kind) {
+      'dogso' => 'wegen einer Notbremse',
+      'rough' => 'wegen rohen Spiels',
+      'violent' => 'wegen einer Tätlichkeit',
+      'insult' => 'wegen Schiedsrichterbeleidigung',
+      _ => 'wegen eines groben Foulspiels',
+    };
+    final where = competition == null
+        ? 'im Ligaspiel'
+        : 'im Spiel im $competition';
+    final scope = weeks
+        ? 'Die Sperre gilt für alle Pflichtspiele.'
+        : competition == null
+        ? 'Die Sperre gilt für Ligaspiele.'
+        : 'Die Sperre gilt für Spiele im $competition.';
+    const sign = 'Mit sportlichen Grüßen\nDer Kontrollausschuss';
+    final head =
+        'Sehr geehrter Herr Trainer,\n\nIhr Spieler $player wurde $where $why '
+        'des Feldes verwiesen.';
+    final after = verdict ?? motion;
+    final outcome = after < motion
+        ? 'Gute Nachricht: Die Sperre sinkt von ${ban(motion)} auf '
+              '${ban(after)}.'
+        : after > motion
+        ? 'Das ging nach hinten los: Das Gericht erhöht die Sperre von '
+              '${ban(motion)} auf ${ban(after)}.'
+        : 'Das Gericht bestätigt den Antrag: ${ban(motion)} Sperre.';
+    return switch (status) {
+      CourtStatus.open =>
+        '$head Der Kontrollausschuss beantragt eine Sperre von '
+            '${ban(motion)}. $scope\n\nStimmen Sie zu, entscheidet der '
+            'Einzelrichter genau so. Legen Sie Einspruch ein, verhandelt das '
+            'Sportgericht. Das kann milder ausgehen, gleich oder auch härter: '
+            'Das Gericht ist an unseren Antrag nicht gebunden. Bis dahin ist '
+            '$player gesperrt.\n\n$sign',
+      CourtStatus.accepted =>
+        '$head Sie haben dem Antrag zugestimmt. $player ist für '
+            '${ban(motion)} gesperrt. $scope\n\n$sign',
+      CourtStatus.appealed =>
+        '$head Auf Ihren Einspruch hin hat das Sportgericht verhandelt. '
+            '$outcome $scope\n\n$sign',
+      CourtStatus.stopped =>
+        '$head Die Auswertung der Bilder zeigt: Der Schiedsrichter hat den '
+            'falschen Spieler vom Platz gestellt. Das Verfahren ist '
+            'eingestellt, $player ist nicht gesperrt.\n\n$sign',
+    };
+  }
+
   @override
   String cupName(Competition competition) =>
       competition == Competition.pott ? 'Pott der Provinz' : 'Bolzplatzpokal';

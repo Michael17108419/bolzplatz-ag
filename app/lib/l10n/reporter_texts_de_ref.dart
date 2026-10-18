@@ -258,6 +258,27 @@ const Map<String, List<String>> reporterRefereeDe = {
     "{p} fliegt wegen Notbremse! {team} nur noch zu zehnt!",
     "Rot für {p}. Notbremse, Platzverweis, Dusche.",
   ],
+  "red.violent.own": [
+    "ROT für {p}! Tätlichkeit! Was ist denn in den gefahren?",
+    "{p} schlägt zu und fliegt. Das Sportgericht wird sich freuen.",
+    "Glatt Rot für {p}. Eine Tätlichkeit, das wird teuer.",
+  ],
+  "red.violent.opp": [
+    "ROT für {p}! Tätlichkeit! Raus mit ihm!",
+    "{p} rastet aus und sieht Rot. Selbst schuld.",
+    "Tätlichkeit von {p}, glatt Rot. Gut so.",
+  ],
+  "red.insult.own": [
+    "ROT für {p}! Er hat den Schiri beleidigt. Das Wort war nicht jugendfrei.",
+    "{p} sagt dem Schiri seine Meinung. Zu deutlich. Rot.",
+    "Schiedsrichterbeleidigung, Rot für {p}. Das hätte er sich denken "
+        "können.",
+  ],
+  "red.insult.opp": [
+    "ROT für {p}! Schiedsrichterbeleidigung!",
+    "{p} hat ein Wort zu viel gesagt. Rot!",
+    "Der Schiri hat genau zugehört: Rot für {p}.",
+  ],
   "second.dissent.own": [
     "Gelb-Rot für {p} wegen Meckerns! Das ist einfach dumm.",
     "{p} redet sich vom Platz! Zweite Gelbe wegen Meckerns!",

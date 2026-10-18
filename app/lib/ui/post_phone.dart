@@ -315,6 +315,10 @@ class _PostPhoneState extends ConsumerState<PostPhone> {
                     ],
                     const SizedBox(height: Tokens.gapS),
                     Text(m.body, style: theme.textTheme.bodyLarge),
+                    if (m.courtCase != null) ...[
+                      const SizedBox(height: Tokens.gapS),
+                      CourtButtons(caseId: m.courtCase!),
+                    ],
                     const SizedBox(height: Tokens.gapL),
                   ],
                 ),
