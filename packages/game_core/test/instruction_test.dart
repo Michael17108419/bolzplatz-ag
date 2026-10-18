@@ -30,6 +30,7 @@ MatchTeam _told(
       wing: wing,
       wasteTime: waste,
     ),
+    autoManage: false,
   );
 }
 
@@ -77,6 +78,8 @@ void main() {
               name: club.name,
               squad: squad,
               sheet: AutoManager(rules).build(squad)!,
+              // No AI coach: only the instructions of the test count.
+              autoManage: false,
             );
           }(),
     ];

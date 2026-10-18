@@ -1854,6 +1854,10 @@ class MatchSession {
         counter?.$2 ?? _rng.weightedIndex(z.startColumnWeights);
     var lane = counter?.$3 ?? _rng.weightedIndex(_lanes(attacker));
     final reference = z.referenceShare;
+    // Most attacks know no plan and no shout: skip those factors then.
+    final planned = attacker.plan.isNotEmpty || defender.plan.isNotEmpty;
+    final shouting =
+        attacker.shoutUntil >= _minute || defender.shoutUntil >= _minute;
     final chain = <Player>[];
     final steps = <AttackStep>[];
     var step = 0;
@@ -1901,19 +1905,23 @@ class MatchSession {
       }
       ratio *= _characterDuel(t, carrier, tackler);
       ratio *= defender.marked[carrier.player.id] ?? 1.0;
-      ratio *= _planStep(
-        t,
-        carrier,
-        action.id,
-        column,
-        lane,
-        counter: counter != null,
-      );
-      // Shouts (step 10g4): pressure up front, calm on the ball, the back
-      // closed.
-      if (column <= 2) ratio /= _shoutF(o, Shout.push);
-      ratio *= 1 + (_shoutF(t, Shout.calm) - 1) / 2;
-      if (column >= 3) ratio /= _shoutF(o, Shout.tight);
+      if (planned) {
+        ratio *= _planStep(
+          t,
+          carrier,
+          action.id,
+          column,
+          lane,
+          counter: counter != null,
+        );
+      }
+      if (shouting) {
+        // Shouts (step 10g4): pressure up front, calm on the ball, the
+        // back closed.
+        if (column <= 2) ratio /= _shoutF(o, Shout.push);
+        ratio *= 1 + (_shoutF(t, Shout.calm) - 1) / 2;
+        if (column >= 3) ratio /= _shoutF(o, Shout.tight);
+      }
       final duel = math
           .pow(ratio, z.duelExponent)
           .toDouble()
