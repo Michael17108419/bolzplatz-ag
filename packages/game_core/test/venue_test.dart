@@ -118,4 +118,28 @@ void main() {
     expect(full.$1, greaterThan(empty.$1));
     expect(derby.$2, greaterThan(full.$2));
   });
+
+  test('a season with grounds and referees stays balanced (report)', () {
+    final runner = SeasonRunner(
+      rules,
+      calendarRules: CalendarRules.fromJsonString(
+        File('../../rules/calendar_rules.json').readAsStringSync(),
+      ),
+      referees: RefereePool.fromJson(
+        File('../../data/referees_de.json').readAsStringSync(),
+      ),
+      venues: venues,
+    );
+    final o = runner.play(SeasonState.fromWorld(world), seed: 31);
+    final n = o.matchesPlayed;
+    stdout.writeln(
+      'VENUE-REPORT season H/D/A='
+      '${(o.homeWins / n).toStringAsFixed(2)}/'
+      '${(o.draws / n).toStringAsFixed(2)}/'
+      '${(o.awayWins / n).toStringAsFixed(2)} '
+      'goals/game=${(o.goalsScored / n).toStringAsFixed(2)} '
+      'reds=${o.redCards}',
+    );
+    expect(o.homeWins / n, inInclusiveRange(0.33, 0.5));
+  });
 }
