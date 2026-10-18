@@ -119,14 +119,23 @@ void main() {
       (t) => _told(t, all: PlayerInstruction.hard),
       (r, h) => side(r, h, (e) => e.type == MatchEventType.foul),
     );
-    // Balls the home side lost: the away side won them.
+    // Steps of the home side lost, per mille of all its steps: more short
+    // passes mean more steps, but fewer of them go wrong.
+    int lostShare(MatchResult r, MatchTeam h) {
+      final steps = [
+        for (final e in r.events)
+          if (e.side == 0) ...e.steps,
+      ];
+      if (steps.isEmpty) return 0;
+      return (1000 * steps.where((st) => !st.won).length / steps.length)
+          .round();
+    }
+
     final lost = _compare(
       150,
       8500,
       (t) => _told(t, all: PlayerInstruction.safe),
-      (r, h) => r.events
-          .where((e) => e.side == 1 && e.type == MatchEventType.ballWon)
-          .length,
+      lostShare,
     );
     final through = _compare(
       150,
@@ -156,7 +165,8 @@ void main() {
     );
     stdout.writeln(
       'INSTRUCTION-REPORT long shots ${shots.$1}/${shots.$2} '
-      'fouls ${fouls.$1}/${fouls.$2} lost balls ${lost.$1}/${lost.$2} '
+      'fouls ${fouls.$1}/${fouls.$2} lost steps (sum of per mille) '
+      '${lost.$1}/${lost.$2} '
       'through balls ${through.$1}/${through.$2} '
       'left starts ${left.$1}/${left.$2} time wasting ${waste.$1}/${waste.$2} '
       '(told/not told, 150 games each)',

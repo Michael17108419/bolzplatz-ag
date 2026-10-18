@@ -2466,7 +2466,7 @@
       "through_weight": 1.8,
       "through_step": -0.03,
       "hard_duel": 0.08,
-      "hard_foul": 0.6,
+      "hard_foul": 0.4,
       "forward_attack": 1.35,
       "forward_back": 0.8,
       "stay_attack": 0.6,
