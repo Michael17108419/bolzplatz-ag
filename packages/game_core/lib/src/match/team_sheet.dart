@@ -112,10 +112,14 @@ class MatchTeam {
     required this.sheet,
     Map<PlayerId, double> form = const {},
     Map<PlayerId, double> fitness = const {},
+    Map<PlayerId, double> confidence = const {},
+    Map<PlayerId, double> load = const {},
     this.autoManage = true,
   }) : squad = List.unmodifiable(squad),
        form = Map.unmodifiable(form),
-       fitness = Map.unmodifiable(fitness);
+       fitness = Map.unmodifiable(fitness),
+       confidence = Map.unmodifiable(confidence),
+       load = Map.unmodifiable(load);
 
   final ClubId clubId;
   final String name;
@@ -127,6 +131,13 @@ class MatchTeam {
 
   /// Fitness 0 to 100 per player, missing means fully fit.
   final Map<PlayerId, double> fitness;
+
+  /// Confidence 0 to 100 per player (step 10f2), missing means 50.
+  final Map<PlayerId, double> confidence;
+
+  /// Load of the last weeks per player (step 10f2): 1 is a full load,
+  /// missing means none.
+  final Map<PlayerId, double> load;
 
   /// When true the assistant makes substitutions during the match.
   final bool autoManage;

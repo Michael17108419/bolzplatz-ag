@@ -1735,6 +1735,22 @@ class MatchReportPage extends ConsumerWidget {
             e.type == MatchEventType.redCard)
           e,
     ];
+    // Marks of the own players, best first (step 10f2).
+    final homePlayers = {
+      for (final p in loaded.world.players)
+        if (p.clubId == home) p.id,
+    };
+    final ownPlayers = {
+      for (final p in loaded.world.players)
+        if (p.clubId == career.clubId) p.id,
+    };
+    final marks =
+        matchRatings(
+            result,
+            loaded.rules.season.condition,
+            homePlayers: homePlayers,
+          ).entries.where((e) => ownPlayers.contains(e.key)).toList()
+          ..sort((x, y) => y.value.compareTo(x.value));
     final h = result.homeStats;
     final a = result.awayStats;
     final stats = [
@@ -1894,6 +1910,20 @@ class MatchReportPage extends ConsumerWidget {
                   Text(
                     "${inj.minute}'  ${_listName(loaded, inj.player)} – "
                     '${s.matchInjuryLine(inj.days)}',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                if (marks.isNotEmpty)
+                  Row(
+                    children: [
+                      head(s.reportMarks),
+                      InfoButton(message: s.infoReportMarks),
+                    ],
+                  ),
+                for (final m in marks)
+                  Text(
+                    '${markOf(m.value).toStringAsFixed(1).replaceAll('.', ',')}  '
+                    '${_listName(loaded, m.key)}',
+                    key: ValueKey('report-mark-${m.key.value}'),
                     overflow: TextOverflow.ellipsis,
                   ),
                 head(s.matchReportStats),

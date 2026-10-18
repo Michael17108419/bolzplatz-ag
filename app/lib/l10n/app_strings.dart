@@ -320,6 +320,13 @@ abstract interface class AppStrings {
   String get profileNoContract;
   String get profileForm;
   String get profileFormNone;
+  String conditionLine({
+    required double form,
+    required double confidence,
+    required double load,
+  });
+  String get reportMarks;
+  String get infoReportMarks;
   String get infoProfileOverall;
   String get infoProfileRole;
   String get infoProfileAbilities;
@@ -1922,6 +1929,47 @@ class AppStringsDe implements AppStrings {
   @override
   String get profileForm => 'Form und Stimmung';
   @override
+  String conditionLine({
+    required double form,
+    required double confidence,
+    required double load,
+  }) {
+    final f = form >= 62
+        ? 'stark'
+        : form >= 54
+        ? 'gut'
+        : form >= 46
+        ? 'normal'
+        : form >= 38
+        ? 'schwach'
+        : 'im Keller';
+    final c = confidence >= 70
+        ? 'strotzt vor Selbstvertrauen'
+        : confidence >= 58
+        ? 'selbstbewusst'
+        : confidence >= 42
+        ? 'normal'
+        : confidence >= 30
+        ? 'verunsichert'
+        : 'am Boden';
+    final l = load >= 1.1
+        ? 'überlastet'
+        : load >= 0.75
+        ? 'hoch'
+        : load >= 0.4
+        ? 'normal'
+        : 'frisch';
+    return 'Form: $f · Selbstvertrauen: $c · Belastung: $l';
+  }
+  @override
+  String get reportMarks => 'Noten';
+  @override
+  String get infoReportMarks =>
+      'Noten wie in der Zeitung, von 1 (Weltklasse) bis 6 (bitte nie wieder). '
+      'Sie kommen aus Toren, Vorlagen, Zweikämpfen, Paraden, Fehlern, Karten '
+      'und dem Ergebnis. Wer kürzer als eine Viertelstunde spielt, bekommt '
+      'keine Note. Die Noten machen die Form der Spieler.';
+  @override
   String get profileFormNone =>
       'Noch kein Spiel gespielt. Gute Laune ist also reine Theorie.';
   @override
@@ -1939,8 +1987,10 @@ class AppStringsDe implements AppStrings {
       'sie sind. Mehr als vier hat niemand, und höchstens eine ist Gold.';
   @override
   String get infoProfileForm =>
-      'Wie gut es ihm gerade läuft und wie er drauf ist. Kommt, sobald du '
-      'das erste Spiel hinter sich haben.';
+      'Form kommt aus den Noten der letzten Spiele und wirkt auf die Tagesform. '
+      'Selbstvertrauen springt mit Toren, Paraden und Fehlern und wirkt auf '
+      'Abschlüsse und mutige Aktionen. Belastung sind die Minuten der letzten '
+      'Wochen: wer zu viel spielt, verletzt sich leichter. Rotation hilft.';
   @override
   String get valuesHint => 'Alle Werte von 1 bis 100';
   @override

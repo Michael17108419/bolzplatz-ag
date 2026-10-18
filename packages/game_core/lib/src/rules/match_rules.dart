@@ -485,6 +485,23 @@ class CounterRules {
 
 /// How hidden character traits work in the match (engine 2). A trait
 /// counts as (value - [reference]) / [scale], limited to -1 and 1.
+/// Confidence in the match (engine 2, step 10f2): it lifts finishing and
+/// bold actions and moves with what a player does on the day.
+class ConfidenceRules {
+  const ConfidenceRules(this._v);
+
+  factory ConfidenceRules.fromJson(Map<String, dynamic> m) => ConfidenceRules(
+    Map.unmodifiable({
+      for (final e in m.entries) e.key: (e.value as num).toDouble(),
+    }),
+  );
+
+  final Map<String, double> _v;
+
+  /// A value by key (`shot`, `goal`, `big_miss` …), 0 if missing.
+  double operator [](String key) => _v[key] ?? 0;
+}
+
 /// Short absences by the Laws 2026/27 (engine 2, step 10e6): a player
 /// treated on the pitch stays off for a minute (not the keeper), and a
 /// substitution that takes longer than ten seconds makes the new man wait a
@@ -1121,6 +1138,7 @@ class MatchRules {
     required this.crowd,
     required this.weather,
     required this.treatment,
+    required this.confidence,
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -1315,6 +1333,9 @@ class MatchRules {
       treatment: TreatmentRules.fromJson(
         m['treatment'] as Map<String, dynamic>,
       ),
+      confidence: ConfidenceRules.fromJson(
+        m['confidence'] as Map<String, dynamic>,
+      ),
     );
     result._validate();
     return result;
@@ -1501,4 +1522,7 @@ class MatchRules {
 
   /// A minute off after treatment, the ten-second change (step 10e6).
   final TreatmentRules treatment;
+
+  /// Confidence in the match (step 10f2).
+  final ConfidenceRules confidence;
 }

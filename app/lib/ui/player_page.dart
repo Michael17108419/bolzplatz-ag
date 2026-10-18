@@ -409,7 +409,24 @@ class _OverviewTab extends ConsumerWidget {
           theme,
           s.profileForm,
           s.infoProfileForm,
-          Text(s.profileFormNone),
+          Builder(
+            builder: (context) {
+              final game = ref.watch(seasonProvider);
+              final today = ref.watch(todayProvider);
+              if (game == null || today == null) {
+                return Text(s.profileFormNone);
+              }
+              final r = game.runner;
+              return Text(
+                s.conditionLine(
+                  form: r.formOf(p.id),
+                  confidence: r.confidenceOf(p.id),
+                  load: r.loadOf(p.id, today.epochDay),
+                ),
+                key: const ValueKey('player-condition'),
+              );
+            },
+          ),
         ),
       ],
     );

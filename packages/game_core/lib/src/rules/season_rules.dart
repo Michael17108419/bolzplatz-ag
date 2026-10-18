@@ -73,6 +73,7 @@ class SeasonRules {
     required this.review,
     required this.court,
     required this.cabin,
+    required this.condition,
   });
 
   factory SeasonRules.fromJson(Map<String, dynamic> m) => SeasonRules(
@@ -86,6 +87,9 @@ class SeasonRules {
     review: ReviewRules.fromJson(m['review'] as Map<String, dynamic>),
     court: CourtRules.fromJson(m['court'] as Map<String, dynamic>),
     cabin: CabinRules.fromJson(m['cabin'] as Map<String, dynamic>),
+    condition: ConditionRules.fromJson(
+      m['condition'] as Map<String, dynamic>,
+    ),
   );
 
   /// One matchday stands for this many days of recovery.
@@ -107,6 +111,46 @@ class SeasonRules {
 
   /// Types and the dressing room (engine 2, step 10f1).
   final CabinRules cabin;
+
+  /// Form, confidence, load and match ratings (engine 2, step 10f2).
+  final ConditionRules condition;
+}
+
+/// How a player's condition moves from match to match (engine 2, step
+/// 10f2): a rating per match from what he did (`rating_*`, 0 to 10 around
+/// [ratingBase]), form as a running mean of the ratings, confidence that
+/// jumps with the rating and settles back, and the load of the last weeks
+/// that makes injuries likelier.
+class ConditionRules {
+  const ConditionRules(this._v);
+
+  factory ConditionRules.fromJson(Map<String, dynamic> m) {
+    final v = <String, double>{};
+    for (final e in m.entries) {
+      final raw = e.value;
+      if (raw is! num) throw RulesError('season.condition.${e.key} invalid');
+      v[e.key] = raw.toDouble();
+    }
+    for (final k in [
+      'form_weight',
+      'rating_to_form',
+      'confidence_from_rating',
+      'confidence_decay',
+      'load_half_days',
+      'load_reference',
+      'load_injury',
+      'min_minutes_rating',
+      'rating_base',
+    ]) {
+      if (!v.containsKey(k)) throw RulesError('season.condition.$k missing');
+    }
+    return ConditionRules(Map.unmodifiable(v));
+  }
+
+  final Map<String, double> _v;
+
+  /// A value by key (`rating_goal`, `load_injury` …), 0 if missing.
+  double operator [](String key) => _v[key] ?? 0;
 }
 
 /// Thresholds of the types and numbers of the dressing room (engine 2,

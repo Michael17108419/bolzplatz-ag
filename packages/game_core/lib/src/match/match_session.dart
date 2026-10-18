@@ -49,6 +49,9 @@ class _Slot {
   /// Factor of a counter player on the ball during a counter attack.
   double counterMult = 1;
 
+  /// Confidence 0 to 100 (step 10f2): moves with what he does on the day.
+  double conf = 50;
+
   /// Forgets the cached values after the place or role changed.
   void reset() {
     base.clear();
@@ -447,6 +450,10 @@ class MatchSession {
     return _sides[side].team.fitness[id] ?? 100.0;
   }
 
+  /// Confidence (0 to 100) of a player of [side] now (step 10f2).
+  double confidenceOf(int side, PlayerId id) =>
+      _slotOf(side, id)?.conf ?? _sides[side].team.confidence[id] ?? 50;
+
   /// Form (0 to 100) of a player of [side].
   double formOf(int side, PlayerId id) =>
       _sides[side].team.form[id] ?? _m.defaultForm;
@@ -566,6 +573,7 @@ class MatchSession {
     for (final t in CharacterTrait.values) {
       slot.tx[t.index] = _trait(player, t);
     }
+    slot.conf = side.team.confidence[player.id] ?? 50;
     slot.counterMult = _abilityMult(
       player,
       const [SpecialAbilityType.counterPlayer],
@@ -1321,6 +1329,21 @@ class MatchSession {
     _resolveAdvantage(_goalsHome + _goalsAway > goalsBefore);
   }
 
+  /// The place of [id] on the pitch of side [i], null if he is not there.
+  _Slot? _slotOf(int i, PlayerId? id) {
+    if (id == null) return null;
+    for (final s in _sides[i].pitch) {
+      if (s.player.id == id) return s;
+    }
+    return null;
+  }
+
+  /// Moves the confidence of [s] by [delta] (step 10f2).
+  void _boost(_Slot? s, double delta) {
+    if (s == null) return;
+    s.conf = (s.conf + delta).clamp(0.0, 100.0);
+  }
+
   /// What weather and ground do to a step of [action] (engine 2, step
   /// 10e5): rain, snow and a bad ground make technical play harder, wind
   /// makes long balls and crosses less sure.
@@ -1556,7 +1579,10 @@ class MatchSession {
                   action.risk *
                   creative *
                   duel *
-                  _conditions(action.id))
+                  _conditions(action.id) *
+                  (action.id == 'dribble' || action.id == 'through_ball'
+                      ? 1 + _m.confidence['bold'] * (carrier.conf - 50) / 50
+                      : 1.0))
               .limit(z.stepMin, z.stepMax);
       final roll = _rng.nextDouble();
       final won = roll < p;
@@ -1649,6 +1675,8 @@ class MatchSession {
     final c = _m.counter;
     final winner = _sides[o];
     winner.stats.ballsWon++;
+    _boost(tackler, _m.confidence['ball_won']);
+    _boost(carrier, -_m.confidence['ball_lost']);
     const last = ZoneRules.columns - 1;
     if (c.fromColumns.contains(column) &&
         _rng.nextDouble() < c.chanceFor(winner.sheet.systemId)) {
@@ -1939,10 +1967,16 @@ class MatchSession {
   }) {
     final attacker = _sides[t];
     attacker.stats.shots++;
-    // Wind makes shots from distance less sure (engine 2, step 10e5).
-    final goalProbability = typeId == 'long_shot' && setting.weather == 'wind'
-        ? baseGoal * _m.weather.windLongShot
-        : baseGoal;
+    // Wind makes shots from distance less sure (engine 2, step 10e5), a
+    // confident shooter finishes better (step 10f2).
+    final shooterSlot = _slotOf(t, shooter.id);
+    final conf = shooterSlot?.conf ?? 50;
+    final goalProbability =
+        ((typeId == 'long_shot' && setting.weather == 'wind'
+                    ? baseGoal * _m.weather.windLongShot
+                    : baseGoal) *
+                (1 + _m.confidence['shot'] * (conf - 50) / 50))
+            .limit(0.0, 0.97);
     final ShotOutcome outcome;
     final r = _rng.nextDouble();
     if (r < goalProbability) {
@@ -2026,6 +2060,19 @@ class MatchSession {
           ?.player,
       review: review,
     );
+    // Confidence after the shot (step 10f2).
+    final cr = _m.confidence;
+    final keeperSlot = _sides[1 - t].pitch
+        .where((s) => s.position.isGoalkeeper)
+        .firstOrNull;
+    if (counts) {
+      _boost(shooterSlot, cr['goal']);
+      _boost(_slotOf(t, assister?.id), cr['assist']);
+      _boost(keeperSlot, -cr['conceded']);
+    } else {
+      if (quality == ChanceQuality.big) _boost(shooterSlot, -cr['big_miss']);
+      if (outcome == ShotOutcome.saved) _boost(keeperSlot, cr['save']);
+    }
   }
 
   /// How hard a goal against hits [side]: a strong captain on the pitch
@@ -2272,6 +2319,9 @@ class MatchSession {
     }
     _add(MatchEventType.penalty, t, player: taker, review: review);
     _shot(t, taker, 'close_range', null, goal.limit(0.2, 0.95));
+    if (!_events.last.isGoal) {
+      _boost(_slotOf(t, taker.id), -_m.confidence['penalty_miss']);
+    }
   }
 
   // -------------------------------------------------- cards and injuries
@@ -2398,7 +2448,10 @@ class MatchSession {
             _m.injuryPerPlayerMinute *
             _rate *
             proneness *
-            (1 + _m.injuryFatigueFactor * (1 - s.energy / 100));
+            (1 + _m.injuryFatigueFactor * (1 - s.energy / 100)) *
+            (1 +
+                rules.season.condition['load_injury'] *
+                    (side.team.load[s.player.id] ?? 0));
         if (_rng.nextDouble() < chance) _injure(i, s);
       }
     }
@@ -2424,6 +2477,7 @@ class MatchSession {
     _halfCards++;
     final side = _sides[i];
     final id = s.player.id;
+    _boost(s, -_m.confidence['card']);
     final count = (side.yellows[id] ?? 0) + 1;
     // A clearly wrong second yellow: the VAR takes it back (IFAB 2026/27).
     String? review;

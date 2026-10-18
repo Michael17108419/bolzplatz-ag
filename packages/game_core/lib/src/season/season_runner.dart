@@ -19,6 +19,7 @@ import '../pyramid/pyramid.dart';
 import '../result/result.dart';
 import '../rng/seeded_random.dart';
 import '../rules/rules.dart';
+import '../squad/ratings.dart';
 import 'conference.dart';
 import 'court.dart';
 import 'cup.dart';
@@ -311,6 +312,59 @@ class SeasonRunner {
   /// Cases of the sports court this season (engine 2, step 10e3).
   late List<CourtCase> _cases;
 
+  /// Form, confidence and load of every player this season (engine 2,
+  /// step 10f2), and the day the load was last brought up to date.
+  Map<PlayerId, double> _playerForm = {};
+  Map<PlayerId, double> _confidence = {};
+  Map<PlayerId, double> _load = {};
+  Map<PlayerId, int> _loadDay = {};
+
+  /// Form of a player, 0 to 100 (50 average).
+  double formOf(PlayerId p) => _playerForm[p] ?? rules.match.defaultForm;
+
+  /// Confidence of a player, 0 to 100 (50 normal).
+  double confidenceOf(PlayerId p) => _confidence[p] ?? 50;
+
+  /// Load of a player on [epochDay]: 1 is a full load of the last weeks.
+  double loadOf(PlayerId p, int epochDay) {
+    final c = rules.season.condition;
+    final v = _load[p] ?? 0;
+    final since = epochDay - (_loadDay[p] ?? epochDay);
+    final decayed = v * math.pow(0.5, since / c['load_half_days']).toDouble();
+    return (decayed / c['load_reference']).clamp(0.0, 3.0);
+  }
+
+  /// After a match: ratings move form and confidence, minutes add load.
+  void _condition(ClubId home, ClubId away, MatchResult r) {
+    final c = rules.season.condition;
+    final homePlayers = {for (final p in _state.squads[home]!) p.id};
+    final ratings = matchRatings(r, c, homePlayers: homePlayers);
+    final base = c['rating_base'];
+    for (final e in ratings.entries) {
+      final target = 50 + (e.value - base) * c['rating_to_form'];
+      final f = formOf(e.key);
+      _playerForm[e.key] = (f + c['form_weight'] * (target - f)).clamp(
+        0.0,
+        100.0,
+      );
+      _confidence[e.key] =
+          (confidenceOf(e.key) + (e.value - base) * c['confidence_from_rating'])
+              .clamp(0.0, 100.0);
+    }
+    for (final club in [home, away]) {
+      for (final p in _state.squads[club]!) {
+        final conf = confidenceOf(p.id);
+        _confidence[p.id] = conf + (50 - conf) * c['confidence_decay'];
+      }
+    }
+    for (final e in r.minutesPlayed.entries) {
+      if (e.value <= 0) continue;
+      final now = loadOf(e.key, _today) * c['load_reference'];
+      _load[e.key] = now + e.value;
+      _loadDay[e.key] = _today;
+    }
+  }
+
   /// Clubs of human managers: their cases wait for a decision.
   Set<ClubId> _humans = const {};
   late Map<String, int> _cardsByCompetition;
@@ -396,13 +450,14 @@ class SeasonRunner {
       _sheets[club] = sheet;
       _sheetKey[club] = key;
     }
-    final form = _form[club] ?? rules.match.defaultForm;
     return MatchTeam(
       clubId: club,
       name: _state.clubs[club]!.name,
       squad: squad,
       sheet: sheet,
-      form: {for (final p in squad) p.id: form},
+      form: {for (final p in squad) p.id: formOf(p.id)},
+      confidence: {for (final p in squad) p.id: confidenceOf(p.id)},
+      load: {for (final p in squad) p.id: loadOf(p.id, _today)},
     );
   }
 
@@ -535,6 +590,7 @@ class SeasonRunner {
   }) {
     _lastMatch[home] = _today;
     _lastMatch[away] = _today;
+    _condition(home, away, r);
     // A club that plays serves one match of every ban it has in this
     // competition (before new cards of this match count).
     for (final club in [home, away]) {
@@ -632,6 +688,10 @@ class SeasonRunner {
     _bannedUntil = {};
     _cases = [];
     _lastMatch = {};
+    _playerForm = {};
+    _confidence = {};
+    _load = {};
+    _loadDay = {};
     _state = state;
     _seed = seed;
     _form = {};
@@ -858,6 +918,8 @@ class SeasonRunner {
               squad: base.squad,
               sheet: usable ? sheet : base.sheet,
               form: base.form,
+              confidence: base.confidence,
+              load: base.load,
               autoManage: false,
             );
           }
@@ -1026,6 +1088,8 @@ class SeasonRunner {
             squad: base.squad,
             sheet: usable ? sheet : base.sheet,
             form: base.form,
+            confidence: base.confidence,
+            load: base.load,
             autoManage: false,
           );
         }
