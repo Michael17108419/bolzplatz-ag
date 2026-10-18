@@ -43,8 +43,8 @@ void main() {
     ];
   });
 
-  MatchSession make(int i, {Rules? with_}) => MatchSession(
-    rules: with_ ?? rules,
+  MatchSession make(int i, {Rules? using}) => MatchSession(
+    rules: using ?? rules,
     home: tier1[i % tier1.length],
     away: tier1[(i * 7 + 3) % tier1.length],
     seed: 6600 + i,
@@ -104,8 +104,8 @@ void main() {
       );
       if (ghost.isEmpty) continue;
       games++;
-      int diff(List<PlanFocus> plan, {Rules? with_}) {
-        final s = make(i, with_: with_)..setPlan(0, plan);
+      int diff(List<PlanFocus> plan, {Rules? using}) {
+        final s = make(i, using: using)..setPlan(0, plan);
         final r = s.finish();
         return r.homeGoals - r.awayGoals;
       }
@@ -113,8 +113,8 @@ void main() {
       hit += diff([real.first.focus]);
       none += diff(const []);
       miss += diff([ghost.first]);
-      strongHit += diff([real.first.focus], with_: strong);
-      strongMiss += diff([ghost.first], with_: strong);
+      strongHit += diff([real.first.focus], using: strong);
+      strongMiss += diff([ghost.first], using: strong);
     }
     stdout.writeln(
       'PLAN-REPORT goal difference hit=$hit none=$none miss=$miss '
