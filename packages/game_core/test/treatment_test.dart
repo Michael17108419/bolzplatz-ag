@@ -66,7 +66,10 @@ void main() {
               ? e.homeGoals - e.awayGoals
               : e.awayGoals - e.homeGoals;
           expect(lead, greaterThan(0));
-          expect(e.minute, greaterThanOrEqualTo(rules.match.timeWasting.fromMinute));
+          expect(
+            e.minute,
+            greaterThanOrEqualTo(rules.match.timeWasting.fromMinute),
+          );
         }
       }
     }
