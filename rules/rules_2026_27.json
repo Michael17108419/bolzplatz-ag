@@ -1839,7 +1839,7 @@
     "home_advantage": 1.02,
     "possession_exponent": 1.0,
     "breakthrough": {
-      "base": 0.15,
+      "base": 0.165,
       "exponent": 1.2,
       "min": 0.04,
       "max": 0.6
@@ -2330,7 +2330,7 @@
       "home_bias_penalties": 0.2,
       "foul_chance": 0.35,
       "foul_aggression": 0.5,
-      "dogso_share": 0.025,
+      "dogso_share": 0.015,
       "box_penalty_share": 0.05,
       "advantage_base": 0.3,
       "advantage_trait": 0.5,
@@ -2338,7 +2338,7 @@
       "free_kick_minute_share": 0.6,
       "penalty_minute_share": 0.6,
       "yellow_minute_share": 0.75,
-      "red_minute_share": 0.7,
+      "red_minute_share": 0.4,
       "dissent_chance": 0.06,
       "dissent_temper": 0.8,
       "dissent_card": 0.35,
