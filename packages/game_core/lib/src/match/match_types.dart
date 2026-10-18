@@ -1,4 +1,5 @@
 import '../model/ids.dart';
+import 'team_sheet.dart';
 
 enum MatchEventType {
   kickOff,
@@ -69,6 +70,29 @@ enum MatchEventType {
   /// kind (`calm`, `fire`, `praise`), [MatchEvent.value] how it landed (1
   /// well, 0 flat, -1 badly).
   teamTalk,
+
+  /// The match plan of a team (engine 2, step 10g2), set before kick-off:
+  /// [MatchEvent.action] the focus points joined by commas.
+  matchPlan,
+}
+
+/// A focus point of the match plan (engine 2, step 10g2): attack their weak
+/// side, press their build-up, counter their high line, shoot from
+/// distance at a weak keeper, keep the ball on the ground against tall
+/// defenders, stop their key player.
+enum PlanFocus { weakSide, pressHigh, counter, longShots, avoidAir, stopKey }
+
+/// One observation of the assistant about the opponent (step 10g2). [real]
+/// says whether it is true; a weak coach also sees things that are not
+/// there. [wing] is the side to attack for [PlanFocus.weakSide], [player]
+/// the key man for [PlanFocus.stopKey].
+class ScoutNote {
+  const ScoutNote(this.focus, {required this.real, this.wing, this.player});
+
+  final PlanFocus focus;
+  final bool real;
+  final Wing? wing;
+  final PlayerId? player;
 }
 
 /// What the coach says in the dressing room (engine 2, step 10f3): calm

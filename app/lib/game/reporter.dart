@@ -374,6 +374,11 @@ class Reporter {
         _say(out, e, TickerKind.colour, [
           'talk.${e.action}.$how.${_who(e.side)}',
         ]);
+      case MatchEventType.matchPlan:
+        final first = (e.action ?? '').split(',').first;
+        _say(out, e, TickerKind.colour, [
+          if (e.side == ownSide) 'plan.$first.own' else 'plan.opp',
+        ]);
       case MatchEventType.shootoutKick:
         break;
     }

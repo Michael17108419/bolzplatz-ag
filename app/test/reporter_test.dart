@@ -179,6 +179,8 @@ void main() {
           for (final w in sides) 'talk.$k.$h.$w',
       for (final k in ['deep', 'chase', 'hold', 'open', 'ten', 'panic'])
         for (final w in sides) 'coach.$k.$w',
+      for (final f in PlanFocus.values) 'plan.${f.name}.own',
+      'plan.opp',
     ];
     for (final key in needed) {
       expect(strings.texts(key), isNotEmpty, reason: key);

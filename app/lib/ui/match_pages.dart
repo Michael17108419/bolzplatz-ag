@@ -190,11 +190,22 @@ class MatchPreviewPage extends ConsumerWidget {
             ),
           if (own.session != null) ...[
             const SizedBox(height: Tokens.gapS),
-            Center(
-              child: TeamTalkButton(
-                session: own.session!,
-                side: atHome ? 0 : 1,
-              ),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                MatchPlanButton(
+                  session: own.session!,
+                  side: atHome ? 0 : 1,
+                  tactics: ref
+                      .watch(careerProvider)!
+                      .trainer[ManagerValue.tacticalKnowledge],
+                  seed: game.seed ^ (home.value * 1009 + away.value),
+                  playerName: (id) => _shortName(loaded, id),
+                ),
+                TeamTalkButton(session: own.session!, side: atHome ? 0 : 1),
+              ],
             ),
           ],
           const SizedBox(height: Tokens.gapM),
@@ -944,6 +955,130 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The opponent analysis and the match plan before kick-off (engine 2,
+/// step 10g2): what the assistant sees, and up to two focus points.
+class MatchPlanButton extends ConsumerStatefulWidget {
+  const MatchPlanButton({
+    required this.session,
+    required this.side,
+    required this.tactics,
+    required this.seed,
+    required this.playerName,
+    super.key,
+  });
+
+  final MatchSession session;
+  final int side;
+  final double tactics;
+  final int seed;
+  final String Function(PlayerId id) playerName;
+
+  @override
+  ConsumerState<MatchPlanButton> createState() => _MatchPlanButtonState();
+}
+
+class _MatchPlanButtonState extends ConsumerState<MatchPlanButton> {
+  final Set<PlanFocus> _chosen = {};
+  bool _set = false;
+
+  Future<void> _open() async {
+    final s = ref.read(stringsProvider);
+    final notes = widget.session.scout(
+      widget.side,
+      tactics: widget.tactics,
+      seed: widget.seed,
+    );
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) => StatefulBuilder(
+        builder: (context, setSheet) {
+          final theme = Theme.of(context);
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(Tokens.gapM),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          s.matchPlanTitle,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                      InfoButton(message: s.infoMatchPlan),
+                    ],
+                  ),
+                  const SizedBox(height: Tokens.gapS),
+                  Text(s.scoutTitle, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 4),
+                  if (notes.isEmpty)
+                    Text(s.scoutNone)
+                  else
+                    for (final n in notes)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          '• ${s.scoutNote(n.focus, wing: n.wing, player: n.player == null ? null : widget.playerName(n.player!))}',
+                          key: ValueKey('scout-${n.focus.name}'),
+                        ),
+                      ),
+                  const SizedBox(height: Tokens.gapM),
+                  Text(s.matchPlanPick, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final f in PlanFocus.values)
+                        FilterChip(
+                          key: ValueKey('plan-${f.name}'),
+                          label: Text(s.planFocusName(f)),
+                          selected: _chosen.contains(f),
+                          onSelected: (on) {
+                            if (on && _chosen.length >= 2) return;
+                            setSheet(() {
+                              on ? _chosen.add(f) : _chosen.remove(f);
+                            });
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: Tokens.gapM),
+                  FilledButton(
+                    key: const ValueKey('plan-confirm'),
+                    onPressed: () => Navigator.of(sheet).pop(),
+                    child: Text(s.matchPlanConfirm),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (!mounted || _chosen.isEmpty) return;
+    widget.session.setPlan(widget.side, _chosen.toList());
+    setState(() => _set = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_set || widget.session.minute > 0) return const SizedBox.shrink();
+    final s = ref.watch(stringsProvider);
+    return OutlinedButton.icon(
+      key: const ValueKey('match-plan'),
+      onPressed: _open,
+      icon: const Icon(Icons.assignment),
+      label: Text(s.matchPlanButton),
     );
   }
 }

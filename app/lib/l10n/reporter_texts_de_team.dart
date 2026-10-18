@@ -164,4 +164,37 @@ const Map<String, List<String>> reporterTeamDe = {
     "Gelb für {p}, der wollte den Ball am liebsten mit nach Hause nehmen.",
     "Endlich! Gelb wegen Zeitspiel für {p}. Das hat gedauert.",
   ],
+
+  // ------------------------------------------------------------ match plan
+  "plan.weakSide.own": [
+    "Unser Trainer hat den Gegner studiert: Heute geht's über deren "
+        "schwache Seite.",
+    "Der Plan steht: Wir suchen die Schwachstelle auf der Außenbahn.",
+  ],
+  "plan.pressHigh.own": [
+    "Der Plan: hoch anlaufen, deren Aufbau zerstören, bevor er beginnt.",
+    "Unser Trainer will Pressing. Die Innenverteidiger drüben sollen "
+        "schwitzen.",
+  ],
+  "plan.counter.own": [
+    "Der Plan ist klar: lauern und dann schnell durch die Mitte kontern.",
+    "Unser Trainer setzt auf Konter. Die stehen hoch, das soll weh tun.",
+  ],
+  "plan.longShots.own": [
+    "Ansage aus der Kabine: Schießt aus der Distanz, deren Torwart wackelt.",
+    "Der Plan: Fernschüsse. Mal sehen, ob der Keeper drüben wirklich so "
+        "unsicher ist.",
+  ],
+  "plan.avoidAir.own": [
+    "Flach spielen ist heute Pflicht, die drüben sind Kopfballmonster.",
+    "Der Plan: keine hohen Bälle, alles am Boden.",
+  ],
+  "plan.stopKey.own": [
+    "Unser Trainer hat einen Mann im Visier: deren Bester soll heute keinen "
+        "Stich machen.",
+    "Der Plan: den Schlüsselspieler drüben aus dem Spiel nehmen.",
+  ],
+  "plan.opp": [
+    "Drüben hat man sich auch was überlegt. Ob's ein guter Plan ist?",
+  ],
 };

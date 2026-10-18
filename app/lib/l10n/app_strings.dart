@@ -329,6 +329,15 @@ abstract interface class AppStrings {
   String moodName(double mood);
   String get lineupChemistry;
   String get lineupInstruction;
+  String get matchPlanButton;
+  String get matchPlanTitle;
+  String get infoMatchPlan;
+  String get scoutTitle;
+  String get scoutNone;
+  String scoutNote(PlanFocus focus, {Wing? wing, String? player});
+  String get matchPlanPick;
+  String get matchPlanConfirm;
+  String planFocusName(PlanFocus focus);
   String get infoInstructions;
   String get instructionNone;
   String instructionName(PlayerInstruction i);
@@ -2007,6 +2016,53 @@ class AppStringsDe implements AppStrings {
   String get lineupChemistry => 'Eingespielt';
   @override
   String get lineupInstruction => 'Anweisung';
+  @override
+  String get matchPlanButton => 'Matchplan';
+  @override
+  String get matchPlanTitle => 'Gegneranalyse und Matchplan';
+  @override
+  String get infoMatchPlan =>
+      'Dein Assistent schaut sich den Gegner an. Je mehr Taktikwissen du '
+      'hast, desto mehr sieht er, und desto seltener sieht er Gespenster. '
+      'Wähle bis zu zwei Schwerpunkte. Trifft einer eine echte Schwäche, '
+      'laufen die passenden Aktionen etwa 5 % besser. Ist da keine Schwäche, '
+      'kostet es etwa 2 %. Festgelegt wird vor dem Anpfiff.';
+  @override
+  String get scoutTitle => 'Was der Assistent sieht';
+  @override
+  String get scoutNone =>
+      'Nichts Auffälliges. Oder er hat nicht richtig hingeschaut.';
+  @override
+  String scoutNote(PlanFocus focus, {Wing? wing, String? player}) =>
+      switch (focus) {
+        PlanFocus.weakSide => wing == Wing.right
+            ? 'Ihr Linksverteidiger ist die Schwachstelle. Über rechts geht was.'
+            : 'Ihr Rechtsverteidiger ist die Schwachstelle. Über links geht was.',
+        PlanFocus.pressHigh =>
+          'Ihr Spielaufbau ist wacklig. Wer hoch presst, erbt Bälle.',
+        PlanFocus.counter =>
+          'Hinten stehen sie hoch oder sind langsam. Konter tun weh.',
+        PlanFocus.longShots =>
+          'Ihr Torwart ist kein Fels. Fernschüsse probieren.',
+        PlanFocus.avoidAir =>
+          'In der Luft sind sie stark. Flanken bringen nichts.',
+        PlanFocus.stopKey => player == null
+            ? 'Bei ihnen läuft alles über einen Mann.'
+            : 'Bei ihnen läuft alles über $player.',
+      };
+  @override
+  String get matchPlanPick => 'Schwerpunkte (bis zu zwei)';
+  @override
+  String get matchPlanConfirm => 'Plan festlegen';
+  @override
+  String planFocusName(PlanFocus focus) => switch (focus) {
+    PlanFocus.weakSide => 'Über die schwache Seite',
+    PlanFocus.pressHigh => 'Aufbau anlaufen',
+    PlanFocus.counter => 'Konter',
+    PlanFocus.longShots => 'Fernschüsse',
+    PlanFocus.avoidAir => 'Flach spielen',
+    PlanFocus.stopKey => 'Schlüsselspieler stoppen',
+  };
   @override
   String get infoInstructions =>
       'Eine Anweisung pro Spieler, sie bleibt bei ihm, auch auf einem anderen '

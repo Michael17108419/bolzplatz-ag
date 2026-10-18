@@ -2478,7 +2478,17 @@
       "wing_other": 0.7,
       "waste_early": 15,
       "waste_factor": 1.6,
-      "waste_yellow": 0.06
+      "waste_yellow": 0.06,
+      "plan_hit": 0.05,
+      "plan_miss": 0.02,
+      "scout_miss": 0.4,
+      "scout_error": 0.35,
+      "scout_weak": 0.92,
+      "scout_build": 0.95,
+      "scout_slow": 62,
+      "scout_keeper": 0.93,
+      "scout_air": 1.1,
+      "scout_key": 1.12
     },
     "treatment": {
       "per_match": 1.5,

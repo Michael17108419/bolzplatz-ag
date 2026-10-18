@@ -157,6 +157,12 @@ class _Side {
   /// their duels (step 10g1).
   Map<PlayerId, double> marked = const {};
 
+  /// The match plan (step 10g2): focus points and whether each hits a real
+  /// weakness, the wing of their weak side, their key player.
+  Map<PlanFocus, bool> plan = const {};
+  Wing? planWing;
+  PlayerId? planKey;
+
   /// The minute (session minutes) up to which the team plays a man short
   /// for a treatment or a slow change (engine 2, step 10e6).
   int shortUntil = -1;
@@ -202,7 +208,12 @@ class SessionAction {
     this.instruction,
     this.wing,
     this.wasteTime,
+    this.plan,
   });
+
+  /// The match plan (step 10g2).
+  factory SessionAction.plan(int minute, int side, List<PlanFocus> plan) =>
+      SessionAction._(minute, side, plan: plan);
 
   /// A team talk (step 10f3).
   factory SessionAction.teamTalk(int minute, int side, TeamTalk talk) =>
@@ -279,6 +290,12 @@ class SessionAction {
           : PlayerInstruction.values.byName(instruction),
       wing: m['wing'] as String?,
       wasteTime: m['waste'] as bool?,
+      plan: m['plan'] == null
+          ? null
+          : [
+              for (final f in m['plan'] as List<dynamic>)
+                PlanFocus.values.byName(f as String),
+            ],
     );
   }
 
@@ -310,6 +327,9 @@ class SessionAction {
   final String? wing;
   final bool? wasteTime;
 
+  /// Set for the match plan.
+  final List<PlanFocus>? plan;
+
   bool get isSubstitution => off != null;
 
   Map<String, dynamic> toJson() => {
@@ -327,11 +347,14 @@ class SessionAction {
     if (instruction != null) 'instruction': instruction!.name,
     if (wing != null) 'wing': wing,
     if (wasteTime != null) 'waste': wasteTime,
+    if (plan != null) 'plan': [for (final f in plan!) f.name],
   };
 
   /// Does the change in [session].
   void applyTo(MatchSession session) {
-    if (handOver) {
+    if (plan != null) {
+      session.setPlan(side, plan!);
+    } else if (handOver) {
       session.handOver(side);
     } else if (talk != null) {
       session.teamTalk(side, talk!);
@@ -1024,8 +1047,11 @@ class MatchSession {
   /// The lanes an attack starts in: by system, more on an overloaded wing
   /// (step 10g1). Lane 0 is the left wing of the attacking team.
   List<double> _lanes(_Side side) {
+    final planned = side.plan.containsKey(PlanFocus.weakSide)
+        ? side.planWing
+        : null;
     final base = _m.zones.lanesFor(side.sheet.systemId);
-    final wing = side.sheet.wing;
+    final wing = side.sheet.wing ?? planned;
     if (wing == null) return base;
     final r = _m.instructions;
     const last = ZoneRules.lanes - 1;
@@ -1822,6 +1848,14 @@ class MatchSession {
       }
       ratio *= _characterDuel(t, carrier, tackler);
       ratio *= defender.marked[carrier.player.id] ?? 1.0;
+      ratio *= _planStep(
+        t,
+        carrier,
+        action.id,
+        column,
+        lane,
+        counter: counter != null,
+      );
       final duel = math
           .pow(ratio, z.duelExponent)
           .toDouble()
@@ -2273,7 +2307,8 @@ class MatchSession {
         ((typeId == 'long_shot' && setting.weather == 'wind'
                     ? baseGoal * _m.weather.windLongShot
                     : baseGoal) *
-                (1 + _m.confidence['shot'] * (conf - 50) / 50))
+                (1 + _m.confidence['shot'] * (conf - 50) / 50) *
+                (typeId == 'long_shot' ? _plan(t, PlanFocus.longShots) : 1.0))
             .limit(0.0, 0.97);
     final ShotOutcome outcome;
     final r = _rng.nextDouble();
@@ -3228,6 +3263,185 @@ class MatchSession {
       clearWing: wing == null,
       wasteTime: wasteTime,
     );
+  }
+
+  /// What the assistant sees in the opponent of [side] before kick-off
+  /// (step 10g2). A coach with tactical knowledge [tactics] sees more and
+  /// errs less; the dice come from [seed], so the same match shows the
+  /// same notes.
+  List<ScoutNote> scout(int side, {required double tactics, int seed = 0}) {
+    final r = _m.instructions;
+    final q = (tactics / 100).clamp(0.0, 1.0);
+    final rng = SeededRandom(seed).fork('scout:$side');
+    final notes = <ScoutNote>[];
+    for (final f in PlanFocus.values) {
+      final (real, wing, key) = _weakness(side, f);
+      final roll = rng.nextDouble();
+      if (real) {
+        if (roll < r.get('scout_miss') * (1 - q)) continue;
+      } else if (roll >= r.get('scout_error') * (1 - q)) {
+        continue;
+      }
+      notes.add(ScoutNote(f, real: real, wing: wing, player: key));
+    }
+    final most = (2 + 3 * q).round();
+    return notes.take(most).toList();
+  }
+
+  /// Sets the match plan of [side] before kick-off: up to two focus points
+  /// (step 10g2). Each that hits a real weakness of the opponent helps the
+  /// actions it is about; one that does not costs a little.
+  void setPlan(int side, List<PlanFocus> plan) {
+    if (_minute != 0 || _finished) return;
+    final s = _sides[side];
+    final chosen = plan.toSet().take(2).toList();
+    _actions.add(SessionAction.plan(_minute, side, chosen));
+    final map = <PlanFocus, bool>{};
+    for (final f in chosen) {
+      final (real, wing, key) = _weakness(side, f);
+      map[f] = real;
+      if (f == PlanFocus.weakSide) s.planWing = wing;
+      if (f == PlanFocus.stopKey) s.planKey = key;
+    }
+    s.plan = map;
+    if (chosen.isNotEmpty) {
+      _add(
+        MatchEventType.matchPlan,
+        side,
+        action: [for (final f in chosen) f.name].join(','),
+      );
+    }
+  }
+
+  /// Is [focus] a real weakness of the opponent of [side]? With the wing to
+  /// attack and the key player where it matters.
+  (bool, Wing?, PlayerId?) _weakness(int side, PlanFocus focus) {
+    final r = _m.instructions;
+    final own = _sides[side];
+    final o = _sides[1 - side];
+    final outfield = [
+      for (final s in o.pitch)
+        if (!s.position.isGoalkeeper) s,
+    ];
+    double score(_Slot s) => _fit.slotScore(s.player, s.position);
+    switch (focus) {
+      case PlanFocus.weakSide:
+        final backs = [
+          for (final s in outfield)
+            if (lineOf(s.position) == 1) s,
+        ];
+        final left = backs.where((s) => s.position == Position.lv);
+        final right = backs.where((s) => s.position == Position.rv);
+        if (backs.isEmpty || left.isEmpty || right.isEmpty) {
+          return (false, null, null);
+        }
+        final mean = backs.map(score).reduce((a, b) => a + b) / backs.length;
+        final l = score(left.first);
+        final rr = score(right.first);
+        // Their right back faces our left wing.
+        final wing = rr < l ? Wing.left : Wing.right;
+        return (
+          math.min(l, rr) < r.get('scout_weak', 0.92) * mean,
+          wing,
+          null,
+        );
+      case PlanFocus.pressHigh:
+        final rt = o.ratings;
+        return (
+          rt.build < r.get('scout_build', 0.95) * (rt.attack + rt.defense) / 2,
+          null,
+          null,
+        );
+      case PlanFocus.counter:
+        final centre = [
+          for (final s in outfield)
+            if (s.position == Position.iv) s,
+        ];
+        final pace = centre.isEmpty
+            ? 50.0
+            : centre
+                      .map((s) => s.player.attributes[Attribute.acceleration])
+                      .reduce((a, b) => a + b) /
+                  centre.length;
+        return (
+          o.sheet.defensiveLine == 2 || pace < r.get('scout_slow', 62),
+          null,
+          null,
+        );
+      case PlanFocus.longShots:
+        return (
+          o.ratings.keeper < r.get('scout_keeper', 0.93) * o.ratings.defense,
+          null,
+          null,
+        );
+      case PlanFocus.avoidAir:
+        return (
+          _headerStrength(o, defending: true) >
+              r.get('scout_air', 1.1) * _headerStrength(own),
+          null,
+          null,
+        );
+      case PlanFocus.stopKey:
+        final attackers = [
+          for (final s in outfield)
+            if (lineOf(s.position) >= 2) s,
+        ];
+        if (attackers.isEmpty || outfield.isEmpty) return (false, null, null);
+        attackers.sort((a, b) => score(b).compareTo(score(a)));
+        final best = attackers.first;
+        final mean = outfield.map(score).reduce((a, b) => a + b) /
+            outfield.length;
+        return (
+          score(best) >= r.get('scout_key', 1.12) * mean,
+          null,
+          best.player.id,
+        );
+    }
+  }
+
+  /// The factor of a focus point of [side]: a hit helps, a miss costs, no
+  /// plan is neutral.
+  double _plan(int side, PlanFocus focus) {
+    final real = _sides[side].plan[focus];
+    if (real == null) return 1;
+    final r = _m.instructions;
+    return real ? 1 + r.get('plan_hit') : 1 - r.get('plan_miss');
+  }
+
+  /// The match plan in a step of an attack of side [t] (step 10g2).
+  double _planStep(
+    int t,
+    _Slot carrier,
+    String action,
+    int column,
+    int lane, {
+    required bool counter,
+  }) {
+    final o = 1 - t;
+    final att = _sides[t];
+    final def = _sides[o];
+    var f = 1.0;
+    final wing = att.planWing;
+    if (wing != null &&
+        att.plan.containsKey(PlanFocus.weakSide) &&
+        (wing == Wing.left ? lane <= 1 : lane >= ZoneRules.lanes - 2)) {
+      f *= _plan(t, PlanFocus.weakSide);
+    }
+    if (counter) f *= _plan(t, PlanFocus.counter);
+    if (action == 'short_pass' || action == 'dribble') {
+      f *= _plan(t, PlanFocus.avoidAir);
+    }
+    // The defending side presses their build-up or stops their key man.
+    if (column <= 1) f /= _plan(o, PlanFocus.pressHigh);
+    final key = def.plan[PlanFocus.stopKey];
+    if (key != null) {
+      if (!key) {
+        f /= _plan(o, PlanFocus.stopKey);
+      } else if (carrier.player.id == def.planKey) {
+        f *= 1 - 2 * _m.instructions.get('plan_hit');
+      }
+    }
+    return f;
   }
 
   /// The assistant takes over [side] for the rest of the match (step
