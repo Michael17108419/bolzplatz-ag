@@ -45,8 +45,8 @@ class Development {
     focus: const {},
   );
 
-  /// The player one week later (step 11b): a 52nd of the year, with the
-  /// noise of a week. [focus] moves the growth between the attributes (1
+  /// The player [weeks] weeks later (step 11b): that share of the year,
+  /// with the noise of that time. [focus] moves the growth between the attributes (1
   /// is neutral; training a group makes it grow faster and decline slower)
   /// and [volume] scales it for the amount of training.
   Player week(
@@ -56,12 +56,13 @@ class Development {
     required double minutesShare,
     Map<Attribute, double> focus = const {},
     double volume = 1,
+    int weeks = 1,
   }) => _step(
     p,
     date: date,
     rng: rng,
     minutesShare: minutesShare,
-    fraction: 1 / 52,
+    fraction: weeks / 52,
     focus: focus,
     volume: volume,
   );

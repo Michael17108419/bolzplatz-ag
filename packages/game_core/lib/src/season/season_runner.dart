@@ -759,6 +759,7 @@ class SeasonRunner {
   /// The last week whose development is done, the training points of every
   /// club by week and attribute, the matches every club has played.
   int _devWeek = 0;
+  Map<ClubId, int> _devDone = {};
   Map<ClubId, Map<int, Map<Attribute, double>>> _focusPts = {};
   Map<ClubId, int> _played = {};
 
@@ -784,13 +785,19 @@ class SeasonRunner {
   };
 
   /// Every week that ended before [epochDay]: the training of each club up
-  /// to the end of the week, then every player a week older (step 11b).
-  void _developTo(int epochDay) {
+  /// to the end of the week, then the players older (step 11b). The club of
+  /// the player develops every week; the others every few weeks with the
+  /// training of those weeks together (`dev_ai_weeks`, it saves time and
+  /// gives the same sum). [flush] develops every club up to now (season
+  /// end).
+  void _developTo(int epochDay, {bool flush = false}) {
     final tr = rules.season.training;
     if (tr.units.isEmpty) return;
     final last = _trainingWeekOf(epochDay);
+    final every = math.max(1, tr['dev_ai_weeks'].round());
     while (_devWeek < last) {
       final w = _devWeek;
+      final lastWeek = flush && w == last - 1;
       final end = _seasonStart + 7 * (w + 1);
       // Ages count as at the start of the next season, like the yearly
       // step did, so the sum of a season stays the same.
@@ -799,7 +806,20 @@ class SeasonRunner {
         ..sort((a, b) => a.value.compareTo(b.value));
       for (final club in clubs) {
         _trainUpTo(club, end);
-        final pts = _focusPts[club]?.remove(w) ?? const <Attribute, double>{};
+        final due =
+            _humans.contains(club) || (w + 1) % every == 0 || lastWeek;
+        if (!due) continue;
+        final from = _devDone[club] ?? 0;
+        final weeks = w + 1 - from;
+        _devDone[club] = w + 1;
+        final pts = <Attribute, double>{};
+        for (var k = from; k <= w; k++) {
+          final week = _focusPts[club]?.remove(k);
+          if (week == null) continue;
+          for (final e in week.entries) {
+            pts[e.key] = (pts[e.key] ?? 0) + e.value;
+          }
+        }
         final squad = _squads[club]!;
         final played = _played[club] ?? 0;
         // Focus and volume are the same for all field players of the club
@@ -814,7 +834,7 @@ class SeasonRunner {
             count++;
           }
           final mean = count == 0 ? 0.0 : total / count;
-          final ratio = total / tr['dev_volume_ref'];
+          final ratio = total / weeks / tr['dev_volume_ref'];
           final volume = math
               .pow(ratio, tr['dev_volume_exponent'])
               .toDouble()
@@ -844,6 +864,7 @@ class SeasonRunner {
             minutesShare: minutes,
             focus: focus,
             volume: volume,
+            weeks: weeks,
           );
         }
       }
@@ -1194,6 +1215,7 @@ class SeasonRunner {
       for (final e in state.squads.entries) e.key: List<Player>.of(e.value),
     };
     _devWeek = 0;
+    _devDone = {};
     _focusPts = {};
     _played = {};
     _humans = Set.of({...humanClubs, ...userSheets.keys});
@@ -1820,7 +1842,7 @@ class SeasonRunner {
   SeasonOutcome conclude(SeasonRun run) {
     _state = run.state;
     _seed = run.seed;
-    _developTo(Season(run.state.startYear).end.epochDay + 1);
+    _developTo(Season(run.state.startYear).end.epochDay + 1, flush: true);
     final state = run.state;
     final bolzplatz = run.bolzplatz;
     final pott = run.pott;
