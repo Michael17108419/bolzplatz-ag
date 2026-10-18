@@ -2506,7 +2506,9 @@
       "shout_effect": 0.06,
       "shout_noise": 0.3,
       "shout_shoot": 0.15,
-      "shout_luck": 0.15
+      "shout_luck": 0.15,
+      "system_knowledge": 0.05,
+      "set_pieces": 0.15
     },
     "treatment": {
       "per_match": 1.5,
@@ -2613,6 +2615,15 @@
       "pos_practised_weeks": 8,
       "pos_trained_weeks": 16,
       "role_step_weeks": 6,
+      "tact_start": 60,
+      "tact_other": 35,
+      "tact_floor": 20,
+      "tact_unit": 1.2,
+      "tact_match": 1.5,
+      "tact_decay": 0.5,
+      "sp_start": 50,
+      "sp_unit": 1.0,
+      "sp_decay": 0.3,
       "suggest": {
         "tw": [
           "goalkeeping"

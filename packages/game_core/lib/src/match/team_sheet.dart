@@ -181,6 +181,8 @@ class MatchTeam {
     Map<PlayerId, double> mood = const {},
     this.coach = const CoachProfile(),
     this.chemistry,
+    this.systemKnowledge = const {},
+    this.setPieces = (50, 50),
     this.autoManage = true,
   }) : squad = List.unmodifiable(squad),
        mood = Map.unmodifiable(mood),
@@ -217,6 +219,13 @@ class MatchTeam {
   /// Chemistry of a pair of players, 0 to 1 (step 10f4); null means every
   /// pair is average.
   final double Function(PlayerId a, PlayerId b)? chemistry;
+
+  /// How well the team knows each system, 0 to 100 by system id (step
+  /// 11d); missing means 50.
+  final Map<String, double> systemKnowledge;
+
+  /// Rehearsed set pieces, attacking and defending, 0 to 100 (step 11d).
+  final (double, double) setPieces;
 
   /// When true the assistant makes substitutions during the match.
   final bool autoManage;

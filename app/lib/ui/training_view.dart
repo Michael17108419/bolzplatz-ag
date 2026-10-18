@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_core/game_core.dart';
 
+import '../game/lineup.dart';
 import '../game/loaded_world.dart';
 import '../game/season_game.dart';
 import '../l10n/app_strings.dart';
@@ -50,6 +51,24 @@ class TrainingView extends ConsumerWidget {
             ),
             InfoButton(message: s.infoTraining),
           ],
+        ),
+        Builder(
+          builder: (context) {
+            final sheet = ref.watch(lineupProvider)?.sheet;
+            final knowledge = runner.systemKnowledgeOf(club);
+            final (att, def) = runner.setPiecesOf(club);
+            final system = sheet?.systemId;
+            return Text(
+              s.trainingKnowledge(
+                system == null ? null : s.systemName(system),
+                system == null ? null : knowledge[system]!.round(),
+                att.round(),
+                def.round(),
+              ),
+              key: const ValueKey('training-knowledge'),
+              style: theme.textTheme.bodySmall,
+            );
+          },
         ),
         const SizedBox(height: Tokens.gapS),
         Wrap(

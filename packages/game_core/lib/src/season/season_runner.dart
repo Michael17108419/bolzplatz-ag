@@ -386,6 +386,12 @@ class SeasonRunner {
     for (final club in [home, away]) {
       (_clubDays[club] ??= {}).add(_today);
       _played[club] = (_played[club] ?? 0) + 1;
+      final current = _systemOf(club);
+      if (current != null) {
+        final known = systemKnowledgeOf(club);
+        (_systemKnow[club] ??= {})[current] =
+            (known[current]! + tr['tact_match']).clamp(0.0, 100.0);
+      }
     }
     _moodAfter(home, r.homeGoals, r.awayGoals, r);
     _moodAfter(away, r.awayGoals, r.homeGoals, r);
@@ -728,6 +734,7 @@ class SeasonRunner {
           ? TrainingDay.rest
           : trainingDayOf(club, d);
       _addFocus(club, d, day);
+      _practise(club, day);
       for (final p in squad) {
         var f = _fresh[p.id] ?? 100;
         final prof = _traitOf(p, CharacterTrait.professionalism);
@@ -814,6 +821,7 @@ class SeasonRunner {
         final from = _devDone[club] ?? 0;
         final weeks = w + 1 - from;
         _devDone[club] = w + 1;
+        _fade(club, weeks);
         final pts = <Attribute, double>{};
         for (var k = from; k <= w; k++) {
           final week = _focusPts[club]?.remove(k);
@@ -898,6 +906,78 @@ class SeasonRunner {
   }
 
   late final Development _development = Development(rules);
+
+  /// How well each club knows each system, 0 to 100 (step 11d), and its
+  /// rehearsed set pieces (attacking, defending).
+  Map<ClubId, Map<String, double>> _systemKnow = {};
+  Map<ClubId, (double, double)> _setPieces = {};
+
+  String? _systemOf(ClubId club) =>
+      (_userSheets[club] ?? _sheets[club])?.systemId;
+
+  /// The knowledge of the systems of [club] (missing systems: the start
+  /// value for other systems).
+  Map<String, double> systemKnowledgeOf(ClubId club) {
+    final tr = rules.season.training;
+    final known = _systemKnow[club] ??= {};
+    final current = _systemOf(club);
+    if (current != null && !known.containsKey(current) && known.isEmpty) {
+      known[current] = tr['tact_start'];
+    }
+    return {
+      for (final sys in rules.tactics.systems)
+        sys.id: known[sys.id] ?? tr['tact_other'],
+    };
+  }
+
+  /// Rehearsed set pieces of [club]: attacking and defending, 0 to 100.
+  (double, double) setPiecesOf(ClubId club) {
+    final start = rules.season.training['sp_start'];
+    return _setPieces[club] ?? (start, start);
+  }
+
+  /// A training day adds to the system the club plays and to its set
+  /// pieces.
+  void _practise(ClubId club, TrainingDay day) {
+    final tr = rules.season.training;
+    for (final s in day.sessions) {
+      final pts = tr.pointsOf(s.intensity);
+      if (s.unit == 'system') {
+        final current = _systemOf(club);
+        if (current == null) continue;
+        final known = systemKnowledgeOf(club);
+        (_systemKnow[club] ??= {})[current] =
+            (known[current]! + tr['tact_unit'] * pts).clamp(0.0, 100.0);
+      } else if (s.unit == 'set_pieces_attack' ||
+          s.unit == 'set_pieces_defence') {
+        final (att, def) = setPiecesOf(club);
+        final add = tr['sp_unit'] * pts;
+        _setPieces[club] = s.unit == 'set_pieces_attack'
+            ? ((att + add).clamp(0.0, 100.0), def)
+            : (att, (def + add).clamp(0.0, 100.0));
+      }
+    }
+  }
+
+  /// A week without practice: systems not played fade, set pieces too.
+  void _fade(ClubId club, int weeks) {
+    final tr = rules.season.training;
+    final current = _systemOf(club);
+    final known = _systemKnow[club];
+    if (known != null) {
+      for (final id in known.keys.toList()) {
+        if (id == current) continue;
+        known[id] = math.max(
+          tr['tact_floor'],
+          known[id]! - tr['tact_decay'] * weeks,
+        );
+      }
+    }
+    final (att, def) = setPiecesOf(club);
+    final floor = tr['sp_start'] - 10;
+    final d = tr['sp_decay'] * weeks;
+    _setPieces[club] = (math.max(floor, att - d), math.max(floor, def - d));
+  }
 
   /// Individual plans of the players (step 11c) and the weeks spent on the
   /// current position or role.
@@ -1081,6 +1161,8 @@ class SeasonRunner {
       mood: {for (final p in squad) p.id: moodOf(p.id)},
       coach: coachOf(club),
       chemistry: pairChemistryOf,
+      systemKnowledge: systemKnowledgeOf(club),
+      setPieces: setPiecesOf(club),
     );
   }
 
@@ -1327,6 +1409,8 @@ class SeasonRunner {
     _devDone = {};
     _individual = {};
     _learnt = {};
+    _systemKnow = {};
+    _setPieces = {};
     _focusPts = {};
     _played = {};
     _humans = Set.of({...humanClubs, ...userSheets.keys});
@@ -1580,6 +1664,8 @@ class SeasonRunner {
               mood: base.mood,
               coach: base.coach,
               chemistry: base.chemistry,
+              systemKnowledge: base.systemKnowledge,
+              setPieces: base.setPieces,
               autoManage: false,
             );
           }
@@ -1754,6 +1840,8 @@ class SeasonRunner {
             mood: base.mood,
             coach: base.coach,
             chemistry: base.chemistry,
+            systemKnowledge: base.systemKnowledge,
+            setPieces: base.setPieces,
             autoManage: false,
           );
         }

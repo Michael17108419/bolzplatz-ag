@@ -355,6 +355,7 @@ abstract interface class AppStrings {
   String get trainingMatchDay;
   String get trainingRestDay;
   String get trainingIndividual;
+  String trainingKnowledge(String? system, int? known, int attack, int defence);
   String get infoTrainingIndividual;
   String get trainingIndividualAuto;
   String trainingIndividualLabel(IndividualPlan? plan, int weeks);
@@ -2086,7 +2087,11 @@ class AppStringsDe implements AppStrings {
       'zurück, bei Partylöwen weniger. Am Spieltag wird nicht trainiert. '
       'Vorlagen füllen die Woche passend zu den Spielen, der Generator baut '
       'sie aus deinen Zielen. Planst du nichts, macht der Assistent '
-      'Spielvorbereitung. Vergangene Tage lassen sich nicht ändern.';
+      'Spielvorbereitung. Vergangene Tage lassen sich nicht ändern. '
+      '„System einstudieren“ und Spiele im System heben das '
+      'Taktikverständnis (bis zu ±5 % Stärke), Systeme, die lange nicht dran '
+      'waren, verblassen. Standard-Einheiten machen Ecken und Freistöße '
+      'gefährlicher, vorne wie hinten.';
   @override
   String get trainingTemplate => 'Vorlage';
   @override
@@ -2188,6 +2193,15 @@ class AppStringsDe implements AppStrings {
   String get trainingRestDay => 'Frei';
   @override
   String get trainingIndividual => 'Einzeltraining';
+  @override
+  String trainingKnowledge(
+    String? system,
+    int? known,
+    int attack,
+    int defence,
+  ) =>
+      '${system == null ? '' : 'Taktikverständnis $system: $known · '}'
+      'Standards offensiv $attack, defensiv $defence';
   @override
   String get infoTrainingIndividual =>
       'Jeder Spieler kann nebenbei an etwas Eigenem arbeiten: an Werten '
