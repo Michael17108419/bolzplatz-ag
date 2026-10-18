@@ -22,17 +22,18 @@ void main() {
   final world = WorldJson.decode(
     File('../../data/world_2026_27.json').readAsStringSync(),
   );
+  final names = NameLists.fromJson(
+    File('../../data/names_de.json').readAsStringSync(),
+  );
   final variants = {
-    'base': <String, String>{},
-    'home105': {'"home_advantage": 1.02': '"home_advantage": 1.05'},
     'home108': {'"home_advantage": 1.02': '"home_advantage": 1.08'},
-    'home106_duel04': {
-      '"home_advantage": 1.02': '"home_advantage": 1.06',
-      '"duel_exponent": 0.5': '"duel_exponent": 0.4',
-    },
-    'home106_form08': {
-      '"home_advantage": 1.02': '"home_advantage": 1.06',
+    'home108_form08': {
+      '"home_advantage": 1.02': '"home_advantage": 1.08',
       '"day_form_spread": 0.05': '"day_form_spread": 0.08',
+    },
+    'home108_duel045': {
+      '"home_advantage": 1.02': '"home_advantage": 1.08',
+      '"duel_exponent": 0.5': '"duel_exponent": 0.45',
     },
   };
   for (final v in variants.entries) {
@@ -44,11 +45,11 @@ void main() {
       }
       final rules = Rules.parse(t).valueOrNull!;
       final runner = SeasonRunner(rules, calendarRules: _calendarRules);
-      final state = SeasonState.fromWorld(world);
+      var state = SeasonState.fromWorld(world);
       var hw = 0, dr = 0, aw = 0, goals = 0, matches = 0;
       var champ = 0, leagues = 0;
-      for (var y = 0; y < 4; y++) {
-        final o = runner.play(state, seed: 700 + y);
+      for (var y = 0; y < 6; y++) {
+        final o = runner.play(state, seed: 500 + y);
         hw += o.homeWins;
         dr += o.draws;
         aw += o.awayWins;
@@ -65,6 +66,9 @@ void main() {
           leagues++;
           if (best == 0) champ++;
         }
+        state = runner
+            .nextSeason(state, o, seed: 900 + y, names: names)
+            .valueOrNull!;
       }
       final total = hw + dr + aw;
       String f(num x) => x.toStringAsFixed(3);
