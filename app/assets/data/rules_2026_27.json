@@ -2592,7 +2592,7 @@
   "season": {
     "training": {
       "note": "Training (step 11a): units with group, freshness cost per intensity (light, normal, hard; negative refreshes) and extra load; templates by the distance of a day to an own match.",
-      "recover_night": 12,
+      "recover_night": 20,
       "party_night": 4,
       "professional_cost": 0.25,
       "match_cost": 0.22,

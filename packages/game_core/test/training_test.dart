@@ -122,6 +122,7 @@ void main() {
       'min=${values.first.toStringAsFixed(0)} '
       'max=${values.last.toStringAsFixed(0)}',
     );
-    expect(mean, inInclusiveRange(70, 97));
+    expect(mean, inInclusiveRange(80, 100));
+    expect(values.first, greaterThan(30));
   });
 }
