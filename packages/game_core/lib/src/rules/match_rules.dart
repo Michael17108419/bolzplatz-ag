@@ -492,7 +492,8 @@ class ConfidenceRules {
 
   factory ConfidenceRules.fromJson(Map<String, dynamic> m) => ConfidenceRules(
     Map.unmodifiable({
-      for (final e in m.entries) e.key: (e.value as num).toDouble(),
+      for (final e in m.entries)
+        if (e.value is num) e.key: (e.value as num).toDouble(),
     }),
   );
 
@@ -1159,6 +1160,10 @@ class MatchRules {
     required this.treatment,
     required this.confidence,
     this.instructions = const InstructionRules({}),
+    this.mood = const ConfidenceRules({}),
+    this.talk = const ConfidenceRules({}),
+    this.chemistry = const ConfidenceRules({}),
+    this.coach = const ConfidenceRules({}),
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -1359,6 +1364,18 @@ class MatchRules {
       instructions: InstructionRules.fromJson(
         m['instructions'] as Map<String, dynamic>?,
       ),
+      mood: ConfidenceRules.fromJson(
+        (m['mood'] as Map<String, dynamic>?) ?? const {},
+      ),
+      talk: ConfidenceRules.fromJson(
+        (m['talk'] as Map<String, dynamic>?) ?? const {},
+      ),
+      chemistry: ConfidenceRules.fromJson(
+        (m['chemistry'] as Map<String, dynamic>?) ?? const {},
+      ),
+      coach: ConfidenceRules.fromJson(
+        (m['coach'] as Map<String, dynamic>?) ?? const {},
+      ),
     );
     result._validate();
     return result;
@@ -1551,4 +1568,11 @@ class MatchRules {
 
   /// Instructions of the coach (engine 2, step 10g1).
   final InstructionRules instructions;
+
+  /// Mood on the day (step 10f3), team talks (10f3), chemistry (10f4) and
+  /// the AI coaches (10f5); split off [confidence] in step 10h2.
+  final ConfidenceRules mood;
+  final ConfidenceRules talk;
+  final ConfidenceRules chemistry;
+  final ConfidenceRules coach;
 }

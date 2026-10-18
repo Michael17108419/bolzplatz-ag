@@ -784,21 +784,21 @@ class MatchSession {
 
   /// The mood a player has without reasons (step 10f3).
   double get _moodNeutral {
-    final v = _m.confidence['mood_neutral'];
+    final v = _m.mood['mood_neutral'];
     return v == 0 ? 60 : v;
   }
 
   /// Mood on the day form (step 10f3): a few per cent up or down.
   double _moodFactor(_Slot s) =>
       1 +
-      _m.confidence['mood_form'] *
+      _m.mood['mood_form'] *
           ((s.mood - _moodNeutral) / 40).clamp(-1.5, 1.0);
 
   /// A sulking player fouls more (step 10f3).
   double _sulk(_Slot s) {
-    final low = _m.confidence['mood_low'];
+    final low = _m.mood['mood_low'];
     if (s.mood >= low || low <= 0) return 0;
-    return _m.confidence['mood_foul'] * (low - s.mood) / low;
+    return _m.mood['mood_foul'] * (low - s.mood) / low;
   }
 
   double _energyFactor(_Slot s) => 1 - _m.fatigueScale * (1 - s.energy / 100);
@@ -881,7 +881,7 @@ class MatchSession {
       ];
       side.chemistry = teamChemistry(players, pair);
       side.chemFactor =
-          1 + 2 * _m.confidence['chemistry'] * (side.chemistry - 0.5);
+          1 + 2 * _m.chemistry['chemistry'] * (side.chemistry - 0.5);
     }
     final strength =
         math.pow(_m.missingPlayerStrength, side.missing).toDouble() *
@@ -3172,7 +3172,7 @@ class MatchSession {
   int _talk(int side, TeamTalk talk) {
     final s = _sides[side];
     s.talkMinute = _minute;
-    final c = _m.confidence;
+    final c = _m.talk;
     final fit = _talkFit(side, talk);
     final strength = s.team.coach.talk;
     var sum = 0.0;
@@ -3812,11 +3812,11 @@ class MatchSession {
             r.get('shout_noise', 0.3) *
             (away ? 1.5 : 0.5) +
         0.05 * setting.derby;
+    // A bit of luck (step 10h2): even a loud coach is lost now and then.
+    final luck = r.get('shout_luck') * (2 * _coachRng.nextDouble() - 1);
     final power =
-        ((0.4 + s.team.coach.charisma / 200) * listen * (1 - noise)).clamp(
-          0.0,
-          1.0,
-        );
+        ((0.4 + s.team.coach.charisma / 200) * listen * (1 - noise) + luck)
+            .clamp(0.0, 1.0);
     s
       ..shout = shout
       ..shoutPower = power
@@ -3880,7 +3880,7 @@ class MatchSession {
   /// now and then does the opposite.
   void _coach(_Side side) {
     final i = _sides.indexOf(side);
-    final c = _m.confidence;
+    final c = _m.coach;
     final q = (side.assistant ? 50.0 : side.team.coach.tactics) / 100;
     final delay = ((1 - q) * c['coach_delay']).round();
     final wrong =

@@ -84,8 +84,8 @@ void main() {
     );
   });
 
-  test('a charismatic coach gets through, a dull one away in a full '
-      'stadium less; "Schieß doch" brings long shots (report)', () {
+  test('a charismatic coach gets through more often than a dull one away '
+      'in a full stadium; "Schieß doch" brings long shots (report)', () {
     var loud = 0;
     var dull = 0;
     var shotsWith = 0;

@@ -1836,7 +1836,7 @@
       "normal": 1.0,
       "fast": 1.08
     },
-    "home_advantage": 1.02,
+    "home_advantage": 1.08,
     "possession_exponent": 1.0,
     "breakthrough": {
       "base": 0.165,
@@ -2362,7 +2362,7 @@
       "cup_from_ties": 8
     },
     "crowd": {
-      "home_base": 0.022,
+      "home_base": 0.1,
       "fill_exponent": 0.5,
       "loud_attendance": 40000,
       "small_weight": 0.3,
@@ -2436,18 +2436,26 @@
       "conceded": 4,
       "ball_won": 3,
       "ball_lost": 3,
-      "card": 3,
+      "card": 3
+    },
+    "mood": {
       "mood_neutral": 60,
       "mood_form": 0.03,
       "mood_low": 25,
-      "mood_foul": 0.3,
+      "mood_foul": 0.3
+    },
+    "talk": {
       "talk_professional": 0.6,
       "talk_diva": 0.5,
       "talk_heat": 0.25,
       "talk_nervous": 0.4,
       "talk_confidence": 8,
-      "talk_mood": 12,
-      "chemistry": 0.04,
+      "talk_mood": 12
+    },
+    "chemistry": {
+      "chemistry": 0.04
+    },
+    "coach": {
       "coach_delay": 20,
       "coach_error": 0.3,
       "coach_stronger": 0.12,
@@ -2479,8 +2487,8 @@
       "waste_early": 15,
       "waste_factor": 1.6,
       "waste_yellow": 0.06,
-      "plan_hit": 0.05,
-      "plan_miss": 0.02,
+      "plan_hit": 0.08,
+      "plan_miss": 0.03,
       "scout_miss": 0.4,
       "scout_error": 0.15,
       "scout_weak": 0.96,
@@ -2497,7 +2505,8 @@
       "shout_minutes": 10,
       "shout_effect": 0.06,
       "shout_noise": 0.3,
-      "shout_shoot": 0.15
+      "shout_shoot": 0.15,
+      "shout_luck": 0.15
     },
     "treatment": {
       "per_match": 1.5,
