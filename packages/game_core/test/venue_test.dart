@@ -142,4 +142,49 @@ void main() {
     );
     expect(o.homeWins / n, inInclusiveRange(0.33, 0.5));
   });
+
+  test('weather and ground: by month and region, the same every time, '
+      'good grass keeps the ground better (report)', () {
+    final runner = SeasonRunner(
+      rules,
+      calendarRules: CalendarRules.fromJsonString(
+        File('../../rules/calendar_rules.json').readAsStringSync(),
+      ),
+      venues: venues,
+    );
+    runner.begin(SeasonState.fromWorld(world), seed: 41);
+    final good = world.clubs.reduce(
+      (a, b) =>
+          venues.stadiums[a.id]!.pitch > venues.stadiums[b.id]!.pitch ? a : b,
+    );
+    final bad = world.clubs.reduce(
+      (a, b) =>
+          venues.stadiums[a.id]!.pitch < venues.stadiums[b.id]!.pitch ? a : b,
+    );
+    final kinds = <String, int>{};
+    var heavyGood = 0;
+    var heavyBad = 0;
+    var snowSummer = 0;
+    var rightForecasts = 0;
+    final start = GameDate(2026, 8, 1).epochDay;
+    for (var d = 0; d < 300; d++) {
+      final day = start + d;
+      final (w, g) = runner.conditionsOn(good.id, day);
+      expect(runner.conditionsOn(good.id, day), (w, g));
+      kinds[w] = (kinds[w] ?? 0) + 1;
+      if (g == 'heavy' || g == 'frozen') heavyGood++;
+      final (_, g2) = runner.conditionsOn(bad.id, day);
+      if (g2 == 'heavy' || g2 == 'frozen') heavyBad++;
+      final month = GameDate.fromEpochDay(day).month;
+      if (w == 'snow' && month >= 5 && month <= 9) snowSummer++;
+      if (runner.forecastOn(good.id, day) == w) rightForecasts++;
+    }
+    stdout.writeln(
+      'WEATHER-REPORT kinds=$kinds heavy good=$heavyGood bad=$heavyBad '
+      'forecast right=$rightForecasts/300',
+    );
+    expect(snowSummer, 0);
+    expect(heavyBad, greaterThan(heavyGood));
+    expect(rightForecasts, inInclusiveRange(150, 260));
+  });
 }

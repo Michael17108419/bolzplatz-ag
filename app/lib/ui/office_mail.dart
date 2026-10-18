@@ -154,6 +154,14 @@ List<OfficeMail> buildMails(
     if (vacation != null && !vacation.kept) {
       lines.add(s.jourFixVacation(vacation.total, vacation.minTotal));
     }
+    final g = game;
+    final next = g == null ? null : g.runner.nextMatchOf(g.run, g.clubId);
+    if (g != null && next != null) {
+      final home = view.atHome ? g.clubId : view.opponent.id;
+      lines.add(
+        s.jourFixForecast(g.runner.forecastOn(home, next.$1.epochDay)),
+      );
+    }
     lines.add(s.jourFixSign);
     return lines.join('\n\n');
   }

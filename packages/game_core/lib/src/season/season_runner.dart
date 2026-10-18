@@ -188,6 +188,7 @@ class SeasonRunner {
     final c = rules.match.crowd;
     final derby = v.derbyLevel(hc, ac);
     final name = v.derbyName(hc, ac);
+    final (weather, ground) = conditionsOn(home, _today);
     if (neutral) {
       return MatchSetting(
         capacity: c.finalCapacity,
@@ -195,6 +196,8 @@ class SeasonRunner {
         derby: derby,
         derbyName: name,
         pitch: 90,
+        weather: weather,
+        ground: ground == 'heavy' || ground == 'frozen' ? 'wet' : ground,
       );
     }
     final stadium = v.stadiums[home];
@@ -209,6 +212,8 @@ class SeasonRunner {
     fill *= 1 + c.formEffect * form;
     fill *= 1 + c.derbyFill * derby;
     if (GameDate.fromEpochDay(_today).weekday <= 4) fill *= c.midweek;
+    // Nobody likes standing in the snow or the pouring rain.
+    if (weather == 'heavy_rain' || weather == 'snow') fill *= 0.9;
     final rng = SeededRandom(_seed).fork('crowd:$label');
     fill *= 1 + c.noise * (2 * rng.nextDouble() - 1);
     fill = fill.clamp(0.05, 1.0);
@@ -224,7 +229,59 @@ class SeasonRunner {
       travelKm: km.round(),
       travel: c.travelLoss(km, shortRest: shortRest),
       pitch: stadium?.pitch ?? 60,
+      weather: weather,
+      ground: ground,
     );
+  }
+
+  /// Weather and ground at the ground of [home] on [epochDay] (engine 2,
+  /// step 10e5): the weather from month and region, the ground from the
+  /// weather, winter and the grass of the home club. The same every time,
+  /// so the Jour Fix can forecast it.
+  (String, String) conditionsOn(ClubId home, int epochDay) {
+    final w = rules.match.weather;
+    final date = GameDate.fromEpochDay(epochDay);
+    final region = _state.clubs[home]?.region.id;
+    final factors = w.region[region] ?? const <String, double>{};
+    final base = w.months[date.month]!;
+    final weights = [
+      for (var i = 0; i < w.kinds.length; i++)
+        base[i] * (factors[w.kinds[i]] ?? 1.0),
+    ];
+    final rng = SeededRandom(_seed).fork('weather:${home.value}:$epochDay');
+    final weather = w.kinds[rng.weightedIndex(weights)];
+    final pitch = venues?.stadiums[home]?.pitch ?? 60;
+    final good = ((pitch - 50) / 50).clamp(-1.0, 1.0);
+    final winter = w.winterMonths.contains(date.month);
+    final frozen = weather == 'snow'
+        ? (w.frozenSnow * (1 - 0.5 * good)).clamp(0.0, 1.0)
+        : 0.0;
+    final heavy =
+        (((w.heavyByWeather[weather] ?? 0) + (winter ? w.winterHeavy : 0)) *
+                (1 - w.pitchEffect * good))
+            .clamp(0.0, 1.0);
+    final wet = w.wetByWeather[weather] ?? 0;
+    final roll = rng.nextDouble();
+    final ground = roll < frozen
+        ? 'frozen'
+        : roll < frozen + heavy
+        ? 'heavy'
+        : roll < frozen + heavy + wet
+        ? 'wet'
+        : 'good';
+    return (weather, ground);
+  }
+
+  /// The weather the Jour Fix forecasts for that match: mostly right,
+  /// sometimes not.
+  String forecastOn(ClubId home, int epochDay) {
+    final w = rules.match.weather;
+    final (weather, _) = conditionsOn(home, epochDay);
+    final rng = SeededRandom(_seed).fork('forecast:${home.value}:$epochDay');
+    if (rng.nextDouble() < w.forecastRight) return weather;
+    final i = w.kinds.indexOf(weather);
+    final shift = rng.nextDouble() < 0.5 ? -1 : 1;
+    return w.kinds[(i + shift).clamp(0, w.kinds.length - 1)];
   }
 
   /// The referee of a match, picked by the seed of its [label] from the
@@ -1153,7 +1210,8 @@ class SeasonRunner {
     for (final p in run.state.squads[club]!) {
       if ((_injuredUntil[p.id] ?? -1) >= day) {
         out[p.id] = Absence.injured;
-      } else if ((_bans['$comp:${p.id.value}'] ?? 0) > 0) {
+      } else if ((_bans['$comp:${p.id.value}'] ?? 0) > 0 ||
+          (_bannedUntil[p.id] ?? -1) >= day) {
         out[p.id] = Absence.suspended;
       }
     }

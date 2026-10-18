@@ -95,4 +95,58 @@ const Map<String, List<String>> reporterVenueDe = {
         "zwölfter Mann.",
     "{team} hat {km} Kilometer im Bus hinter sich. Das kann sich rächen.",
   ],
+
+  // ------------------------------------------------- weather and ground
+  "weather.sunny": [
+    "Strahlender Sonnenschein. Die Torhüter haben ihre Kappen dabei.",
+    "Bestes Fußballwetter, Sonne satt. Keine Ausreden heute.",
+    "Die Sonne lacht. Ob sie das nach dem Spiel auch noch tut?",
+  ],
+  "weather.cloudy": [
+    "Grauer Himmel, typisch deutscher Fußballnachmittag.",
+    "Bewölkt, aber trocken. Der Rasen ist bereit.",
+  ],
+  "weather.rain": [
+    "Es regnet. Der Ball wird schnell, die Grätschen werden lang.",
+    "Nieselregen. Wer jetzt kein Regencape hat, wird zum Schwamm.",
+    "Regen über dem Stadion. Technik wird heute zur Glückssache.",
+  ],
+  "weather.heavy_rain": [
+    "Es schüttet wie aus Eimern! Der Platzwart hat schon zweimal gebetet.",
+    "Starkregen. Kurzpassspiel heute? Viel Glück.",
+    "Land unter! Der Ball bleibt in den Pfützen stecken.",
+  ],
+  "weather.snow": [
+    "Es schneit! Der orange Ball kommt zum Einsatz.",
+    "Schneegestöber. Die Spieler tragen Handschuhe und Leidensmienen.",
+    "Weiße Pracht über dem Platz. Romantisch für die Zuschauer, die Hölle "
+        "für Techniker.",
+  ],
+  "weather.heat": [
+    "Brütende Hitze. Trinkpausen werden heute wichtiger als Taktik.",
+    "Über dreißig Grad. Die Beine werden schwer, die Trikots nass.",
+    "Hitzeschlacht! Wer heute neunzig Minuten Vollgas gibt, hat ein "
+        "Kamelgen.",
+  ],
+  "weather.wind": [
+    "Stürmischer Wind. Lange Bälle landen heute sonst wo.",
+    "Es pfeift ganz schön über den Platz. Fernschüsse sind Lotterie.",
+    "Windig heute. Die Eckfahnen stehen waagerecht.",
+  ],
+  "ground.wet": [
+    "Der Platz ist nass und schnell. Ausrutscher garantiert.",
+    "Nasser Rasen. Der Ball springt flach und tückisch.",
+    "Rutschiger Boden heute, die Stollen werden gebraucht.",
+  ],
+  "ground.heavy": [
+    "Der Platz ist ein Acker. Kombinationsfußball? Vergiss es.",
+    "Tiefer Boden, Matsch bis zu den Knöcheln. Heute gewinnt, wer kämpft.",
+    "Das ist kein Rasen mehr, das ist ein Kartoffelfeld.",
+    "Schlammschlacht! Nach zehn Minuten sehen alle gleich aus.",
+  ],
+  "ground.frozen": [
+    "Der Boden ist gefroren. Das wird eine Rutschpartie.",
+    "Hart wie Beton, der Platz. Jeder Sturz tut doppelt weh.",
+    "Gefrorener Rasen. Der Ball springt wie ein Flummi.",
+  ],
 };

@@ -485,6 +485,102 @@ class CounterRules {
 
 /// How hidden character traits work in the match (engine 2). A trait
 /// counts as (value - [reference]) / [scale], limited to -1 and 1.
+/// Weather and the state of the ground (engine 2, step 10e5): rolled from
+/// month and region, the ground from the weather, the season and how good
+/// the grass of the home club is; what rain, a heavy pitch, wind and heat
+/// do to the game.
+class WeatherRules {
+  const WeatherRules({
+    required this.kinds,
+    required this.months,
+    required this.region,
+    required this.forecastRight,
+    required this.heavyByWeather,
+    required this.wetByWeather,
+    required this.winterMonths,
+    required this.winterHeavy,
+    required this.frozenSnow,
+    required this.pitchEffect,
+    required this.technique,
+    required this.techniqueActions,
+    required this.windLong,
+    required this.windLongShot,
+    required this.heatDrain,
+  });
+
+  factory WeatherRules.fromJson(Map<String, dynamic> m) {
+    Map<String, double> map(Object? raw) => Map.unmodifiable({
+      for (final e in (raw as Map<String, dynamic>).entries)
+        e.key: (e.value as num).toDouble(),
+    });
+    final kinds = [for (final k in m['kinds'] as List<dynamic>) k as String];
+    final months = <int, List<double>>{};
+    for (final e in (m['months'] as Map<String, dynamic>).entries) {
+      final w = [
+        for (final x in e.value as List<dynamic>) (x as num).toDouble(),
+      ];
+      if (w.length != kinds.length) {
+        throw RulesError('match.weather.months.${e.key} needs ${kinds.length}');
+      }
+      months[int.parse(e.key)] = List.unmodifiable(w);
+    }
+    if (months.length != 12) {
+      throw const RulesError('match.weather.months needs all 12 months');
+    }
+    return WeatherRules(
+      kinds: List.unmodifiable(kinds),
+      months: Map.unmodifiable(months),
+      region: Map.unmodifiable({
+        for (final e in (m['region'] as Map<String, dynamic>).entries)
+          e.key: map(e.value),
+      }),
+      forecastRight: (m['forecast_right'] as num).toDouble(),
+      heavyByWeather: map(m['heavy_by_weather']),
+      wetByWeather: map(m['wet_by_weather']),
+      winterMonths: Set.unmodifiable({
+        for (final x in m['winter_months'] as List<dynamic>) x as int,
+      }),
+      winterHeavy: (m['winter_heavy'] as num).toDouble(),
+      frozenSnow: (m['frozen_snow'] as num).toDouble(),
+      pitchEffect: (m['pitch_effect'] as num).toDouble(),
+      technique: map(m['technique']),
+      techniqueActions: Set.unmodifiable({
+        for (final x in m['technique_actions'] as List<dynamic>) x as String,
+      }),
+      windLong: (m['wind_long'] as num).toDouble(),
+      windLongShot: (m['wind_long_shot'] as num).toDouble(),
+      heatDrain: (m['heat_drain'] as num).toDouble(),
+    );
+  }
+
+  /// sunny, cloudy, rain, heavy_rain, snow, heat, wind.
+  final List<String> kinds;
+
+  /// Weights of the [kinds] by month (1 to 12).
+  final Map<int, List<double>> months;
+
+  /// Factors on the weights by region id.
+  final Map<String, Map<String, double>> region;
+
+  /// Chance that the forecast in the Jour Fix is right.
+  final double forecastRight;
+  final Map<String, double> heavyByWeather;
+  final Map<String, double> wetByWeather;
+  final Set<int> winterMonths;
+  final double winterHeavy;
+  final double frozenSnow;
+
+  /// How much good grass keeps a heavy or frozen ground away.
+  final double pitchEffect;
+
+  /// Factors on technical steps by weather and by ground.
+  final Map<String, double> technique;
+  final Set<String> techniqueActions;
+  final double windLong;
+  final double windLongShot;
+  final double heatDrain;
+}
+
 /// The crowd, derbies and travel (engine 2, step 10e4): how full grounds
 /// are, how a crowd makes the home advantage, how a derby heats up a match
 /// and how a long trip tires the guests.
@@ -991,6 +1087,7 @@ class MatchRules {
     required this.referee,
     required this.video,
     required this.crowd,
+    required this.weather,
   });
 
   factory MatchRules.fromJson(Map<String, dynamic> m) {
@@ -1181,6 +1278,7 @@ class MatchRules {
       referee: RefereeRules.fromJson(m['referee'] as Map<String, dynamic>),
       video: VideoRules.fromJson(m['video'] as Map<String, dynamic>),
       crowd: CrowdRules.fromJson(m['crowd'] as Map<String, dynamic>),
+      weather: WeatherRules.fromJson(m['weather'] as Map<String, dynamic>),
     );
     result._validate();
     return result;
@@ -1361,4 +1459,7 @@ class MatchRules {
 
   /// Crowd, derbies and travel (engine 2, step 10e4).
   final CrowdRules crowd;
+
+  /// Weather and ground (engine 2, step 10e5).
+  final WeatherRules weather;
 }

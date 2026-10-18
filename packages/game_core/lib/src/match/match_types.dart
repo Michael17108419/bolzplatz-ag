@@ -230,6 +230,8 @@ class MatchSetting {
     this.travelKm = 0,
     this.travel = 0,
     this.pitch = 70,
+    this.weather = 'cloudy',
+    this.ground = 'good',
   });
 
   final String? stadium;
@@ -248,6 +250,13 @@ class MatchSetting {
 
   /// Quality of the grass of the home ground, 1 to 100.
   final int pitch;
+
+  /// Weather (engine 2, step 10e5): sunny, cloudy, rain, heavy_rain, snow,
+  /// heat or wind.
+  final String weather;
+
+  /// State of the ground: good, wet, heavy or frozen.
+  final String ground;
 
   /// How full the ground is, 0 to 1.
   double get fill => capacity == 0 ? 0 : (attendance / capacity).clamp(0, 1);

@@ -79,6 +79,14 @@ abstract interface class AppStrings {
   // Match day: preview, live ticker, report.
   String get matchKickOff;
   String get matchPreviewStrength;
+
+  // Ground, crowd and weather (steps 10e4 and 10e5).
+  String get matchPreviewConditions;
+  String weatherName(String kind);
+  String groundName(String state);
+  String matchPreviewVenue(String? stadium, int capacity);
+  String matchPreviewWeather(String weather, String ground);
+  String jourFixForecast(String weather);
   String matchPreviewLineup(String formation, String system);
   String get matchPreviewAbsent;
   String matchAbsence(Absence reason);
@@ -802,6 +810,38 @@ class AppStringsDe implements AppStrings {
   String get matchKickOff => 'Anpfiff';
   @override
   String get matchPreviewStrength => 'Mannschaftsstärke';
+  @override
+  String get matchPreviewConditions => 'Stadion und Wetter';
+  @override
+  String weatherName(String kind) => switch (kind) {
+    'sunny' => 'sonnig',
+    'cloudy' => 'bewölkt',
+    'rain' => 'Regen',
+    'heavy_rain' => 'Starkregen',
+    'snow' => 'Schnee',
+    'heat' => 'Hitze',
+    'wind' => 'stürmisch',
+    _ => kind,
+  };
+  @override
+  String groundName(String state) => switch (state) {
+    'good' => 'gut',
+    'wet' => 'nass',
+    'heavy' => 'tief (Acker)',
+    'frozen' => 'gefroren',
+    _ => state,
+  };
+  @override
+  String matchPreviewVenue(String? stadium, int capacity) => stadium == null
+      ? 'Neutraler Platz, $capacity Plätze'
+      : '$stadium, $capacity Plätze';
+  @override
+  String matchPreviewWeather(String weather, String ground) =>
+      'Wetter: ${weatherName(weather)} · Platz: ${groundName(ground)}';
+  @override
+  String jourFixForecast(String weather) =>
+      'Der Wetterbericht für das Spiel sagt: ${weatherName(weather)}. '
+      'Meteorologen haben übrigens eine ähnliche Trefferquote wie unser Sturm.';
   @override
   String matchPreviewLineup(String formation, String system) =>
       'Deine Elf: $formation · $system';

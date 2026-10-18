@@ -151,6 +151,32 @@ class MatchPreviewPage extends ConsumerWidget {
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium,
           ),
+          if (own.session != null) ...[
+            const SizedBox(height: Tokens.gapM),
+            Text(
+              s.matchPreviewConditions,
+              style: theme.textTheme.titleSmall,
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              s.matchPreviewVenue(
+                own.session!.setting.stadium,
+                own.session!.setting.capacity,
+              ),
+              key: const ValueKey('match-preview-venue'),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+            Text(
+              s.matchPreviewWeather(
+                own.session!.setting.weather,
+                own.session!.setting.ground,
+              ),
+              key: const ValueKey('match-preview-weather'),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
           const SizedBox(height: Tokens.gapM),
           if (sheet != null)
             Text(

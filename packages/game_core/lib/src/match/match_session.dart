@@ -1218,7 +1218,12 @@ class MatchSession {
         );
         s.energy = math.max(
           0.0,
-          s.energy - _m.energyLossPerMinute * phase * side.drainMult * factor,
+          s.energy -
+              _m.energyLossPerMinute *
+                  phase *
+                  side.drainMult *
+                  factor *
+                  (setting.weather == 'heat' ? _m.weather.heatDrain : 1.0),
         );
       }
     }
@@ -1298,6 +1303,23 @@ class MatchSession {
     final goalsBefore = _goalsHome + _goalsAway;
     _attack(t, q, counter: pending);
     _resolveAdvantage(_goalsHome + _goalsAway > goalsBefore);
+  }
+
+  /// What weather and ground do to a step of [action] (engine 2, step
+  /// 10e5): rain, snow and a bad ground make technical play harder, wind
+  /// makes long balls and crosses less sure.
+  double _conditions(String action) {
+    final w = _m.weather;
+    var f = 1.0;
+    if (w.techniqueActions.contains(action)) {
+      f *= w.technique[setting.weather] ?? 1.0;
+      f *= w.technique[setting.ground] ?? 1.0;
+    }
+    if (setting.weather == 'wind' &&
+        (action == 'long_ball' || action == 'cross')) {
+      f *= w.windLong;
+    }
+    return f;
   }
 
   /// After an attack with advantage the referee comes back to the foul: no
@@ -1517,7 +1539,8 @@ class MatchSession {
           (math.pow(q, share / reference).toDouble() *
                   action.risk *
                   creative *
-                  duel)
+                  duel *
+                  _conditions(action.id))
               .limit(z.stepMin, z.stepMax);
       final roll = _rng.nextDouble();
       final won = roll < p;
@@ -1890,7 +1913,7 @@ class MatchSession {
     Player shooter,
     String typeId,
     ChanceQuality? quality,
-    double goalProbability, {
+    double baseGoal, {
     int? column,
     int? lane,
     List<Player> chain = const [],
@@ -1900,6 +1923,10 @@ class MatchSession {
   }) {
     final attacker = _sides[t];
     attacker.stats.shots++;
+    // Wind makes shots from distance less sure (engine 2, step 10e5).
+    final goalProbability = typeId == 'long_shot' && setting.weather == 'wind'
+        ? baseGoal * _m.weather.windLongShot
+        : baseGoal;
     final ShotOutcome outcome;
     final r = _rng.nextDouble();
     if (r < goalProbability) {

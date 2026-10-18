@@ -558,6 +558,13 @@ class Reporter {
         'travel.${_who(1)}',
       ], side: 1);
     }
+    // Weather and ground (step 10e5): only told when worth a word.
+    if (s.weather != 'cloudy' || s.ground != 'good') {
+      _say(out, e, TickerKind.colour, [
+        if (s.ground != 'good') 'ground.${s.ground}',
+        'weather.${s.weather}',
+      ], side: -1);
+    }
   }
 
   /// The referee at kick-off, by the trait he is known for.
