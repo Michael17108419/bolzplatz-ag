@@ -2362,7 +2362,7 @@
       "cup_from_ties": 8
     },
     "crowd": {
-      "home_base": 0.1,
+      "home_base": 0.08,
       "fill_exponent": 0.5,
       "loud_attendance": 40000,
       "small_weight": 0.3,
