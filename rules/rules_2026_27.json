@@ -3368,19 +3368,45 @@
       "outfit_colour2": 8
     },
     "backstories": [
-      { "id": "failed_pro", "hook": "hook_failed_pro", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+", "motivation": "+", "man_management": "0" } },
-      { "id": "outsider", "hook": "hook_outsider", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "+", "press_image": "0", "contacts": "-", "tactical_knowledge": "-", "negotiation": "+", "talent_eye": "0", "motivation": "0", "man_management": "0" } },
-      { "id": "scandal_coach", "hook": "hook_scandal_coach", "levels": { "standing": "0", "charisma": "+", "stress": "+", "president_trust": "-", "press_image": "-", "contacts": "0", "tactical_knowledge": "+", "negotiation": "0", "talent_eye": "0", "motivation": "+", "man_management": "-" } },
-      { "id": "club_fixture", "hook": "hook_club_fixture", "levels": { "standing": "0", "charisma": "-", "stress": "-", "president_trust": "++", "press_image": "0", "contacts": "0", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+", "motivation": "0", "man_management": "+" } },
-      { "id": "business_student", "hook": "hook_business_student", "levels": { "standing": "-", "charisma": "-", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "-", "tactical_knowledge": "-", "negotiation": "++", "talent_eye": "-", "motivation": "-", "man_management": "-" } },
-      { "id": "youth_coach", "hook": "hook_youth_coach", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "0", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "++", "motivation": "0", "man_management": "+" } },
-      { "id": "pub_landlord", "hook": "hook_pub_landlord", "levels": { "standing": "-", "charisma": "+", "stress": "0", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "-", "negotiation": "0", "talent_eye": "0", "motivation": "0", "man_management": "+" } },
-      { "id": "wandering_saviour", "hook": "hook_wandering_saviour", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "-", "press_image": "0", "contacts": "+", "tactical_knowledge": "0", "negotiation": "+", "talent_eye": "0", "motivation": "+", "man_management": "0" } },
-      { "id": "pe_teacher", "hook": "hook_pe_teacher", "levels": { "standing": "-", "charisma": "+", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "-", "tactical_knowledge": "0", "negotiation": "0", "talent_eye": "0", "motivation": "0", "man_management": "+" } },
-      { "id": "ex_referee", "hook": "hook_ex_referee", "levels": { "standing": "0", "charisma": "-", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "0", "tactical_knowledge": "+", "negotiation": "0", "talent_eye": "0", "motivation": "-", "man_management": "0" } },
-      { "id": "tactics_streamer", "hook": "hook_tactics_streamer", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "0", "press_image": "+", "contacts": "-", "tactical_knowledge": "++", "negotiation": "0", "talent_eye": "0", "motivation": "-", "man_management": "-" } },
-      { "id": "motivation_guru", "hook": "hook_motivation_guru", "levels": { "standing": "0", "charisma": "++", "stress": "0", "president_trust": "0", "press_image": "+", "contacts": "0", "tactical_knowledge": "-", "negotiation": "0", "talent_eye": "-", "motivation": "++", "man_management": "0" } }
+      { "id": "failed_pro", "hook": "hook_failed_pro", "licence": "b", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+", "motivation": "+", "man_management": "0" } },
+      { "id": "outsider", "hook": "hook_outsider", "licence": "none", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "+", "press_image": "0", "contacts": "-", "tactical_knowledge": "-", "negotiation": "+", "talent_eye": "0", "motivation": "0", "man_management": "0" } },
+      { "id": "scandal_coach", "hook": "hook_scandal_coach", "licence": "a", "levels": { "standing": "0", "charisma": "+", "stress": "+", "president_trust": "-", "press_image": "-", "contacts": "0", "tactical_knowledge": "+", "negotiation": "0", "talent_eye": "0", "motivation": "+", "man_management": "-" } },
+      { "id": "club_fixture", "hook": "hook_club_fixture", "licence": "c", "levels": { "standing": "0", "charisma": "-", "stress": "-", "president_trust": "++", "press_image": "0", "contacts": "0", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "+", "motivation": "0", "man_management": "+" } },
+      { "id": "business_student", "hook": "hook_business_student", "licence": "none", "levels": { "standing": "-", "charisma": "-", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "-", "tactical_knowledge": "-", "negotiation": "++", "talent_eye": "-", "motivation": "-", "man_management": "-" } },
+      { "id": "youth_coach", "hook": "hook_youth_coach", "licence": "b", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "0", "tactical_knowledge": "0", "negotiation": "-", "talent_eye": "++", "motivation": "0", "man_management": "+" } },
+      { "id": "pub_landlord", "hook": "hook_pub_landlord", "licence": "none", "levels": { "standing": "-", "charisma": "+", "stress": "0", "president_trust": "0", "press_image": "-", "contacts": "+", "tactical_knowledge": "-", "negotiation": "0", "talent_eye": "0", "motivation": "0", "man_management": "+" } },
+      { "id": "wandering_saviour", "hook": "hook_wandering_saviour", "licence": "a", "levels": { "standing": "0", "charisma": "0", "stress": "+", "president_trust": "-", "press_image": "0", "contacts": "+", "tactical_knowledge": "0", "negotiation": "+", "talent_eye": "0", "motivation": "+", "man_management": "0" } },
+      { "id": "pe_teacher", "hook": "hook_pe_teacher", "licence": "c", "levels": { "standing": "-", "charisma": "+", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "-", "tactical_knowledge": "0", "negotiation": "0", "talent_eye": "0", "motivation": "0", "man_management": "+" } },
+      { "id": "ex_referee", "hook": "hook_ex_referee", "licence": "c", "levels": { "standing": "0", "charisma": "-", "stress": "0", "president_trust": "0", "press_image": "0", "contacts": "0", "tactical_knowledge": "+", "negotiation": "0", "talent_eye": "0", "motivation": "-", "man_management": "0" } },
+      { "id": "tactics_streamer", "hook": "hook_tactics_streamer", "licence": "none", "levels": { "standing": "-", "charisma": "0", "stress": "0", "president_trust": "0", "press_image": "+", "contacts": "-", "tactical_knowledge": "++", "negotiation": "0", "talent_eye": "0", "motivation": "-", "man_management": "-" } },
+      { "id": "motivation_guru", "hook": "hook_motivation_guru", "licence": "none", "levels": { "standing": "0", "charisma": "++", "stress": "0", "president_trust": "0", "press_image": "+", "contacts": "0", "tactical_knowledge": "-", "negotiation": "0", "talent_eye": "-", "motivation": "++", "man_management": "0" } }
     ],
+    "growth": {
+      "note": "Step 11e: the manager grows with work and results, licences and courses. Gains are raw points, times (100 - value) / diminish_scale clamped to diminish_min..diminish_max, at most season_cap per value and season.",
+      "gain": {
+        "team_talk": { "charisma": 0.1, "motivation": 0.15 },
+        "shout": { "motivation": 0.05 },
+        "plan_hit": { "tactical_knowledge": 0.15 },
+        "plan_week": { "tactical_knowledge": 0.1 },
+        "talk": { "man_management": 0.2 }
+      },
+      "diminish_scale": 50,
+      "diminish_min": 0.2,
+      "diminish_max": 1.5,
+      "season_cap": 5,
+      "standing": { "exceeded": 6, "reached": 2, "missed": -3, "failed": -6, "promoted": 5, "relegated": -5, "cup_round": 0.5, "cup_win": 4 },
+      "stress": { "loss": 2, "draw": 0.5, "win": -1.5, "streak_from": 3, "streak_extra": 1.5, "vacation_day": -0.6, "talk_from": 60, "talk_max": 0.3 },
+      "licence_required": { "1": "pro", "2": "pro", "3": "pro", "4": "a" },
+      "waiver_trust": 10,
+      "straw_press": 8,
+      "offer_factor": 0.5,
+      "course": {
+        "days": { "c": 3, "b": 5, "a": 7, "pro": 10 },
+        "min_standing": { "c": 0, "b": 20, "a": 35, "pro": 45 },
+        "min_seasons": { "c": 0, "b": 0, "a": 1, "pro": 2 },
+        "value_gain": 3
+      }
+    },
     "offers": {
       "count_range_by_level": { "-": [3, 3], "0": [3, 4], "+": [4, 5], "++": [4, 5] },
       "tier_weights_by_level": {

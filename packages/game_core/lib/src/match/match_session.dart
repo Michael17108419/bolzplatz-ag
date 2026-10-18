@@ -3386,6 +3386,9 @@ class MatchSession {
         MatchEventType.matchPlan,
         side,
         action: [for (final f in chosen) f.name].join(','),
+        // How many real weaknesses the plan hit (the manager learns from
+        // it, step 11e; the ticker does not tell).
+        value: map.values.where((real) => real).length,
       );
     }
   }

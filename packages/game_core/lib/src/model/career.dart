@@ -48,6 +48,31 @@ enum ManagerValue {
       this == manManagement;
 }
 
+/// Coaching licence of the manager (step 11e): none, C, B, A, Pro.
+enum Licence {
+  none('none'),
+  c('c'),
+  b('b'),
+  a('a'),
+  pro('pro');
+
+  const Licence(this.id);
+
+  final String id;
+
+  static Licence fromId(String id) => Licence.values.firstWhere(
+    (l) => l.id == id,
+    orElse: () => throw ArgumentError('Unknown licence $id'),
+  );
+
+  /// The next step, null after Pro.
+  Licence? get next => index + 1 < Licence.values.length
+      ? Licence.values[index + 1]
+      : null;
+
+  bool covers(Licence required) => index >= required.index;
+}
+
 /// The seven traits of a club president (document 01). For [thrift], a low
 /// level is generous and a high level is stingy.
 enum PresidentTrait {
@@ -219,6 +244,8 @@ class Trainer {
     required this.appearance,
     required this.backstoryId,
     required Map<ManagerValue, double> values,
+    this.licence = Licence.none,
+    this.seasons = 0,
   }) : values = Map.unmodifiable(values) {
     for (final v in ManagerValue.values) {
       final x = values[v];
@@ -229,13 +256,22 @@ class Trainer {
     if (name.trim().isEmpty) throw ArgumentError('Trainer needs a name');
   }
 
-  factory Trainer.fromJson(Map<String, dynamic> m) => Trainer(
+  /// [licence] stands in for saves from before step 11e (the start
+  /// licence of the backstory).
+  factory Trainer.fromJson(
+    Map<String, dynamic> m, {
+    Licence licence = Licence.none,
+  }) => Trainer(
     name: m['name'] as String,
     appearance: TrainerAppearance.fromJson(
       m['appearance'] as Map<String, dynamic>,
     ),
     backstoryId: m['backstory'] as String,
     values: _values(m['values'] as Map<String, dynamic>),
+    licence: m['licence'] == null
+        ? licence
+        : Licence.fromId(m['licence'] as String),
+    seasons: m['seasons'] as int? ?? 0,
   );
 
   /// Values of a saved trainer. Saves from before step 10f3 know no
@@ -253,13 +289,34 @@ class Trainer {
   final String backstoryId;
   final Map<ManagerValue, double> values;
 
+  /// Coaching licence (step 11e).
+  final Licence licence;
+
+  /// Seasons finished as a manager (step 11e).
+  final int seasons;
+
   double operator [](ManagerValue v) => values[v]!;
+
+  Trainer copyWith({
+    Map<ManagerValue, double>? values,
+    Licence? licence,
+    int? seasons,
+  }) => Trainer(
+    name: name,
+    appearance: appearance,
+    backstoryId: backstoryId,
+    values: values ?? this.values,
+    licence: licence ?? this.licence,
+    seasons: seasons ?? this.seasons,
+  );
 
   Map<String, dynamic> toJson() => {
     'name': name,
     'appearance': appearance.toJson(),
     'backstory': backstoryId,
     'values': {for (final e in values.entries) e.key.id: e.value},
+    'licence': licence.id,
+    'seasons': seasons,
   };
 }
 

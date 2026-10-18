@@ -4,6 +4,7 @@ import '../calendar/calendar_rules.dart';
 import '../calendar/game_date.dart';
 import '../calendar/season.dart';
 import '../calendar/season_calendar.dart';
+import '../career/trainer_growth.dart';
 import '../development/development.dart';
 import '../development/squad_turnover.dart';
 import '../generation/player_generator.dart';
@@ -13,6 +14,7 @@ import '../match/match_session.dart';
 import '../match/match_types.dart';
 import '../match/team_sheet.dart';
 import '../model/attribute.dart';
+import '../model/career.dart';
 import '../model/character.dart';
 import '../model/coach.dart';
 import '../model/ids.dart';
@@ -37,6 +39,7 @@ import 'court.dart';
 import 'cup.dart';
 import 'league_table.dart';
 import 'schedule.dart';
+import 'season_review.dart';
 import 'season_state.dart';
 import 'timeline.dart';
 
@@ -539,7 +542,8 @@ class SeasonRunner {
   /// True if the coach of [club] still has his talk with one player this
   /// week.
   bool canTalkTo(ClubId club, int epochDay) =>
-      _talkWeek[club] != _weekOf(epochDay);
+      _talkWeek[club] != _weekOf(epochDay) &&
+      _progress[club]?.courseOn(epochDay) == null;
 
   /// A talk of the coach of [club] with [player] (step 10f3), once a week.
   /// Building up helps a player who is down, a warning wakes up a
@@ -601,6 +605,7 @@ class SeasonRunner {
         }
     }
     _mood[player] = (mood + dm).clamp(0.0, 100.0);
+    if (landed == 1) _progress[club]?.add(_growthRules, 'talk');
     return landed;
   }
 
@@ -681,6 +686,12 @@ class SeasonRunner {
   bool setTrainingDay(ClubId club, int epochDay, TrainingDay day) {
     if (epochDay <= (_trainedTo[club] ?? _seasonStart - 1)) return false;
     (_plans[club] ??= {})[epochDay] = day;
+    // The manager learns from planning a week himself (step 11e).
+    final progress = _progress[club];
+    if (progress != null &&
+        progress.plannedWeeks.add(_trainingWeekOf(epochDay))) {
+      progress.add(_growthRules, 'plan_week');
+    }
     return true;
   }
 
@@ -688,7 +699,9 @@ class SeasonRunner {
   /// assistant (AI clubs: their coach; a good one prepares the matches, a
   /// weak one trains too hard or without a plan).
   TrainingDay trainingDayOf(ClubId club, int epochDay) {
-    final planned = _plans[club]?[epochDay];
+    // On a course the assistant plans (step 11e).
+    final away = _progress[club]?.courseOn(epochDay) != null;
+    final planned = away ? null : _plans[club]?[epochDay];
     if (planned != null) return planned;
     final planner = TrainingPlanner(rules.season.training);
     final days = matchDaysOf(club);
@@ -1159,7 +1172,7 @@ class SeasonRunner {
       confidence: {for (final p in squad) p.id: confidenceOf(p.id)},
       load: {for (final p in squad) p.id: loadOf(p.id, _today)},
       mood: {for (final p in squad) p.id: moodOf(p.id)},
-      coach: coachOf(club),
+      coach: _coachNow(club),
       chemistry: pairChemistryOf,
       systemKnowledge: systemKnowledgeOf(club),
       setPieces: setPiecesOf(club),
@@ -1296,6 +1309,8 @@ class SeasonRunner {
     _lastMatch[home] = _today;
     _lastMatch[away] = _today;
     _condition(home, away, r);
+    _managerAfter(home, 0, r);
+    _managerAfter(away, 1, r);
     // A club that plays serves one match of every ban it has in this
     // competition (before new cards of this match count).
     for (final club in [home, away]) {
@@ -1382,15 +1397,181 @@ class SeasonRunner {
   ///
   /// [userSheets] are line-ups of clubs that are not set up by the
   /// assistant (the club of the player).
+  /// What the managers of the human clubs did this season (step 11e), the
+  /// holiday windows of their leagues and the last day their holidays were
+  /// counted.
+  Map<ClubId, TrainerProgress> _progress = {};
+  Map<ClubId, List<(int, int)>> _windows = {};
+  int _relaxedTo = 0;
+
+  GrowthRules get _growthRules => rules.career.growth;
+  TrainerGrowth get _growth => TrainerGrowth(_growthRules);
+
+  /// The coach of [club] as he stands in a match: a stressed manager
+  /// loses some of his team talks.
+  CoachProfile _coachNow(ClubId club) {
+    final p = _progress[club];
+    final coach = coachOf(club);
+    return p == null ? coach : coach.withStrain(_growth.strain(p.stress));
+  }
+
+  /// The work of the manager of [club] in a match: stress after the
+  /// result, experience from team talks, shouts and the match plan.
+  void _managerAfter(ClubId club, int side, MatchResult r) {
+    final p = _progress[club];
+    if (p == null) return;
+    final rules = _growthRules;
+    final own = side == 0 ? r.homeGoals : r.awayGoals;
+    final other = side == 0 ? r.awayGoals : r.homeGoals;
+    _growth.afterMatch(p, own, other);
+    var hits = 0;
+    for (final e in r.events) {
+      if (e.side != side) continue;
+      switch (e.type) {
+        case MatchEventType.teamTalk when e.value == 1:
+          p.add(rules, 'team_talk');
+        case MatchEventType.shout when e.value == 1:
+          p.add(rules, 'shout');
+        case MatchEventType.matchPlan:
+          hits = math.max(hits, e.value ?? 0);
+        default:
+      }
+    }
+    if (hits > 0) p.add(rules, 'plan_hit', hits.toDouble());
+  }
+
+  /// Counts the holidays of the managers up to [epochDay]: a day in a
+  /// holiday window without a course takes stress off.
+  void _relaxTo(int epochDay) {
+    for (var d = _relaxedTo + 1; d <= epochDay; d++) {
+      for (final e in _progress.entries) {
+        if (e.value.courseOn(d) != null) continue;
+        final windows = _windows[e.key] ?? const [];
+        if (windows.any((w) => d >= w.$1 && d <= w.$2)) {
+          _growth.holiday(e.value);
+        }
+      }
+    }
+    if (epochDay > _relaxedTo) _relaxedTo = epochDay;
+  }
+
+  /// What the manager of [club] has done this season, null for AI clubs.
+  TrainerProgress? progressOf(ClubId club) => _progress[club];
+
+  /// The manager of [club] on [epochDay] (default: today) with the work of
+  /// this season, null for AI clubs.
+  Trainer? trainerOf(ClubId club, {int? epochDay}) {
+    final p = _progress[club];
+    if (p == null) return null;
+    return _growth.current(p, epochDay ?? math.max(_today, _seasonStart));
+  }
+
+  /// The licence the league of [club] asks for, if the manager lacked it
+  /// at the start of the season; null when all is in order.
+  Licence? licenceMissing(ClubId club) {
+    final p = _progress[club];
+    if (p == null) return null;
+    final need = _growthRules.requiredFor(_tierOf(_state, club));
+    return p.base.licence.covers(need) ? null : need;
+  }
+
+  /// How the manager of [club] covers a missing licence this season. Once
+  /// per season, only when the licence is missing.
+  bool setLicenceCover(ClubId club, LicenceCover cover) {
+    final p = _progress[club];
+    if (p == null || p.cover != null || licenceMissing(club) == null) {
+      return false;
+    }
+    p.cover = cover;
+    return true;
+  }
+
+  /// The holiday windows of [club] (first and last epoch day).
+  List<(int, int)> courseWindowsOf(ClubId club) => _windows[club] ?? const [];
+
+  /// Why the manager of [club] can not start a course on [epochDay], null
+  /// if he can: `licence` (Pro already), `standing`, `seasons`, `window`
+  /// (not inside a holiday window, or in the past), `taken` (a course in
+  /// this window already), `match` (an own match on a course day).
+  String? courseBlock(ClubId club, int epochDay) {
+    final p = _progress[club];
+    if (p == null) return 'licence';
+    final r = _growthRules;
+    final next = p.licenceOn(epochDay).next;
+    if (next == null) return 'licence';
+    final now = _growth.current(p, epochDay);
+    if (now[ManagerValue.standing] < (r.courseStanding[next] ?? 0)) {
+      return 'standing';
+    }
+    if (now.seasons < (r.courseSeasons[next] ?? 0)) return 'seasons';
+    final days = r.courseDays[next]!;
+    if (epochDay <= _today) return 'window';
+    final window = courseWindowsOf(club)
+        .where((w) => epochDay >= w.$1 && epochDay + days - 1 <= w.$2)
+        .firstOrNull;
+    if (window == null) return 'window';
+    if (p.courses.any((c) => c.start >= window.$1 && c.start <= window.$2)) {
+      return 'taken';
+    }
+    final matches = matchDaysOf(club);
+    for (var d = epochDay; d < epochDay + days; d++) {
+      if (matches.contains(d)) return 'match';
+    }
+    return null;
+  }
+
+  /// Books the course for the next licence for the manager of [club] from
+  /// [epochDay]; it also trains [value]. False if [courseBlock] objects.
+  bool bookCourse(ClubId club, int epochDay, ManagerValue value) {
+    if (!value.isSkill || courseBlock(club, epochDay) != null) return false;
+    final p = _progress[club]!;
+    final next = p.licenceOn(epochDay).next!;
+    p.courses.add(
+      Course(
+        start: epochDay,
+        days: _growthRules.courseDays[next]!,
+        licence: next,
+        value: value,
+      ),
+    );
+    return true;
+  }
+
+  /// The manager of [club] for the next season (call after [conclude]):
+  /// the standing moved by the [verdict], promotion or relegation
+  /// ([levelChange] -1 or 1) and a won cup. Null for AI clubs.
+  Trainer? trainerAtEnd(
+    ClubId club, {
+    GoalVerdict? verdict,
+    int levelChange = 0,
+    bool cupWon = false,
+  }) {
+    final p = _progress[club];
+    if (p == null) return null;
+    return _growth.close(
+      p,
+      epochDay: Season(_state.startYear).end.epochDay + 1,
+      verdict: verdict,
+      levelChange: levelChange,
+      cupWon: cupWon,
+    );
+  }
+
   SeasonRun begin(
     SeasonState state, {
     required int seed,
     Map<ClubId, TeamSheet> userSheets = const {},
     Set<ClubId> humanClubs = const {},
     Map<ClubId, CoachProfile> coaches = const {},
+    Map<ClubId, Trainer> trainers = const {},
   }) {
     _userSheets = Map.of(userSheets);
     _coaches = Map.of(coaches);
+    _progress = {
+      for (final e in trainers.entries) e.key: TrainerProgress(e.value),
+    };
+    _windows = {};
+    _relaxedTo = 0;
     _mood = {};
     _streak = {};
     _cabins.clear();
@@ -1583,6 +1764,21 @@ class SeasonRunner {
       }
     }
     _seasonStart = Season(state.startYear).start.epochDay;
+    _relaxedTo = _seasonStart - 1;
+    // The holiday windows of the own league: room for courses (step 11e).
+    for (final club in _progress.keys) {
+      LeagueId? league;
+      for (final e in state.members.entries) {
+        if (e.value.contains(club)) league = e.key;
+      }
+      final cal = run.timeline.calendars[run.timeline.leagueGroup[league]];
+      if (cal == null) continue;
+      final v = cal.vacation;
+      _windows[club] = [
+        (v.summerStart.epochDay, v.summerEnd.epochDay),
+        (v.winterStart.epochDay, v.winterEnd.epochDay),
+      ];
+    }
     return run;
   }
 
@@ -1917,6 +2113,7 @@ class SeasonRunner {
     // Players develop week by week (step 11b); the matches of today were
     // set up when the day was opened.
     _developTo(_today);
+    _relaxTo(_today);
     final seenLeagues = <LeagueId>{};
     for (final m in day.matches) {
       if (!m.isLeague || m.applied) continue;
@@ -1964,7 +2161,9 @@ class SeasonRunner {
         }
         final f = t.fixture;
         _afterMatch(f.home, f.away, k.match, countForm: false, comp: comp);
-        winners[(f.home, f.away)] = k.winnerSide == 0 ? f.home : f.away;
+        final winner = k.winnerSide == 0 ? f.home : f.away;
+        winners[(f.home, f.away)] = winner;
+        _progress[winner]?.cupRounds++;
         t.applied = true;
         if (t.date != day.date) {
           run.carry.putIfAbsent(t.date.epochDay, () => []).add(t);
@@ -2042,6 +2241,11 @@ class SeasonRunner {
     _state = run.state;
     _seed = run.seed;
     _developTo(Season(run.state.startYear).end.epochDay + 1, flush: true);
+    _relaxTo(Season(run.state.startYear).end.epochDay);
+    // Nobody asked: the president turned a blind eye (step 11e).
+    for (final e in _progress.entries) {
+      if (licenceMissing(e.key) != null) e.value.cover ??= LicenceCover.waiver;
+    }
     final state = run.state;
     final bolzplatz = run.bolzplatz;
     final pott = run.pott;

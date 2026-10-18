@@ -14,6 +14,7 @@ export 'src/calendar/season.dart';
 export 'src/calendar/season_calendar.dart';
 export 'src/calendar/vacation.dart';
 export 'src/career/career_start.dart';
+export 'src/career/trainer_growth.dart';
 export 'src/development/development.dart';
 export 'src/development/squad_turnover.dart';
 export 'src/generation/player_generator.dart';
