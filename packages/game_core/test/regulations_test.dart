@@ -52,7 +52,6 @@ void main() {
     expect(rules.tactics.substitutionWindows, 3);
     expect(rules.tactics.extraTimeExtraSubstitutions, 1);
     expect(rules.tactics.extraTimeExtraWindows, 1);
-    expect(rules.season.straightRedBanMatches, 1);
   });
 
   test('windows: same stoppage is one window, half time is free', () {

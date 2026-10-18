@@ -3222,7 +3222,6 @@
     },
     "injury_days_per_matchday": 7,
     "suspension_yellow_cards": 5,
-    "straight_red_ban_matches": 1,
     "condition": {
       "form_weight": 0.25,
       "rating_to_form": 10,
