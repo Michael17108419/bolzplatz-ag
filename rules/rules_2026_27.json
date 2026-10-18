@@ -2492,7 +2492,12 @@
       "half_error": 0.4,
       "half_flank_gap": 0.15,
       "half_threat": 6,
-      "half_tired": 60
+      "half_tired": 60,
+      "shouts_per_half": 3,
+      "shout_minutes": 10,
+      "shout_effect": 0.06,
+      "shout_noise": 0.3,
+      "shout_shoot": 0.15
     },
     "treatment": {
       "per_match": 1.5,

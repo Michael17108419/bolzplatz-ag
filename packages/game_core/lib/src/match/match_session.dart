@@ -163,6 +163,13 @@ class _Side {
   Wing? planWing;
   PlayerId? planKey;
 
+  /// The shout that works now, up to which session minute, how strongly
+  /// (0 to 1), and the shouts used in this half (step 10g4).
+  Shout? shout;
+  int shoutUntil = -1;
+  double shoutPower = 0;
+  int shoutsUsed = 0;
+
   /// The minute (session minutes) up to which the team plays a man short
   /// for a treatment or a slow change (engine 2, step 10e6).
   int shortUntil = -1;
@@ -209,7 +216,12 @@ class SessionAction {
     this.wing,
     this.wasteTime,
     this.plan,
+    this.shout,
   });
+
+  /// A shout from the touchline (step 10g4).
+  factory SessionAction.shoutOut(int minute, int side, Shout shout) =>
+      SessionAction._(minute, side, shout: shout);
 
   /// The match plan (step 10g2).
   factory SessionAction.plan(int minute, int side, List<PlanFocus> plan) =>
@@ -296,6 +308,9 @@ class SessionAction {
               for (final f in m['plan'] as List<dynamic>)
                 PlanFocus.values.byName(f as String),
             ],
+      shout: m['shout'] == null
+          ? null
+          : Shout.values.byName(m['shout'] as String),
     );
   }
 
@@ -330,6 +345,9 @@ class SessionAction {
   /// Set for the match plan.
   final List<PlanFocus>? plan;
 
+  /// Set for a shout.
+  final Shout? shout;
+
   bool get isSubstitution => off != null;
 
   Map<String, dynamic> toJson() => {
@@ -348,11 +366,14 @@ class SessionAction {
     if (wing != null) 'wing': wing,
     if (wasteTime != null) 'waste': wasteTime,
     if (plan != null) 'plan': [for (final f in plan!) f.name],
+    if (shout != null) 'shout': shout!.name,
   };
 
   /// Does the change in [session].
   void applyTo(MatchSession session) {
-    if (plan != null) {
+    if (shout != null) {
+      session.shoutOut(side, shout!);
+    } else if (plan != null) {
       session.setPlan(side, plan!);
     } else if (handOver) {
       session.handOver(side);
@@ -1055,7 +1076,14 @@ class MatchSession {
     final planned = side.plan.containsKey(PlanFocus.weakSide)
         ? side.planWing
         : null;
-    final base = _m.zones.lanesFor(side.sheet.systemId);
+    var base = _m.zones.lanesFor(side.sheet.systemId);
+    if (side.shout == Shout.wide && side.shoutUntil >= _minute) {
+      const last = ZoneRules.lanes - 1;
+      base = [
+        for (var l = 0; l < base.length; l++)
+          base[l] * (l == 0 || l == last ? 1 + side.shoutPower : 1.0),
+      ];
+    }
     final wing = side.sheet.wing ?? planned;
     if (wing == null) return base;
     final r = _m.instructions;
@@ -1235,6 +1263,9 @@ class MatchSession {
     final last = _half == _halfEnds.length - 1;
     _halfGoals = 0;
     _halfSubs = 0;
+    for (final side in _sides) {
+      side.shoutsUsed = 0;
+    }
     _halfInjuries = 0;
     _halfCards = 0;
     _halfWasted = 0;
@@ -1688,7 +1719,8 @@ class MatchSession {
         ((_sides[o].yellows[fouler.player.id] ?? 0) > 0
             ? _m.repeatYellowWeight
             : 1.0) *
-        (1 + fouler.heat + _sulk(fouler)) *
+        (1 + fouler.heat + _sulk(fouler)) /
+        _shoutF(o, Shout.calm) *
         (fouler.instr == PlayerInstruction.hard
             ? 1 +
                   _m.instructions.get('hard_foul') *
@@ -1826,7 +1858,16 @@ class MatchSession {
       final zone = column * lanes + lane;
       final ci = _rng.weightedIndex(own.carry[zone]);
       final carrier = own.slots[ci];
-      final a = _chooseAction(own.choice[zone][ci]);
+      var a = _chooseAction(own.choice[zone][ci]);
+      // "Schieß doch!": now and then a shot from where he stands.
+      if (column >= 2 &&
+          _shoutF(t, Shout.shoot) > 1 &&
+          _rng.nextDouble() <
+              _m.instructions.get('shout_shoot') *
+                  attacker.shoutPower) {
+        final shot = acts.list.indexWhere((x) => x.id == 'long_shot');
+        if (shot >= 0) a = shot;
+      }
       final action = acts.list[a];
       if (action.isShot) {
         _chance(
@@ -1863,6 +1904,11 @@ class MatchSession {
         lane,
         counter: counter != null,
       );
+      // Shouts (step 10g4): pressure up front, calm on the ball, the back
+      // closed.
+      if (column <= 2) ratio /= _shoutF(o, Shout.push);
+      ratio *= 1 + (_shoutF(t, Shout.calm) - 1) / 2;
+      if (column >= 3) ratio /= _shoutF(o, Shout.tight);
       final duel = math
           .pow(ratio, z.duelExponent)
           .toDouble()
@@ -2505,7 +2551,8 @@ class MatchSession {
     final r0 = _m.instructions;
     final side = _sides[t];
     final lead = _lead(t);
-    final told = side.sheet.wasteTime;
+    final told = side.sheet.wasteTime ||
+        (side.shout == Shout.slow && side.shoutUntil >= _minute);
     final from = told ? w.fromMinute - r0.get('waste_early') : w.fromMinute;
     if (_clock < from || lead < 0 || (lead == 0 && !told)) return;
     if (side.pitch.isEmpty) return;
@@ -3661,6 +3708,73 @@ class MatchSession {
       duels: duels,
       notes: notes.take(most).toList(),
     );
+  }
+
+  /// Shouts left for [side] in this half (step 10g4).
+  int shoutsLeft(int side) => math.max(
+    0,
+    _m.instructions.get('shouts_per_half', 3).round() - _sides[side].shoutsUsed,
+  );
+
+  /// True if [side] may shout now: while the ball rolls, shouts left.
+  bool canShout(int side) =>
+      !_finished && !inBreak && _minute > 0 && shoutsLeft(side) > 0;
+
+  /// The shout of [side] that works now, null for none.
+  Shout? activeShout(int side) {
+    final s = _sides[side];
+    return s.shoutUntil >= _minute ? s.shout : null;
+  }
+
+  /// A shout from the touchline (step 10g4): works for a few minutes, free
+  /// of the penalty for changes. How loud it gets through depends on the
+  /// charisma of the coach, the noise of the crowd (louder at the ground
+  /// of the other side and in a derby) and the players: professionals
+  /// listen, egoists less. Returns 1, 0 or -1 (see [MatchEventType.shout]),
+  /// null when not allowed now.
+  int? shoutOut(int side, Shout shout) {
+    if (!canShout(side)) return null;
+    final r = _m.instructions;
+    final s = _sides[side];
+    _actions.add(SessionAction.shoutOut(_minute, side, shout));
+    s.shoutsUsed++;
+    var listen = 0.0;
+    for (final slot in s.pitch) {
+      listen +=
+          1 +
+          0.3 * math.max(0.0, slot.tx[CharacterTrait.professionalism.index]) -
+          0.5 * math.max(0.0, slot.tx[CharacterTrait.egoism.index]);
+    }
+    if (s.pitch.isNotEmpty) listen /= s.pitch.length;
+    final away = side == 1 && !_neutral;
+    final noise =
+        (setting.attendance / 80000).clamp(0.0, 1.0) *
+            r.get('shout_noise', 0.3) *
+            (away ? 1.5 : 0.5) +
+        0.05 * setting.derby;
+    final power =
+        ((0.4 + s.team.coach.charisma / 200) * listen * (1 - noise)).clamp(
+          0.0,
+          1.0,
+        );
+    s
+      ..shout = shout
+      ..shoutPower = power
+      ..shoutUntil = _minute + r.get('shout_minutes', 10).round();
+    final landed = power >= 0.6
+        ? 1
+        : power >= 0.35
+        ? 0
+        : -1;
+    _add(MatchEventType.shout, side, action: shout.name, value: landed);
+    return landed;
+  }
+
+  /// The factor of the active shout [shout] of side [t] (1 when none).
+  double _shoutF(int t, Shout shout) {
+    final s = _sides[t];
+    if (s.shoutUntil < _minute || s.shout != shout) return 1;
+    return 1 + _m.instructions.get('shout_effect') * s.shoutPower;
   }
 
   /// The assistant takes over [side] for the rest of the match (step

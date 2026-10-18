@@ -197,4 +197,54 @@ const Map<String, List<String>> reporterTeamDe = {
   "plan.opp": [
     "Drüben hat man sich auch was überlegt. Ob's ein guter Plan ist?",
   ],
+
+  // ---------------------------------------------------------------- shouts
+  "shout.push.good.own": [
+    "„Mehr Druck!“ brüllt unser Trainer, und die Jungs laufen an wie die "
+        "Wilden.",
+    "Der Chef treibt an der Linie, die Mannschaft rückt sofort raus.",
+  ],
+  "shout.calm.good.own": [
+    "Unser Trainer macht mit beiden Händen „ruhig“. Und tatsächlich: Es "
+        "wird ruhiger.",
+  ],
+  "shout.wide.good.own": [
+    "„Über außen!“ ruft der Trainer, und schon geht der Ball auf den "
+        "Flügel.",
+  ],
+  "shout.tight.good.own": [
+    "„Hinten dicht!“ Unser Trainer ist heiser, aber die Abwehr steht.",
+  ],
+  "shout.slow.good.own": [
+    "Der Chef zeigt auf die Uhr. Die Jungs verstehen: Jetzt wird's "
+        "gemütlich.",
+  ],
+  "shout.shoot.good.own": [
+    "„Schieß doch!“ schallt es von der Bank. Na gut, dann eben aus der "
+        "Distanz.",
+  ],
+  "shout.good.own": [
+    "Unser Trainer an der Linie, laut und deutlich. Das kommt an.",
+  ],
+  "shout.flat.own": [
+    "Unser Trainer brüllt was rein. Die Hälfte hat's gehört.",
+    "Gestikulieren an der Seitenlinie. So richtig verstanden hat das keiner.",
+  ],
+  "shout.bad.own": [
+    "Unser Trainer schreit sich die Seele aus dem Leib, aber bei dem Lärm "
+        "hört ihn keiner.",
+    "Der Chef ruft, die Spieler zucken mit den Schultern. Funkloch auf dem "
+        "Rasen.",
+  ],
+  "shout.good.opp": [
+    "Der Trainer drüben hat seine Leute im Griff, ein Ruf und alle "
+        "reagieren.",
+  ],
+  "shout.flat.opp": [
+    "An der Bank von {team} wird gewunken und gerufen. Mal sehen, ob's "
+        "was bringt.",
+  ],
+  "shout.bad.opp": [
+    "Der Trainer von {team} brüllt ins Leere. Unsere Fans sind lauter.",
+  ],
 };

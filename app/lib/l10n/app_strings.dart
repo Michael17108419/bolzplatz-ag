@@ -331,6 +331,9 @@ abstract interface class AppStrings {
   String get lineupInstruction;
   String get matchPlanButton;
   String get halfTimeButton;
+  String shoutButton(int left);
+  String get infoShout;
+  String shoutName(Shout shout);
   String get halfTimeTitle;
   String get infoHalfTime;
   String halfTimeStats(int shots, int against, int duelPercent);
@@ -2028,6 +2031,23 @@ class AppStringsDe implements AppStrings {
   String get matchPlanButton => 'Matchplan';
   @override
   String get halfTimeButton => 'Analyse';
+  @override
+  String shoutButton(int left) => 'Zuruf ($left)';
+  @override
+  String get infoShout =>
+      'Drei Zurufe pro Halbzeit. Einer wirkt etwa zehn Minuten und kostet '
+      'keine Strafe fürs Umstellen. Ob er ankommt, hängt von deinem Charisma '
+      'ab, vom Lärm im Stadion (auswärts und im Derby lauter) und von den '
+      'Spielern: Profis hören hin, Egoisten weniger.';
+  @override
+  String shoutName(Shout shout) => switch (shout) {
+    Shout.push => 'Mehr Druck!',
+    Shout.calm => 'Ruhig bleiben!',
+    Shout.wide => 'Über außen!',
+    Shout.tight => 'Hinten dicht!',
+    Shout.slow => 'Zeit lassen!',
+    Shout.shoot => 'Schieß doch!',
+  };
   @override
   String get halfTimeTitle => 'Halbzeitanalyse';
   @override

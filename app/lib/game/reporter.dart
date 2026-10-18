@@ -379,6 +379,16 @@ class Reporter {
         _say(out, e, TickerKind.colour, [
           if (e.side == ownSide) 'plan.$first.own' else 'plan.opp',
         ]);
+      case MatchEventType.shout:
+        final how = switch (e.value ?? 0) {
+          1 => 'good',
+          -1 => 'bad',
+          _ => 'flat',
+        };
+        _say(out, e, TickerKind.colour, [
+          'shout.${e.action}.$how.${_who(e.side)}',
+          'shout.$how.${_who(e.side)}',
+        ]);
       case MatchEventType.shootoutKick:
         break;
     }

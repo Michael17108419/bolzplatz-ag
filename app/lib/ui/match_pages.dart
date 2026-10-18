@@ -598,6 +598,51 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
     );
   }
 
+  /// A shout from the touchline (engine 2, step 10g4).
+  Future<void> _openShout() async {
+    final s = ref.read(stringsProvider);
+    final shout = await showModalBottomSheet<Shout>(
+      context: context,
+      backgroundColor: Tokens.panel,
+      builder: (sheet) {
+        final theme = Theme.of(sheet);
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(Tokens.gapM),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        s.shoutButton(_session.shoutsLeft(_ownSide)),
+                        style: theme.textTheme.titleMedium,
+                      ),
+                    ),
+                    InfoButton(message: s.infoShout),
+                  ],
+                ),
+                for (final sh in Shout.values)
+                  ListTile(
+                    key: ValueKey('shout-${sh.name}'),
+                    title: Text(s.shoutName(sh)),
+                    onTap: () => Navigator.of(sheet).pop(sh),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (shout == null || !mounted) return;
+    final landed = _session.shoutOut(_ownSide, shout);
+    if (landed == null) return;
+    _ingest();
+    setState(() {});
+  }
+
   void _openMore() {
     showModalBottomSheet<void>(
       context: context,
@@ -921,6 +966,16 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                   ),
                   const SizedBox(width: 6),
                   IconButton.outlined(
+                    key: const ValueKey('match-shout'),
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(52, 52),
+                    ),
+                    tooltip: s.shoutButton(_session.shoutsLeft(_ownSide)),
+                    onPressed: _session.canShout(_ownSide) ? _openShout : null,
+                    icon: const Icon(Icons.record_voice_over),
+                  ),
+                  const SizedBox(width: 6),
+                  IconButton.outlined(
                     key: const ValueKey('match-more'),
                     style: IconButton.styleFrom(
                       minimumSize: const Size(52, 52),
@@ -968,6 +1023,11 @@ class _LiveMatchPageState extends ConsumerState<LiveMatchPage> {
                     child: Text(s.matchTactics),
                   ),
                   InfoButton(message: s.infoMatchTactics),
+                  OutlinedButton(
+                    key: const ValueKey('match-shout'),
+                    onPressed: _session.canShout(_ownSide) ? _openShout : null,
+                    child: Text(s.shoutButton(_session.shoutsLeft(_ownSide))),
+                  ),
                   TextButton(
                     key: const ValueKey('match-skip'),
                     onPressed: _skip,

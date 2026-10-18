@@ -181,6 +181,8 @@ void main() {
         for (final w in sides) 'coach.$k.$w',
       for (final f in PlanFocus.values) 'plan.${f.name}.own',
       'plan.opp',
+      for (final h in ['good', 'flat', 'bad'])
+        for (final w in sides) 'shout.$h.$w',
     ];
     for (final key in needed) {
       expect(strings.texts(key), isNotEmpty, reason: key);
