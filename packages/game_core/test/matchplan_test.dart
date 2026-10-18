@@ -43,10 +43,19 @@ void main() {
     ];
   });
 
+  // Both sides without an AI coach: the plan of the test is the only one.
+  MatchTeam human(MatchTeam t) => MatchTeam(
+    clubId: t.clubId,
+    name: t.name,
+    squad: t.squad,
+    sheet: t.sheet,
+    autoManage: false,
+  );
+
   MatchSession make(int i, {Rules? using}) => MatchSession(
     rules: using ?? rules,
-    home: tier1[i % tier1.length],
-    away: tier1[(i * 7 + 3) % tier1.length],
+    home: human(tier1[i % tier1.length]),
+    away: human(tier1[(i * 7 + 3) % tier1.length]),
     seed: 6600 + i,
   );
 

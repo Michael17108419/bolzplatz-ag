@@ -129,4 +129,50 @@ void main() {
       isNotEmpty,
     );
   });
+
+  test('AI coaches prepare: a plan from what they see, good ones put a man '
+      'marker on a key player and play for time when ahead (report)', () {
+    var plansStrong = 0;
+    var plansWeak = 0;
+    var markersStrong = 0;
+    var markersWeak = 0;
+    var games = 0;
+    for (var i = 0; i < 100; i++) {
+      final a = tier1[i % tier1.length];
+      final b = tier1[(i * 3 + 1) % tier1.length];
+      if (a.clubId == b.clubId) continue;
+      games++;
+      for (final q in [90.0, 10.0]) {
+        final s = MatchSession(
+          rules: rules,
+          home: _coached(a, q),
+          away: _coached(b, q),
+          seed: 2200 + i,
+        );
+        final plans = s.events
+            .where((e) => e.type == MatchEventType.matchPlan)
+            .length;
+        final markers = [
+          for (final side in [0, 1])
+            ...s.sheetOf(side).instructions.values.where(
+              (x) => x == PlayerInstruction.manMark,
+            ),
+        ].length;
+        if (q > 50) {
+          plansStrong += plans;
+          markersStrong += markers;
+        } else {
+          plansWeak += plans;
+          markersWeak += markers;
+        }
+        expect(s.actions, isEmpty);
+      }
+    }
+    stdout.writeln(
+      'COACH-REPORT plans strong=$plansStrong weak=$plansWeak '
+      'man markers strong=$markersStrong weak=$markersWeak ($games games)',
+    );
+    expect(plansStrong, greaterThan(0));
+    expect(markersStrong, greaterThan(markersWeak));
+  });
 }

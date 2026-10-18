@@ -442,6 +442,11 @@ class MatchSession {
     for (final side in _sides) {
       _refresh(side);
     }
+    // AI coaches prepare the match: analysis, plan, a man marker (step
+    // 10g5). Not recorded: it happens again the same way on a replay.
+    for (var i = 0; i < _sides.length; i++) {
+      if (_sides[i].team.autoManage) _aiPrepare(i);
+    }
   }
 
   final Rules rules;
@@ -3347,9 +3352,13 @@ class MatchSession {
   /// actions it is about; one that does not costs a little.
   void setPlan(int side, List<PlanFocus> plan) {
     if (_minute != 0 || _finished) return;
-    final s = _sides[side];
     final chosen = plan.toSet().take(2).toList();
     _actions.add(SessionAction.plan(_minute, side, chosen));
+    _applyPlan(side, chosen);
+  }
+
+  void _applyPlan(int side, List<PlanFocus> chosen) {
+    final s = _sides[side];
     final map = <PlanFocus, bool>{};
     for (final f in chosen) {
       final (real, wing, key) = _weakness(side, f);
@@ -3450,6 +3459,49 @@ class MatchSession {
           null,
           best.player.id,
         );
+    }
+  }
+
+  /// An AI coach before kick-off (step 10g5): reads the opponent as well
+  /// as his tactical knowledge lets him, picks up to two focus points from
+  /// what he sees, and a good one puts a man marker on their key player.
+  void _aiPrepare(int side) {
+    final s = _sides[side];
+    final q = s.team.coach.tactics / 100;
+    final notes = scout(
+      side,
+      tactics: s.team.coach.tactics,
+      seed: _coachRng.nextInt(1 << 30),
+    );
+    if (notes.isEmpty) return;
+    final take = q >= 0.3 ? 2 : 1;
+    final plan = [for (final n in notes.take(take)) n.focus];
+    _applyPlan(side, plan);
+    final key = notes.where((n) => n.focus == PlanFocus.stopKey).firstOrNull;
+    if (key != null && q >= 0.5 && _coachRng.nextDouble() < q) {
+      final markers = [
+        for (final slot in s.pitch)
+          if ((slot.position == Position.zdm ||
+                  slot.position == Position.iv) &&
+              slot.instr == null)
+            slot,
+      ]..sort(
+          (a, b) => _fit
+              .slotScore(b.player, b.position)
+              .compareTo(_fit.slotScore(a.player, a.position)),
+        );
+      if (markers.isNotEmpty) {
+        final m = markers.first;
+        m.instr = PlayerInstruction.manMark;
+        s.sheet = s.sheet.copyWith(
+          instructions: {
+            ...s.sheet.instructions,
+            m.player.id: PlayerInstruction.manMark,
+          },
+        );
+        s.zones = null;
+        _refresh(s);
+      }
     }
   }
 
@@ -3879,11 +3931,16 @@ class MatchSession {
         _clock >= c['coach_hold_minute'] + delay) {
       side.coachDone = (side.coachDone | _Coach.hold) & ~_Coach.chase;
       wrong ? set(2, 2, 2, 'panic') : set(0, 0, 0, 'hold');
+      // A cunning one also tells them to play for time (step 10g5).
+      if (!wrong && q >= 0.5) {
+        side.sheet = side.sheet.copyWith(wasteTime: true);
+      }
       return;
     }
     // The lead is gone: a good coach opens up again.
     if (lead <= 0 && side.coachDone & _Coach.hold != 0 && q >= 0.4) {
       side.coachDone &= ~_Coach.hold;
+      side.sheet = side.sheet.copyWith(wasteTime: false);
       set(1, 1, 1, 'open');
       return;
     }
